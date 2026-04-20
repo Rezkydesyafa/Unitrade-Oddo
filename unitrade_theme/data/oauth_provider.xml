@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- noupdate=1: only created on first install, won't overwrite on upgrade -->
+    <data noupdate="1">
+    <!-- Google OAuth Provider Configuration -->
+    <record id="provider_google_unitrade" model="auth.oauth.provider">
+        <field name="name">Google</field>
+        <field name="client_id">GOOGLE_CLIENT_ID_PLACEHOLDER</field>
+        <field name="auth_endpoint">https://accounts.google.com/o/oauth2/v2/auth</field>
+        <field name="scope">openid email profile</field>
+        <field name="validation_endpoint">https://www.googleapis.com/oauth2/v1/userinfo</field>
+        <field name="data_endpoint"/>
+        <field name="css_class">fa fa-fw fa-google</field>
+        <field name="body">Log in with Google</field>
+        <field name="enabled" eval="True"/>
+        <field name="sequence">1</field>
+    </record>
+    </data>
+</odoo>

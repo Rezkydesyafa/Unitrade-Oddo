@@ -1,0 +1,27 @@
+{
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.2.2",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.10",
+    "tailwindcss": "^3.4.19"
+  },
+  "name": "unitrade_oddo",
+  "version": "1.0.0",
+  "description": "UniTrade adalah platform marketplace C2C (Customer-to-Customer) eksklusif yang dirancang khusus untuk mahasiswa **UNISA Yogyakarta**. Platform ini memungkinkan mahasiswa untuk jual-beli produk (makanan, fashion, elektronik, barang bekas) dan jasa dengan aman melalui verifikasi identitas mahasiswa (KTM).",
+  "main": "tailwind.config.js",
+  "scripts": {
+    "build": "tailwindcss -i ./unitrade_theme/static/src/css/input.css -o ./unitrade_theme/static/src/css/output.css",
+    "watch": "tailwindcss -i ./unitrade_theme/static/src/css/input.css -o ./unitrade_theme/static/src/css/output.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rezkydesyafa/Unitrade-Oddo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Rezkydesyafa/Unitrade-Oddo/issues"
+  },
+  "homepage": "https://github.com/Rezkydesyafa/Unitrade-Oddo#readme"
+}

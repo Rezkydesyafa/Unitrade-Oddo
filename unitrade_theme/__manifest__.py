@@ -12,11 +12,16 @@
     'author': 'Tim 1 - UNISA Yogyakarta',
     'website': 'https://unitrade.dev',
     'category': 'Website/Theme',
-    'depends': ['website', 'website_sale'],
+    'depends': ['website', 'website_sale', 'auth_signup', 'auth_oauth'],
     'data': [
+        'security/ir.model.access.csv',
+        'data/oauth_provider.xml',
         'views/templates.xml',
         'views/homepage.xml',
+        'views/shop_templates.xml',
         'views/snippets.xml',
+        'views/login_templates.xml',
+        'views/otp_templates.xml',
     ],
     'assets': {
         'web.assets_frontend': [
