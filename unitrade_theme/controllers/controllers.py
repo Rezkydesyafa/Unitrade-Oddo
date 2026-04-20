@@ -2,12 +2,12 @@ import logging
 import re
 import werkzeug
 
-from odoo import http, _
+from odoo import http, _, SUPERUSER_ID
 from odoo.http import request
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, AccessDenied
 from odoo.service import security
 from odoo.addons.auth_signup.models.res_users import SignupError
-from odoo.addons.auth_signup.controllers.main import AuthSignupHome
+from odoo.addons.auth_oauth.controllers.main import OAuthLogin, OAuthController
 
 _logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ def _is_phone(value):
     return bool(re.match(r'^(\+62|62|08)[0-9]{8,13}$', (value or '').replace(' ', '')))
 
 
-class UnitradeAuthSignup(AuthSignupHome):
+class UnitradeAuthSignup(OAuthLogin):
     """Override signup and login to redirect to OTP verification page."""
 
     @http.route()
@@ -418,3 +418,24 @@ class UnitradeOTPController(http.Controller):
                 return '*@' + domain
             return local[0] + '***@' + domain
         return '****'
+
+
+class UnitradeOAuthController(OAuthController):
+    """Override OAuth signin to auto-verify Google users (skip OTP)."""
+
+    @http.route('/auth_oauth/signin', type='http', auth='none')
+    def signin(self, **kw):
+        """After Google OAuth signin, auto-set is_otp_verified = True."""
+        response = super().signin(**kw)
+
+        # If login was successful (session.uid is set), mark user as OTP verified
+        if request.session.uid:
+            try:
+                user = request.env['res.users'].sudo().browse(request.session.uid)
+                if user.exists() and not user.is_otp_verified:
+                    user.write({'is_otp_verified': True})
+                    _logger.info("Google OAuth user %s auto-verified (OTP skipped).", user.login)
+            except Exception as e:
+                _logger.error("Failed to auto-verify OAuth user: %s", str(e))
+
+        return response
