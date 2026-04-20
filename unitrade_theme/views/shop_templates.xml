@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="unitrade_products_layout" inherit_id="website_sale.products" name="UniTrade Shop Layout">
+        <!-- Add background to the shop page -->
+        <xpath expr="//div[@id='wrap']" position="attributes">
+            <attribute name="class" add="tw-bg-[#f5f5f7]" separator=" "/>
+        </xpath>
+
+        <!-- Replace the main row layout to inject our Sidebar and Topbar -->
+        <xpath expr="//div[hasclass('o_wsale_products_main_row')]" position="replace">
+            <!-- Breadcrumbs -->
+            <div class="tw-w-full tw-mb-4 tw-px-[15px] tw-pt-[30px] tw-relative tw-z-10">
+                <nav class="tw-flex" aria-label="Breadcrumb">
+                    <ol class="tw-inline-flex tw-items-center">
+                        <li class="tw-inline-flex tw-items-center">
+                            <a href="/" class="tw-inline-flex tw-items-center tw-text-[12px] tw-font-['Urbanist'] tw-text-[#5155fa] hover:tw-text-blue-800">Home</a>
+                        </li>
+                        <li>
+                            <div class="tw-flex tw-items-center">
+                                <span class="tw-mx-1 tw-text-[#212529] tw-text-[12px]">></span>
+                                <a href="/shop" class="tw-text-[12px] tw-font-['Urbanist'] tw-text-[#5155fa] hover:tw-text-blue-800">Search</a>
+                            </div>
+                        </li>
+                        <t t-if="category">
+                            <li>
+                                <div class="tw-flex tw-items-center">
+                                    <span class="tw-mx-1 tw-text-[#212529] tw-text-[12px]">></span>
+                                    <span class="tw-text-[12px] tw-font-['Urbanist'] tw-text-[#5155fa]" t-out="category.name">Category</span>
+                                </div>
+                            </li>
+                        </t>
+                        <li>
+                            <div class="tw-flex tw-items-center">
+                                <span class="tw-mx-1 tw-text-[#212529] tw-text-[12px]">></span>
+                                <span class="tw-text-[12px] tw-font-['Urbanist'] tw-text-[#212529]">...</span>
+                            </div>
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="row o_wsale_products_main_row align-items-start flex-nowrap tw-w-full tw-m-0">
+                <!-- Filter Sidebar -->
+                <aside id="products_grid_before" class="d-none d-lg-block col-3 px-3 clearfix">
+                    <div class="tw-bg-white tw-rounded-[12px] tw-p-[24px] tw-min-h-[795px] tw-w-[205px]">
+                        <!-- Filter UI -->
+                        <div class="tw-flex tw-items-center tw-gap-2 tw-mb-8">
+                            <i class="fa fa-sliders tw-text-[20px] tw-text-[#212529]"></i>
+                            <h5 class="tw-font-['Urbanist'] tw-font-bold tw-text-[18px] tw-text-[#212529] tw-m-0">Filter</h5>
+                        </div>
+                        
+                        <!-- Lokasi -->
+                        <div class="tw-mb-8">
+                            <h6 class="tw-font-['Urbanist'] tw-font-semibold tw-text-[16px] tw-text-[#212529] tw-mb-4 tw-text-left">Lokasi</h6>
+                            <div class="tw-flex tw-flex-col tw-gap-3">
+                                <label class="tw-flex tw-items-center tw-gap-3 tw-cursor-pointer">
+                                    <input type="radio" name="lokasi" checked="checked" class="tw-accent-[#212529] tw-w-[17px] tw-h-[17px]"/>
+                                    <span class="tw-font-['Urbanist'] tw-text-[12px] tw-text-[#1a1a1a]">Sleman</span>
+                                </label>
+                                <label class="tw-flex tw-items-center tw-gap-3 tw-cursor-pointer">
+                                    <input type="radio" name="lokasi" class="tw-accent-[#212529] tw-w-[17px] tw-h-[17px]"/>
+                                    <span class="tw-font-['Urbanist'] tw-text-[12px] tw-text-[#1a1a1a]">Yogyakarta</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <hr class="tw-border-t tw-border-[rgba(0,0,0,0.1)] tw-my-6"/>
+                        
+                        <!-- Harga -->
+                        <div class="tw-mb-8">
+                            <h6 class="tw-font-['Urbanist'] tw-font-semibold tw-text-[16px] tw-text-[#212529] tw-mb-4 tw-text-left">Harga</h6>
+                            <div class="tw-flex tw-flex-col tw-gap-4">
+                                <div class="tw-flex tw-items-center tw-bg-transparent tw-border tw-border-[rgba(0,0,0,0.1)] tw-rounded-[9px] tw-overflow-hidden tw-h-[32px]">
+                                    <span class="tw-bg-[rgba(0,0,0,0.04)] tw-w-[35px] tw-h-full tw-flex tw-items-center tw-justify-center tw-font-['Urbanist'] tw-font-medium tw-text-[rgba(0,0,0,0.53)] tw-text-[16px]">Rp</span>
+                                    <input type="number" placeholder="Harga minimal" class="tw-w-full tw-px-2 tw-py-1 tw-bg-transparent tw-border-none tw-outline-none tw-font-['Urbanist'] tw-text-[12px] tw-text-[rgba(0,0,0,0.53)]"/>
+                                </div>
+                                <div class="tw-flex tw-items-center tw-bg-transparent tw-border tw-border-[rgba(0,0,0,0.1)] tw-rounded-[9px] tw-overflow-hidden tw-h-[32px]">
+                                    <span class="tw-bg-[rgba(0,0,0,0.04)] tw-w-[35px] tw-h-full tw-flex tw-items-center tw-justify-center tw-font-['Urbanist'] tw-font-medium tw-text-[rgba(0,0,0,0.53)] tw-text-[16px]">Rp</span>
+                                    <input type="number" placeholder="Harga maximal" class="tw-w-full tw-px-2 tw-py-1 tw-bg-transparent tw-border-none tw-outline-none tw-font-['Urbanist'] tw-text-[12px] tw-text-[rgba(0,0,0,0.53)]"/>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="tw-border-t tw-border-[rgba(0,0,0,0.1)] tw-my-6"/>
+                        
+                        <!-- Rating -->
+                        <div>
+                            <h6 class="tw-font-['Urbanist'] tw-font-semibold tw-text-[16px] tw-text-[#212529] tw-mb-4 tw-text-left">Rating</h6>
+                            <div class="tw-flex tw-flex-col tw-gap-3">
+                                <label class="tw-flex tw-items-center tw-gap-3 tw-cursor-pointer">
+                                    <input type="radio" name="rating" checked="checked" class="tw-accent-[#212529] tw-w-[17px] tw-h-[17px]"/>
+                                    <div class="tw-flex tw-items-center tw-gap-1">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#FFC107"/>
+                                        </svg>
+                                        <span class="tw-font-['Urbanist'] tw-text-[12px] tw-text-[#1a1a1a]">4 ke atas</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </aside>
+                
+                <div id="products_grid" class="col-12 col-lg-9 tw-pl-4">
+                    <!-- Top Sort Bar -->
+                    <div class="tw-bg-[#f5f5f7] tw-rounded-[17px] tw-h-[74px] tw-px-[24px] tw-flex tw-items-center tw-mb-8">
+                        <span class="tw-font-['Urbanist'] tw-font-semibold tw-text-[16px] tw-text-[#212529] tw-mr-6">Urutan</span>
+                        <div class="tw-flex tw-gap-[19px]">
+                            <div class="tw-bg-[#d9d9d9] tw-text-[#212529] tw-w-[80px] tw-h-[30px] tw-rounded-[6px] tw-font-['Urbanist'] tw-font-medium tw-text-[16px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer">Terkait</div>
+                            <div class="tw-text-[#212529] hover:tw-bg-[#d9d9d9] tw-w-[80px] tw-h-[30px] tw-rounded-[6px] tw-font-['Urbanist'] tw-font-medium tw-text-[16px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-transition-colors">Terlaris</div>
+                            <div class="tw-text-[#212529] hover:tw-bg-[#d9d9d9] tw-w-[80px] tw-h-[30px] tw-rounded-[6px] tw-font-['Urbanist'] tw-font-medium tw-text-[16px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-transition-colors">Terbaru</div>
+                            <div class="tw-text-[#212529] hover:tw-bg-[#d9d9d9] tw-w-[80px] tw-h-[30px] tw-rounded-[6px] tw-font-['Urbanist'] tw-font-medium tw-text-[16px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-transition-colors">Promo</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Products Grid Container -->
+                    <div t-if="products" class="o_wsale_products_grid_table_wrapper">
+                        <table class="table table-borderless h-100 m-0 tw-border-collapse" t-att-data-ppg="ppg" t-att-data-ppr="ppr" t-att-data-default-sort="website.shop_default_sort" t-att-data-name="grid_block_name">
+                            <colgroup t-ignore="true">
+                                <col t-foreach="ppr" t-as="p"/>
+                            </colgroup>
+                            <tbody>
+                                <tr t-foreach="bins" t-as="tr_product">
+                                    <t t-foreach="tr_product" t-as="td_product">
+                                        <t t-if="td_product">
+                                            <td t-att-colspan="td_product['x'] != 1 and td_product['x']"
+                                                t-att-rowspan="td_product['y'] != 1 and td_product['y']"
+                                                t-attf-class="oe_product tw-pb-[30px] tw-pr-[30px]"
+                                                t-att-data-ribbon-id="td_product['ribbon'].id"
+                                                t-att-data-name="product_block_name">
+                                                <div t-attf-class="o_wsale_product_grid_wrapper position-relative h-100 o_wsale_product_grid_wrapper_#{td_product['x']}_#{td_product['y']}">
+                                                    <t t-call="website_sale.products_item">
+                                                        <t t-set="product" t-value="td_product['product']"/>
+                                                    </t>
+                                                </div>
+                                            </td>
+                                        </t>
+                                        <td t-else=""/>
+                                    </t>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div t-else="" class="tw-w-full tw-flex tw-flex-col tw-items-center tw-justify-center tw-pt-[80px] tw-pb-[120px]">
+                        <svg class="tw-w-[111px] tw-h-[111px] tw-opacity-68 tw-mb-[15px] tw-text-[#d9d9d9]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75l-2.489-2.489m0 0a3.375 3.375 0 10-4.773-4.773 3.375 3.375 0 004.774 4.774zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p class="tw-font-['Urbanist'] tw-font-bold tw-text-[#212529] tw-text-[18px] tw-opacity-68 tw-leading-[28px] tw-m-0">
+                            Sepertinya barang yang kamu cari tidak ada
+                        </p>
+                        <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[#737373] tw-text-[16px] tw-opacity-68 tw-leading-[28px] tw-m-0">
+                            Coba gunakan kata kunci yang lain atau umum
+                        </p>
+                    </div>
+                    
+                    <div class="products_pager d-flex justify-content-center pt-5 pb-3">
+                        <t t-call="website.pager"/>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- Override individual product card -->
+    <template id="unitrade_products_item" inherit_id="website_sale.products_item" name="UniTrade Product Card">
+        <!-- Replace the default form with our custom Tailwind card -->
+        <xpath expr="//form" position="replace">
+            <form action="/shop/cart/update" method="post" class="card oe_product_cart h-100 d-flex tw-border-none tw-bg-transparent tw-shadow-none"
+                t-att-data-publish="product.website_published and 'on' or 'off'"
+                itemscope="itemscope" itemtype="http://schema.org/Product">
+                
+                <t t-set="product_href" t-value="keep(product.website_url, page=(pager['page']['num'] if pager['page']['num']&gt;1 else None))" />
+                
+                <div class="tw-relative tw-w-[178px] tw-h-[253px] tw-bg-white tw-border tw-border-[#d9d9d9] tw-rounded-[22px] hover:tw-shadow-md tw-transition-shadow tw-duration-300 tw-p-[9.4px] tw-flex tw-flex-col">
+                    <!-- Image Wrapper -->
+                    <div class="tw-relative tw-w-full tw-h-[132.7px] tw-rounded-[12px] tw-overflow-hidden tw-bg-[#d9d9d9] tw-mb-2 tw-shrink-0">
+                        <a t-att-href="product_href" class="oe_product_image_link d-block h-100 position-relative" itemprop="url" contenteditable="false">
+                            <t t-set="image_holder" t-value="product._get_image_holder()"/>
+                            <span t-field="image_holder.image_1920"
+                                t-options="{'widget': 'image', 'preview_image': 'image_512', 'itemprop': 'image', 'class': 'tw-w-full tw-h-full tw-object-cover position-absolute'}"
+                                class="oe_product_image_img_wrapper d-flex h-100 justify-content-center align-items-center position-absolute tw-w-full tw-h-full"/>
+                        </a>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="tw-flex tw-flex-col tw-flex-grow tw-relative">
+                        <!-- Title -->
+                        <a t-att-href="product_href" itemprop="url" class="tw-text-decoration-none tw-mb-1">
+                            <h6 class="tw-font-['Urbanist'] tw-font-semibold tw-text-[#212529] tw-text-[16px] tw-leading-tight tw-m-0 tw-line-clamp-1" itemprop="name" t-out="product.name"/>
+                        </a>
+                        
+                        <!-- Location -->
+                        <div class="tw-flex tw-items-center tw-gap-1 tw-mb-auto">
+                            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M7 0C4.1 0 1.75 2.35 1.75 5.25C1.75 9.1875 7 14 7 14C7 14 12.25 9.1875 12.25 5.25C12.25 2.35 9.9 0 7 0ZM7 7.875C5.55625 7.875 4.375 6.69375 4.375 5.25C4.375 3.80625 5.55625 2.625 7 2.625C8.44375 2.625 9.625 3.80625 9.625 5.25C9.625 6.69375 8.44375 7.875 7 7.875Z" fill="#1A1A1A" fill-opacity="0.25"/>
+                            </svg>
+                            <span class="tw-font-['Urbanist'] tw-font-normal tw-text-[12px] tw-text-[rgba(0,0,0,0.25)]">Sleman</span>
+                        </div>
+                        
+                        <!-- Price & Rating Row -->
+                        <div class="tw-flex tw-justify-between tw-items-end tw-mt-2">
+                            <!-- Price -->
+                            <t t-set="template_price_vals" t-value="get_product_prices(product)"/>
+                            <div class="tw-font-['Urbanist'] tw-font-extrabold tw-text-[#212529] tw-text-[16px]" itemprop="offers" itemscope="itemscope" itemtype="http://schema.org/Offer">
+                                <span t-if="template_price_vals['price_reduce'] or not website.prevent_zero_price_sale" t-esc="template_price_vals['price_reduce']" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                                <span t-else="" t-field="website.prevent_zero_price_sale_text"/>
+                                <span itemprop="price" style="display:none;" t-esc="template_price_vals['price_reduce']" />
+                                <span itemprop="priceCurrency" style="display:none;" t-esc="website.currency_id.name" />
+                            </div>
+                            
+                            <!-- Rating -->
+                            <div class="tw-flex tw-items-center tw-gap-1">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#FFC107"/>
+                                </svg>
+                                <span class="tw-font-['Urbanist'] tw-font-normal tw-text-[12px] tw-text-[rgba(0,0,0,0.25)]">5.0</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Required Odoo hidden elements -->
+                        <div class="o_wsale_product_btn d-none"/>
+                        <t t-set="product_variant_id" t-value="product._get_first_possible_variant_id()"/>
+                        <input name="product_id" t-att-value="product_variant_id" type="hidden"/>
+                    </div>
+                </div>
+            </form>
+        </xpath>
+    </template>
+</odoo>

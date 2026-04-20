@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="unitrade_login_custom" inherit_id="web.login" name="UniTrade Custom Login">
+        <!-- Set variables to hide header and footer if not admin -->
+        <xpath expr="//t[@t-call='web.login_layout']" position="before">
+            <t t-set="no_header" t-value="True" t-if="request.params.get('admin') != '1'"/>
+            <t t-set="no_footer" t-value="True" t-if="request.params.get('admin') != '1'"/>
+        </xpath>
+        
+        <!-- Hide default Odoo login form elements if not admin -->
+        <xpath expr="//form[hasclass('oe_login_form')]" position="attributes">
+            <attribute name="t-if">request.params.get('admin') == '1'</attribute>
+        </xpath>
+
+        <!-- Inject our Custom Full-Screen Login inside the layout -->
+        <xpath expr="//t[@t-call='web.login_layout']" position="inside">
+            <t t-if="request.params.get('admin') != '1'">
+                <div class="tw-fixed tw-inset-0 tw-z-[9999] tw-bg-white tw-overflow-y-auto tw-font-['Urbanist']">
+                    <div class="tw-min-h-screen tw-w-full tw-flex tw-justify-center tw-items-center tw-p-[20px] md:tw-p-[40px]">
+                        <div class="tw-w-full tw-max-w-[1380px] tw-flex tw-flex-col lg:tw-flex-row tw-gap-[40px] lg:tw-gap-[26px]">
+                            
+                            <!-- Left Column: Form -->
+                            <div class="tw-flex-1 tw-max-w-[670px] tw-flex tw-flex-col tw-justify-center tw-relative tw-bg-white tw-rounded-[40px]">
+                                <div class="tw-px-[20px] md:tw-px-[74px] tw-py-[40px] md:tw-py-[60px]">
+                                    <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-[rgba(0,0,0,0.53)] tw-mb-[40px]">UniTrade</p>
+                                    
+                                    <h1 class="tw-font-['Urbanist'] tw-font-medium tw-text-[48px] tw-text-black tw-leading-[1.1] tw-mb-[24px]">
+                                        Welcome to<br/>UniTrade
+                                    </h1>
+                                    
+                                    <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-[rgba(0,0,0,0.36)] tw-leading-[1.4] tw-mb-[50px] tw-max-w-[483px]">
+                                        Worem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed 
+                                    </p>
+                                    
+                                    <form class="tw-w-full tw-max-w-[521px]" role="form" t-attf-action="/web/login{{ '?debug' if debug else '' }}" method="post">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <input type="hidden" name="redirect" t-att-value="redirect"/>
+                                        
+                                        <p t-if="error" class="tw-text-red-500 tw-text-sm tw-mb-4" role="alert">
+                                            <t t-esc="error"/>
+                                        </p>
+                                        
+                                        <!-- Email Field -->
+                                        <div class="tw-mb-[24px]">
+                                            <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[24px] tw-py-[14px] tw-flex tw-items-center tw-bg-white">
+                                                <input type="text" placeholder="Email" name="login" t-att-value="login" required="required" autofocus="autofocus" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[16px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
+                                            </div>
+                                            <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[12px] tw-text-[#666] tw-mt-[8px] tw-ml-[16px]">Masukan email anda</p>
+                                        </div>
+                                        
+                                        <!-- Password Field -->
+                                        <div class="tw-mb-[35px]">
+                                            <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[24px] tw-py-[14px] tw-flex tw-items-center tw-bg-white">
+                                                <input type="password" placeholder="Password" name="password" required="required" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[16px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
+                                                <button type="button" class="tw-ml-2 tw-text-gray-500 hover:tw-text-black tw-border-none tw-bg-transparent tw-p-0" style="border: none !important;">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/></svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Login Button -->
+                                        <button type="submit" class="tw-w-full tw-h-[51px] tw-border-2 tw-border-[#1a1a1a] tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mb-[24px] hover:tw-bg-gray-50 tw-transition-colors tw-bg-transparent">
+                                            <span class="tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-[#1a1a1a] tw-uppercase">Masuk</span>
+                                        </button>
+                                        
+                                        <!-- Or Separator -->
+                                        <div class="tw-flex tw-items-center tw-my-[24px]">
+                                            <div class="tw-flex-1 tw-h-px tw-bg-[#b3b3b3]"></div>
+                                            <span class="tw-px-[16px] tw-font-['Urbanist'] tw-font-normal tw-text-[12px] tw-text-black">Or</span>
+                                            <div class="tw-flex-1 tw-h-px tw-bg-[#b3b3b3]"></div>
+                                        </div>
+                                        
+                                        <!-- Google Button -->
+                                        <a href="/auth_oauth/login?provider_id=1" class="tw-w-full tw-h-[51px] tw-bg-[#1a1a1a] tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mb-[24px] hover:tw-bg-black tw-transition-colors tw-no-underline">
+                                            <svg class="tw-w-[15px] tw-h-[15px] tw-mr-[8px]" viewBox="0 0 24 24">
+                                                <path fill="#ffffff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                                <path fill="#ffffff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                                <path fill="#ffffff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                                <path fill="#ffffff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                                            </svg>
+                                            <span class="tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-white tw-capitalize">Google</span>
+                                        </a>
+                                        
+                                        <!-- Footer Links -->
+                                        <div class="tw-flex tw-justify-between tw-items-center tw-mt-[20px]">
+                                            <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-[#212529] tw-m-0">
+                                                Lupa password? <a href="/web/reset_password" class="tw-text-[#5155fa] hover:tw-underline tw-no-underline">klik disini</a>
+                                            </p>
+                                            <p t-if="signup_enabled" class="tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-[#212529] tw-m-0">
+                                                Belum punya akun? <a href="/web/signup" class="tw-text-[#5155fa] hover:tw-underline tw-no-underline">Buat akun</a>
+                                            </p>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Column: Images & Cards -->
+                            <div class="tw-hidden lg:tw-flex tw-flex-col tw-gap-[26px] tw-flex-1 tw-max-w-[670px] tw-relative">
+                                <!-- Main Image Card -->
+                                <div class="tw-relative tw-w-full tw-h-[594px] tw-rounded-[40px] tw-overflow-hidden">
+                                    <img src="/unitrade_theme/static/src/img/login_bg.jpg" alt="Office" class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover" onerror="this.src='https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&amp;fit=crop&amp;q=80&amp;w=1440'"/>
+                                    <div class="tw-absolute tw-inset-0 tw-bg-black/10"></div>
+                                    
+                                    <!-- Floyd Miles Overlay Card -->
+                                    <div class="tw-absolute tw-bottom-[27px] tw-left-[31px] tw-right-[31px] tw-h-[159px] tw-bg-[rgba(0,0,0,0.24)] tw-backdrop-blur-[10px] tw-rounded-[30px] tw-p-[20px] tw-pl-[111px]">
+                                        <img src="https://i.pravatar.cc/100?img=11" alt="Floyd" class="tw-absolute tw-left-[20px] tw-top-[62px] tw-w-[49px] tw-h-[49px] tw-rounded-full tw-object-cover"/>
+                                        
+                                        <!-- Arrows -->
+                                        <div class="tw-absolute tw-right-[74px] tw-top-[13px] tw-w-[49px] tw-h-[49px] tw-rounded-full tw-border tw-border-white/30 tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-white/10 tw-transition">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="tw-text-white tw-rotate-90">
+                                                <path d="M12 4L12 20M12 20L6 14M12 20L18 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </div>
+                                        <div class="tw-absolute tw-right-[20px] tw-top-[13px] tw-w-[49px] tw-h-[49px] tw-rounded-full tw-border tw-border-white/30 tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-white/10 tw-transition">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="tw-text-white tw-rotate-45">
+                                                <path d="M12 4L12 20M12 4L6 10M12 4L18 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </div>
+                                        
+                                        <h3 class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-white tw-mt-[35px] tw-mb-[4px]">Floyd Miles</h3>
+                                        <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[12px] tw-text-white tw-leading-[16px] tw-max-w-[363px] tw-m-0">
+                                            Worem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus.
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Join Card -->
+                                <div class="tw-relative tw-w-full tw-h-[102px] tw-bg-[rgba(0,0,0,0.04)] tw-rounded-[23px] tw-px-[40px] tw-flex tw-items-center">
+                                    <div class="tw-flex tw-items-center tw-w-full">
+                                        <div class="tw-flex -tw-space-x-[15px] tw-flex-shrink-0">
+                                            <img src="https://i.pravatar.cc/100?img=12" class="tw-w-[50px] tw-h-[50px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover tw-z-30"/>
+                                            <img src="https://i.pravatar.cc/100?img=13" class="tw-w-[50px] tw-h-[50px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover tw-z-20"/>
+                                            <div class="tw-relative tw-z-10">
+                                                <img src="https://i.pravatar.cc/100?img=14" class="tw-w-[50px] tw-h-[50px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover"/>
+                                                <div class="tw-absolute tw-bottom-0 tw-right-0 tw-w-[15px] tw-h-[15px] tw-bg-black tw-rounded-full tw-border tw-border-white"></div>
+                                            </div>
+                                        </div>
+                                        <div class="tw-ml-[30px] tw-flex-1">
+                                            <h4 class="tw-font-['Urbanist'] tw-font-medium tw-text-[16px] tw-text-black tw-m-0 tw-mb-[4px]">Bergabung dengan 10k+ User</h4>
+                                            <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[12px] tw-text-[rgba(0,0,0,0.36)] tw-m-0 tw-max-w-[363px] tw-leading-[14px]">
+                                                Worem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="tw-absolute tw-right-[20px] tw-top-[17px] tw-w-[69px] tw-h-[69px] tw-rounded-full tw-border tw-border-transparent hover:tw-bg-black/5 tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-transition">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="tw-text-black tw-rotate-45">
+                                            <path d="M12 4L12 20M12 4L6 10M12 4L18 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+    </template>
+</odoo>

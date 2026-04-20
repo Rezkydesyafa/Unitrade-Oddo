@@ -16,7 +16,9 @@
     'data': [
         'views/templates.xml',
         'views/homepage.xml',
+        'views/shop_templates.xml',
         'views/snippets.xml',
+        'views/login_templates.xml',
     ],
     'assets': {
         'web.assets_frontend': [
