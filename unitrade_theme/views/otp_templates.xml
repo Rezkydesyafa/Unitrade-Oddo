@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- OTP Verification Page Template -->
+    <template id="verify_otp_page" name="UniTrade OTP Verification">
+        <t t-call="web.login_layout">
+            <t t-set="no_header" t-value="True"/>
+            <t t-set="no_footer" t-value="True"/>
+
+            <div class="tw-min-h-screen tw-flex tw-flex-col tw-items-center tw-justify-start tw-bg-white tw-font-['Inter'] tw-pt-[48px] tw-pb-[48px]">
+
+                <!-- OTP Card -->
+                <div class="tw-w-[448px] tw-max-w-[95vw] tw-bg-white tw-border tw-border-[#e5e5e5] tw-rounded-[8px] tw-shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] tw-p-[32px]">
+
+                    <!-- Icon Circle -->
+                    <div class="tw-flex tw-justify-center tw-mb-[16px]">
+                        <div class="tw-w-[64px] tw-h-[64px] tw-bg-[#f5f5f5] tw-rounded-full tw-flex tw-items-center tw-justify-center">
+                            <svg width="18" height="24" viewBox="0 0 18 24" fill="none">
+                                <rect x="2" y="1" width="14" height="22" rx="2" stroke="#171717" stroke-width="2"/>
+                                <circle cx="9" cy="18" r="1.5" fill="#171717"/>
+                                <line x1="6" y1="1" x2="12" y2="1" stroke="#171717" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Title -->
+                    <h2 class="tw-font-['Inter'] tw-font-normal tw-text-[24px] tw-leading-[32px] tw-text-[#171717] tw-text-center tw-mb-[8px]">
+                        Verifikasi Akun
+                    </h2>
+
+                    <!-- Subtitle: depends on email or phone -->
+                    <t t-if="is_email">
+                        <p class="tw-font-['Inter'] tw-font-normal tw-text-[14px] tw-leading-[20px] tw-text-[#525252] tw-text-center tw-mb-[24px]">
+                            Kami telah mengirimkan kode verifikasi 6 digit ke email Anda
+                            <strong><t t-esc="masked_email"/></strong>
+                        </p>
+                    </t>
+                    <t t-if="is_phone">
+                        <p class="tw-font-['Inter'] tw-font-normal tw-text-[14px] tw-leading-[20px] tw-text-[#525252] tw-text-center tw-mb-[16px]">
+                            Anda mendaftar dengan nomor HP <strong><t t-esc="masked_email"/></strong>
+                        </p>
+
+                        <!-- Dev Mode: Show OTP Code for phone users -->
+                        <div class="tw-bg-[#fffbeb] tw-border tw-border-[#f59e0b] tw-rounded-[8px] tw-p-[16px] tw-mb-[16px]">
+                            <p class="tw-font-['Inter'] tw-font-semibold tw-text-[13px] tw-text-[#92400e] tw-mb-[8px] tw-m-0">
+                                ⚠️ Mode Development — SMS belum aktif
+                            </p>
+                            <p class="tw-font-['Inter'] tw-font-normal tw-text-[13px] tw-text-[#92400e] tw-mb-[8px] tw-m-0">
+                                Kode OTP Anda:
+                            </p>
+                            <div class="tw-bg-white tw-rounded-[6px] tw-p-[12px] tw-text-center tw-mb-[8px]">
+                                <span class="tw-font-['Inter'] tw-font-bold tw-text-[28px] tw-text-[#171717] tw-tracking-[8px]" id="devOtpCode">
+                                    <t t-esc="otp_code_dev"/>
+                                </span>
+                            </div>
+                            <p class="tw-font-['Inter'] tw-font-normal tw-text-[11px] tw-text-[#b45309] tw-m-0">
+                                Untuk mengirim SMS secara otomatis, diperlukan integrasi API SMS (Twilio/Fonnte).
+                            </p>
+                        </div>
+
+                        <!-- Option: Send to Email Instead -->
+                        <div class="tw-bg-[#f0f9ff] tw-border tw-border-[#0ea5e9] tw-rounded-[8px] tw-p-[16px] tw-mb-[24px]" id="sendEmailSection">
+                            <p class="tw-font-['Inter'] tw-font-medium tw-text-[13px] tw-text-[#0c4a6e] tw-mb-[10px] tw-m-0">
+                                📧 Kirim kode ke Email?
+                            </p>
+                            <div class="tw-flex tw-gap-[8px]">
+                                <input type="email" id="otpEmailInput" placeholder="nama@gmail.com"
+                                       class="tw-flex-1 tw-h-[38px] tw-border tw-border-[#d4d4d4] tw-rounded-[6px] tw-px-[12px] tw-font-['Inter'] tw-text-[14px] tw-text-[#171717] tw-outline-none focus:tw-border-[#0ea5e9]"
+                                       style="border: 1px solid #d4d4d4 !important; box-shadow: none !important;"/>
+                                <button type="button" id="sendToEmailBtn"
+                                        class="tw-h-[38px] tw-px-[16px] tw-bg-[#0ea5e9] tw-text-white tw-rounded-[6px] tw-font-['Inter'] tw-text-[13px] tw-border-none tw-cursor-pointer hover:tw-bg-[#0284c7] tw-transition-colors tw-whitespace-nowrap"
+                                        style="border: none !important;">
+                                    Kirim
+                                </button>
+                            </div>
+                            <p id="emailSendStatus" class="tw-font-['Inter'] tw-text-[12px] tw-mt-[8px] tw-m-0 tw-hidden"></p>
+                        </div>
+                    </t>
+
+                    <!-- OTP Form -->
+                    <form action="/web/verify-otp/submit" method="post" id="otpForm">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                        <!-- Error Message -->
+                        <t t-if="error">
+                            <p class="tw-text-red-500 tw-text-[13px] tw-text-center tw-mb-[16px] tw-font-['Inter']">
+                                <t t-esc="error"/>
+                            </p>
+                        </t>
+
+                        <!-- Label -->
+                        <label class="tw-block tw-font-['Inter'] tw-font-normal tw-text-[14px] tw-text-[#404040] tw-mb-[12px]">
+                            Masukan kode verikasi
+                        </label>
+
+                        <!-- 6-Digit Input Boxes -->
+                        <div class="tw-flex tw-gap-[12px] tw-justify-center tw-mb-[24px]" id="otpInputGroup">
+                            <input type="text" name="digit1" maxlength="1" required="required"
+                                   class="tw-w-[48px] tw-h-[48px] tw-bg-white tw-border tw-border-solid tw-border-[#d4d4d4] tw-rounded-[8px] tw-text-center tw-text-[20px] tw-font-['Inter'] tw-font-normal tw-text-[#171717] tw-outline-none focus:tw-border-[#171717] tw-transition-colors"
+                                   style="border: 1px solid #d4d4d4 !important; box-shadow: none !important; padding: 0 !important;"
+                                   inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code" autofocus="autofocus"/>
+                            <input type="text" name="digit2" maxlength="1" required="required"
+                                   class="tw-w-[48px] tw-h-[48px] tw-bg-white tw-border tw-border-solid tw-border-[#d4d4d4] tw-rounded-[8px] tw-text-center tw-text-[20px] tw-font-['Inter'] tw-font-normal tw-text-[#171717] tw-outline-none focus:tw-border-[#171717] tw-transition-colors"
+                                   style="border: 1px solid #d4d4d4 !important; box-shadow: none !important; padding: 0 !important;"
+                                   inputmode="numeric" pattern="[0-9]"/>
+                            <input type="text" name="digit3" maxlength="1" required="required"
+                                   class="tw-w-[48px] tw-h-[48px] tw-bg-white tw-border tw-border-solid tw-border-[#d4d4d4] tw-rounded-[8px] tw-text-center tw-text-[20px] tw-font-['Inter'] tw-font-normal tw-text-[#171717] tw-outline-none focus:tw-border-[#171717] tw-transition-colors"
+                                   style="border: 1px solid #d4d4d4 !important; box-shadow: none !important; padding: 0 !important;"
+                                   inputmode="numeric" pattern="[0-9]"/>
+                            <input type="text" name="digit4" maxlength="1" required="required"
+                                   class="tw-w-[48px] tw-h-[48px] tw-bg-white tw-border tw-border-solid tw-border-[#d4d4d4] tw-rounded-[8px] tw-text-center tw-text-[20px] tw-font-['Inter'] tw-font-normal tw-text-[#171717] tw-outline-none focus:tw-border-[#171717] tw-transition-colors"
+                                   style="border: 1px solid #d4d4d4 !important; box-shadow: none !important; padding: 0 !important;"
+                                   inputmode="numeric" pattern="[0-9]"/>
+                            <input type="text" name="digit5" maxlength="1" required="required"
+                                   class="tw-w-[48px] tw-h-[48px] tw-bg-white tw-border tw-border-solid tw-border-[#d4d4d4] tw-rounded-[8px] tw-text-center tw-text-[20px] tw-font-['Inter'] tw-font-normal tw-text-[#171717] tw-outline-none focus:tw-border-[#171717] tw-transition-colors"
+                                   style="border: 1px solid #d4d4d4 !important; box-shadow: none !important; padding: 0 !important;"
+                                   inputmode="numeric" pattern="[0-9]"/>
+                            <input type="text" name="digit6" maxlength="1" required="required"
+                                   class="tw-w-[48px] tw-h-[48px] tw-bg-white tw-border tw-border-solid tw-border-[#d4d4d4] tw-rounded-[8px] tw-text-center tw-text-[20px] tw-font-['Inter'] tw-font-normal tw-text-[#171717] tw-outline-none focus:tw-border-[#171717] tw-transition-colors"
+                                   style="border: 1px solid #d4d4d4 !important; box-shadow: none !important; padding: 0 !important;"
+                                   inputmode="numeric" pattern="[0-9]"/>
+                        </div>
+
+                        <!-- Timer -->
+                        <div class="tw-flex tw-items-center tw-justify-center tw-gap-[6px] tw-mb-[24px]">
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                <circle cx="6" cy="6" r="5" stroke="#525252" stroke-width="1.2"/>
+                                <polyline points="6,3 6,6 8,7.5" fill="none" stroke="#525252" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span class="tw-font-['Inter'] tw-font-normal tw-text-[14px] tw-text-[#525252] tw-leading-[20px]" id="otpTimer">
+                                kode berakhir 04:32
+                            </span>
+                        </div>
+
+                        <!-- Verify Button -->
+                        <button type="submit" id="verifyBtn"
+                                class="tw-w-full tw-h-[48px] tw-bg-[#171717] tw-rounded-[8px] tw-text-white tw-font-['Inter'] tw-font-normal tw-text-[16px] tw-text-center tw-cursor-pointer tw-border-none hover:tw-bg-[#2d2d2d] tw-transition-colors">
+                            Verifikasi akun
+                        </button>
+                    </form>
+
+                    <!-- Resend Section -->
+                    <div class="tw-text-center tw-mt-[24px]">
+                        <p class="tw-font-['Inter'] tw-font-normal tw-text-[14px] tw-text-[#525252] tw-mb-[8px]">
+                            Tidak mendapatkan kode?
+                        </p>
+                        <button type="button" id="resendBtn"
+                                class="tw-font-['Inter'] tw-font-normal tw-text-[14px] tw-text-[#171717] tw-bg-transparent tw-border-none tw-cursor-pointer tw-underline hover:tw-text-[#525252] tw-transition-colors tw-p-0"
+                                style="border: none !important;">
+                            Kirim ulang kode
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Back to Login -->
+                <div class="tw-mt-[24px]">
+                    <a href="/web/login" class="tw-flex tw-items-center tw-gap-[8px] tw-font-['Inter'] tw-font-normal tw-text-[14px] tw-text-[#525252] tw-no-underline hover:tw-text-[#171717] tw-transition-colors">
+                        <svg width="10" height="12" viewBox="0 0 10 12" fill="none">
+                            <path d="M9 1L1 6L9 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Back to login
+                    </a>
+                </div>
+
+                <!-- JavaScript -->
+                <script type="text/javascript">
+                    document.addEventListener("DOMContentLoaded", function() {
+                        // ---- OTP Input Auto-Focus ----
+                        const inputs = document.querySelectorAll('#otpInputGroup input');
+                        inputs.forEach((input, index) => {
+                            input.addEventListener('input', function(e) {
+                                this.value = this.value.replace(/[^0-9]/g, '');
+                                if (this.value.length === 1 &amp;&amp; index &lt; inputs.length - 1) {
+                                    inputs[index + 1].focus();
+                                }
+                            });
+                            input.addEventListener('keydown', function(e) {
+                                if (e.key === 'Backspace' &amp;&amp; this.value === '' &amp;&amp; index &gt; 0) {
+                                    inputs[index - 1].focus();
+                                    inputs[index - 1].value = '';
+                                }
+                            });
+                            input.addEventListener('paste', function(e) {
+                                e.preventDefault();
+                                const data = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+                                for (let i = 0; i &lt; Math.min(data.length, inputs.length); i++) {
+                                    inputs[i].value = data[i];
+                                }
+                                const focusIdx = Math.min(data.length, inputs.length - 1);
+                                inputs[focusIdx].focus();
+                            });
+                            input.addEventListener('focus', function() { this.style.borderColor = '#171717'; });
+                            input.addEventListener('blur', function() { this.style.borderColor = '#d4d4d4'; });
+                        });
+
+                        // ---- Countdown Timer ----
+                        let totalSeconds = 4 * 60 + 32;
+                        const timerEl = document.getElementById('otpTimer');
+                        const resendBtn = document.getElementById('resendBtn');
+
+                        function updateTimer() {
+                            const min = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+                            const sec = (totalSeconds % 60).toString().padStart(2, '0');
+                            if (timerEl) timerEl.textContent = `kode berakhir ${min}:${sec}`;
+                            if (totalSeconds &lt;= 0) {
+                                clearInterval(timerInterval);
+                                if (timerEl) timerEl.textContent = 'Kode sudah kedaluwarsa';
+                            }
+                            totalSeconds--;
+                        }
+                        const timerInterval = setInterval(updateTimer, 1000);
+                        updateTimer();
+
+                        // ---- Resend OTP ----
+                        if (resendBtn) {
+                            resendBtn.addEventListener('click', function() {
+                                this.disabled = true;
+                                this.textContent = 'Mengirim...';
+                                fetch('/web/resend-otp', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({jsonrpc: '2.0', method: 'call', params: {}}),
+                                })
+                                .then(r => r.json())
+                                .then(data => {
+                                    if (data.result &amp;&amp; data.result.success) {
+                                        totalSeconds = 4 * 60 + 32;
+                                        inputs.forEach(i => i.value = '');
+                                        inputs[0].focus();
+                                        // Update dev code if shown
+                                        const devEl = document.getElementById('devOtpCode');
+                                        if (devEl &amp;&amp; data.result.code_dev) {
+                                            devEl.textContent = data.result.code_dev;
+                                        }
+                                    }
+                                    resendBtn.disabled = false;
+                                    resendBtn.textContent = 'Kirim ulang kode';
+                                })
+                                .catch(() => {
+                                    resendBtn.disabled = false;
+                                    resendBtn.textContent = 'Kirim ulang kode';
+                                });
+                            });
+                        }
+
+                        // ---- Send to Email Button ----
+                        const sendEmailBtn = document.getElementById('sendToEmailBtn');
+                        const emailInput = document.getElementById('otpEmailInput');
+                        const emailStatus = document.getElementById('emailSendStatus');
+
+                        if (sendEmailBtn &amp;&amp; emailInput) {
+                            sendEmailBtn.addEventListener('click', function() {
+                                const email = emailInput.value.trim();
+                                if (!email || !email.includes('@')) {
+                                    if (emailStatus) {
+                                        emailStatus.textContent = 'Masukkan email yang valid';
+                                        emailStatus.className = 'tw-font-[\"Inter\"] tw-text-[12px] tw-mt-[8px] tw-m-0 tw-text-red-500';
+                                    }
+                                    return;
+                                }
+                                sendEmailBtn.disabled = true;
+                                sendEmailBtn.textContent = 'Mengirim...';
+
+                                fetch('/web/send-otp-email', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({jsonrpc: '2.0', method: 'call', params: {email: email}}),
+                                })
+                                .then(r => r.json())
+                                .then(data => {
+                                    if (data.result &amp;&amp; data.result.success) {
+                                        if (emailStatus) {
+                                            emailStatus.textContent = '✅ ' + data.result.message;
+                                            emailStatus.className = 'tw-font-[\"Inter\"] tw-text-[12px] tw-mt-[8px] tw-m-0 tw-text-green-600';
+                                        }
+                                        totalSeconds = 4 * 60 + 32;
+                                        inputs.forEach(i => i.value = '');
+                                        inputs[0].focus();
+                                    } else {
+                                        if (emailStatus) {
+                                            emailStatus.textContent = '❌ ' + (data.result ? data.result.message : 'Error');
+                                            emailStatus.className = 'tw-font-[\"Inter\"] tw-text-[12px] tw-mt-[8px] tw-m-0 tw-text-red-500';
+                                        }
+                                    }
+                                    sendEmailBtn.disabled = false;
+                                    sendEmailBtn.textContent = 'Kirim';
+                                })
+                                .catch(() => {
+                                    sendEmailBtn.disabled = false;
+                                    sendEmailBtn.textContent = 'Kirim';
+                                });
+                            });
+                        }
+                    });
+                </script>
+            </div>
+        </t>
+    </template>
+
+</odoo>

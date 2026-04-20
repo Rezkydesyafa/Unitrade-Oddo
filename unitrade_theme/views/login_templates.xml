@@ -228,7 +228,7 @@
                                         <!-- Email Field -->
                                         <div class="tw-mb-[24px]">
                                             <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[24px] tw-py-[14px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
-                                                <input type="email" placeholder="Email atau Nomor hp" name="login" t-att-value="login" required="required" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[16px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
+                                                <input type="text" id="signupLoginInput" placeholder="Email atau Nomor hp" name="login" t-att-value="login" required="required" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[16px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
                                             </div>
                                             <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[12px] tw-text-[#666] tw-mt-[8px] tw-ml-[16px]">@gmail atau +62</p>
                                         </div>
@@ -320,6 +320,23 @@
                                                 };
                                                 pwd.addEventListener('change', validatePassword);
                                                 confirmPwd.addEventListener('keyup', validatePassword);
+                                            }
+
+                                            // Email or Phone validation
+                                            const loginInput = document.getElementById("signupLoginInput");
+                                            if (loginInput) {
+                                                loginInput.addEventListener('input', function() {
+                                                    const val = this.value.trim();
+                                                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                                                    const phoneRegex = /^(\+62|62|08)[0-9]{8,13}$/;
+                                                    if (val === '') {
+                                                        this.setCustomValidity('Wajib diisi');
+                                                    } else if (!emailRegex.test(val) &amp;&amp; !phoneRegex.test(val)) {
+                                                        this.setCustomValidity('Masukkan email yang valid (contoh: nama@gmail.com) atau nomor HP (contoh: 08xxx)');
+                                                    } else {
+                                                        this.setCustomValidity('');
+                                                    }
+                                                });
                                             }
                                         });
                                     </script>
