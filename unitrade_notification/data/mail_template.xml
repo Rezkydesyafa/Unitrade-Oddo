@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="mail_template_order_confirmed" model="mail.template">
+        <field name="name">UniTrade: Order Confirmed</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="subject">Pesanan Dikonfirmasi — {{ object.name }}</field>
+        <field name="email_from">{{ (object.company_id.email or 'noreply@unitrade.dev') }}</field>
+        <field name="email_to">{{ object.partner_id.email }}</field>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+                <h1 style="color: #4F46E5;">🛒 UniTrade</h1>
+                <h2 style="color: #059669;">✅ Pesanan Dikonfirmasi</h2>
+                <p>Halo <strong>{{ object.partner_id.name }}</strong>,</p>
+                <p>Pesanan <strong>{{ object.name }}</strong> telah dikonfirmasi.</p>
+                <p>Total: <strong>Rp {{ '{:,.0f}'.format(object.amount_total) }}</strong></p>
+                <a href="/my/orders" style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">Lihat Pesanan</a>
+            </div>
+        </field>
+    </record>
+</odoo>

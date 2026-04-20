@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- OTP Email Template -->
+    <record id="mail_template_otp" model="mail.template">
+        <field name="name">UniTrade: OTP Verification</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="subject">Kode OTP Verifikasi — UniTrade</field>
+        <field name="email_from">{{ (object.company_id.email or 'noreply@unitrade.dev') }}</field>
+        <field name="email_to">{{ object.email }}</field>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="color: #4F46E5; font-size: 24px; margin: 0;">🛒 UniTrade</h1>
+                    <p style="color: #6B7280; font-size: 14px;">Marketplace Mahasiswa UNISA</p>
+                </div>
+                <div style="background: #F9FAFB; border-radius: 12px; padding: 30px; text-align: center;">
+                    <h2 style="color: #1F2937; font-size: 20px; margin-bottom: 10px;">Kode Verifikasi OTP</h2>
+                    <p style="color: #6B7280; font-size: 14px; margin-bottom: 20px;">
+                        Gunakan kode berikut untuk memverifikasi email Anda:
+                    </p>
+                    <div style="background: #4F46E5; color: white; font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 15px 30px; border-radius: 8px; display: inline-block;">
+                        {{ object.x_otp_code }}
+                    </div>
+                    <p style="color: #EF4444; font-size: 12px; margin-top: 20px;">
+                        ⏰ Kode ini berlaku selama 5 menit. Jangan bagikan kode ini kepada siapapun.
+                    </p>
+                </div>
+                <p style="color: #9CA3AF; font-size: 12px; text-align: center; margin-top: 30px;">
+                    Jika Anda tidak meminta kode ini, abaikan email ini.
+                </p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <!-- Seller Pending Verification -->
+    <record id="mail_template_seller_pending" model="mail.template">
+        <field name="name">UniTrade: Seller Verification Pending</field>
+        <field name="model_id" ref="model_unitrade_seller"/>
+        <field name="subject">Verifikasi Penjual Sedang Diproses — UniTrade</field>
+        <field name="email_from">{{ (object.user_id.company_id.email or 'noreply@unitrade.dev') }}</field>
+        <field name="email_to">{{ object.user_id.email }}</field>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+                <h1 style="color: #4F46E5;">🛒 UniTrade</h1>
+                <h2>Verifikasi Penjual Sedang Diproses</h2>
+                <p>Halo <strong>{{ object.name }}</strong>,</p>
+                <p>Terima kasih telah mendaftar sebagai penjual di UniTrade! KTM Anda sedang diverifikasi oleh tim kami.</p>
+                <p>Estimasi waktu verifikasi: <strong>maksimal 24 jam kerja</strong>.</p>
+                <p>Kami akan mengirimkan email notifikasi begitu verifikasi selesai.</p>
+            </div>
+        </field>
+    </record>
+
+    <!-- Seller Verified -->
+    <record id="mail_template_seller_verified" model="mail.template">
+        <field name="name">UniTrade: Seller Verified</field>
+        <field name="model_id" ref="model_unitrade_seller"/>
+        <field name="subject">✅ Selamat! Akun Penjual Anda Terverifikasi — UniTrade</field>
+        <field name="email_from">{{ (object.user_id.company_id.email or 'noreply@unitrade.dev') }}</field>
+        <field name="email_to">{{ object.user_id.email }}</field>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+                <h1 style="color: #4F46E5;">🛒 UniTrade</h1>
+                <h2 style="color: #059669;">✅ Verifikasi Berhasil!</h2>
+                <p>Halo <strong>{{ object.name }}</strong>,</p>
+                <p>Selamat! Akun penjual Anda telah <strong>terverifikasi</strong>. Anda sekarang bisa:</p>
+                <ul>
+                    <li>Upload dan kelola produk</li>
+                    <li>Menerima pesanan dari pembeli</li>
+                    <li>Mengakses Dashboard Penjual</li>
+                </ul>
+                <a href="/unitrade/seller/dashboard" style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 15px;">
+                    Buka Dashboard Penjual →
+                </a>
+            </div>
+        </field>
+    </record>
+
+    <!-- Seller Rejected -->
+    <record id="mail_template_seller_rejected" model="mail.template">
+        <field name="name">UniTrade: Seller Rejected</field>
+        <field name="model_id" ref="model_unitrade_seller"/>
+        <field name="subject">❌ Verifikasi Penjual Ditolak — UniTrade</field>
+        <field name="email_from">{{ (object.user_id.company_id.email or 'noreply@unitrade.dev') }}</field>
+        <field name="email_to">{{ object.user_id.email }}</field>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+                <h1 style="color: #4F46E5;">🛒 UniTrade</h1>
+                <h2 style="color: #EF4444;">❌ Verifikasi Ditolak</h2>
+                <p>Halo <strong>{{ object.name }}</strong>,</p>
+                <p>Maaf, verifikasi penjual Anda ditolak dengan alasan:</p>
+                <div style="background: #FEF2F2; border-left: 4px solid #EF4444; padding: 15px; margin: 15px 0; border-radius: 4px;">
+                    {{ object.rejection_reason }}
+                </div>
+                <p>Anda bisa mengajukan ulang verifikasi dengan memperbaiki data KTM.</p>
+                <a href="/unitrade/seller/register" style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 15px;">
+                    Coba Lagi →
+                </a>
+            </div>
+        </field>
+    </record>
+
+</odoo>

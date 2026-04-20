@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="unitrade_review_tree" model="ir.ui.view">
+        <field name="name">unitrade.review.tree</field>
+        <field name="model">unitrade.review</field>
+        <field name="arch" type="xml">
+            <tree string="Ulasan Produk">
+                <field name="product_id"/>
+                <field name="user_id"/>
+                <field name="rating"/>
+                <field name="comment"/>
+                <field name="is_visible"/>
+                <field name="create_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="unitrade_review_form" model="ir.ui.view">
+        <field name="name">unitrade.review.form</field>
+        <field name="model">unitrade.review</field>
+        <field name="arch" type="xml">
+            <form string="Detail Ulasan">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="product_id"/>
+                            <field name="user_id"/>
+                            <field name="order_id"/>
+                        </group>
+                        <group>
+                            <field name="rating"/>
+                            <field name="is_visible"/>
+                        </group>
+                    </group>
+                    <group string="Komentar">
+                        <field name="comment" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_unitrade_review" model="ir.actions.act_window">
+        <field name="name">Ulasan Produk</field>
+        <field name="res_model">unitrade.review</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_unitrade_reviews" name="Ulasan" parent="unitrade_seller.menu_unitrade_root" action="action_unitrade_review" sequence="30"/>
+</odoo>

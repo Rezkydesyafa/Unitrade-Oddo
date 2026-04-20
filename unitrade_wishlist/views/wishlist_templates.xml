@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="wishlist_page_template" name="Wishlist Page">
+        <t t-call="website.layout">
+            <t t-set="title">Wishlist</t>
+            <div class="tw-max-w-7xl tw-mx-auto tw-px-4 tw-py-8">
+                <h1 class="unitrade-section-title tw-mb-8">❤️ Wishlist Saya</h1>
+                <t t-if="wishlist_items">
+                    <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-4 tw-gap-6">
+                        <t t-foreach="wishlist_items" t-as="item">
+                            <div class="unitrade-card">
+                                <div class="tw-aspect-square tw-bg-gray-100">
+                                    <img t-att-src="'/web/image/product.template/%s/image_1920' % item.product_id.id" class="tw-w-full tw-h-full tw-object-cover"/>
+                                </div>
+                                <div class="tw-p-4">
+                                    <h3 class="tw-font-semibold tw-text-sm"><t t-esc="item.product_id.name"/></h3>
+                                    <p class="tw-text-indigo-600 tw-font-bold">Rp <t t-esc="'{:,.0f}'.format(item.product_id.list_price)"/></p>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+                <t t-else="">
+                    <div class="tw-text-center tw-py-20">
+                        <div class="tw-text-5xl tw-mb-4">💔</div>
+                        <p class="tw-text-gray-500">Wishlist kosong. Mulai tambahkan produk favorit!</p>
+                        <a href="/shop" class="unitrade-btn-primary tw-mt-4 tw-inline-block">Belanja Sekarang</a>
+                    </div>
+                </t>
+            </div>
+        </t>
+    </template>
+</odoo>

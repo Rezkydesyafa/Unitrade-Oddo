@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="product_catalog_template" name="UniTrade Product Catalog">
+        <t t-call="website.layout">
+            <t t-set="title">Katalog Produk — UniTrade</t>
+            <div class="tw-max-w-7xl tw-mx-auto tw-px-4 tw-py-8">
+                <h1 class="unitrade-section-title tw-mb-8">Katalog Produk</h1>
+                <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 tw-gap-6">
+                    <t t-foreach="products" t-as="product">
+                        <a t-attf-href="/unitrade/product/#{product.id}" class="unitrade-card tw-block">
+                            <div class="tw-aspect-square tw-bg-gray-100 tw-relative">
+                                <img t-att-src="'/web/image/product.template/%s/image_1920' % product.id" t-att-alt="product.name" class="tw-w-full tw-h-full tw-object-cover"/>
+                                <t t-if="product.x_condition">
+                                    <span t-attf-class="unitrade-badge tw-absolute tw-top-3 tw-left-3 #{product.x_condition == 'new' and 'unitrade-badge-new' or 'unitrade-badge-used'}">
+                                        <t t-if="product.x_condition == 'new'">Baru</t><t t-else="">Bekas</t>
+                                    </span>
+                                </t>
+                            </div>
+                            <div class="tw-p-4">
+                                <h3 class="tw-font-semibold tw-text-sm tw-text-gray-900 tw-line-clamp-2"><t t-esc="product.name"/></h3>
+                                <p class="tw-text-indigo-600 tw-font-bold tw-text-lg">Rp <t t-esc="'{:,.0f}'.format(product.list_price)"/></p>
+                                <span class="tw-text-xs tw-text-gray-500">📍 <t t-esc="product.x_seller_location or 'Yogyakarta'"/></span>
+                            </div>
+                        </a>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="product_detail_template" name="UniTrade Product Detail">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="product.name"/>
+            <div class="tw-max-w-7xl tw-mx-auto tw-px-4 tw-py-8">
+                <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-10">
+                    <div class="tw-aspect-square tw-bg-gray-100 tw-rounded-2xl tw-overflow-hidden">
+                        <img t-att-src="'/web/image/product.template/%s/image_1920' % product.id" t-att-alt="product.name" class="tw-w-full tw-h-full tw-object-cover"/>
+                    </div>
+                    <div>
+                        <h1 class="tw-text-3xl tw-font-bold tw-text-gray-900 tw-mb-4"><t t-esc="product.name"/></h1>
+                        <p class="tw-text-3xl tw-font-bold tw-text-indigo-600 tw-mb-6">Rp <t t-esc="'{:,.0f}'.format(product.list_price)"/></p>
+                        <div class="tw-flex tw-gap-3 tw-mb-6">
+                            <t t-if="product.x_condition">
+                                <span t-attf-class="unitrade-badge #{product.x_condition == 'new' and 'unitrade-badge-new' or 'unitrade-badge-used'}">
+                                    <t t-if="product.x_condition == 'new'">Baru</t><t t-else="">Bekas</t>
+                                </span>
+                            </t>
+                            <t t-if="product.x_seller_id and product.x_seller_id.status == 'verified'">
+                                <span class="unitrade-badge unitrade-badge-verified">✓ Seller Verified</span>
+                            </t>
+                        </div>
+                        <div class="tw-space-y-4 tw-mb-8">
+                            <p class="tw-text-gray-600"><t t-raw="product.description_sale or 'Tidak ada deskripsi.'"/></p>
+                            <p class="tw-text-sm tw-text-gray-500">📍 <t t-esc="product.x_seller_location or 'Yogyakarta'"/></p>
+                            <p class="tw-text-sm tw-text-gray-500">📦 Stok: <t t-esc="int(product.qty_available)"/> tersedia</p>
+                        </div>
+                        <div class="tw-flex tw-gap-4">
+                            <a t-attf-href="/shop/cart/update?product_id=#{product.product_variant_id.id}&amp;add_qty=1" class="unitrade-btn-primary tw-flex-1 tw-text-center">🛒 Tambah Keranjang</a>
+                            <button class="unitrade-btn-secondary">💬 Chat Penjual</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

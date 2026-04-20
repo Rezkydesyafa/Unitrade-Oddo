@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ============================
+         Seller Backend Views
+         ============================ -->
+
+    <!-- Tree View -->
+    <record id="unitrade_seller_tree" model="ir.ui.view">
+        <field name="name">unitrade.seller.tree</field>
+        <field name="model">unitrade.seller</field>
+        <field name="arch" type="xml">
+            <tree string="Daftar Penjual" decoration-success="status == 'verified'" decoration-danger="status == 'rejected'" decoration-warning="status == 'pending'">
+                <field name="name"/>
+                <field name="nim"/>
+                <field name="status" widget="badge" decoration-success="status == 'verified'" decoration-danger="status == 'rejected'" decoration-warning="status == 'pending'" decoration-info="status == 'draft'"/>
+                <field name="ocr_confidence" widget="progressbar"/>
+                <field name="ocr_nim_match"/>
+                <field name="ocr_name_match"/>
+                <field name="create_date"/>
+                <field name="verified_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="unitrade_seller_form" model="ir.ui.view">
+        <field name="name">unitrade.seller.form</field>
+        <field name="model">unitrade.seller</field>
+        <field name="arch" type="xml">
+            <form string="Detail Penjual">
+                <header>
+                    <button name="action_submit_verification" string="Submit Verifikasi" type="object" class="btn-primary" invisible="status != 'draft'"/>
+                    <button name="action_verify" string="✅ Approve" type="object" class="btn-success" invisible="status != 'pending'" groups="unitrade_seller.group_unitrade_admin"/>
+                    <button name="action_reject" string="❌ Reject" type="object" class="btn-danger" invisible="status != 'pending'" groups="unitrade_seller.group_unitrade_admin"/>
+                    <button name="action_reset_to_draft" string="Reset ke Draft" type="object" invisible="status not in ('rejected',)" groups="unitrade_seller.group_unitrade_admin"/>
+                    <field name="status" widget="statusbar" statusbar_visible="draft,pending,verified"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Informasi Akun">
+                            <field name="user_id" readonly="status != 'draft'"/>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="nim" readonly="status != 'draft'"/>
+                        </group>
+                        <group string="KTM Verification">
+                            <field name="ktm_image" widget="image" readonly="status != 'draft'"/>
+                            <field name="ktm_filename" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Hasil OCR" invisible="not ocr_result">
+                        <group>
+                            <field name="ocr_confidence" widget="progressbar"/>
+                            <field name="ocr_nim_match"/>
+                            <field name="ocr_name_match"/>
+                        </group>
+                        <group>
+                            <field name="ocr_result"/>
+                        </group>
+                    </group>
+                    <group string="Penolakan" invisible="status != 'rejected'">
+                        <field name="rejection_reason" required="status == 'pending'"/>
+                    </group>
+                    <group string="Verifikasi" invisible="status != 'verified'">
+                        <field name="verified_date"/>
+                        <field name="verified_by"/>
+                    </group>
+                    <notebook>
+                        <page string="Statistik" name="stats">
+                            <group>
+                                <group>
+                                    <field name="total_products"/>
+                                    <field name="total_orders"/>
+                                </group>
+                                <group>
+                                    <field name="total_revenue" widget="monetary"/>
+                                    <field name="average_rating"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                    <field name="activity_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="unitrade_seller_search" model="ir.ui.view">
+        <field name="name">unitrade.seller.search</field>
+        <field name="model">unitrade.seller</field>
+        <field name="arch" type="xml">
+            <search string="Cari Penjual">
+                <field name="name"/>
+                <field name="nim"/>
+                <filter name="filter_pending" string="Menunggu Verifikasi" domain="[('status', '=', 'pending')]"/>
+                <filter name="filter_verified" string="Terverifikasi" domain="[('status', '=', 'verified')]"/>
+                <filter name="filter_rejected" string="Ditolak" domain="[('status', '=', 'rejected')]"/>
+                <separator/>
+                <filter name="filter_low_ocr" string="OCR &lt; 70%" domain="[('ocr_confidence', '&lt;', 70)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_status" string="Status" context="{'group_by': 'status'}"/>
+                    <filter name="group_date" string="Tanggal Daftar" context="{'group_by': 'create_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+</odoo>

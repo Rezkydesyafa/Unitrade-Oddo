@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="seller_register_template" name="Seller Registration">
+        <t t-call="website.layout">
+            <t t-set="title">Daftar Jadi Seller</t>
+            <div class="tw-max-w-2xl tw-mx-auto tw-px-4 tw-py-12">
+                <div class="tw-text-center tw-mb-10">
+                    <h1 class="tw-text-3xl tw-font-bold tw-text-gray-900 tw-mb-3">📦 Daftar Jadi Penjual</h1>
+                    <p class="tw-text-gray-500">Verifikasi KTM untuk mulai berjualan</p>
+                </div>
+                <t t-if="seller">
+                    <div class="tw-bg-white tw-rounded-2xl tw-shadow-lg tw-p-8 tw-text-center">
+                        <t t-if="seller.status == 'pending'">
+                            <div class="tw-text-5xl tw-mb-4">⏳</div>
+                            <h2 class="tw-text-xl tw-font-bold tw-text-amber-600">Menunggu Verifikasi</h2>
+                        </t>
+                        <t t-if="seller.status == 'verified'">
+                            <div class="tw-text-5xl tw-mb-4">✅</div>
+                            <h2 class="tw-text-xl tw-font-bold tw-text-emerald-600">Terverifikasi!</h2>
+                            <a href="/unitrade/seller/dashboard" class="unitrade-btn-primary tw-mt-4 tw-inline-block">Dashboard</a>
+                        </t>
+                        <t t-if="seller.status == 'rejected'">
+                            <div class="tw-text-5xl tw-mb-4">❌</div>
+                            <h2 class="tw-text-xl tw-font-bold tw-text-red-600">Ditolak</h2>
+                            <p class="tw-text-red-600 tw-text-sm tw-mt-2"><t t-esc="seller.rejection_reason"/></p>
+                        </t>
+                    </div>
+                </t>
+                <t t-if="not seller">
+                    <form action="/unitrade/seller/register/submit" method="post" enctype="multipart/form-data" class="tw-bg-white tw-rounded-2xl tw-shadow-lg tw-p-8 tw-space-y-6">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <div>
+                            <label class="tw-block tw-text-sm tw-font-semibold tw-text-gray-700 tw-mb-2">NIM *</label>
+                            <input type="text" name="nim" required="required" pattern="[0-9]{8,15}" class="unitrade-search" placeholder="Masukkan NIM"/>
+                        </div>
+                        <div>
+                            <label class="tw-block tw-text-sm tw-font-semibold tw-text-gray-700 tw-mb-2">Foto KTM *</label>
+                            <input type="file" name="ktm_image" accept="image/jpeg,image/png" required="required"/>
+                        </div>
+                        <button type="submit" class="unitrade-btn-primary tw-w-full">Daftar</button>
+                    </form>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <template id="seller_dashboard_template" name="Seller Dashboard">
+        <t t-call="website.layout">
+            <t t-set="title">Dashboard Penjual</t>
+            <div class="tw-max-w-7xl tw-mx-auto tw-px-4 tw-py-8">
+                <h1 class="tw-text-2xl tw-font-bold tw-mb-8">📊 Dashboard Penjual</h1>
+                <div class="tw-grid tw-grid-cols-2 lg:tw-grid-cols-4 tw-gap-6 tw-mb-10">
+                    <div class="tw-bg-white tw-rounded-2xl tw-shadow-md tw-p-6">
+                        <p class="tw-text-sm tw-text-gray-500">Pendapatan</p>
+                        <p class="tw-text-2xl tw-font-bold">Rp <t t-esc="'{:,.0f}'.format(seller.total_revenue)"/></p>
+                    </div>
+                    <div class="tw-bg-white tw-rounded-2xl tw-shadow-md tw-p-6">
+                        <p class="tw-text-sm tw-text-gray-500">Pesanan</p>
+                        <p class="tw-text-2xl tw-font-bold"><t t-esc="seller.total_orders"/></p>
+                    </div>
+                    <div class="tw-bg-white tw-rounded-2xl tw-shadow-md tw-p-6">
+                        <p class="tw-text-sm tw-text-gray-500">Produk</p>
+                        <p class="tw-text-2xl tw-font-bold"><t t-esc="seller.total_products"/></p>
+                    </div>
+                    <div class="tw-bg-white tw-rounded-2xl tw-shadow-md tw-p-6">
+                        <p class="tw-text-sm tw-text-gray-500">Rating</p>
+                        <p class="tw-text-2xl tw-font-bold">⭐ <t t-esc="'%.1f' % seller.average_rating"/></p>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="unitrade_delivery_tree" model="ir.ui.view">
+        <field name="name">unitrade.delivery.tree</field>
+        <field name="model">unitrade.delivery</field>
+        <field name="arch" type="xml">
+            <tree string="Pengiriman">
+                <field name="order_id"/>
+                <field name="tracking_number"/>
+                <field name="status" widget="badge" decoration-success="status == 'delivered'" decoration-warning="status == 'in_transit'" decoration-danger="status == 'failed'"/>
+                <field name="shipping_cost" widget="monetary"/>
+                <field name="driver_name"/>
+                <field name="create_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="unitrade_delivery_form" model="ir.ui.view">
+        <field name="name">unitrade.delivery.form</field>
+        <field name="model">unitrade.delivery</field>
+        <field name="arch" type="xml">
+            <form string="Detail Pengiriman">
+                <header>
+                    <button name="action_create_gosend_order" string="Buat Order GoSend" type="object" class="btn-primary" invisible="status != 'pending'"/>
+                    <button name="action_calculate_shipping" string="Hitung Ongkir" type="object"/>
+                    <field name="status" widget="statusbar" statusbar_visible="pending,picked_up,in_transit,delivered"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Info Pesanan">
+                            <field name="order_id"/>
+                            <field name="gosend_order_id"/>
+                            <field name="tracking_number"/>
+                            <field name="shipping_cost" widget="monetary"/>
+                        </group>
+                        <group string="Driver">
+                            <field name="driver_name"/>
+                            <field name="driver_phone"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Pickup">
+                            <field name="pickup_address"/>
+                            <field name="pickup_lat"/>
+                            <field name="pickup_lng"/>
+                        </group>
+                        <group string="Dropoff">
+                            <field name="dropoff_address"/>
+                            <field name="dropoff_lat"/>
+                            <field name="dropoff_lng"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_unitrade_delivery" model="ir.actions.act_window">
+        <field name="name">Pengiriman</field>
+        <field name="res_model">unitrade.delivery</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_unitrade_delivery" name="Pengiriman" parent="unitrade_seller.menu_unitrade_root" action="action_unitrade_delivery" sequence="20"/>
+</odoo>

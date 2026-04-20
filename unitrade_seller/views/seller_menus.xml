@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="action_unitrade_seller" model="ir.actions.act_window">
+        <field name="name">Daftar Penjual</field>
+        <field name="res_model">unitrade.seller</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_unitrade_seller_pending" model="ir.actions.act_window">
+        <field name="name">Menunggu Verifikasi</field>
+        <field name="res_model">unitrade.seller</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('status', '=', 'pending')]</field>
+    </record>
+
+    <menuitem id="menu_unitrade_root" name="UniTrade" sequence="100" web_icon="unitrade_seller,static/description/icon.png"/>
+    <menuitem id="menu_unitrade_sellers" name="Penjual" parent="menu_unitrade_root" sequence="10"/>
+    <menuitem id="menu_unitrade_seller_list" name="Daftar Penjual" parent="menu_unitrade_sellers" action="action_unitrade_seller" sequence="10"/>
+    <menuitem id="menu_unitrade_seller_pending" name="Menunggu Verifikasi" parent="menu_unitrade_sellers" action="action_unitrade_seller_pending" sequence="20"/>
+</odoo>

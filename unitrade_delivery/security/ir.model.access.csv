@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_unitrade_delivery_user,unitrade.delivery.user,model_unitrade_delivery,base.group_user,1,0,0,0
+access_unitrade_delivery_seller,unitrade.delivery.seller,model_unitrade_delivery,unitrade_seller.group_unitrade_seller,1,1,1,0
+access_unitrade_delivery_admin,unitrade.delivery.admin,model_unitrade_delivery,unitrade_seller.group_unitrade_admin,1,1,1,1

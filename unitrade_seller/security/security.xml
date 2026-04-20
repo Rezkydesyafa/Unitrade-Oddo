@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ============================
+         UniTrade Security Groups
+         ============================ -->
+
+    <record id="module_category_unitrade" model="ir.module.category">
+        <field name="name">UniTrade Marketplace</field>
+        <field name="sequence">100</field>
+    </record>
+
+    <!-- Seller Group -->
+    <record id="group_unitrade_seller" model="res.groups">
+        <field name="name">Seller</field>
+        <field name="category_id" ref="module_category_unitrade"/>
+        <field name="comment">Penjual terverifikasi di UniTrade Marketplace</field>
+    </record>
+
+    <!-- Admin/Manager Group -->
+    <record id="group_unitrade_admin" model="res.groups">
+        <field name="name">Admin / Manager</field>
+        <field name="category_id" ref="module_category_unitrade"/>
+        <field name="implied_ids" eval="[(4, ref('group_unitrade_seller'))]"/>
+        <field name="comment">Administrator UniTrade Marketplace</field>
+    </record>
+
+    <!-- ============================
+         Record Rules
+         ============================ -->
+
+    <!-- Sellers can only see their own seller record -->
+    <record id="rule_seller_own" model="ir.rule">
+        <field name="name">Seller: Own Record Only</field>
+        <field name="model_id" ref="model_unitrade_seller"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_unitrade_seller'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Admins can see all seller records -->
+    <record id="rule_seller_admin" model="ir.rule">
+        <field name="name">Seller: Admin Full Access</field>
+        <field name="model_id" ref="model_unitrade_seller"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_unitrade_admin'))]"/>
+    </record>
+
+</odoo>

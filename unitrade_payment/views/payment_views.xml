@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="sale_order_form_inherit_payment" model="ir.ui.view">
+        <field name="name">sale.order.form.unitrade.payment</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='payment_term_id']" position="after">
+                <field name="x_payment_status" widget="badge" decoration-success="x_payment_status == 'paid'" decoration-danger="x_payment_status in ('failed', 'expired')" decoration-warning="x_payment_status == 'pending'"/>
+                <field name="x_midtrans_transaction_id" readonly="1"/>
+                <field name="x_payment_method" readonly="1"/>
+                <field name="x_paid_at" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
