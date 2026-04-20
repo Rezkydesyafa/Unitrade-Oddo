@@ -5,6 +5,7 @@ import werkzeug
 from odoo import http, _
 from odoo.http import request
 from odoo.exceptions import UserError
+from odoo.service import security
 from odoo.addons.auth_signup.models.res_users import SignupError
 from odoo.addons.auth_signup.controllers.main import AuthSignupHome
 
@@ -22,7 +23,29 @@ def _is_phone(value):
 
 
 class UnitradeAuthSignup(AuthSignupHome):
-    """Override signup to redirect to OTP verification page after successful registration."""
+    """Override signup and login to redirect to OTP verification page."""
+
+    @http.route()
+    def web_login(self, *args, **kw):
+        """Override web_login to enforce OTP verification for unverified portal users."""
+        response = super().web_login(*args, **kw)
+
+        if request.httprequest.method == 'POST' and request.session.uid:
+            user = request.env['res.users'].sudo().browse(request.session.uid)
+
+            # Only enforce OTP for portal/public users, skip internal/admin
+            if user.exists() and not user.is_otp_verified and not user.has_group('base.group_user'):
+                _logger.info("User %s logged in but OTP not verified. Redirecting to OTP.", user.login)
+
+                # Save user info, then logout to prevent bypassing OTP
+                user_sudo = user.sudo()
+                login_val = user.login
+                request.session.logout(keep_db=True)
+                request.env['ir.http']._auth_method_public()
+
+                return self._generate_and_redirect_otp(user_sudo, login_val)
+
+        return response
 
     @http.route('/web/signup', type='http', auth='public', website=True, sitemap=False)
     def web_auth_signup(self, *args, **kw):
@@ -330,6 +353,23 @@ class UnitradeOTPController(http.Controller):
         is_valid = otp_model.verify_otp(user_id, code)
 
         if is_valid:
+            # Mark user as verified
+            try:
+                user = request.env['res.users'].sudo().browse(user_id)
+                user.write({'is_otp_verified': True})
+            except Exception as e:
+                _logger.error("Failed to mark user as OTP verified: %s", str(e))
+
+            # Re-authenticate the user (they were logged out before OTP)
+            user = request.env['res.users'].sudo().browse(user_id)
+            request.session.uid = user_id
+            request.session.login = user.login
+            request.session.db = request.db
+            request.update_env(user=user_id)
+            request.session.session_token = security.compute_session_token(request.session, request.env)
+            request.session.rotate = True
+            _logger.info("User %s authenticated after OTP verification", user.login)
+
             request.session['otp_verified'] = True
             for key in ('otp_user_id', 'otp_email', 'otp_code_dev', 'otp_sent_via'):
                 request.session.pop(key, None)
