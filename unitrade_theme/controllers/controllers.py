@@ -115,6 +115,52 @@ class UnitradeAuthSignup(OAuthLogin):
         response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
         return response
 
+    @http.route('/web/reset_password', type='http', auth='public', website=True, sitemap=False)
+    def web_auth_reset_password(self, *args, **kw):
+        """Override reset password to show success message instead of auto-login after password change."""
+        qcontext = self.get_auth_signup_qcontext()
+
+        if not qcontext.get('token') and not qcontext.get('reset_password_enabled'):
+            raise werkzeug.exceptions.NotFound()
+
+        if 'error' not in qcontext and request.httprequest.method == 'POST':
+            try:
+                if not request.env['ir.http']._verify_request_recaptcha_token('password_reset'):
+                    raise UserError(_("Suspicious activity detected by Google reCaptcha."))
+                if qcontext.get('token'):
+                    self.do_signup(qcontext)
+                    # Instead of calling web_login (which triggers OTP and shows 'login' error),
+                    # set a flag and render the reset password page with a success message.
+                    qcontext['password_changed'] = True
+                    _logger.info("Password successfully changed, showing success message.")
+                else:
+                    login = qcontext.get('login')
+                    assert login, _("No login provided.")
+                    _logger.info(
+                        "Password reset attempt for <%s> by user <%s> from %s",
+                        login, request.env.user.login, request.httprequest.remote_addr)
+                    request.env['res.users'].sudo().reset_password(login)
+                    qcontext['message'] = _("Password reset instructions sent to your email")
+            except UserError as e:
+                qcontext['error'] = e.args[0]
+            except SignupError:
+                qcontext['error'] = _("Could not reset your password")
+                _logger.exception('error when resetting password')
+            except Exception as e:
+                qcontext['error'] = str(e)
+
+        elif 'signup_email' in qcontext:
+            from werkzeug.urls import url_encode
+            user = request.env['res.users'].sudo().search(
+                [('email', '=', qcontext.get('signup_email')), ('state', '!=', 'new')], limit=1)
+            if user:
+                return request.redirect('/web/login?%s' % url_encode({'login': user.login, 'redirect': '/web'}))
+
+        response = request.render('auth_signup.reset_password', qcontext)
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
+        return response
+
     def _generate_and_redirect_otp(self, user_sudo, login_value):
         """Generate OTP, send it, store session, and redirect to verify page."""
         try:

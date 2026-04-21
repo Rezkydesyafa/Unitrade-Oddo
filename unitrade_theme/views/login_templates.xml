@@ -411,4 +411,296 @@
             </t>
         </xpath>
     </template>
+    <!-- ============================================== -->
+    <!-- CUSTOM RESET PASSWORD PAGE                     -->
+    <!-- ============================================== -->
+    <template id="unitrade_reset_password_custom" inherit_id="auth_signup.reset_password" name="UniTrade Custom Reset Password">
+        <!-- Hide default Odoo reset password form if not admin -->
+        <xpath expr="//form[hasclass('oe_reset_password_form')]" position="attributes">
+            <attribute name="t-if">request.params.get('admin') == '1' and not message</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('oe_login_form') and @t-if='message']" position="replace">
+            <!-- Completely removed to avoid 'Back to Login' / 'Login sekarang' showing up -->
+        </xpath>
+
+        <!-- Inject Custom Tailwind Reset Password -->
+        <xpath expr="//t[@t-call='web.login_layout']" position="inside">
+            <t t-if="request.params.get('admin') != '1'">
+                <div class="tw-fixed tw-inset-0 tw-z-[9999] tw-bg-white tw-overflow-y-auto tw-font-['Urbanist']">
+                    <div class="tw-min-h-screen tw-w-full tw-flex tw-justify-center tw-items-center tw-p-[20px] md:tw-p-[40px]">
+                        <div class="tw-w-full tw-max-w-[1380px] tw-flex tw-flex-col lg:tw-flex-row tw-gap-[40px] lg:tw-gap-[26px]">
+                            
+                            <!-- Left Column: Form -->
+                            <div class="tw-flex-1 tw-max-w-[670px] tw-flex tw-flex-col tw-justify-center tw-relative tw-bg-white tw-rounded-[40px]">
+                                <div class="tw-px-[20px] md:tw-px-[74px] tw-py-[40px] md:tw-py-[60px]">
+                                    <div class="tw-flex tw-items-center tw-gap-[8px] tw-mb-[40px]">
+                                        <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="Logo" class="tw-h-[24px] tw-w-auto" onerror="this.style.display='none'"/>
+                                        <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-[rgba(0,0,0,0.53)] tw-m-0">UniTrade</p>
+                                    </div>
+                                    
+                                    <h1 class="tw-font-['Urbanist'] tw-font-medium tw-text-[48px] tw-text-black tw-leading-[1.1] tw-mb-[24px]">
+                                        Reset Password
+                                    </h1>
+                                    
+                                    <p t-if="not token and not message" class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-[rgba(0,0,0,0.36)] tw-leading-[1.4] tw-mb-[50px] tw-max-w-[483px]">
+                                        Masukkan email Anda yang terdaftar, dan kami akan mengirimkan link untuk mereset password.
+                                    </p>
+                                    <p t-if="token and not invalid_token and not message and not password_changed" class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-[rgba(0,0,0,0.36)] tw-leading-[1.4] tw-mb-[50px] tw-max-w-[483px]">
+                                        Silakan masukkan password baru Anda.
+                                    </p>
+                                    <p t-if="invalid_token" class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-red-500 tw-leading-[1.4] tw-mb-[50px] tw-max-w-[483px]">
+                                        Link reset password tidak valid atau sudah kadaluarsa.
+                                    </p>
+                                    
+                                    <!-- Success Message -->
+                                    <div t-if="message" class="tw-bg-[#f0fdf4] tw-border tw-border-[#bbf7d0] tw-rounded-[12px] tw-p-[16px] tw-mb-[40px] tw-max-w-[521px]">
+                                        <p class="tw-text-[#166534] tw-font-['Urbanist'] tw-text-[15px] tw-m-0">
+                                            <t t-esc="message"/>
+                                        </p>
+                                    </div>
+                                    
+                                    <!-- Password Changed Success -->
+                                    <div t-if="password_changed" class="tw-w-full tw-max-w-[521px]">
+                                        <div class="tw-bg-[#f0fdf4] tw-border tw-border-[#bbf7d0] tw-rounded-[16px] tw-p-[24px] tw-mb-[32px] tw-flex tw-items-start tw-gap-[14px]">
+                                            <!-- Success Icon (SVG checkmark circle) -->
+                                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" class="tw-flex-shrink-0" style="margin-top: 2px;">
+                                                <circle cx="12" cy="12" r="10" fill="#bbf7d0"/>
+                                                <path d="M8 12L10.5 14.5L16 9" stroke="#166534" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                            <div class="tw-flex-1">
+                                                <p class="tw-text-[#166534] tw-font-['Urbanist'] tw-font-semibold tw-text-[17px] tw-m-0 tw-mb-[6px]">
+                                                    Password berhasil diubah!
+                                                </p>
+                                                <p class="tw-text-[#15803d] tw-font-['Urbanist'] tw-text-[14px] tw-m-0 tw-leading-[1.5]">
+                                                    Silakan login menggunakan password baru Anda. Anda akan dialihkan ke halaman login dalam <span id="countdown-timer">3</span> detik.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <a href="/web/login" class="tw-w-full tw-h-[51px] tw-bg-[#1a1a1a] tw-border-none tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mb-[24px] hover:tw-bg-black tw-transition-colors tw-cursor-pointer tw-no-underline">
+                                            <span class="tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-white tw-uppercase">Ke Halaman Login</span>
+                                        </a>
+                                        <!-- JS Countdown + Redirect -->
+                                        <script type="text/javascript">
+                                            (function() {
+                                                var seconds = 3;
+                                                var timer = document.getElementById('countdown-timer');
+                                                var interval = setInterval(function() {
+                                                    seconds--;
+                                                    if (timer) timer.textContent = seconds;
+                                                    if (seconds &lt;= 0) {
+                                                        clearInterval(interval);
+                                                        window.location.href = '/web/login';
+                                                    }
+                                                }, 1000);
+                                            })();
+                                        </script>
+                                    </div>
+
+                                    <!-- Form -->
+                                    <form t-if="not message and not invalid_token and not password_changed" class="tw-w-full tw-max-w-[521px]" role="form" method="post" action="/web/reset_password">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <input type="hidden" name="redirect" t-att-value="redirect"/>
+                                        <input type="hidden" name="token" t-att-value="token"/>
+                                        
+                                        <!-- Error Message -->
+                                        <p t-if="error" class="tw-text-red-500 tw-text-sm tw-mb-[24px]" role="alert">
+                                            <t t-esc="error"/>
+                                        </p>
+                                        
+                                        <!-- State 1: Enter Email (not token) -->
+                                        <t t-if="not token">
+                                            <div class="tw-mb-[35px]">
+                                                <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[24px] tw-py-[14px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
+                                                    <input type="email" placeholder="Email" name="login" t-att-value="login" required="required" autofocus="autofocus" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[16px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
+                                                </div>
+                                                <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[12px] tw-text-[#666] tw-mt-[8px] tw-ml-[16px]">Masukkan email anda</p>
+                                            </div>
+                                        </t>
+                                        
+                                        <!-- State 2: Enter New Password (token present) -->
+                                        <t t-if="token and not invalid_token">
+                                            <div class="tw-mb-[24px]">
+                                                <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[24px] tw-py-[14px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
+                                                    <input type="password" id="resetPasswordInput" placeholder="Password Baru" name="password" required="required" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[16px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;" minlength="8" autofocus="autofocus"/>
+                                                </div>
+                                                <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[12px] tw-text-[#666] tw-mt-[6px] tw-ml-[16px] tw-m-0">Minimal 8 karakter</p>
+                                            </div>
+                                            <div class="tw-mb-[35px]">
+                                                <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[24px] tw-py-[14px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
+                                                    <input type="password" id="resetConfirmPasswordInput" placeholder="Konfirmasi Password Baru" name="confirm_password" required="required" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[16px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;" minlength="8"/>
+                                                </div>
+                                            </div>
+                                            <script type="text/javascript">
+                                                document.addEventListener("DOMContentLoaded", function() {
+                                                    const pwd = document.getElementById("resetPasswordInput");
+                                                    const confirmPwd = document.getElementById("resetConfirmPasswordInput");
+                                                    if (pwd &amp;&amp; confirmPwd) {
+                                                        const validatePassword = () => {
+                                                            if(pwd.value !== confirmPwd.value) {
+                                                                confirmPwd.setCustomValidity("Password tidak cocok");
+                                                            } else {
+                                                                confirmPwd.setCustomValidity('');
+                                                            }
+                                                        };
+                                                        pwd.addEventListener('change', validatePassword);
+                                                        confirmPwd.addEventListener('keyup', validatePassword);
+                                                    }
+                                                });
+                                            </script>
+                                        </t>
+                                        
+                                        <!-- Submit Button -->
+                                        <button type="submit" class="tw-w-full tw-h-[51px] tw-bg-[#1a1a1a] tw-border-none tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mb-[24px] hover:tw-bg-black tw-transition-colors tw-cursor-pointer">
+                                            <span class="tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-white tw-uppercase">
+                                                <t t-if="not token">Kirim Link Reset</t>
+                                                <t t-else="">Ubah Password</t>
+                                            </span>
+                                        </button>
+                                        
+                                        <!-- Back to Login -->
+                                        <div class="tw-text-center">
+                                            <a href="/web/login" class="tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-black tw-no-underline hover:tw-underline tw-flex tw-items-center tw-justify-center tw-gap-[8px]">
+                                                <svg width="10" height="12" viewBox="0 0 10 12" fill="none">
+                                                    <path d="M9 1L1 6L9 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                                Kembali ke Login
+                                            </a>
+                                        </div>
+                                    </form>
+                                    
+                                </div>
+                            </div>
+                            
+                            <!-- Right Column: Images & Cards -->
+                            <div class="tw-hidden lg:tw-flex tw-flex-col tw-gap-[26px] tw-flex-1 tw-max-w-[670px] tw-relative">
+                                <!-- Main Image Card -->
+                                <div class="tw-relative tw-w-full tw-h-[594px] tw-rounded-[40px] tw-overflow-hidden">
+                                    <img src="/unitrade_theme/static/src/img/reset_bg.jpg" alt="Office Workspace" class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover" onerror="this.src='https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&amp;fit=crop&amp;q=80&amp;w=1440'"/>
+                                    <div class="tw-absolute tw-inset-0 tw-bg-black/10"></div>
+                                    
+                                    <!-- Floyd Miles Overlay Card -->
+                                    <div class="tw-absolute tw-bottom-[27px] tw-left-[31px] tw-right-[31px] tw-h-[159px] tw-bg-[rgba(0,0,0,0.24)] tw-backdrop-blur-[10px] tw-rounded-[30px] tw-p-[20px] tw-pl-[111px]">
+                                        <img src="https://i.pravatar.cc/100?img=11" alt="Floyd" class="tw-absolute tw-left-[20px] tw-top-[62px] tw-w-[49px] tw-h-[49px] tw-rounded-full tw-object-cover"/>
+                                        
+                                        <!-- Arrows -->
+                                        <div class="tw-absolute tw-right-[74px] tw-top-[13px] tw-w-[49px] tw-h-[49px] tw-rounded-full tw-border tw-border-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-white/10 tw-transition">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="tw-text-white">
+                                                <path d="M17 7L7 17M7 17H17M7 17V7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </div>
+                                        <div class="tw-absolute tw-right-[20px] tw-top-[13px] tw-w-[49px] tw-h-[49px] tw-rounded-full tw-border tw-border-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-white/10 tw-transition">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="tw-text-white">
+                                                <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </div>
+                                        
+                                        <h3 class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-white tw-mt-[35px] tw-mb-[4px]">Floyd Miles</h3>
+                                        <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[12px] tw-text-white tw-leading-[16px] tw-max-w-[363px] tw-m-0">
+                                            Worem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus.
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Join Card -->
+                                <div class="tw-relative tw-w-full tw-h-[102px] tw-bg-[rgba(0,0,0,0.04)] tw-rounded-[23px] tw-px-[40px] tw-flex tw-items-center">
+                                    <div class="tw-flex tw-items-center tw-w-full">
+                                        <div class="tw-flex -tw-space-x-[15px] tw-flex-shrink-0">
+                                            <img src="https://i.pravatar.cc/100?img=12" class="tw-w-[50px] tw-h-[50px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover tw-z-30"/>
+                                            <img src="https://i.pravatar.cc/100?img=13" class="tw-w-[50px] tw-h-[50px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover tw-z-20"/>
+                                            <div class="tw-relative tw-z-10">
+                                                <img src="https://i.pravatar.cc/100?img=14" class="tw-w-[50px] tw-h-[50px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover"/>
+                                                <div class="tw-absolute tw-bottom-0 tw-right-0 tw-w-[15px] tw-h-[15px] tw-bg-black tw-rounded-full tw-border tw-border-white"></div>
+                                            </div>
+                                        </div>
+                                        <div class="tw-ml-[30px] tw-flex-1">
+                                            <h4 class="tw-font-['Urbanist'] tw-font-medium tw-text-[16px] tw-text-black tw-m-0 tw-mb-[4px]">Bergabung dengan 10k+ User</h4>
+                                            <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[12px] tw-text-[rgba(0,0,0,0.36)] tw-m-0 tw-max-w-[363px] tw-leading-[14px]">
+                                                Worem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="tw-absolute tw-right-[20px] tw-top-[17px] tw-w-[69px] tw-h-[69px] tw-rounded-full tw-border tw-border-black tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-black/5 tw-transition">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="tw-text-black">
+                                            <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+    </template>
+    
+    <!-- ============================================== -->
+    <!-- CUSTOM EMAIL TEMPLATE: RESET PASSWORD          -->
+    <!-- ============================================== -->
+    <template id="unitrade_reset_password_email_custom" inherit_id="auth_signup.reset_password_email" name="UniTrade Custom Reset Password Email">
+        <xpath expr="//table[1]" position="replace">
+            <table border="0" cellpadding="0" cellspacing="0" style="padding: 40px 0; background-color: #f5f5f7; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; width: 100%; border-collapse: separate;">
+                <tr>
+                    <td align="center">
+                        <table border="0" cellpadding="0" cellspacing="0" width="560" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e5e5e5; box-shadow: 0 4px 12px rgba(0,0,0,0.02); border-collapse: separate;">
+                            <!-- Header -->
+                            <tr>
+                                <td align="center" style="padding: 40px 32px 0 32px;">
+                                    <img t-attf-src="{{ object.get_base_url() }}/unitrade_theme/static/src/img/logo-unitrade.png" alt="UniTrade" style="height: 36px; width: auto; margin-bottom: 24px;" onerror="this.style.display='none'"/>
+                                    <div style="height: 1px; width: 100%; background-color: #f0f0f0;"></div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Content -->
+                            <tr>
+                                <td style="padding: 32px; font-size: 15px; line-height: 1.6; color: #4a4a4a;">
+                                    <div style="text-align: center; margin-bottom: 32px;">
+                                        <!-- Real Icon via external URL (Lock) -->
+                                        <img src="https://img.icons8.com/ios-filled/50/1a1a1a/lock.png" alt="Lock Icon" style="width: 48px; height: 48px; margin-bottom: 16px;" />
+                                        <h2 style="font-size: 24px; font-weight: 600; color: #1a1a1a; margin: 0; letter-spacing: -0.5px;">Reset Password Anda</h2>
+                                    </div>
+                                    
+                                    <p style="margin: 0 0 16px 0;">
+                                        Halo <strong style="color: #1a1a1a; font-weight: 600;"><t t-out="object.name or ''">User</t></strong>,
+                                    </p>
+                                    <p style="margin: 0 0 24px 0;">
+                                        Kami menerima permintaan untuk mereset password akun UniTrade yang terhubung dengan email ini. Silakan klik tombol di bawah ini untuk membuat password baru. Link ini berlaku selama 24 jam.
+                                    </p>
+                                    
+                                    <div style="text-align: center; margin: 40px 0;">
+                                        <a t-att-href="object.signup_url" style="background-color: #1a1a1a; color: #ffffff; padding: 14px 36px; text-decoration: none; border-radius: 30px; font-weight: 600; font-size: 15px; display: inline-block; letter-spacing: 0.5px;">
+                                            Ubah Password
+                                        </a>
+                                    </div>
+                                    
+                                    <p style="margin: 0 0 24px 0; color: #888888; font-size: 14px;">
+                                        Jika Anda tidak merasa melakukan permintaan ini, Anda dapat mengabaikan email ini dengan aman. Password Anda tidak akan berubah.
+                                    </p>
+                                    
+                                    <p style="margin: 0; color: #4a4a4a;">
+                                        Terima kasih,<br/>
+                                        <strong style="color: #1a1a1a; font-weight: 600;">Tim UniTrade</strong>
+                                    </p>
+                                </td>
+                            </tr>
+                            
+                            <!-- Footer -->
+                            <tr>
+                                <td align="center" style="padding: 24px 32px; background-color: #fafafa; border-top: 1px solid #f0f0f0;">
+                                    <p style="margin: 0 0 8px 0; font-size: 12px; color: #999999;">
+                                        &amp;copy; 2026 UniTrade. Hak cipta dilindungi undang-undang.
+                                    </p>
+                                    <t t-if="object.company_id.website">
+                                        <a t-att-href="object.company_id.website" style="font-size: 12px; color: #1a1a1a; text-decoration: none; font-weight: 500;">
+                                            Kunjungi Website Kami
+                                        </a>
+                                    </t>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </xpath>
+    </template>
 </odoo>
