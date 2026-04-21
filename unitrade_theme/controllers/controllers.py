@@ -115,6 +115,17 @@ class UnitradeAuthSignup(OAuthLogin):
         response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
         return response
 
+    @http.route('/web/signup/check_email', type='json', auth='public', methods=['POST'], csrf=False)
+    def check_email_exists(self, **kw):
+        """Check if an email or phone number already exists in the database."""
+        login = kw.get('login', '').strip()
+        if not login:
+            return {'exists': False}
+        existing_user = request.env['res.users'].sudo().search(
+            [('login', '=', login)], limit=1
+        )
+        return {'exists': bool(existing_user)}
+
     @http.route('/web/reset_password', type='http', auth='public', website=True, sitemap=False)
     def web_auth_reset_password(self, *args, **kw):
         """Override reset password to show success message instead of auto-login after password change."""
