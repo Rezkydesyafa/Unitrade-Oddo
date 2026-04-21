@@ -30,6 +30,20 @@
                     <!-- Actions -->
                     <div class="tw-flex tw-items-center tw-gap-3">
                         <t t-if="not user_id._is_public()">
+                            <!-- Cart Icon -->
+                            <a href="/shop/cart" class="tw-relative tw-flex tw-items-center tw-justify-center tw-w-10 tw-h-10 tw-rounded-full hover:tw-bg-gray-200 tw-transition-colors tw-mr-1 tw-text-[#212529] tw-no-underline">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-6 tw-h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="9" cy="21" r="1"></circle>
+                                    <circle cx="20" cy="21" r="1"></circle>
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                                </svg>
+                                <!-- Cart Badge -->
+                                <t t-set="website_sale_order" t-value="website.sale_get_order()"/>
+                                <t t-if="website_sale_order and website_sale_order.cart_quantity > 0">
+                                    <span class="tw-absolute tw-top-0 tw-right-0 tw-bg-red-500 tw-text-white tw-text-[10px] tw-font-bold tw-px-1.5 tw-py-0.5 tw-rounded-full tw-min-w-[16px] tw-text-center tw-transform tw-translate-x-1 tw--translate-y-1" t-esc="website_sale_order.cart_quantity"/>
+                                </t>
+                            </a>
+
                             <!-- Logged In State: Avatar Dropdown -->
                             <div class="tw-relative tw-group">
                                 <!-- Trigger -->

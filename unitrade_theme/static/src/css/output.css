@@ -421,6 +421,10 @@
   top: 100%;
 }
 
+.tw-top-0 {
+  top: 0px;
+}
+
 .tw-z-0 {
   z-index: 0;
 }
@@ -631,6 +635,10 @@
   margin-top: 8px;
 }
 
+.tw-mr-1 {
+  margin-right: 0.25rem;
+}
+
 .tw-line-clamp-1 {
   overflow: hidden;
   display: -webkit-box;
@@ -821,6 +829,10 @@
   height: 42px;
 }
 
+.tw-h-6 {
+  height: 1.5rem;
+}
+
 .tw-min-h-\[795px\] {
   min-height: 795px;
 }
@@ -941,6 +953,14 @@
   width: 42px;
 }
 
+.tw-w-6 {
+  width: 1.5rem;
+}
+
+.tw-min-w-\[16px\] {
+  min-width: 16px;
+}
+
 .tw-max-w-2xl {
   max-width: 42rem;
 }
@@ -1015,8 +1035,22 @@
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
+.tw--translate-y-1 {
+  --tw-translate-y: -0.25rem;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.tw-translate-x-1 {
+  --tw-translate-x: 0.25rem;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
 .tw-rotate-\[-45deg\] {
   --tw-rotate: -45deg;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.tw-transform {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
@@ -1475,6 +1509,11 @@
   background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
 }
 
+.tw-bg-red-500 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(239 68 68 / var(--tw-bg-opacity, 1));
+}
+
 .tw-bg-\[url\(\'https\:\/\/images\.unsplash\.com\/photo-1522202176988-66273c2fd55f\?ixlib\=rb-4\.0\.3\&amp\;auto\=format\&amp\;fit\=crop\&amp\;w\=800\&amp\;q\=80\'\)\] {
   background-image: url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=800&amp;q=80');
 }
@@ -1652,6 +1691,16 @@
 .tw-py-3 {
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
+}
+
+.tw-px-1\.5 {
+  padding-left: 0.375rem;
+  padding-right: 0.375rem;
+}
+
+.tw-py-0\.5 {
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
 }
 
 .tw-pb-32 {
@@ -1833,6 +1882,10 @@
 .tw-text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
+}
+
+.tw-text-\[10px\] {
+  font-size: 10px;
 }
 
 .tw-font-bold {
