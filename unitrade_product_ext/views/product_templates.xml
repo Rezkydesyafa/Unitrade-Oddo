@@ -1,66 +1,289 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <template id="product_catalog_template" name="UniTrade Product Catalog">
-        <t t-call="website.layout">
-            <t t-set="title">Katalog Produk — UniTrade</t>
-            <div class="tw-max-w-7xl tw-mx-auto tw-px-4 tw-py-8">
-                <h1 class="unitrade-section-title tw-mb-8">Katalog Produk</h1>
-                <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 tw-gap-6">
-                    <t t-foreach="products" t-as="product">
-                        <a t-attf-href="/unitrade/product/#{product.id}" class="unitrade-card tw-block">
-                            <div class="tw-aspect-square tw-bg-gray-100 tw-relative">
-                                <img t-att-src="'/web/image/product.template/%s/image_1920' % product.id" t-att-alt="product.name" class="tw-w-full tw-h-full tw-object-cover"/>
-                                <t t-if="product.x_condition">
-                                    <span t-attf-class="unitrade-badge tw-absolute tw-top-3 tw-left-3 #{product.x_condition == 'new' and 'unitrade-badge-new' or 'unitrade-badge-used'}">
-                                        <t t-if="product.x_condition == 'new'">Baru</t><t t-else="">Bekas</t>
-                                    </span>
+    <!-- ==================== OVERRIDE DEFAULT PRODUCT DETAIL PAGE ==================== -->
+    <template id="unitrade_product_detail_override" inherit_id="website_sale.product" name="UniTrade Product Detail Override">
+
+        <!-- Replace the entire #product_detail section with our custom layout -->
+        <xpath expr="//section[@id='product_detail']" position="replace">
+            <!-- Load Google Fonts -->
+            <link rel="preconnect" href="https://fonts.googleapis.com"/>
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Urbanist:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+
+            <section id="product_detail" class="ut-detail-page">
+                <!-- Breadcrumbs -->
+                <div class="ut-breadcrumb-wrapper">
+                    <nav class="ut-breadcrumb" aria-label="Breadcrumb">
+                        <a href="/" class="ut-breadcrumb-link">Home</a>
+                        <span class="ut-breadcrumb-sep">&gt;</span>
+                        <a href="/shop" class="ut-breadcrumb-link">Produk</a>
+                        <span class="ut-breadcrumb-sep">&gt;</span>
+                        <span class="ut-breadcrumb-current"><t t-esc="product.name"/></span>
+                    </nav>
+                </div>
+
+                <!-- Main Content -->
+                <div class="ut-detail-main">
+                    <div class="ut-detail-grid">
+                        <!-- ===== LEFT: Gallery ===== -->
+                        <div class="ut-gallery">
+                            <!-- Main Image -->
+                            <div class="ut-gallery-main" id="ut-main-image-wrap">
+                                <img id="ut-main-image"
+                                     t-att-src="'/web/image/product.template/%s/image_1920' % product.id"
+                                     t-att-alt="product.name"/>
+                            </div>
+
+                            <!-- Thumbnail Row -->
+                            <div class="ut-gallery-thumbs" id="ut-thumb-row">
+                                <!-- Main product image as first thumbnail -->
+                                <div class="ut-thumb active"
+                                     t-att-data-src="'/web/image/product.template/%s/image_1920' % product.id">
+                                    <img t-att-src="'/web/image/product.template/%s/image_256' % product.id"
+                                         t-att-alt="product.name"/>
+                                </div>
+                                <!-- Extra images -->
+                                <t t-foreach="ut_product_images or []" t-as="img">
+                                    <div class="ut-thumb"
+                                         t-att-data-src="'/web/image/product.image/%s/image_1920' % img.id">
+                                        <img t-att-src="'/web/image/product.image/%s/image_256' % img.id"
+                                             t-att-alt="img.name or product.name"/>
+                                    </div>
                                 </t>
                             </div>
-                            <div class="tw-p-4">
-                                <h3 class="tw-font-semibold tw-text-sm tw-text-gray-900 tw-line-clamp-2"><t t-esc="product.name"/></h3>
-                                <p class="tw-text-indigo-600 tw-font-bold tw-text-lg">Rp <t t-esc="'{:,.0f}'.format(product.list_price)"/></p>
-                                <span class="tw-text-xs tw-text-gray-500">📍 <t t-esc="product.x_seller_location or 'Yogyakarta'"/></span>
+                        </div>
+
+                        <!-- ===== RIGHT: Product Info ===== -->
+                        <div class="ut-info">
+                            <!-- Title -->
+                            <h1 class="ut-product-name"><t t-esc="product.name"/></h1>
+
+                            <!-- Rating -->
+                            <div class="ut-rating-row">
+                                <div class="ut-stars">
+                                    <t t-foreach="range(1,6)" t-as="star">
+                                        <t t-if="star &lt;= ut_full_stars">
+                                            <svg class="ut-star-icon" viewBox="0 0 18 16" fill="none"><path d="M9 0L11.0206 5.52786H16.7557L12.0676 8.94427L14.0882 14.4721L9 11.0557L3.91177 14.4721L5.93237 8.94427L1.24429 5.52786H6.97937L9 0Z" fill="#FFC107"/></svg>
+                                        </t>
+                                        <t t-elif="ut_has_half_star and star == ut_full_stars + 1">
+                                            <svg class="ut-star-icon" viewBox="0 0 18 16" fill="none"><defs><linearGradient t-attf-id="half-grad-#{star}"><stop offset="50%" stop-color="#FFC107"/><stop offset="50%" stop-color="#E0E0E0"/></linearGradient></defs><path d="M9 0L11.0206 5.52786H16.7557L12.0676 8.94427L14.0882 14.4721L9 11.0557L3.91177 14.4721L5.93237 8.94427L1.24429 5.52786H6.97937L9 0Z" t-attf-fill="url(#half-grad-#{star})"/></svg>
+                                        </t>
+                                        <t t-else="">
+                                            <svg class="ut-star-icon" viewBox="0 0 18 16" fill="none"><path d="M9 0L11.0206 5.52786H16.7557L12.0676 8.94427L14.0882 14.4721L9 11.0557L3.91177 14.4721L5.93237 8.94427L1.24429 5.52786H6.97937L9 0Z" fill="#E0E0E0"/></svg>
+                                        </t>
+                                    </t>
+                                </div>
+                                <span class="ut-rating-text">
+                                    (<t t-esc="product.x_average_rating or 0"/>) •
+                                    <t t-esc="product.x_review_count or 0"/> reviews
+                                </span>
                             </div>
-                        </a>
+
+                            <!-- Price (use Odoo's built-in price system) -->
+                            <div class="ut-price-section">
+                                <p class="ut-price">
+                                    <t t-esc="combination_info['price']" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                                </p>
+                                <p class="ut-stock-info">
+                                    <t t-esc="ut_stock_text or 'In Stock'"/>
+                                    <t t-if="ut_shipping_text"> • <t t-esc="ut_shipping_text"/></t>
+                                </p>
+                            </div>
+
+                            <!-- Add to Cart Form (uses Odoo's native cart system) -->
+                            <form t-if="product._is_add_to_cart_possible()" action="/shop/cart/update" method="POST">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" t-nocache="csrf"/>
+                                <div class="js_product js_main_product">
+                                    <input type="hidden" class="product_id" name="product_id" t-att-value="product_variant.id"/>
+                                    <input type="hidden" class="product_template_id" name="product_template_id" t-att-value="product.id"/>
+
+                                    <!-- Quantity Selector -->
+                                    <div class="ut-quantity-section">
+                                        <label class="ut-qty-label">Jumlah</label>
+                                        <div class="ut-qty-controls">
+                                            <button class="ut-qty-btn" id="ut-qty-minus" type="button">
+                                                <svg width="14" height="2" viewBox="0 0 14 2" fill="none"><rect width="14" height="2" fill="#1a1a1a"/></svg>
+                                            </button>
+                                            <input type="text" class="ut-qty-display quantity" name="add_qty" value="1" data-min="1" id="ut-qty-value"/>
+                                            <button class="ut-qty-btn" id="ut-qty-plus" type="button">
+                                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="6" width="2" height="14" fill="#1a1a1a"/><rect y="6" width="14" height="2" fill="#1a1a1a"/></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Action Buttons -->
+                                    <div class="ut-action-buttons">
+                                        <button type="submit" class="ut-btn-buy" id="ut-add-cart-btn">
+                                            <svg width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M6.33 14.67C6.89 14.67 7.33 14.22 7.33 13.67C7.33 13.11 6.89 12.67 6.33 12.67C5.78 12.67 5.33 13.11 5.33 13.67C5.33 14.22 5.78 14.67 6.33 14.67Z" stroke="white" stroke-width="1.33"/>
+                                                <path d="M14.33 14.67C14.89 14.67 15.33 14.22 15.33 13.67C15.33 13.11 14.89 12.67 14.33 12.67C13.78 12.67 13.33 13.11 13.33 13.67C13.33 14.22 13.78 14.67 14.33 14.67Z" stroke="white" stroke-width="1.33"/>
+                                                <path d="M1 1H3.67L5.89 9.59C5.97 9.9 6.15 10.17 6.4 10.36C6.65 10.55 6.96 10.65 7.28 10.65H13.93C14.25 10.65 14.56 10.55 14.81 10.36C15.06 10.17 15.24 9.9 15.32 9.59L16.67 4.33H4.53" stroke="white" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                            <t t-if="not ut_is_public_user">Add to Cart</t>
+                                            <t t-else="">Belanja</t>
+                                        </button>
+                                        <button class="ut-btn-chat" type="button">Chat penjual</button>
+                                        <t t-if="not ut_is_public_user">
+                                            <button class="ut-btn-icon" type="button" title="Share">
+                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M12 5.33C13.1 5.33 14 4.44 14 3.33C14 2.23 13.1 1.33 12 1.33C10.9 1.33 10 2.23 10 3.33C10 4.44 10.9 5.33 12 5.33Z" stroke="#525252" stroke-width="1.33"/><path d="M4 10C5.1 10 6 9.1 6 8C6 6.9 5.1 6 4 6C2.9 6 2 6.9 2 8C2 9.1 2.9 10 4 10Z" stroke="#525252" stroke-width="1.33"/><path d="M12 14.67C13.1 14.67 14 13.77 14 12.67C14 11.56 13.1 10.67 12 10.67C10.9 10.67 10 11.56 10 12.67C10 13.77 10.9 14.67 12 14.67Z" stroke="#525252" stroke-width="1.33"/><path d="M5.73 9.01L10.28 11.66" stroke="#525252" stroke-width="1.33"/><path d="M10.27 4.34L5.73 6.99" stroke="#525252" stroke-width="1.33"/></svg>
+                                            </button>
+                                            <button t-attf-class="ut-btn-icon ut-btn-wishlist #{ut_is_in_wishlist and 'active' or ''}"
+                                                    type="button" title="Wishlist"
+                                                    t-att-data-product-id="product.id">
+                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.89 3.07C13.55 2.73 13.15 2.46 12.7 2.28C12.26 2.09 11.79 2 11.31 2C10.67 2 10.04 2.17 9.49 2.49C8.93 2.81 8.48 3.27 8.17 3.83C7.72 3.04 7.02 2.43 6.18 2.09C5.34 1.76 4.41 1.71 3.54 1.95C2.67 2.2 1.91 2.73 1.38 3.47C0.85 4.2 0.58 5.09 0.61 6C0.61 10.06 7.66 13.72 7.94 13.87L8.17 13.99L8.39 13.87C8.68 13.72 15.72 10.06 15.72 6C15.72 5.52 15.63 5.04 15.44 4.6C15.26 4.16 14.99 3.75 14.65 3.41L13.89 3.07Z" t-att-fill="ut_is_in_wishlist and '#ef4444' or 'none'" t-att-stroke="ut_is_in_wishlist and '#ef4444' or '#525252'" stroke-width="1.33"/></svg>
+                                            </button>
+                                        </t>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <!-- Map / Location Section -->
+                            <div class="ut-map-section">
+                                <t t-if="product.x_seller_latitude and product.x_seller_longitude">
+                                    <iframe class="ut-map-iframe"
+                                            t-attf-src="https://maps.google.com/maps?q=#{product.x_seller_latitude},#{product.x_seller_longitude}&amp;z=14&amp;output=embed"
+                                            allowfullscreen="" loading="lazy"/>
+                                </t>
+                                <t t-else="">
+                                    <div class="ut-map-placeholder">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                        <span><t t-esc="product.x_seller_location or 'Lokasi belum ditentukan'"/></span>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== TABS Section ===== -->
+                    <div class="ut-tabs-section">
+                        <div class="ut-tabs-nav">
+                            <button class="ut-tab-btn active" data-tab="description" type="button">Deskripsi</button>
+                            <button class="ut-tab-btn" data-tab="specification" type="button">Spesifikasi</button>
+                            <button class="ut-tab-btn" data-tab="reviews" type="button">
+                                Reviews (<t t-esc="product.x_review_count or 0"/>)
+                            </button>
+                        </div>
+
+                        <!-- Tab: Description -->
+                        <div class="ut-tab-content active" id="tab-description">
+                            <div class="ut-description-text">
+                                <t t-if="product.description_sale"><t t-raw="product.description_sale"/></t>
+                                <t t-elif="product.description"><t t-raw="product.description"/></t>
+                                <t t-else=""><p class="ut-empty-text">Belum ada deskripsi untuk produk ini.</p></t>
+                            </div>
+                        </div>
+
+                        <!-- Tab: Specification -->
+                        <div class="ut-tab-content" id="tab-specification">
+                            <t t-if="product.x_specification"><t t-raw="product.x_specification"/></t>
+                            <t t-else="">
+                                <table class="ut-specs">
+                                    <tr t-if="product.x_condition">
+                                        <td class="ut-spec-label">Kondisi</td>
+                                        <td><t t-if="product.x_condition == 'new'">Baru</t><t t-else="">Bekas</t></td>
+                                    </tr>
+                                    <tr t-if="product.x_brand">
+                                        <td class="ut-spec-label">Merek</td>
+                                        <td><t t-esc="product.x_brand"/></td>
+                                    </tr>
+                                    <tr t-if="product.x_weight_product">
+                                        <td class="ut-spec-label">Berat</td>
+                                        <td><t t-esc="ut_weight_int"/> gram</td>
+                                    </tr>
+                                    <tr t-if="product.categ_id">
+                                        <td class="ut-spec-label">Kategori</td>
+                                        <td><t t-esc="product.categ_id.name"/></td>
+                                    </tr>
+                                    <tr t-if="product.x_seller_location">
+                                        <td class="ut-spec-label">Lokasi</td>
+                                        <td><t t-esc="product.x_seller_location"/></td>
+                                    </tr>
+                                    <tr t-if="ut_seller">
+                                        <td class="ut-spec-label">Penjual</td>
+                                        <td><t t-esc="ut_seller.name"/></td>
+                                    </tr>
+                                </table>
+                            </t>
+                        </div>
+
+                        <!-- Tab: Reviews -->
+                        <div class="ut-tab-content" id="tab-reviews">
+                            <t t-if="ut_reviews">
+                                <div class="ut-reviews-list">
+                                    <t t-foreach="ut_reviews" t-as="review">
+                                        <div class="ut-review-card">
+                                            <div class="ut-review-header">
+                                                <div class="ut-review-avatar">
+                                                    <img t-att-src="'/web/image/res.users/%s/avatar_128' % review.user_id.id" t-att-alt="review.user_id.name"/>
+                                                </div>
+                                                <div class="ut-review-meta">
+                                                    <span class="ut-reviewer-name"><t t-esc="review.user_id.name"/></span>
+                                                    <div class="ut-review-stars">
+                                                        <t t-foreach="range(1,6)" t-as="s">
+                                                            <svg class="ut-star-sm" viewBox="0 0 14 14" fill="none"><path d="M7 0L8.5 4.5H13L9.5 7.2L10.8 11.5L7 8.8L3.2 11.5L4.5 7.2L1 4.5H5.5L7 0Z" t-att-fill="s &lt;= review.rating and '#FFC107' or '#E0E0E0'"/></svg>
+                                                        </t>
+                                                    </div>
+                                                </div>
+                                                <span class="ut-review-date"><t t-esc="review.create_date" t-options="{'widget': 'date'}"/></span>
+                                            </div>
+                                            <p class="ut-review-comment"><t t-esc="review.comment"/></p>
+                                        </div>
+                                    </t>
+                                </div>
+                            </t>
+                            <t t-else=""><p class="ut-empty-text">Belum ada review untuk produk ini.</p></t>
+                        </div>
+                    </div>
+
+                    <!-- ===== Related Products / Produk Lain di Toko Ini ===== -->
+                    <t t-if="ut_seller_products">
+                        <div class="ut-related-section">
+                            <h2 class="ut-related-title">Produk lain di toko ini</h2>
+                            <div class="ut-related-carousel" id="ut-related-carousel">
+                                <t t-foreach="ut_seller_products" t-as="rp">
+                                    <a t-attf-href="/shop/#{rp.id}" class="ut-product-card">
+                                        <div class="ut-card-image">
+                                            <img t-att-src="'/web/image/product.template/%s/image_512' % rp.id" t-att-alt="rp.name"/>
+                                        </div>
+                                        <h3 class="ut-card-name"><t t-esc="rp.name"/></h3>
+                                        <div class="ut-card-location">
+                                            <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M7 0C4.1 0 1.75 2.35 1.75 5.25C1.75 9.19 7 14 7 14S12.25 9.19 12.25 5.25C12.25 2.35 9.9 0 7 0ZM7 7.88C5.56 7.88 4.38 6.69 4.38 5.25C4.38 3.81 5.56 2.63 7 2.63C8.44 2.63 9.63 3.81 9.63 5.25C9.63 6.69 8.44 7.88 7 7.88Z" fill="#1A1A1A" fill-opacity="0.25"/></svg>
+                                            <span><t t-esc="rp.x_seller_location or 'Yogyakarta'"/></span>
+                                        </div>
+                                        <div class="ut-card-bottom">
+                                            <span class="ut-card-price">Rp <t t-esc="'{:,.0f}'.format(rp.list_price).replace(',', '.')"/></span>
+                                            <div class="ut-card-rating">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#FFC107"/></svg>
+                                                <span><t t-esc="rp.x_average_rating or '5.0'"/></span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </t>
+                            </div>
+                        </div>
                     </t>
                 </div>
-            </div>
-        </t>
-    </template>
 
-    <template id="product_detail_template" name="UniTrade Product Detail">
-        <t t-call="website.layout">
-            <t t-set="title" t-value="product.name"/>
-            <div class="tw-max-w-7xl tw-mx-auto tw-px-4 tw-py-8">
-                <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-10">
-                    <div class="tw-aspect-square tw-bg-gray-100 tw-rounded-2xl tw-overflow-hidden">
-                        <img t-att-src="'/web/image/product.template/%s/image_1920' % product.id" t-att-alt="product.name" class="tw-w-full tw-h-full tw-object-cover"/>
-                    </div>
-                    <div>
-                        <h1 class="tw-text-3xl tw-font-bold tw-text-gray-900 tw-mb-4"><t t-esc="product.name"/></h1>
-                        <p class="tw-text-3xl tw-font-bold tw-text-indigo-600 tw-mb-6">Rp <t t-esc="'{:,.0f}'.format(product.list_price)"/></p>
-                        <div class="tw-flex tw-gap-3 tw-mb-6">
-                            <t t-if="product.x_condition">
-                                <span t-attf-class="unitrade-badge #{product.x_condition == 'new' and 'unitrade-badge-new' or 'unitrade-badge-used'}">
-                                    <t t-if="product.x_condition == 'new'">Baru</t><t t-else="">Bekas</t>
-                                </span>
-                            </t>
-                            <t t-if="product.x_seller_id and product.x_seller_id.status == 'verified'">
-                                <span class="unitrade-badge unitrade-badge-verified">✓ Seller Verified</span>
-                            </t>
-                        </div>
-                        <div class="tw-space-y-4 tw-mb-8">
-                            <p class="tw-text-gray-600"><t t-raw="product.description_sale or 'Tidak ada deskripsi.'"/></p>
-                            <p class="tw-text-sm tw-text-gray-500">📍 <t t-esc="product.x_seller_location or 'Yogyakarta'"/></p>
-                            <p class="tw-text-sm tw-text-gray-500">📦 Stok: <t t-esc="int(product.qty_available)"/> tersedia</p>
-                        </div>
-                        <div class="tw-flex tw-gap-4">
-                            <a t-attf-href="/shop/cart/update?product_id=#{product.product_variant_id.id}&amp;add_qty=1" class="unitrade-btn-primary tw-flex-1 tw-text-center">🛒 Tambah Keranjang</a>
-                            <button class="unitrade-btn-secondary">💬 Chat Penjual</button>
-                        </div>
-                    </div>
+                <!-- Hidden placeholders for Odoo inherited views that look for these IDs -->
+                <div style="display:none;">
+                    <div id="product_detail_main" data-name="Product Page"/>
+                    <div id="o_wsale_cta_wrapper"/>
+                    <div id="add_to_cart_wrap"/>
+                    <div id="o_product_terms_and_share"/>
+                    <div id="product_option_block"/>
+                    <div id="contact_us_wrapper"/>
+                    <div id="product_attributes_simple"/>
+                    <div id="product_documents"/>
+                    <t t-set="hasQuantities" t-value="true"/>
+                    <t t-set="hasBuyNow" t-value="false"/>
                 </div>
-            </div>
-        </t>
+            </section>
+        </xpath>
+
+        <!-- Remove the default product_full_description block -->
+        <xpath expr="//div[@id='product_full_description']" position="replace">
+            <div id="product_full_description"/>
+        </xpath>
+
     </template>
 </odoo>

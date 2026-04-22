@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <!-- Extend the product template form in backend -->
     <record id="product_template_form_inherit" model="ir.ui.view">
         <field name="name">product.template.form.unitrade</field>
         <field name="model">product.template</field>
@@ -14,6 +15,19 @@
                     <field name="x_seller_latitude"/>
                     <field name="x_seller_longitude"/>
                 </group>
+                <group string="Detail Produk UniTrade">
+                    <field name="x_brand"/>
+                    <field name="x_weight_product"/>
+                    <field name="x_free_shipping"/>
+                </group>
+            </xpath>
+            <!-- Add specification field in a new notebook page -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Spesifikasi UniTrade" name="unitrade_specs">
+                    <group>
+                        <field name="x_specification" widget="html" placeholder="Masukkan spesifikasi teknis produk..."/>
+                    </group>
+                </page>
             </xpath>
         </field>
     </record>
