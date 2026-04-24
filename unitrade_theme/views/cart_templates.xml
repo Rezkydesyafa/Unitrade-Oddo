@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Unitrade Checkout Layout Override -->
+        <template id="unitrade_checkout_layout" inherit_id="website_sale.checkout_layout">
+            <!-- Add a wrapper for the entire checkout to set background to very light gray like Figma -->
+            <xpath expr="//div[hasclass('oe_website_sale')]" position="attributes">
+                <attribute name="class" add="tw-bg-[#F8F9FA] tw-min-h-screen tw-pt-6 tw-font-sans" separator=" "/>
+            </xpath>
+            
+            <!-- Modify the right summary card -->
+            <xpath expr="//div[hasclass('o_total_card') and hasclass('card')]" position="attributes">
+                <attribute name="class" add="tw-bg-white tw-rounded-[16px] tw-border-0 tw-shadow-sm tw-p-6" separator=" "/>
+                <attribute name="class" remove="card" separator=" "/>
+            </xpath>
+
+            <xpath expr="//div[hasclass('o_total_card')]/div[hasclass('card-body')]" position="attributes">
+                <attribute name="class" remove="card-body p-0 p-lg-4" separator=" "/>
+            </xpath>
+
+            <xpath expr="//div[hasclass('o_total_card')]//t[@t-call='website_sale.total']" position="before">
+                <h3 class="tw-font-bold tw-text-xl tw-text-[#212529] tw-mb-6">Ringkasan belanja</h3>
+            </xpath>
+            
+            <!-- Remove Order Summary text in mobile accordion -->
+            <xpath expr="//div[hasclass('o_wsale_accordion')]" position="attributes">
+                <attribute name="class" add="tw-bg-white tw-rounded-[16px] tw-shadow-sm tw-border-0" separator=" "/>
+            </xpath>
+        </template>
+
+        <!-- Unitrade Cart Title and Breadcrumb -->
+        <template id="unitrade_cart" inherit_id="website_sale.cart">
+            <xpath expr="//h3[contains(@class, 'mb-4')]" position="replace">
+                <!-- Breadcrumb and Keranjang title -->
+                <div class="tw-flex tw-items-center tw-text-sm tw-text-gray-500 tw-mb-4 tw-mt-2">
+                    <a href="/" class="hover:tw-text-blue-600 tw-text-[#0F0F0F]">Home</a>
+                    <span class="tw-mx-2">&gt;</span>
+                    <a href="/shop" class="hover:tw-text-blue-600 tw-text-[#0F0F0F]">Produk</a>
+                    <span class="tw-mx-2">&gt;</span>
+                    <span class="tw-text-gray-400">Keranjang</span>
+                </div>
+                <h2 class="tw-text-[28px] tw-font-bold tw-text-[#212529] tw-mb-6">Keranjang</h2>
+            </xpath>
+        </template>
+
+        <!-- Unitrade Total Table (Ringkasan belanja content) -->
+        <template id="unitrade_cart_total" inherit_id="website_sale.total">
+            <xpath expr="//table[hasclass('table')]" position="attributes">
+                <attribute name="class" remove="table" separator=" "/>
+                <attribute name="class" add="tw-w-full tw-text-base" separator=" "/>
+            </xpath>
+            <xpath expr="//tr[@id='order_total_untaxed']/td[1]" position="attributes">
+                <attribute name="class" add="tw-text-gray-500 tw-py-3" separator=" "/>
+                <attribute name="class" remove="border-0 pb-2 ps-0 pt-0 text-start text-muted" separator=" "/>
+            </xpath>
+            <xpath expr="//tr[@id='order_total_untaxed']/td[2]" position="attributes">
+                <attribute name="class" add="tw-font-medium tw-text-right tw-py-3 tw-text-[#212529]" separator=" "/>
+                <attribute name="class" remove="text-end border-0 pb-2 pe-0 pt-0" separator=" "/>
+            </xpath>
+            <xpath expr="//tr[@id='order_total_taxes']/td[1]" position="attributes">
+                <attribute name="class" add="tw-text-gray-500 tw-py-3" separator=" "/>
+                <attribute name="class" remove="text-muted border-0 ps-0 pt-0 pb-3" separator=" "/>
+            </xpath>
+            <xpath expr="//tr[@id='order_total_taxes']/td[2]" position="attributes">
+                <attribute name="class" add="tw-font-medium tw-text-right tw-py-3 tw-text-[#212529]" separator=" "/>
+                <attribute name="class" remove="text-end border-0 pe-0 pt-0 pb-3" separator=" "/>
+            </xpath>
+            <xpath expr="//tr[@id='order_total']/td[1]" position="attributes">
+                <attribute name="class" add="tw-font-bold tw-text-lg tw-text-[#212529] tw-py-4 tw-border-t tw-border-gray-100" separator=" "/>
+                <attribute name="class" remove="border-0 ps-0 pt-3" separator=" "/>
+            </xpath>
+            <xpath expr="//tr[@id='order_total']/td[2]" position="attributes">
+                <attribute name="class" add="tw-font-bold tw-text-lg tw-text-[#212529] tw-text-right tw-py-4 tw-border-t tw-border-gray-100" separator=" "/>
+                <attribute name="class" remove="text-end border-0 px-0 pt-3" separator=" "/>
+            </xpath>
+        </template>
+
+        <!-- Unitrade Nav Buttons Override (Beli button) -->
+        <template id="unitrade_navigation_buttons" inherit_id="website_sale.navigation_buttons">
+            <!-- Hide 'or' separator -->
+            <xpath expr="//div[span[text()='or']]" position="attributes">
+                <attribute name="class" add="d-none" separator=" "/>
+            </xpath>
+            <!-- Proceed button -->
+            <xpath expr="//a[@name='website_sale_main_button']" position="attributes">
+                <attribute name="class" remove="btn-primary" separator=" "/>
+                <attribute name="class" add="tw-w-full tw-bg-[#0F0F0F] tw-text-white tw-rounded-[12px] tw-py-3 tw-font-semibold tw-text-base hover:tw-bg-[#2A2A2A] tw-transition-colors tw-flex tw-justify-center tw-mb-3" separator=" "/>
+            </xpath>
+            <!-- Back button -->
+            <xpath expr="//a[i[hasclass('fa-angle-left')]]" position="attributes">
+                <attribute name="class" remove="text-center" separator=" "/>
+                <attribute name="class" add="tw-w-full tw-block tw-text-center tw-bg-transparent tw-border tw-border-gray-300 tw-text-gray-700 tw-rounded-[12px] tw-py-3 tw-font-semibold tw-text-base hover:tw-bg-gray-50 tw-transition-colors" separator=" "/>
+            </xpath>
+            <xpath expr="//a/i[hasclass('fa-angle-left')]" position="attributes">
+                <attribute name="class" add="d-none" separator=" "/>
+            </xpath>
+        </template>
+
+        <!-- Unitrade Cart Lines (Products Table replacement) -->
+        <template id="unitrade_cart_lines" inherit_id="website_sale.cart_lines">
+            <xpath expr="//div[@id='cart_products']" position="replace">
+                <div id="cart_products" t-if="website_sale_order and website_sale_order.website_order_line" class="js_cart_lines tw-flex tw-flex-col tw-gap-4 tw-mb-8">
+                    
+                    <!-- Pilih Semua Block -->
+                    <div class="tw-bg-white tw-rounded-[16px] tw-p-4 tw-flex tw-items-center tw-border tw-border-gray-200">
+                        <div class="tw-flex tw-items-center tw-justify-center tw-w-6 tw-h-6 tw-mr-3">
+                            <input type="checkbox" class="tw-w-5 tw-h-5 tw-accent-[#1A1A1A] tw-cursor-pointer tw-border-gray-300 tw-rounded" id="select_all_cart"/>
+                        </div>
+                        <label for="select_all_cart" class="tw-font-semibold tw-text-base tw-text-[#212529] tw-m-0 tw-cursor-pointer">Pilih Semua</label>
+                    </div>
+
+                    <!-- Products Card Block per Shop (simulated for now since Odoo base doesn't group by shop) -->
+                    <div class="tw-bg-white tw-rounded-[16px] tw-p-5 tw-border tw-border-gray-200">
+                        <!-- Store Header -->
+                        <div class="tw-flex tw-items-center tw-mb-5 tw-pb-3 tw-border-b tw-border-gray-100">
+                            <div class="tw-flex tw-items-center tw-justify-center tw-w-6 tw-h-6 tw-mr-3">
+                                <input type="checkbox" checked="checked" class="tw-w-5 tw-h-5 tw-accent-[#1A1A1A] tw-cursor-pointer tw-border-gray-300 tw-rounded"/>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tw-text-gray-600 tw-mr-2">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                            <span class="tw-font-bold tw-text-base tw-text-[#212529]">Mamang Gun Shop</span>
+                        </div>
+
+                        <t t-set="show_qty" t-value="is_view_active('website_sale.product_quantity')"/>
+                        
+                        <div class="tw-flex tw-flex-col tw-gap-6">
+                            <t t-foreach="website_sale_order.website_order_line" t-as="line">
+                                <div t-attf-class="o_cart_product tw-flex tw-items-start tw-gap-4 #{not line_last and 'tw-border-b tw-border-gray-100 tw-pb-6'}" t-att-data-product-id="line.product_id.id">
+                                    
+                                    <div class="tw-flex tw-items-center tw-justify-center tw-w-6 tw-h-6 tw-pt-1">
+                                        <input type="checkbox" checked="checked" class="tw-w-5 tw-h-5 tw-accent-[#1A1A1A] tw-cursor-pointer tw-border-gray-300 tw-rounded"/>
+                                    </div>
+
+                                    <!-- Image -->
+                                    <div class="tw-w-[100px] tw-h-[100px] tw-rounded-[12px] tw-overflow-hidden tw-bg-gray-50 tw-flex-shrink-0 tw-border tw-border-gray-100">
+                                        <span t-if="line._is_not_sellable_line() and line.product_id.image_128">
+                                            <img t-att-src="image_data_uri(line.product_id.image_128)" class="tw-w-full tw-h-full tw-object-cover" t-att-alt="line.name_short"/>
+                                        </span>
+                                        <span t-else="" t-field="line.product_id.image_128" t-options="{'widget': 'image', 'qweb_img_responsive': False, 'class': 'tw-w-full tw-h-full tw-object-cover'}"/>
+                                    </div>
+
+                                    <!-- Product Info -->
+                                    <div class="tw-flex-grow tw-flex tw-flex-col tw-justify-between tw-min-h-[100px]">
+                                        <div>
+                                            <t t-call="website_sale.cart_line_product_link">
+                                                <h6 t-field="line.name_short" class="tw-font-semibold tw-text-[17px] tw-text-[#212529] tw-m-0"/>
+                                            </t>
+                                            <div class="tw-text-sm tw-text-gray-500 tw-mt-1">
+                                                <t t-call="website_sale.cart_line_description_following_lines">
+                                                    <t t-set="div_class" t-value="''"/>
+                                                </t>
+                                            </div>
+                                        </div>
+
+                                        <!-- Controls Row -->
+                                        <div class="tw-flex tw-justify-between tw-items-end tw-w-full tw-mt-3">
+                                            <!-- Trash -->
+                                            <button class="js_delete_product tw-text-gray-400 hover:tw-text-red-500 tw-transition-colors tw-bg-transparent tw-border-0 tw-p-0" title="Hapus produk" aria-label="Hapus produk">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                </svg>
+                                            </button>
+                                            
+                                            <!-- Qty & Price -->
+                                            <div class="tw-flex tw-items-center tw-gap-5">
+                                                <div class="tw-font-bold tw-text-[17px] tw-text-[#212529]" name="website_sale_cart_line_price">
+                                                    <t t-if="line.discount">
+                                                        <del class="tw-text-red-500 tw-mr-2 tw-text-xs" style="white-space: nowrap;" t-out="line._get_displayed_unit_price() * line.product_uom_qty" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                                                    </t>
+                                                    <t t-if="website.show_line_subtotals_tax_selection == 'tax_excluded'" t-set='product_price' t-value='line.price_subtotal'/>
+                                                    <t t-else="" t-set='product_price' t-value='line.price_total'/>
+                                                    <span t-out="product_price" style="white-space: nowrap;" t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/>
+                                                </div>
+                                                
+                                                <!-- Qty -->
+                                                <div class="css_quantity input-group tw-w-auto tw-flex tw-items-center tw-border tw-border-gray-300 tw-rounded-[8px] tw-h-9 tw-overflow-hidden" name="website_sale_cart_line_quantity">
+                                                    <t t-if="not line._is_not_sellable_line()">
+                                                        <a t-if="show_qty" href="#" class="js_add_cart_json btn btn-link d-inline-flex tw-items-center tw-justify-center tw-w-8 tw-h-full tw-text-gray-600 tw-p-0 hover:tw-text-black hover:tw-bg-gray-50 tw-border-r tw-border-gray-200" aria-label="Remove one" title="Remove one">
+                                                            <i class="fa fa-minus tw-text-xs"/>
+                                                        </a>
+                                                        <input type="text" class="js_quantity quantity form-control tw-text-center tw-w-10 tw-h-full tw-border-0 tw-p-0 tw-bg-transparent tw-text-sm tw-font-semibold focus:tw-ring-0" t-att-data-line-id="line.id" t-att-data-product-id="line.product_id.id" t-att-value="line._get_displayed_quantity()"/>
+                                                        <t t-if="line._get_shop_warning(clear=False)">
+                                                            <a href="#" class="btn btn-link">
+                                                                <i class='fa fa-warning text-warning' t-att-title="line._get_shop_warning()" role="img" aria-label="Warning"/>
+                                                            </a>
+                                                        </t>
+                                                        <a t-else="" href="#" class="js_add_cart_json btn btn-link d-inline-flex tw-items-center tw-justify-center tw-w-8 tw-h-full tw-text-gray-600 tw-p-0 hover:tw-text-black hover:tw-bg-gray-50 tw-border-l tw-border-gray-200" aria-label="Add one" title="Add one">
+                                                            <i class="fa fa-plus tw-text-xs"/>
+                                                        </a>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <span class="w-100 text-muted tw-px-3" t-esc="int(line.product_uom_qty)"/>
+                                                        <input type="hidden" class="js_quantity quantity form-control" t-att-data-line-id="line.id" t-att-data-product-id="line.product_id.id" t-att-value="line._get_displayed_quantity()"/>
+                                                    </t>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </template>
+    </data>
+</odoo>
