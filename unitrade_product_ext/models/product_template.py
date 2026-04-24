@@ -38,6 +38,31 @@ class ProductTemplateUniTrade(models.Model):
         default=False,
         help='Tandai jika produk ini dijual di marketplace UniTrade',
     )
+    x_specification = fields.Html(
+        string='Spesifikasi',
+        help='Detail spesifikasi produk',
+    )
+    x_average_rating = fields.Float(
+        string='Rata-rata Rating',
+        digits=(3, 2),
+        default=0.0,
+    )
+    x_review_count = fields.Integer(
+        string='Jumlah Review',
+        default=0,
+    )
+    x_brand = fields.Char(
+        string='Merek',
+    )
+    x_weight_product = fields.Float(
+        string='Berat Produk (gram)',
+        digits=(10, 2),
+        default=0.0,
+    )
+    x_free_shipping = fields.Boolean(
+        string='Gratis Ongkir',
+        default=False,
+    )
 
     @api.model
     def _search_marketplace_products(self, keyword=None, category_id=None,

@@ -8,6 +8,7 @@ from odoo.exceptions import UserError, AccessDenied
 from odoo.service import security
 from odoo.addons.auth_signup.models.res_users import SignupError
 from odoo.addons.auth_oauth.controllers.main import OAuthLogin, OAuthController
+from odoo.addons.website.controllers.main import Website
 
 _logger = logging.getLogger(__name__)
 
@@ -496,3 +497,30 @@ class UnitradeOAuthController(OAuthController):
                 _logger.error("Failed to auto-verify OAuth user: %s", str(e))
 
         return response
+
+
+class UnitradeWebsite(Website):
+    """Override website homepage to inject Best Quality products."""
+
+    @http.route('/', type='http', auth="public", website=True, sitemap=True)
+    def index(self, **kw):
+        """Override homepage route to pass 'products' variable for Kualitas Terbaik section."""
+        # Get response from original website controller
+        response = super(UnitradeWebsite, self).index(**kw)
+        
+        # Fetch published products
+        Product = request.env['product.template'].sudo()
+        published_products = Product.search([('website_published', '=', True)])
+        
+        # Sort by rating_avg (desc) and sales_count (desc), then take top 8
+        best_products = published_products.sorted(
+            key=lambda p: (p.rating_avg or 0.0, p.sales_count or 0.0),
+            reverse=True
+        )[:8]
+
+        # Inject into qcontext so template can render them
+        if hasattr(response, 'qcontext'):
+            response.qcontext['products'] = best_products
+            
+        return response
+

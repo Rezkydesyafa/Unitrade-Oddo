@@ -19,7 +19,7 @@
                             <div class="tw-p-4">
                                 <h3 class="tw-font-semibold tw-text-sm tw-text-gray-900 tw-line-clamp-2"><t t-esc="product.name"/></h3>
                                 <p class="tw-text-indigo-600 tw-font-bold tw-text-lg">Rp <t t-esc="'{:,.0f}'.format(product.list_price)"/></p>
-                                <span class="tw-text-xs tw-text-gray-500">📍 <t t-esc="product.x_seller_location or 'Yogyakarta'"/></span>
+                                <span class="tw-text-xs tw-text-gray-500 tw-flex tw-items-center"><i class="fa fa-map-marker tw-mr-1"></i> <t t-esc="product.x_seller_location or 'Yogyakarta'"/></span>
                             </div>
                         </a>
                     </t>
@@ -51,7 +51,7 @@
                         </div>
                         <div class="tw-space-y-4 tw-mb-8">
                             <p class="tw-text-gray-600"><t t-raw="product.description_sale or 'Tidak ada deskripsi.'"/></p>
-                            <p class="tw-text-sm tw-text-gray-500">📍 <t t-esc="product.x_seller_location or 'Yogyakarta'"/></p>
+                            <p class="tw-text-sm tw-text-gray-500 tw-flex tw-items-center"><i class="fa fa-map-marker tw-mr-1"></i> <t t-esc="product.x_seller_location or 'Yogyakarta'"/></p>
                             <p class="tw-text-sm tw-text-gray-500">📦 Stok: <t t-esc="int(product.qty_available)"/> tersedia</p>
                         </div>
                         <div class="tw-flex tw-gap-4">
