@@ -223,9 +223,9 @@
 
             <!-- Kualitas Terbaik Section -->
             <section class="tw-max-w-7xl tw-mx-auto tw-px-4 md:tw-px-8 tw-py-8">
-                <div class="tw-flex tw-justify-between tw-items-end tw-mb-6">
-                    <h2 class="tw-text-2xl tw-font-bold tw-text-[#212529]">Kualitas Terbaik</h2>
-                    <a href="/shop" class="tw-text-sm tw-text-gray-400 tw-font-medium hover:tw-text-gray-700">Lihat Semua</a>
+                <div class="tw-flex tw-justify-between tw-items-center tw-mb-6">
+                    <h2 class="tw-text-2xl tw-font-bold tw-text-[#212529] tw-m-0">Kualitas Terbaik</h2>
+                    <a href="/shop" class="tw-font-['Urbanist'] tw-font-bold tw-text-[15px] tw-text-black tw-border tw-border-gray-200 tw-rounded-[24px] tw-px-6 tw-py-2 hover:tw-bg-gray-50 tw-transition-colors tw-no-underline">Explore All</a>
                 </div>
 
                 <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-5 tw-gap-6">
