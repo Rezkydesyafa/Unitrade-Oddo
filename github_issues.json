@@ -1,0 +1,557 @@
+[
+  {
+    "title": "SETUP-01: Install & konfigurasi Odoo 17 + odoo.conf",
+    "body": "## Deskripsi\nInstall Odoo 17, konfigurasi `odoo.conf`, setup PostgreSQL, aktifkan path `custom-addons`.\n\n## Acceptance Criteria\n- [ ] Odoo berjalan di `localhost:8069`\n- [ ] Database `unitrade_db` terbuat\n- [ ] Path `D:\\UniTrade\\custom-addons` terbaca di Odoo\n- [ ] Login admin berhasil\n\n## File yang Dibuat\n- `odoo.conf`\n- `custom-addons/` folder structure\n\n## Odoo Module\n`base`, `web`",
+    "labels": [
+      "setup",
+      "backend",
+      "priority:critical"
+    ],
+    "milestone": "Phase 1 - Setup & Foundation",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "SETUP-02: Install semua native Odoo module yang diperlukan",
+    "body": "## Deskripsi\nInstall semua modul native Odoo via menu Apps yang dibutuhkan UniTrade.\n\n## Module yang Diinstall\n- [ ] `website`\n- [ ] `website_sale`\n- [ ] `sale`\n- [ ] `account`\n- [ ] `stock`\n- [ ] `portal`\n- [ ] `auth_signup`\n- [ ] `im_livechat`\n- [ ] `mail`\n- [ ] `helpdesk`\n- [ ] `payment`\n- [ ] `delivery`\n- [ ] `website_sale_wishlist`\n- [ ] `rating`\n\n## Acceptance Criteria\n- [ ] Semua modul terinstall tanpa error\n- [ ] `/shop` bisa diakses\n- [ ] Portal `/my` bisa diakses",
+    "labels": [
+      "setup",
+      "backend",
+      "priority:critical"
+    ],
+    "milestone": "Phase 1 - Setup & Foundation",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "SETUP-03: Buat modul `unitrade_theme` - Tailwind + layout custom",
+    "body": "## Deskripsi\nBuat custom module `unitrade_theme` sebagai base tampilan semua halaman UniTrade menggunakan Tailwind CSS dan token warna dari Figma.\n\n## Acceptance Criteria\n- [ ] Struktur folder `unitrade_theme/` terbuat\n- [ ] Tailwind CSS ter-compile dan ter-load\n- [ ] Token warna Figma terimplementasi di CSS variables\n- [ ] Override `website.layout` berhasil\n- [ ] Semua halaman pakai font dan warna UniTrade\n\n## File yang Dibuat\n```\nunitrade_theme/\n├── __manifest__.py\n├── static/src/css/unitrade.css\n├── static/src/js/unitrade.js\n└── views/layout.xml\n```\n\n## Odoo Module\n`website` (inherit)",
+    "labels": [
+      "setup",
+      "frontend",
+      "ui",
+      "priority:critical"
+    ],
+    "milestone": "Phase 1 - Setup & Foundation",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "F-01: Registrasi & Login - form + field No WhatsApp",
+    "body": "## Deskripsi\nImplementasi form registrasi dan login dengan field wajib sesuai SRS. Extend `res.partner` dengan field `no_whatsapp`.\n\n## Odoo Native yang Dipakai\n`auth_signup`, `portal`, `res.users` — handle session, password hashing Bcrypt, portal access\n\n## Yang Perlu Dicustom\n- [ ] Tambah field `no_whatsapp` di `res.partner`\n- [ ] Override template `/web/login` sesuai Figma\n- [ ] Override template `/web/signup` sesuai Figma\n- [ ] Validasi client-side form\n\n## Acceptance Criteria\n- [ ] User bisa daftar dengan Email, Password, Nama, No WA\n- [ ] User bisa login dengan Email/Password\n- [ ] Password tersimpan dalam format Bcrypt\n- [ ] Redirect ke OTP verification setelah register\n\n## Custom Module\n`unitrade_auth`\n\n## Estimasi\n2 hari",
+    "labels": [
+      "auth",
+      "frontend",
+      "backend",
+      "priority:critical"
+    ],
+    "milestone": "Phase 2 - Auth & Profil",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "F-02: OTP Verifikasi - 6 digit, expired 5 menit, rate limit 3x",
+    "body": "## Deskripsi\nImplementasi sistem OTP untuk verifikasi akun baru. Kode 6 digit, expired 5 menit, max 3x kirim ulang.\n\n## Odoo Native yang Dipakai\n`mail` — kirim email via SMTP queue\n\n## Yang Perlu Dicustom\n- [ ] Tambah field OTP di `res.users`: `otp_code`, `otp_expiry`, `otp_attempt`, `is_verified`\n- [ ] Controller `/unitrade/auth/verify-otp`\n- [ ] Logic rate limiting (max 3x resend)\n- [ ] Logic expired 5 menit\n- [ ] Template email OTP\n- [ ] Halaman input OTP sesuai Figma\n\n## Acceptance Criteria\n- [ ] OTP 6 digit terkirim ke email\n- [ ] OTP expired setelah 5 menit\n- [ ] Max 3x resend, setelah itu locked\n- [ ] Akun aktif setelah OTP benar\n\n## Custom Module\n`unitrade_auth`\n\n## Estimasi\n2 hari",
+    "labels": [
+      "auth",
+      "frontend",
+      "backend",
+      "priority:critical"
+    ],
+    "milestone": "Phase 2 - Auth & Profil",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "F-03: Lupa Password - reset via email, token 30 menit",
+    "body": "## Deskripsi\nFitur reset password via email. Token unik, single-use, expired 30 menit.\n\n## Odoo Native yang Dipakai\n`auth_signup` — SUDAH ADA fitur reset password native!\n\n## Yang Perlu Dicustom\n- [ ] Override template halaman reset password sesuai Figma\n- [ ] Pastikan token expiry 30 menit terkonfigurasi\n\n## Acceptance Criteria\n- [ ] User input email → link reset terkirim\n- [ ] Link expired setelah 30 menit\n- [ ] Token single-use (tidak bisa dipakai 2x)\n- [ ] Password berhasil direset\n\n## Custom Module\n`unitrade_theme` (styling only)\n\n## Estimasi\n1 hari",
+    "labels": [
+      "auth",
+      "frontend",
+      "priority:high"
+    ],
+    "milestone": "Phase 2 - Auth & Profil",
+    "priority": "High",
+    "status": "Todo"
+  },
+  {
+    "title": "F-04: Manajemen Profil - extend res.partner + Google Places alamat",
+    "body": "## Deskripsi\nHalaman edit profil lengkap. Extend `res.partner` dengan field tambahan dan integrasi Google Places untuk autocomplete alamat.\n\n## Odoo Native yang Dipakai\n`portal`, `res.partner` — halaman `/my/account` sudah ada\n\n## Yang Perlu Dicustom\n- [ ] Field tambahan: `username` (unique), `gender`, `birth_date`\n- [ ] Alamat lengkap: Provinsi, Kota, Kecamatan, Kode Pos, Detail\n- [ ] Google Places API autocomplete untuk input alamat\n- [ ] Upload foto profil max 2MB dengan validasi\n- [ ] Override template `/my/account` sesuai Figma\n\n## Acceptance Criteria\n- [ ] User bisa edit semua field profil\n- [ ] Username unique tervalidasi\n- [ ] Autocomplete alamat Jogja berfungsi\n- [ ] Foto profil tersimpan dan ditampilkan\n\n## Custom Module\n`unitrade_auth`\n\n## Estimasi\n2 hari",
+    "labels": [
+      "auth",
+      "frontend",
+      "backend",
+      "priority:high"
+    ],
+    "milestone": "Phase 2 - Auth & Profil",
+    "priority": "High",
+    "status": "Todo"
+  },
+  {
+    "title": "F-05: Wishlist - toggle ikon hati, halaman favorit",
+    "body": "## Deskripsi\nFitur simpan produk ke wishlist. Ikon hati di katalog, toggle AJAX, halaman daftar favorit.\n\n## Odoo Native yang Dipakai\n`website_sale_wishlist` — SUDAH ADA modul wishlist native!\n\n## Yang Perlu Dicustom\n- [ ] Override template ikon hati sesuai Figma (warna, animasi)\n- [ ] Override halaman `/shop/wishlist` sesuai Figma\n- [ ] Pastikan ikon berubah warna saat produk sudah di-wishlist\n\n## Acceptance Criteria\n- [ ] Klik ikon hati → produk masuk wishlist\n- [ ] Klik lagi → produk keluar wishlist\n- [ ] Ikon hati menyala jika produk sudah di wishlist\n- [ ] Halaman favorit menampilkan semua produk tersimpan\n\n## Custom Module\n`unitrade_theme` (styling only)\n\n## Estimasi\n1 hari",
+    "labels": [
+      "frontend",
+      "ui",
+      "priority:medium"
+    ],
+    "milestone": "Phase 2 - Auth & Profil",
+    "priority": "Medium",
+    "status": "Todo"
+  },
+  {
+    "title": "F-06: Monitoring Transaksi - Pesanan Saya dengan filter status",
+    "body": "## Deskripsi\nHalaman 'Pesanan Saya' dengan filter status lengkap dan detail item pesanan.\n\n## Odoo Native yang Dipakai\n`portal`, `sale` — halaman `/my/orders` sudah ada!\n\n## Yang Perlu Dicustom\n- [ ] Label status Indonesia: Draft/Confirmed/Shipped/Done/Cancelled\n- [ ] Filter status di UI\n- [ ] Override template `/my/orders` sesuai Figma\n- [ ] Tampilkan No. Invoice, Tanggal, Rincian Item\n\n## Acceptance Criteria\n- [ ] Semua pesanan tampil dengan status benar\n- [ ] Filter per status berfungsi\n- [ ] Detail pesanan bisa dibuka\n\n## Custom Module\n`unitrade_theme`\n\n## Estimasi\n1 hari",
+    "labels": [
+      "frontend",
+      "ui",
+      "priority:critical"
+    ],
+    "milestone": "Phase 2 - Auth & Profil",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "F-07/08: Pengaturan Akun - notifikasi, keamanan, ganti password",
+    "body": "## Deskripsi\nHalaman pengaturan akun multi-tab: notifikasi, keamanan, aktivitas akun, hapus akun, ganti password.\n\n## Odoo Native yang Dipakai\n`portal`, `res.users` — base settings ada\n\n## Yang Perlu Dicustom\n- [ ] Layout multi-tab pengaturan\n- [ ] Tab keamanan: ganti password, cek aktivitas login\n- [ ] Tab notifikasi: toggle per jenis\n- [ ] Tab hapus akun: form konfirmasi\n- [ ] UI sesuai Figma\n\n## Acceptance Criteria\n- [ ] User bisa ganti password dengan input password lama\n- [ ] Toggle notifikasi tersimpan\n- [ ] Hapus akun menonaktifkan akun (active=False)\n\n## Custom Module\n`unitrade_auth`\n\n## Estimasi\n2.5 hari",
+    "labels": [
+      "frontend",
+      "backend",
+      "priority:medium"
+    ],
+    "milestone": "Phase 2 - Auth & Profil",
+    "priority": "Medium",
+    "status": "Todo"
+  },
+  {
+    "title": "F-09: Penghapusan Akun + Halaman Kebijakan Privasi",
+    "body": "## Deskripsi\nForm pengajuan hapus akun dan halaman statis kebijakan privasi UniTrade.\n\n## Odoo Native yang Dipakai\n`res.users` (`active=False`), `website` (static page)\n\n## Yang Perlu Dicustom\n- [ ] Controller hapus akun: set `active=False`\n- [ ] Form konfirmasi dengan input password\n- [ ] Halaman statis `/privacy-policy`\n- [ ] Konten kebijakan privasi UniTrade\n\n## Acceptance Criteria\n- [ ] Akun terhapus (nonaktif) setelah konfirmasi\n- [ ] Halaman kebijakan privasi dapat diakses tanpa login\n\n## Custom Module\n`unitrade_auth`\n\n## Estimasi\n1 hari",
+    "labels": [
+      "frontend",
+      "backend",
+      "priority:medium"
+    ],
+    "milestone": "Phase 2 - Auth & Profil",
+    "priority": "Medium",
+    "status": "Todo"
+  },
+  {
+    "title": "F-11: Aktivasi Akun Penjual - model unitrade.seller + 1 tombol upgrade",
+    "body": "## Deskripsi\nMahasiswa bisa upgrade akun menjadi penjual dengan 1 tombol tanpa membuat akun baru. Buat model `unitrade.seller`.\n\n## Odoo Native yang Dipakai\n`res.users`, `res.groups` — group management\n\n## Yang Perlu Dicustom\n- [ ] Model `unitrade.seller` dengan field: `user_id`, `status`, `ktm_image`, `nim`, `rejection_reason`\n- [ ] Tombol 'Aktivasi Penjual' di halaman profil\n- [ ] Controller create seller record\n- [ ] Assign user ke group `Seller` setelah verified\n\n## Acceptance Criteria\n- [ ] User klik tombol → record seller terbuat\n- [ ] Status awal `draft`\n- [ ] UNIQUE constraint user_id (1 user = 1 seller)\n\n## Custom Module\n`unitrade_seller`\n\n## Estimasi\n2 hari",
+    "labels": [
+      "seller",
+      "backend",
+      "priority:critical"
+    ],
+    "milestone": "Phase 3 - Verifikasi Seller",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "F-12: Verifikasi KTM - PaddleOCR + regex NIM + confidence check",
+    "body": "## Deskripsi\nSistem verifikasi KTM otomatis menggunakan OCR untuk ekstraksi teks dan regex untuk validasi NIM UNISA.\n\n## Odoo Native yang Dipakai\n`mail` (notif), `ir.attachment` (simpan file)\n\n## Yang Perlu Dicustom\n- [ ] Form upload KTM (JPG/PNG, max 5MB)\n- [ ] PaddleOCR pipeline: preprocessing Pillow → OCR → ekstraksi teks\n- [ ] Regex NIM format UNISA\n- [ ] Confidence check: cocokkan nama profil vs teks OCR (threshold 70%)\n- [ ] Flag low/high confidence untuk admin\n- [ ] Controller `/unitrade/seller/verify-ktm`\n\n## Library Eksternal\n```bash\npip install paddleocr Pillow\n```\n\n## Acceptance Criteria\n- [ ] File KTM ter-upload dan tersimpan\n- [ ] OCR berhasil ekstraksi teks dari KTM\n- [ ] NIM tervalidasi dengan regex\n- [ ] Status berubah ke `pending` setelah upload\n\n## Custom Module\n`unitrade_seller`\n\n## Estimasi\n3 hari",
+    "labels": [
+      "seller",
+      "backend",
+      "ocr",
+      "priority:critical"
+    ],
+    "milestone": "Phase 3 - Verifikasi Seller",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "F-13: Status Verifikasi Penjual - backend admin approve/reject + notif email",
+    "body": "## Deskripsi\nStatus verifikasi seller: draft → pending → verified/rejected. Admin bisa approve/reject dari backend Odoo. Alasan penolakan wajib diisi.\n\n## Odoo Native yang Dipakai\n`mail` — email template & notifikasi otomatis\n\n## Yang Perlu Dicustom\n- [ ] Backend view KTM untuk admin (XML form view)\n- [ ] Tombol Approve dan Reject di form backend\n- [ ] Field `rejection_reason` wajib saat reject\n- [ ] Email template: approved & rejected\n- [ ] Halaman status verifikasi di portal seller (badge status)\n\n## Acceptance Criteria\n- [ ] Admin bisa lihat foto KTM + data OCR\n- [ ] Admin approve → status `verified`, seller bisa listing\n- [ ] Admin reject → wajib isi alasan → email terkirim\n- [ ] User bisa lihat status dan alasan penolakan\n\n## Custom Module\n`unitrade_seller`\n\n## Estimasi\n2 hari",
+    "labels": [
+      "seller",
+      "backend",
+      "admin",
+      "priority:critical"
+    ],
+    "milestone": "Phase 3 - Verifikasi Seller",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "F-14: Halaman Detail Produk - slider, badge kondisi, tombol chat & beli",
+    "body": "## Deskripsi\nOverride halaman detail produk Odoo dengan desain Figma: slider gambar, badge kondisi baru/bekas, info lokasi penjual, tombol Chat dan Beli.\n\n## Odoo Native yang Dipakai\n`website_sale` — halaman `/shop/{product}` sudah ada\n\n## Yang Perlu Dicustom\n- [ ] Extend `product.template`: field `condition` (baru/bekas), `seller_id`, `location_city`\n- [ ] Slider multi-gambar dengan arrow navigation\n- [ ] Badge kondisi Baru/Bekas\n- [ ] Info lokasi penjual\n- [ ] Tombol Chat (link ke im_livechat)\n- [ ] Tombol Beli (add to cart)\n- [ ] Override template `product_detail` sesuai Figma\n\n## Acceptance Criteria\n- [ ] Gambar slider berfungsi\n- [ ] Badge kondisi tampil\n- [ ] Stok real-time tampil\n- [ ] Tombol Chat membuka livechat\n\n## Custom Module\n`unitrade_product`\n\n## Estimasi\n2 hari",
+    "labels": [
+      "product",
+      "frontend",
+      "ui",
+      "priority:critical"
+    ],
+    "milestone": "Phase 4 - Produk & Katalog",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "F-15: Manajemen Keranjang - cek stok real-time sebelum checkout",
+    "body": "## Deskripsi\nKeranjang belanja dengan pengecekan stok real-time. Odoo `website_sale` sudah handle sebagian besar.\n\n## Odoo Native yang Dipakai\n`website_sale` — add to cart, update qty, hapus item, kalkulasi total sudah ada!\n\n## Yang Perlu Dicustom\n- [ ] Cek stok real-time sebelum lanjut checkout\n- [ ] Alert jika stok tidak cukup\n- [ ] Override template keranjang sesuai Figma\n\n## Acceptance Criteria\n- [ ] Add/update/hapus item di keranjang\n- [ ] Total harga terhitung otomatis\n- [ ] Error jika stok tidak cukup saat checkout\n\n## Custom Module\n`unitrade_product`\n\n## Estimasi\n1 hari",
+    "labels": [
+      "product",
+      "frontend",
+      "priority:critical"
+    ],
+    "milestone": "Phase 4 - Produk & Katalog",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "F-16/17: Rating sorting ulasan + Halaman profil toko penjual",
+    "body": "## Deskripsi\nSorting ulasan produk dan halaman profil toko penjual dengan statistik kinerja.\n\n## Odoo Native yang Dipakai\n`rating`, `portal`\n\n## Yang Perlu Dicustom\n- [ ] Sort ulasan: terbaru, rating tertinggi, rating terendah\n- [ ] Halaman `/seller/{id}` — profil toko\n- [ ] Tampilkan: rating avg, jumlah terjual, produk aktif\n- [ ] Tombol Chat di profil toko\n\n## Acceptance Criteria\n- [ ] Sort ulasan berfungsi\n- [ ] Halaman profil toko accessible tanpa login\n\n## Custom Module\n`unitrade_review`, `unitrade_seller`\n\n## Estimasi\n2 hari",
+    "labels": [
+      "product",
+      "frontend",
+      "priority:medium"
+    ],
+    "milestone": "Phase 4 - Produk & Katalog",
+    "priority": "Medium",
+    "status": "Todo"
+  },
+  {
+    "title": "F-18: Pencarian & Filter Terpadu - tambah filter kondisi Baru/Bekas",
+    "body": "## Deskripsi\nExtend filter pencarian Odoo dengan filter Kondisi. Filter Kategori dan Harga sudah ada di `website_sale`.\n\n## Odoo Native yang Dipakai\n`website_sale` — search, filter kategori, filter harga sudah ada!\n\n## Yang Perlu Dicustom\n- [ ] Tambah filter Kondisi (Radio: Baru/Bekas)\n- [ ] Styling sidebar filter sesuai Figma\n- [ ] URL parameter untuk kondisi filter\n\n## Acceptance Criteria\n- [ ] Filter kondisi berfungsi dan update hasil search\n- [ ] Filter bisa dikombinasikan (kategori + harga + kondisi)\n\n## Custom Module\n`unitrade_product`\n\n## Estimasi\n1.5 hari",
+    "labels": [
+      "product",
+      "frontend",
+      "priority:critical"
+    ],
+    "milestone": "Phase 4 - Produk & Katalog",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "F-19: Sortir Produk Dinamis - tambah sort Populer by sales_count",
+    "body": "## Deskripsi\nTambahkan opsi sort 'Populer' berdasarkan `sales_count`. Sort Terbaru dan Harga sudah ada native.\n\n## Odoo Native yang Dipakai\n`website_sale` — sort by price & newest sudah ada\n\n## Yang Perlu Dicustom\n- [ ] Tambah opsi sort `Populer` (order by `sales_count DESC`)\n- [ ] Dropdown sort sesuai Figma\n\n## Acceptance Criteria\n- [ ] 4 opsi sort: Terbaru, Termurah, Termahal, Populer\n\n## Custom Module\n`unitrade_product`\n\n## Estimasi\n0.5 hari",
+    "labels": [
+      "product",
+      "frontend",
+      "priority:medium"
+    ],
+    "milestone": "Phase 4 - Produk & Katalog",
+    "priority": "Medium",
+    "status": "Todo"
+  },
+  {
+    "title": "F-20: Rekomendasi Produk - kategori sama + riwayat session",
+    "body": "## Deskripsi\nBlok rekomendasi produk di bawah halaman detail. Logic: kategori sama + riwayat pencarian session.\n\n## Odoo Native yang Dipakai\n`website_sale` — 'Alternative Products' sudah ada!\n\n## Yang Perlu Dicustom\n- [ ] Logic: prioritaskan kategori sama\n- [ ] Fallback: riwayat session user\n- [ ] Blok UI rekomendasi sesuai Figma (horizontal scroll cards)\n\n## Acceptance Criteria\n- [ ] Minimal 4 produk rekomendasi tampil\n- [ ] Produk dari kategori yang sama diprioritaskan\n\n## Custom Module\n`unitrade_product`\n\n## Estimasi\n1 hari",
+    "labels": [
+      "product",
+      "frontend",
+      "priority:medium"
+    ],
+    "milestone": "Phase 4 - Produk & Katalog",
+    "priority": "Medium",
+    "status": "Todo"
+  },
+  {
+    "title": "F-21: Chat Real-Time - im_livechat + simpan product_id di channel",
+    "body": "## Deskripsi\nChat real-time antara buyer dan seller. Extend `discuss.channel` agar chat tersimpan terkait produk tertentu.\n\n## Odoo Native yang Dipakai\n`im_livechat` — chat window, history, notifikasi sudah ada!\n\n## Yang Perlu Dicustom\n- [ ] Extend `discuss.channel`: tambah field `product_id` FK\n- [ ] Tombol 'Chat' di halaman produk membuka channel dengan konteks produk\n- [ ] Badge nama produk di window chat\n- [ ] Seller bisa lihat produk mana yang ditanyakan\n\n## Acceptance Criteria\n- [ ] Chat terbuka dari halaman produk\n- [ ] Channel tersimpan dengan product_id\n- [ ] History chat persisten\n\n## Custom Module\n`unitrade_chat`\n\n## Estimasi\n2 hari",
+    "labels": [
+      "chat",
+      "backend",
+      "frontend",
+      "priority:critical"
+    ],
+    "milestone": "Phase 5 - Transaksi & Komunikasi",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "F-22: Payment Gateway - Xendit/Midtrans Snap + webhook + Account Move otomatis",
+    "body": "## Deskripsi\nIntegrasi payment gateway. Odoo `payment` module menyediakan framework, perlu buat custom provider.\n\n## Odoo Native yang Dipakai\n`payment`, `account` — framework provider & Account Move otomatis\n\n## Yang Perlu Dicustom\n- [ ] Custom payment provider (Midtrans lebih direkomendasikan — ada referensi komunitas)\n- [ ] Controller webhook `/unitrade/payment/webhook`\n- [ ] Verifikasi signature webhook\n- [ ] Update status order setelah payment callback\n- [ ] Halaman checkout + konfirmasi pembayaran sesuai Figma\n\n## ⚠️ Catatan\nMidtrans lebih mudah dari Xendit karena ada modul komunitas Odoo sebagai referensi.\n\n## Acceptance Criteria\n- [ ] Pembayaran berhasil diproses\n- [ ] Webhook mengupdate status order\n- [ ] Invoice/Account Move terbuat otomatis\n\n## Custom Module\n`unitrade_payment`\n\n## Estimasi\n3 hari",
+    "labels": [
+      "payment",
+      "backend",
+      "priority:critical"
+    ],
+    "milestone": "Phase 5 - Transaksi & Komunikasi",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "F-23: Status Transaksi - label Indonesia + progress bar timeline",
+    "body": "## Deskripsi\nTampilan status transaksi yang jelas dengan label Bahasa Indonesia dan progress bar.\n\n## Odoo Native yang Dipakai\n`sale`, `portal` — status order & halaman `/my/orders` sudah ada\n\n## Yang Perlu Dicustom\n- [ ] Label status Indonesia: Menunggu Bayar, Sedang Dikemas, Dikirim, Selesai, Dibatalkan\n- [ ] Progress bar / timeline visual\n- [ ] Badge warna per status\n\n## Acceptance Criteria\n- [ ] Status tampil dengan label Indonesia yang benar\n- [ ] Progress bar menunjukkan posisi status\n\n## Custom Module\n`unitrade_theme`\n\n## Estimasi\n1 hari",
+    "labels": [
+      "frontend",
+      "ui",
+      "priority:high"
+    ],
+    "milestone": "Phase 5 - Transaksi & Komunikasi",
+    "priority": "High",
+    "status": "Todo"
+  },
+  {
+    "title": "F-24: Integrasi GoSend API - kalkulasi ongkir + booking pengiriman",
+    "body": "## Deskripsi\nIntegrasi GoSend untuk kalkulasi ongkir berdasarkan koordinat GPS dan booking pengiriman.\n\n## Odoo Native yang Dipakai\n`delivery`, `stock` — framework delivery carrier & stock.picking\n\n## Yang Perlu Dicustom\n- [ ] `utils/gosend_api.py`: wrapper GoSend API\n- [ ] Kalkulasi ongkir berdasarkan lat/lng origin & destination\n- [ ] Ambil berat dari `product.template`\n- [ ] Simpan `booking_id` di dokumen pengiriman\n- [ ] Halaman pilih pengiriman di checkout\n\n## Acceptance Criteria\n- [ ] Ongkir terhitung berdasarkan lokasi\n- [ ] Order GoSend berhasil dibuat\n- [ ] booking_id tersimpan di database\n\n## Custom Module\n`unitrade_delivery`\n\n## Estimasi\n3 hari",
+    "labels": [
+      "delivery",
+      "backend",
+      "priority:critical"
+    ],
+    "milestone": "Phase 5 - Transaksi & Komunikasi",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "F-25: Status Pengiriman Real-time - webhook GoSend + nomor resi tracking",
+    "body": "## Deskripsi\nSinkronisasi status pengiriman real-time dari GoSend via webhook. Nomor resi sebagai link tracking aktif.\n\n## Odoo Native yang Dipakai\n`delivery`, `portal`\n\n## Yang Perlu Dicustom\n- [ ] Webhook controller `/unitrade/delivery/webhook`\n- [ ] Update status pengiriman di `unitrade.delivery`\n- [ ] Timeline tracking di halaman 'Pesanan Saya'\n- [ ] Nomor resi sebagai link ke GoSend tracking\n\n## Acceptance Criteria\n- [ ] Status pengiriman update real-time via webhook\n- [ ] Nomor resi tampil dan bisa diklik\n\n## Custom Module\n`unitrade_delivery`\n\n## Estimasi\n2 hari",
+    "labels": [
+      "delivery",
+      "backend",
+      "frontend",
+      "priority:high"
+    ],
+    "milestone": "Phase 5 - Transaksi & Komunikasi",
+    "priority": "High",
+    "status": "Todo"
+  },
+  {
+    "title": "F-26: Notifikasi Sistem - in-app bell icon + email otomatis",
+    "body": "## Deskripsi\nSistem notifikasi untuk: chat masuk, status pesanan, pembayaran sukses, info pengiriman.\n\n## Odoo Native yang Dipakai\n`mail` — `mail.message`, `mail.notification`, bus real-time sudah ada!\n\n## Yang Perlu Dicustom\n- [ ] Trigger notif di setiap event UniTrade\n- [ ] Bell icon notification dropdown di navbar\n- [ ] Badge counter unread notifications\n- [ ] UI notifikasi sesuai Figma\n\n## Jenis Notifikasi\n- Chat masuk dari buyer/seller\n- Status pesanan berubah\n- Pembayaran berhasil/gagal\n- Update status pengiriman\n- Verifikasi seller approved/rejected\n\n## Custom Module\nExtend di `unitrade_seller`, `unitrade_payment`, `unitrade_delivery`\n\n## Estimasi\n1.5 hari",
+    "labels": [
+      "notification",
+      "frontend",
+      "backend",
+      "priority:high"
+    ],
+    "milestone": "Phase 6 - Notifikasi",
+    "priority": "High",
+    "status": "Todo"
+  },
+  {
+    "title": "F-27: Pengaturan Notifikasi - toggle per jenis notifikasi",
+    "body": "## Deskripsi\nHalaman pengaturan notifikasi: user bisa aktif/nonaktifkan per jenis notifikasi.\n\n## Odoo Native yang Dipakai\n`mail` (base preference)\n\n## Yang Perlu Dicustom\n- [ ] Model `unitrade.notif.preference` (One2one dengan res.users)\n- [ ] Toggle switch per jenis notif di halaman pengaturan\n- [ ] Simpan preferensi ke database\n\n## 5 Jenis Notifikasi\n1. Chat masuk\n2. Status pesanan berubah\n3. Pembayaran\n4. Pengiriman\n5. Promo & informasi\n\n## Custom Module\n`unitrade_auth`\n\n## Estimasi\n1 hari",
+    "labels": [
+      "notification",
+      "frontend",
+      "priority:medium"
+    ],
+    "milestone": "Phase 6 - Notifikasi",
+    "priority": "Medium",
+    "status": "Todo"
+  },
+  {
+    "title": "F-28: Dashboard Penjual - statistik visual + grafik penjualan",
+    "body": "## Deskripsi\nDashboard penjual dengan kartu statistik dan grafik penjualan mingguan/bulanan menggunakan Chart.js.\n\n## Odoo Native yang Dipakai\n`sale`, `account`, `portal` — data sudah ada di database\n\n## Yang Perlu Dicustom\n- [ ] Computed field: total revenue, total orders, total products\n- [ ] Controller `/my/seller/dashboard` dengan data JSON\n- [ ] Grafik Chart.js: penjualan mingguan & bulanan\n- [ ] Kartu statistik: Revenue, Orders, Products, Rating\n- [ ] Layout dashboard sesuai Figma\n\n## Acceptance Criteria\n- [ ] Dashboard tampil data real seller yang login\n- [ ] Grafik update berdasarkan data transaksi\n- [ ] Responsive di mobile\n\n## Custom Module\n`unitrade_seller`\n\n## Estimasi\n3 hari",
+    "labels": [
+      "seller",
+      "frontend",
+      "backend",
+      "priority:critical"
+    ],
+    "milestone": "Phase 7 - Dashboard Seller",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "F-29: Manajemen Pesanan Penjual - terima/tolak + update status",
+    "body": "## Deskripsi\nHalaman daftar pesanan masuk untuk penjual. Bisa terima/tolak dan update status penyiapan.\n\n## Odoo Native yang Dipakai\n`sale`, `portal` — data sale.order sudah ada\n\n## Yang Perlu Dicustom\n- [ ] Filter sale.order by seller_id\n- [ ] Tombol Terima/Tolak pesanan\n- [ ] Update status: Diproses → Siap Dikirim\n- [ ] Notifikasi ke buyer saat status berubah\n- [ ] Halaman pesanan masuk sesuai Figma\n\n## Acceptance Criteria\n- [ ] Hanya pesanan milik seller yang tampil\n- [ ] Seller bisa update status pesanan\n\n## Custom Module\n`unitrade_seller`\n\n## Estimasi\n2 hari",
+    "labels": [
+      "seller",
+      "frontend",
+      "backend",
+      "priority:critical"
+    ],
+    "milestone": "Phase 7 - Dashboard Seller",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "F-31: Manajemen Produk Penjual - CRUD produk di portal frontend",
+    "body": "## Deskripsi\nForm CRUD produk di frontend portal seller (bukan backend Odoo). Seller bisa tambah/edit/hapus produk dari halaman website.\n\n## Odoo Native yang Dipakai\n`website_sale`, `stock` — model product sudah ada\n\n## Yang Perlu Dicustom\n- [ ] Halaman `/my/seller/products` — list produk seller\n- [ ] Form tambah produk: nama, harga, stok, deskripsi, kondisi, multi-foto\n- [ ] Form edit produk\n- [ ] Konfirmasi hapus produk\n- [ ] Upload multi-foto produk\n\n## Acceptance Criteria\n- [ ] Seller bisa CRUD produk dari frontend\n- [ ] Produk tersinkron dengan modul Inventory\n- [ ] Multi-foto ter-upload\n\n## Custom Module\n`unitrade_seller`, `unitrade_product`\n\n## Estimasi\n2 hari",
+    "labels": [
+      "seller",
+      "frontend",
+      "backend",
+      "priority:critical"
+    ],
+    "milestone": "Phase 7 - Dashboard Seller",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "F-32: Management Chat Penjual - inbox chat per produk di dashboard",
+    "body": "## Deskripsi\nInbox khusus penjual untuk merespon chat pembeli, terfilter per produk.\n\n## Odoo Native yang Dipakai\n`im_livechat`, `discuss`\n\n## Yang Perlu Dicustom\n- [ ] List percakapan di dashboard seller\n- [ ] Filter percakapan by produk\n- [ ] Quick reply interface\n\n## Custom Module\n`unitrade_chat`\n\n## Estimasi\n1.5 hari",
+    "labels": [
+      "seller",
+      "chat",
+      "frontend",
+      "priority:high"
+    ],
+    "milestone": "Phase 7 - Dashboard Seller",
+    "priority": "High",
+    "status": "Todo"
+  },
+  {
+    "title": "F-33: Penghasilan & Settlement - rincian pendapatan + pengajuan pencairan",
+    "body": "## Deskripsi\nHalaman penghasilan penjual: total pendapatan, rincian per transaksi, pengajuan pencairan dana.\n\n## Odoo Native yang Dipakai\n`account` — data invoice & payment sudah tercatat\n\n## Yang Perlu Dicustom\n- [ ] Model `unitrade.settlement` untuk pencairan\n- [ ] Halaman pendapatan: total bersih, rincian per order\n- [ ] Form pengajuan pencairan dana\n- [ ] Status pencairan: pending/processed/done\n\n## Custom Module\n`unitrade_seller`\n\n## Estimasi\n2 hari",
+    "labels": [
+      "seller",
+      "backend",
+      "priority:medium"
+    ],
+    "milestone": "Phase 7 - Dashboard Seller",
+    "priority": "Medium",
+    "status": "Todo"
+  },
+  {
+    "title": "F-34: Pengaturan Toko - nama toko, deskripsi, alamat pickup",
+    "body": "## Deskripsi\nHalaman pengaturan profil toko penjual: nama toko, deskripsi, alamat pickup, kontak.\n\n## Yang Perlu Dicustom\n- [ ] Form edit profil toko di portal seller\n- [ ] Field: nama toko, deskripsi, alamat pickup, no kontak\n- [ ] Upload foto banner toko\n\n## Custom Module\n`unitrade_seller`\n\n## Estimasi\n1 hari",
+    "labels": [
+      "seller",
+      "frontend",
+      "priority:medium"
+    ],
+    "milestone": "Phase 7 - Dashboard Seller",
+    "priority": "Medium",
+    "status": "Todo"
+  },
+  {
+    "title": "F-35: Dashboard Admin - GMV harian, total user, penjual, laporan",
+    "body": "## Deskripsi\nCustom dashboard admin di backend Odoo dengan visualisasi data platform: GMV, total user, penjual terverifikasi.\n\n## Odoo Native yang Dipakai\n`sale`, `account` — data sudah ada\n\n## Yang Perlu Dicustom\n- [ ] Custom menu 'UniTrade Dashboard' di backend\n- [ ] Kartu: Total User, Penjual Verified, GMV Harian, Laporan Masuk\n- [ ] Grafik transaksi harian/mingguan\n- [ ] Computed field GMV\n\n## Custom Module\n`unitrade_admin`\n\n## Estimasi\n2 hari",
+    "labels": [
+      "admin",
+      "backend",
+      "priority:high"
+    ],
+    "milestone": "Phase 8 - Dashboard Admin",
+    "priority": "High",
+    "status": "Todo"
+  },
+  {
+    "title": "F-36: Manajemen Pengguna Admin - moderasi KTM + pembekuan akun",
+    "body": "## Deskripsi\nAdmin bisa kelola semua user: lihat, edit, nonaktifkan, dan moderasi verifikasi KTM penjual.\n\n## Odoo Native yang Dipakai\n`res.users` backend view sudah powerful!\n\n## Yang Perlu Dicustom\n- [ ] Custom list view seller dengan status verifikasi\n- [ ] Form view KTM: tampilkan foto KTM + hasil OCR + data NIM\n- [ ] Tombol Approve/Reject dengan dialog alasan\n- [ ] Action pembekuan akun (active=False)\n\n## Custom Module\n`unitrade_seller` (backend view)\n\n## Estimasi\n1 hari",
+    "labels": [
+      "admin",
+      "backend",
+      "priority:high"
+    ],
+    "milestone": "Phase 8 - Dashboard Admin",
+    "priority": "High",
+    "status": "Todo"
+  },
+  {
+    "title": "F-37/38: Reports pengaduan + Monitoring transaksi admin",
+    "body": "## Deskripsi\nMenu laporan pengaduan dan monitoring semua transaksi platform.\n\n## Odoo Native yang Dipakai\n`helpdesk` (pengaduan), `sale` + `account` (transaksi) — sudah powerful!\n\n## Yang Perlu Dicustom\n- [ ] Tag helpdesk untuk kategori laporan UniTrade\n- [ ] Custom filter transaksi UniTrade\n- [ ] Dashboard laporan pengaduan\n\n## Custom Module\n`unitrade_admin`\n\n## Estimasi\n1.5 hari",
+    "labels": [
+      "admin",
+      "backend",
+      "priority:medium"
+    ],
+    "milestone": "Phase 8 - Dashboard Admin",
+    "priority": "Medium",
+    "status": "Todo"
+  },
+  {
+    "title": "F-39: Pengaturan Sistem Admin - API keys + kebijakan platform",
+    "body": "## Deskripsi\nHalaman pengaturan global: simpan API key pihak ketiga, manage kebijakan platform.\n\n## Odoo Native yang Dipakai\n`ir.config_parameter` — key-value config, `res.groups` — akses\n\n## Yang Perlu Dicustom\n- [ ] Form pengaturan UniTrade di backend\n- [ ] Field: Xendit/Midtrans API key, GoSend API key, Google Places API key\n- [ ] Halaman kebijakan platform (editable)\n\n## Custom Module\n`unitrade_admin`\n\n## Estimasi\n1 hari",
+    "labels": [
+      "admin",
+      "backend",
+      "priority:medium"
+    ],
+    "milestone": "Phase 8 - Dashboard Admin",
+    "priority": "Medium",
+    "status": "Todo"
+  },
+  {
+    "title": "F-40: Deteksi Lokasi GPS + Google Places autocomplete koordinat",
+    "body": "## Deskripsi\nDeteksi lokasi user via GPS browser dan input alamat dengan Google Places autocomplete untuk akurasi ongkir GoSend.\n\n## Yang Perlu Dicustom\n- [ ] JS: `navigator.geolocation.getCurrentPosition()`\n- [ ] Google Places API autocomplete input alamat\n- [ ] Simpan koordinat lat/lng ke user session\n- [ ] Tampil di form checkout dan form profil\n\n## Acceptance Criteria\n- [ ] Tombol 'Deteksi Lokasi' berfungsi\n- [ ] Autocomplete alamat muncul saat mengetik\n- [ ] Koordinat tersimpan untuk kalkulasi GoSend\n\n## Custom Module\n`unitrade_product` (static JS)\n\n## Estimasi\n1.5 hari",
+    "labels": [
+      "location",
+      "frontend",
+      "priority:high"
+    ],
+    "milestone": "Phase 9 - Lokasi & Bantuan",
+    "priority": "High",
+    "status": "Todo"
+  },
+  {
+    "title": "F-10/F-41: Rating & Ulasan - form bintang + moderasi admin",
+    "body": "## Deskripsi\nSistem rating 1-5 bintang dan ulasan teks. Hanya aktif jika pesanan berstatus Done. Admin bisa moderasi.\n\n## Odoo Native yang Dipakai\n`rating` — model `rating.rating` sudah ada!\n\n## Yang Perlu Dicustom\n- [ ] Form ulasan: hanya muncul di order dengan status `done`\n- [ ] Komponen bintang rating (1-5) interaktif\n- [ ] Tampil ulasan di halaman produk + profil penjual\n- [ ] Sort ulasan: terbaru, tertinggi, terendah\n- [ ] Backend admin: moderasi/hapus ulasan\n\n## Acceptance Criteria\n- [ ] Form ulasan hanya muncul di order selesai\n- [ ] Rating tersimpan dan mempengaruhi avg_rating produk\n- [ ] Admin bisa hapus ulasan dari backend\n\n## Custom Module\n`unitrade_review`\n\n## Estimasi\n2 hari",
+    "labels": [
+      "review",
+      "frontend",
+      "backend",
+      "priority:high"
+    ],
+    "milestone": "Phase 9 - Lokasi & Bantuan",
+    "priority": "High",
+    "status": "Todo"
+  },
+  {
+    "title": "F-42: FAQ & Panduan - halaman accordion kategori bantuan",
+    "body": "## Deskripsi\nHalaman FAQ statis dengan accordion per kategori untuk panduan pembeli dan penjual.\n\n## Odoo Native yang Dipakai\n`website` — static page CMS\n\n## Yang Perlu Dicustom\n- [ ] Halaman `/faq` dengan layout accordion\n- [ ] Kategori: Cara Beli, Cara Jual, Pembayaran, Pengiriman, Akun\n- [ ] Konten FAQ diisi\n\n## Custom Module\n`unitrade_theme`\n\n## Estimasi\n1 hari",
+    "labels": [
+      "frontend",
+      "ui",
+      "priority:low"
+    ],
+    "milestone": "Phase 9 - Lokasi & Bantuan",
+    "priority": "Low",
+    "status": "Todo"
+  },
+  {
+    "title": "F-43: Formulir Bantuan → Helpdesk Ticket",
+    "body": "## Deskripsi\nForm bantuan di frontend yang otomatis membuat tiket helpdesk di backend admin.\n\n## Odoo Native yang Dipakai\n`helpdesk` — FULLY FUNCTIONAL! Form → ticket dashboard sudah ada\n\n## Yang Perlu Dicustom\n- [ ] Override styling form bantuan sesuai Figma\n- [ ] Pilihan kategori masalah UniTrade\n\n## Acceptance Criteria\n- [ ] User submit form → tiket terbuat di helpdesk admin\n- [ ] User dapat konfirmasi email tiket diterima\n\n## Custom Module\n`unitrade_theme`\n\n## Estimasi\n0.5 hari",
+    "labels": [
+      "frontend",
+      "ui",
+      "priority:low"
+    ],
+    "milestone": "Phase 9 - Lokasi & Bantuan",
+    "priority": "Low",
+    "status": "Todo"
+  },
+  {
+    "title": "QA-01: Security Testing - SQL injection, XSS, CSRF, role access",
+    "body": "## Deskripsi\nPengujian keamanan menyeluruh sebelum production deploy.\n\n## Checklist\n- [ ] SQL Injection test di semua input form\n- [ ] XSS test di field teks (ulasan, deskripsi produk)\n- [ ] CSRF token tervalidasi di semua POST request\n- [ ] Role-based access: guest tidak bisa akses halaman seller/buyer\n- [ ] Seller tidak bisa akses data seller lain\n- [ ] Admin endpoint tidak accessible tanpa login admin\n- [ ] API endpoint auth check\n\n## Tools\n- OWASP ZAP atau Burp Suite\n- Manual testing per endpoint\n\n## Estimasi\n2 hari",
+    "labels": [
+      "qa",
+      "security",
+      "priority:critical"
+    ],
+    "milestone": "Phase 10 - QA & Deploy",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "QA-02: Performance Testing - 100 concurrent users + query optimization",
+    "body": "## Deskripsi\nTest performa sistem dengan 100 user bersamaan. Response time ≤ 3 detik (NF-5).\n\n## Checklist\n- [ ] Load test dengan Apache JMeter / Locust\n- [ ] Response time homepage ≤ 3 detik\n- [ ] Response time search produk ≤ 3 detik\n- [ ] Response time checkout ≤ 3 detik\n- [ ] Identifikasi query N+1 dan optimasi\n- [ ] Tambah index database jika diperlukan\n\n## Estimasi\n1.5 hari",
+    "labels": [
+      "qa",
+      "performance",
+      "priority:high"
+    ],
+    "milestone": "Phase 10 - QA & Deploy",
+    "priority": "High",
+    "status": "Todo"
+  },
+  {
+    "title": "QA-03: UAT - User Acceptance Testing dengan mahasiswa UNISA",
+    "body": "## Deskripsi\nUser Acceptance Testing dengan minimal 5 mahasiswa UNISA sebagai real user.\n\n## Skenario Test\n- [ ] Registrasi → OTP → Login\n- [ ] Cari produk → filter → beli → bayar\n- [ ] Daftar seller → upload KTM → listing produk\n- [ ] Chat dengan seller\n- [ ] Review setelah transaksi selesai\n\n## Acceptance Criteria\n- [ ] Tidak ada critical bug saat UAT\n- [ ] Semua skenario utama berhasil dijalankan user\n- [ ] Feedback user didokumentasikan\n\n## Estimasi\n2 hari",
+    "labels": [
+      "qa",
+      "uat",
+      "priority:critical"
+    ],
+    "milestone": "Phase 10 - QA & Deploy",
+    "priority": "Critical",
+    "status": "Todo"
+  },
+  {
+    "title": "DEPLOY-01: Production Deploy - Nginx + SSL + systemd service",
+    "body": "## Deskripsi\nDeploy UniTrade ke server production dengan Nginx reverse proxy, SSL Let's Encrypt, dan systemd service.\n\n## Checklist\n- [ ] Setup VPS Ubuntu 22.04 (min 4GB RAM, 2 CPU, 50GB SSD)\n- [ ] Install Nginx + certbot\n- [ ] Konfigurasi Nginx reverse proxy ke port 8069\n- [ ] SSL Let's Encrypt untuk domain\n- [ ] Setup systemd service `odoo17`\n- [ ] Tutup port 8069 dari publik (hanya Nginx)\n- [ ] Setup cron backup PostgreSQL harian\n- [ ] Test semua fitur di production\n\n## Acceptance Criteria\n- [ ] Akses via HTTPS dengan SSL valid\n- [ ] Odoo auto-restart jika crash (systemd)\n- [ ] Backup berjalan otomatis tiap malam\n\n## Estimasi\n1 hari",
+    "labels": [
+      "deploy",
+      "devops",
+      "priority:critical"
+    ],
+    "milestone": "Phase 10 - QA & Deploy",
+    "priority": "Critical",
+    "status": "Todo"
+  }
+]
