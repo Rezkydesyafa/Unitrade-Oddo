@@ -8,6 +8,7 @@ from odoo.exceptions import UserError, AccessDenied
 from odoo.service import security
 from odoo.addons.auth_signup.models.res_users import SignupError
 from odoo.addons.auth_oauth.controllers.main import OAuthLogin, OAuthController
+from odoo.addons.website.controllers.main import Website
 
 _logger = logging.getLogger(__name__)
 
@@ -111,6 +112,63 @@ class UnitradeAuthSignup(OAuthLogin):
                 }))
 
         response = request.render('auth_signup.signup', qcontext)
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
+        return response
+
+    @http.route('/web/signup/check_email', type='json', auth='public', methods=['POST'], csrf=False)
+    def check_email_exists(self, **kw):
+        """Check if an email or phone number already exists in the database."""
+        login = kw.get('login', '').strip()
+        if not login:
+            return {'exists': False}
+        existing_user = request.env['res.users'].sudo().search(
+            [('login', '=', login)], limit=1
+        )
+        return {'exists': bool(existing_user)}
+
+    @http.route('/web/reset_password', type='http', auth='public', website=True, sitemap=False)
+    def web_auth_reset_password(self, *args, **kw):
+        """Override reset password to show success message instead of auto-login after password change."""
+        qcontext = self.get_auth_signup_qcontext()
+
+        if not qcontext.get('token') and not qcontext.get('reset_password_enabled'):
+            raise werkzeug.exceptions.NotFound()
+
+        if 'error' not in qcontext and request.httprequest.method == 'POST':
+            try:
+                if not request.env['ir.http']._verify_request_recaptcha_token('password_reset'):
+                    raise UserError(_("Suspicious activity detected by Google reCaptcha."))
+                if qcontext.get('token'):
+                    self.do_signup(qcontext)
+                    # Instead of calling web_login (which triggers OTP and shows 'login' error),
+                    # set a flag and render the reset password page with a success message.
+                    qcontext['password_changed'] = True
+                    _logger.info("Password successfully changed, showing success message.")
+                else:
+                    login = qcontext.get('login')
+                    assert login, _("No login provided.")
+                    _logger.info(
+                        "Password reset attempt for <%s> by user <%s> from %s",
+                        login, request.env.user.login, request.httprequest.remote_addr)
+                    request.env['res.users'].sudo().reset_password(login)
+                    qcontext['message'] = _("Password reset instructions sent to your email")
+            except UserError as e:
+                qcontext['error'] = e.args[0]
+            except SignupError:
+                qcontext['error'] = _("Could not reset your password")
+                _logger.exception('error when resetting password')
+            except Exception as e:
+                qcontext['error'] = str(e)
+
+        elif 'signup_email' in qcontext:
+            from werkzeug.urls import url_encode
+            user = request.env['res.users'].sudo().search(
+                [('email', '=', qcontext.get('signup_email')), ('state', '!=', 'new')], limit=1)
+            if user:
+                return request.redirect('/web/login?%s' % url_encode({'login': user.login, 'redirect': '/web'}))
+
+        response = request.render('auth_signup.reset_password', qcontext)
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
         return response
@@ -439,3 +497,42 @@ class UnitradeOAuthController(OAuthController):
                 _logger.error("Failed to auto-verify OAuth user: %s", str(e))
 
         return response
+
+
+class UnitradeWebsite(Website):
+    """Override website homepage to inject Best Quality products."""
+
+    @http.route('/', type='http', auth="public", website=True, sitemap=True)
+    def index(self, **kw):
+        """Override homepage route to pass 'products' variable for Kualitas Terbaik section."""
+        # Get response from original website controller
+        response = super(UnitradeWebsite, self).index(**kw)
+        
+        # Fetch published products
+        Product = request.env['product.template'].sudo()
+        published_products = Product.search([('website_published', '=', True)])
+        
+        # Sort by rating_avg (desc) and sales_count (desc), then take top 8
+        best_products = published_products.sorted(
+            key=lambda p: (p.rating_avg or 0.0, p.sales_count or 0.0),
+            reverse=True
+        )[:8]
+
+        # Inject into qcontext so template can render them
+        if hasattr(response, 'qcontext'):
+            response.qcontext['products'] = best_products
+            
+        return response
+
+    @http.route('/seller-verification', type='http', auth='user', website=True, sitemap=False)
+    def seller_verification_page(self, **kw):
+        """Render the seller verification (KTM upload) page."""
+        return request.render('unitrade_theme.seller_verification', {})
+
+    @http.route('/seller-verification/submit', type='http', auth='user', website=True, methods=['POST'], csrf=True)
+    def seller_verification_submit(self, **kw):
+        """Handle the KTM upload submission."""
+        # For now, just redirect back or to a success page.
+        # In a real scenario, we would save the file to the user's record or a verification model.
+        return request.redirect('/seller-verification?success=1')
+
