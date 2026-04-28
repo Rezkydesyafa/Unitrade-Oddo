@@ -465,6 +465,22 @@
   left: 20%;
 }
 
+.-tw-bottom-20 {
+  bottom: -5rem;
+}
+
+.-tw-left-10 {
+  left: -2.5rem;
+}
+
+.-tw-right-10 {
+  right: -2.5rem;
+}
+
+.-tw-top-20 {
+  top: -5rem;
+}
+
 .tw-z-0 {
   z-index: 0;
 }
@@ -953,6 +969,10 @@
   height: 300px;
 }
 
+.tw-h-72 {
+  height: 18rem;
+}
+
 .tw-max-h-full {
   max-height: 100%;
 }
@@ -1142,6 +1162,10 @@
   width: 400px;
 }
 
+.tw-w-72 {
+  width: 18rem;
+}
+
 .tw-min-w-\[16px\] {
   min-width: 16px;
 }
@@ -1212,6 +1236,14 @@
 
 .tw-max-w-\[95\%\] {
   max-width: 95%;
+}
+
+.tw-max-w-\[340px\] {
+  max-width: 340px;
+}
+
+.tw-max-w-\[550px\] {
+  max-width: 550px;
 }
 
 .tw-flex-1 {
@@ -1435,6 +1467,12 @@
   --tw-space-y-reverse: 0;
   margin-top: calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));
   margin-bottom: calc(0.5rem * var(--tw-space-y-reverse));
+}
+
+.tw-space-y-5 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(1.25rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(1.25rem * var(--tw-space-y-reverse));
 }
 
 .tw-overflow-hidden {
@@ -1911,6 +1949,14 @@
   background-color: rgb(243 232 255 / var(--tw-bg-opacity, 1));
 }
 
+.tw-bg-blue-200\/30 {
+  background-color: rgb(191 219 254 / 0.3);
+}
+
+.tw-bg-purple-200\/30 {
+  background-color: rgb(233 213 255 / 0.3);
+}
+
 .tw-bg-\[url\(\'https\:\/\/images\.unsplash\.com\/photo-1522202176988-66273c2fd55f\?ixlib\=rb-4\.0\.3\&amp\;auto\=format\&amp\;fit\=crop\&amp\;w\=800\&amp\;q\=80\'\)\] {
   background-image: url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=800&amp;q=80');
 }
@@ -1976,6 +2022,11 @@
   --tw-gradient-stops: var(--tw-gradient-from), #fff var(--tw-gradient-via-position), var(--tw-gradient-to);
 }
 
+.tw-via-\[\#f8fafc\] {
+  --tw-gradient-to: rgb(248 250 252 / 0)  var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), #f8fafc var(--tw-gradient-via-position), var(--tw-gradient-to);
+}
+
 .tw-to-\[\#1a1a1a\]\/80 {
   --tw-gradient-to: rgb(26 26 26 / 0.8) var(--tw-gradient-to-position);
 }
@@ -1994,6 +2045,10 @@
 
 .tw-to-purple-50\/20 {
   --tw-gradient-to: rgb(250 245 255 / 0.2) var(--tw-gradient-to-position);
+}
+
+.tw-to-purple-50\/40 {
+  --tw-gradient-to: rgb(250 245 255 / 0.4) var(--tw-gradient-to-position);
 }
 
 .tw-bg-cover {
@@ -2218,6 +2273,11 @@
 .tw-py-14 {
   padding-top: 3.5rem;
   padding-bottom: 3.5rem;
+}
+
+.tw-py-10 {
+  padding-top: 2.5rem;
+  padding-bottom: 2.5rem;
 }
 
 .tw-pb-12 {
@@ -2499,6 +2559,10 @@
 
 .tw-leading-snug {
   line-height: 1.375;
+}
+
+.tw-leading-\[1\.7\] {
+  line-height: 1.7;
 }
 
 .tw-tracking-\[8px\] {
@@ -2914,6 +2978,11 @@
   filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
 }
 
+.tw-blur-\[60px\] {
+  --tw-blur: blur(60px);
+  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
+}
+
 .tw-brightness-0 {
   --tw-brightness: brightness(0);
   filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
@@ -3222,6 +3291,11 @@
   color: rgb(67 56 202 / var(--tw-text-opacity, 1));
 }
 
+.hover\:tw-text-blue-600:hover {
+  --tw-text-opacity: 1;
+  color: rgb(37 99 235 / var(--tw-text-opacity, 1));
+}
+
 .hover\:tw-underline:hover {
   text-decoration-line: underline;
 }
@@ -3396,6 +3470,14 @@
     width: 55%;
   }
 
+  .md\:tw-w-2\/5 {
+    width: 40%;
+  }
+
+  .md\:tw-w-3\/5 {
+    width: 60%;
+  }
+
   .md\:tw-grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3463,6 +3545,16 @@
   .md\:tw-px-10 {
     padding-left: 2.5rem;
     padding-right: 2.5rem;
+  }
+
+  .md\:tw-px-12 {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+
+  .md\:tw-py-12 {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
   }
 
   .md\:tw-text-4xl {
