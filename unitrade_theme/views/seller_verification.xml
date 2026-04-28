@@ -2,10 +2,15 @@
 <odoo>
     <template id="seller_verification" name="Seller Verification">
         <t t-call="website.layout">
-            <div id="wrap" class="oe_structure oe_empty">
+            <div id="wrap" class="oe_structure oe_empty !tw-bg-white" style="background-color: #ffffff !important;">
+                <style>
+                    body, #wrapwrap, #wrap {
+                        background-color: #ffffff !important;
+                    }
+                </style>
                 <!-- Main Container -->
                 <!-- Main Container -->
-                <div class="tw-bg-[#f5f5f7] tw-min-h-[calc(100vh-140px)] tw-w-full tw-flex tw-flex-col tw-items-center tw-pt-6 tw-pb-8 tw-font-['Urbanist']">
+                <div class="tw-bg-white !tw-bg-white tw-min-h-screen tw-w-full tw-flex tw-flex-col tw-items-center tw-pt-6 tw-pb-12 tw-font-['Urbanist'] tw-relative tw-z-10" style="background-color: #ffffff !important;">
                     
                     <!-- Section Header for Breadcrumb -->
                     <div class="tw-w-full tw-max-w-[1200px] tw-px-4 md:tw-px-8 tw-mb-4 tw-flex tw-justify-start">
@@ -27,7 +32,7 @@
                     <div class="tw-w-full tw-max-w-[480px] tw-flex tw-flex-col tw-px-4">
 
                         <!-- Card Form -->
-                        <div class="tw-bg-white tw-rounded-[32px] tw-w-full tw-h-auto tw-relative tw-shadow-[0px_8px_40px_0px_rgba(0,0,0,0.06)] tw-p-6 md:tw-p-8 tw-flex tw-flex-col">
+                        <div class="tw-bg-white tw-rounded-[32px] tw-w-full tw-h-auto tw-relative tw-border tw-border-gray-300 tw-shadow-md tw-p-6 md:tw-p-8 tw-flex tw-flex-col">
                             
                             <!-- Header Buttons -->
                             <div class="tw-flex tw-justify-between tw-items-center tw-mb-6">

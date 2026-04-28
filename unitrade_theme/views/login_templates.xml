@@ -598,7 +598,6 @@
                                                     }
                                                 });
                                             </script>
-                                        </t>
                                         
                                         <!-- Submit Button -->
                                         <button type="submit" class="tw-w-full tw-h-[46px] tw-bg-[#1a1a1a] tw-border-none tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mb-[16px] hover:tw-bg-black tw-transition-colors tw-cursor-pointer">
