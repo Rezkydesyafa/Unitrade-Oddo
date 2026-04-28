@@ -683,6 +683,10 @@
   margin-right: 0.5rem;
 }
 
+.tw-ml-1 {
+  margin-left: 0.25rem;
+}
+
 .tw-line-clamp-1 {
   overflow: hidden;
   display: -webkit-box;
@@ -1968,6 +1972,11 @@
   padding-right: 0.75rem;
 }
 
+.tw-px-8 {
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
 .tw-pb-12 {
   padding-bottom: 3rem;
 }
@@ -2042,6 +2051,10 @@
 
 .tw-pb-8 {
   padding-bottom: 2rem;
+}
+
+.tw-pt-4 {
+  padding-top: 1rem;
 }
 
 .tw-text-left {
@@ -2450,6 +2463,11 @@
   color: rgb(15 23 42 / var(--tw-text-opacity, 1));
 }
 
+.tw-text-\[\#1d1d1f\] {
+  --tw-text-opacity: 1;
+  color: rgb(29 29 31 / var(--tw-text-opacity, 1));
+}
+
 .tw-underline {
   text-decoration-line: underline;
 }
@@ -2796,6 +2814,11 @@
   color: rgb(15 23 42 / var(--tw-text-opacity, 1));
 }
 
+.hover\:tw-text-\[\#000000\]:hover {
+  --tw-text-opacity: 1;
+  color: rgb(0 0 0 / var(--tw-text-opacity, 1));
+}
+
 .hover\:tw-underline:hover {
   text-decoration-line: underline;
 }
@@ -2896,6 +2919,10 @@
 
   .md\:tw-block {
     display: block;
+  }
+
+  .md\:tw-flex {
+    display: flex;
   }
 
   .md\:tw-h-10 {

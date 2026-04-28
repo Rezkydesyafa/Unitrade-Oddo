@@ -3,7 +3,7 @@
     <template id="unitrade_products_layout" inherit_id="website_sale.products" name="UniTrade Shop Layout">
         <!-- Add background to the shop page -->
         <xpath expr="//div[@id='wrap']" position="attributes">
-            <attribute name="class" add="tw-bg-[#f5f5f7]" separator=" "/>
+            <attribute name="class" add="tw-bg-white" separator=" "/>
         </xpath>
 
         <!-- Replace the main row layout to inject our Sidebar and Topbar -->

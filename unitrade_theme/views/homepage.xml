@@ -6,7 +6,7 @@
          ============================================ -->
     <template id="unitrade_homepage" inherit_id="website.homepage" name="UniTrade Homepage Override" active="True">
         <xpath expr="//div[@id='wrap']" position="replace">
-            <div id="wrap" class="oe_structure oe_empty">
+            <div id="wrap" class="oe_structure oe_empty tw-bg-white tw-w-full">
             <!-- Hero Section (Carousel) -->
             <section class="tw-py-8 tw-px-4 md:tw-px-8 tw-max-w-7xl tw-mx-auto tw-relative tw-z-10">
                 <style>
@@ -168,7 +168,10 @@
 
             <!-- Kategori Section -->
             <section class="tw-max-w-7xl tw-mx-auto tw-px-4 md:tw-px-8 tw-py-8">
-                <h2 class="tw-text-2xl tw-font-bold tw-text-[#212529] tw-mb-6">Kategori</h2>
+                <div class="tw-flex tw-justify-between tw-items-center tw-mb-6">
+                    <h2 class="tw-text-[28px] tw-font-bold tw-text-[#212529] tw-m-0">Kategori</h2>
+                    <a href="/shop" class="tw-font-['Urbanist'] tw-font-bold tw-text-[15px] tw-text-black tw-border tw-border-gray-200 tw-rounded-[24px] tw-px-6 tw-py-2 hover:tw-bg-gray-50 tw-transition-colors tw-no-underline">Explore All</a>
+                </div>
                 <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-4 tw-gap-6">
                     <!-- Kategori 1 -->
                     <a href="/shop" class="tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
@@ -283,6 +286,11 @@
                             </div>
                         </t>
                     </t>
+                </div>
+
+                <!-- Muat Lebih Banyak Button -->
+                <div class="tw-mt-10 tw-flex tw-justify-center">
+                    <a href="/shop" class="tw-font-['Urbanist'] tw-font-bold tw-text-[16px] tw-text-black tw-border tw-border-black tw-rounded-[12px] tw-px-8 tw-py-3 hover:tw-bg-gray-50 tw-transition-colors tw-no-underline">Muat Lebih Banyak</a>
                 </div>
             </section>
 

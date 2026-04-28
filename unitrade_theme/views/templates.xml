@@ -8,8 +8,37 @@
     <!-- Custom Header/Navbar -->
     <template id="unitrade_header" inherit_id="website.layout" name="UniTrade Header">
         <xpath expr="//header" position="replace">
-            <header class="tw-pt-6 tw-pb-4 tw-px-4 md:tw-px-8 tw-bg-transparent tw-sticky tw-top-0 tw-w-full tw-z-50 tw-mb-6 md:tw-mb-8">
-                <div class="tw-max-w-7xl tw-mx-auto tw-bg-gradient-to-r tw-from-[#1f1f1f]/80 tw-via-[#2a2a2a]/80 tw-to-[#1a1a1a]/80 tw-backdrop-blur-md tw-h-[70px] tw-rounded-[54px] tw-shadow-lg tw-border tw-border-white/10 tw-flex tw-items-center tw-justify-between tw-px-4 md:tw-px-8">
+            <header class="tw-w-full tw-z-50 tw-mb-6 md:tw-mb-8 tw-sticky tw-top-0">
+                <!-- Top Bar -->
+                <div class="tw-w-full tw-bg-[#f5f5f7] tw-h-[40px] tw-flex tw-items-center tw-justify-between tw-px-4 md:tw-px-8 tw-text-[#1d1d1f] tw-text-[13px] tw-font-['Urbanist']">
+                    <!-- Left Section -->
+                    <div class="tw-flex tw-items-center tw-gap-3">
+                        <span class="tw-font-medium">Gratis Ongkir + Diskon 30%</span>
+                        <a href="/shop" class="tw-text-[#1d1d1f] hover:tw-text-[#000000] hover:tw-underline tw-transition-colors tw-no-underline tw-font-bold">Belanja Sekarang &amp;rarr;</a>
+                        <span class="tw-text-gray-300 tw-mx-1">|</span>
+                        <a href="/seller/register" class="tw-text-[#1d1d1f] hover:tw-text-[#000000] hover:tw-underline tw-transition-colors tw-no-underline tw-font-bold">Mulai Berjualan</a>
+                    </div>
+                    
+                    <!-- Right Section -->
+                    <div class="tw-hidden md:tw-flex tw-items-center tw-gap-4">
+                        <div class="tw-flex tw-items-center tw-gap-3">
+                            <a href="/help" class="tw-text-[#1d1d1f] hover:tw-text-[#000000] hover:tw-underline tw-transition-colors tw-no-underline">Bantuan</a>
+                            <a href="/contactus" class="tw-text-[#1d1d1f] hover:tw-text-[#000000] hover:tw-underline tw-transition-colors tw-no-underline">Kontak</a>
+                            <a href="/tracking" class="tw-text-[#1d1d1f] hover:tw-text-[#000000] hover:tw-underline tw-transition-colors tw-no-underline">Tracking</a>
+                        </div>
+                        <span class="tw-text-gray-300 tw-mx-1">|</span>
+                        <div class="tw-flex tw-items-center tw-gap-2">
+                            <span>Ikuti Kami:</span>
+                            <a href="#" class="tw-text-[#1d1d1f] hover:tw-text-[#000000] tw-transition-colors tw-ml-1"><i class="fa fa-instagram"></i></a>
+                            <a href="#" class="tw-text-[#1d1d1f] hover:tw-text-[#000000] tw-transition-colors tw-ml-1"><i class="fa fa-facebook-square"></i></a>
+                            <a href="#" class="tw-text-[#1d1d1f] hover:tw-text-[#000000] tw-transition-colors tw-ml-1"><i class="fa fa-tiktok"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Navbar -->
+                <div class="tw-pt-4 tw-pb-4 tw-px-4 md:tw-px-8 tw-bg-transparent tw-w-full tw-z-50">
+                    <div class="tw-max-w-7xl tw-mx-auto tw-bg-gradient-to-r tw-from-[#1f1f1f]/80 tw-via-[#2a2a2a]/80 tw-to-[#1a1a1a]/80 tw-backdrop-blur-md tw-h-[70px] tw-rounded-[54px] tw-shadow-lg tw-border tw-border-white/10 tw-flex tw-items-center tw-justify-between tw-px-4 md:tw-px-8">
                     <!-- Logo -->
                     <a href="/" class="tw-flex tw-items-center tw-gap-3 tw-no-underline">
                         <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="UniTrade Logo" class="tw-h-8 md:tw-h-10 tw-w-auto tw-invert tw-brightness-0"/>
@@ -95,6 +124,7 @@
                         </t>
                     </div>
                 </div>
+                </div>
             </header>
         </xpath>
     </template>
@@ -108,7 +138,7 @@
             <style>
                 body {
                     font-family: 'Urbanist', sans-serif !important;
-                    background-color: #f5f5f7;
+                    background-color: #ffffff;
                 }
             </style>
             <meta name="description" content="UniTrade - Marketplace C2C eksklusif untuk mahasiswa UNISA Yogyakarta. Jual beli aman dengan verifikasi KTM."/>
@@ -119,7 +149,7 @@
     <!-- Footer -->
     <template id="unitrade_footer" inherit_id="website.layout" name="UniTrade Footer Override" active="True">
         <xpath expr="//footer" position="replace">
-        <footer class="tw-relative tw-w-full tw-bg-[#f5f5f7] tw-pt-16 tw-pb-32 tw-overflow-hidden tw-mt-12">
+        <footer class="tw-relative tw-w-full tw-bg-white tw-pt-16 tw-pb-32 tw-overflow-hidden tw-mt-12">
             <!-- Watermark text in background -->
             <div class="tw-absolute tw-bottom-[-5%] tw-left-1/2 tw--translate-x-1/2 tw-w-full tw-text-center tw-pointer-events-none tw-select-none tw-z-0">
                 <span class="tw-font-['Urbanist'] tw-font-extrabold tw-text-[12rem] md:tw-text-[18rem] tw-text-gray-200/40 tw-tracking-widest tw-leading-none">UniTrade</span>
