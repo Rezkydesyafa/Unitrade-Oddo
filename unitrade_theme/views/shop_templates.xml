@@ -34,7 +34,7 @@
             <div class="row o_wsale_products_main_row align-items-start flex-nowrap tw-w-full tw-max-w-[1200px] tw-mx-auto tw-m-0 tw-px-0 md:tw-px-4">
                 <!-- Filter Sidebar -->
                 <aside id="products_grid_before" class="d-none d-lg-block col-3 px-3 clearfix">
-                    <div class="tw-bg-white tw-rounded-[24px] tw-p-[24px] tw-min-h-[795px] tw-w-full tw-shadow-sm tw-border tw-border-gray-100">
+                    <div class="tw-bg-white tw-rounded-[14px] tw-p-[24px] tw-w-full tw-shadow-sm tw-border tw-border-solid tw-border-gray-200">
                         <!-- Filter UI -->
                         <div class="tw-flex tw-items-center tw-gap-2 tw-mb-8">
                             <i class="fa fa-sliders tw-text-[20px] tw-text-[#212529]"></i>
@@ -96,7 +96,7 @@
                 
                 <div id="products_grid" class="col-12 col-lg-9 tw-pl-4">
                     <!-- Top Sort Bar -->
-                    <div class="tw-bg-white tw-rounded-[16px] tw-h-[64px] tw-px-[24px] tw-flex tw-items-center tw-mb-6 tw-shadow-sm tw-border tw-border-gray-100">
+                    <div class="tw-bg-white tw-rounded-[14px] tw-h-[64px] tw-px-[24px] tw-flex tw-items-center tw-mb-6 tw-shadow-sm tw-border tw-border-solid tw-border-gray-200">
                         <span class="tw-font-['Urbanist'] tw-font-semibold tw-text-[15px] tw-text-gray-600 tw-mr-6">Urutan</span>
                         <div class="tw-flex tw-gap-[12px]">
                             <div class="tw-bg-[#1a1a1a] tw-text-white tw-px-5 tw-h-[36px] tw-rounded-full tw-font-['Urbanist'] tw-font-semibold tw-text-[14px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-shadow-sm">Terkait</div>
@@ -107,32 +107,14 @@
                     </div>
                     
                     <!-- Products Grid Container -->
-                    <div t-if="products" class="o_wsale_products_grid_table_wrapper">
-                        <table class="table table-borderless h-100 m-0 tw-border-collapse" t-att-data-ppg="ppg" t-att-data-ppr="ppr" t-att-data-default-sort="website.shop_default_sort" t-att-data-name="grid_block_name">
-                            <colgroup t-ignore="true">
-                                <col t-foreach="ppr" t-as="p"/>
-                            </colgroup>
-                            <tbody>
-                                <tr t-foreach="bins" t-as="tr_product">
-                                    <t t-foreach="tr_product" t-as="td_product">
-                                        <t t-if="td_product">
-                                            <td t-att-colspan="td_product['x'] != 1 and td_product['x']"
-                                                t-att-rowspan="td_product['y'] != 1 and td_product['y']"
-                                                t-attf-class="oe_product tw-pb-[30px] tw-pr-[30px]"
-                                                t-att-data-ribbon-id="td_product['ribbon'].id"
-                                                t-att-data-name="product_block_name">
-                                                <div t-attf-class="o_wsale_product_grid_wrapper position-relative h-100 o_wsale_product_grid_wrapper_#{td_product['x']}_#{td_product['y']}">
-                                                    <t t-call="website_sale.products_item">
-                                                        <t t-set="product" t-value="td_product['product']"/>
-                                                    </t>
-                                                </div>
-                                            </td>
-                                        </t>
-                                        <td t-else=""/>
-                                    </t>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div t-if="products" class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 xl:tw-grid-cols-5 tw-gap-3 md:tw-gap-4 tw-mb-8 tw-w-full">
+                        <t t-foreach="products" t-as="product">
+                            <div class="oe_product tw-h-full">
+                                <t t-call="website_sale.products_item">
+                                    <t t-set="product" t-value="product"/>
+                                </t>
+                            </div>
+                        </t>
                     </div>
                     <div t-else="" class="tw-w-full tw-flex tw-flex-col tw-items-center tw-justify-center tw-pt-[80px] tw-pb-[120px]">
                         <svg class="tw-w-[111px] tw-h-[111px] tw-opacity-68 tw-mb-[15px] tw-text-[#d9d9d9]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -162,39 +144,33 @@
                 t-att-data-publish="product.website_published and 'on' or 'off'"
                 itemscope="itemscope" itemtype="http://schema.org/Product">
                 
-                <t t-set="product_href" t-value="keep(product.website_url, page=(pager['page']['num'] if pager['page']['num']&gt;1 else None))" />
+                <t t-set="product_href" t-value="keep(product.website_url, page=(pager['page']['num'] if pager['page']['num']&gt;1 else None))" t-if="pager and pager.get('page')"/>
+                <t t-set="product_href" t-value="product.website_url" t-else=""/>
                 
-                <div class="tw-relative tw-w-[178px] tw-h-[253px] tw-bg-white tw-border tw-border-[#d9d9d9] tw-rounded-[22px] hover:tw-shadow-md tw-transition-shadow tw-duration-300 tw-p-[9.4px] tw-flex tw-flex-col">
-                    <!-- Image Wrapper -->
-                    <div class="tw-relative tw-w-full tw-h-[132.7px] tw-rounded-[12px] tw-overflow-hidden tw-bg-[#d9d9d9] tw-mb-2 tw-shrink-0">
-                        <a t-att-href="product_href" class="oe_product_image_link d-block h-100 position-relative" itemprop="url" contenteditable="false">
+                <a t-att-href="product_href" class="tw-bg-white tw-border tw-border-solid tw-border-gray-200 tw-rounded-[14px] tw-overflow-hidden tw-shadow-sm hover:tw-shadow-md hover:-tw-translate-y-1 tw-transition-all tw-duration-300 tw-flex tw-flex-col tw-h-full tw-no-underline tw-group">
+                    <div class="tw-p-2">
+                        <div class="tw-w-full tw-aspect-square tw-rounded-[10px] tw-overflow-hidden tw-bg-gray-100 tw-relative">
                             <t t-set="image_holder" t-value="product._get_image_holder()"/>
                             <span t-field="image_holder.image_1920"
-                                t-options="{'widget': 'image', 'preview_image': 'image_512', 'itemprop': 'image', 'class': 'tw-w-full tw-h-full tw-object-cover position-absolute'}"
+                                t-options="{'widget': 'image', 'preview_image': 'image_512', 'itemprop': 'image', 'class': 'tw-w-full tw-h-full tw-object-cover position-absolute group-hover:tw-scale-105 tw-transition-transform tw-duration-300'}"
                                 class="oe_product_image_img_wrapper d-flex h-100 justify-content-center align-items-center position-absolute tw-w-full tw-h-full"/>
-                        </a>
-                    </div>
-                    
-                    <!-- Content -->
-                    <div class="tw-flex tw-flex-col tw-flex-grow tw-relative">
-                        <!-- Title -->
-                        <a t-att-href="product_href" itemprop="url" class="tw-text-decoration-none tw-mb-1">
-                            <h6 class="tw-font-['Urbanist'] tw-font-semibold tw-text-[#212529] tw-text-[16px] tw-leading-tight tw-m-0 tw-line-clamp-1" itemprop="name" t-out="product.name"/>
-                        </a>
-                        
-                        <!-- Location -->
-                        <div class="tw-flex tw-items-center tw-gap-1 tw-mb-auto">
-                            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M7 0C4.1 0 1.75 2.35 1.75 5.25C1.75 9.1875 7 14 7 14C7 14 12.25 9.1875 12.25 5.25C12.25 2.35 9.9 0 7 0ZM7 7.875C5.55625 7.875 4.375 6.69375 4.375 5.25C4.375 3.80625 5.55625 2.625 7 2.625C8.44375 2.625 9.625 3.80625 9.625 5.25C9.625 6.69375 8.44375 7.875 7 7.875Z" fill="#1A1A1A" fill-opacity="0.25"/>
-                            </svg>
-                            <span class="tw-font-['Urbanist'] tw-font-normal tw-text-[12px] tw-text-[rgba(0,0,0,0.25)]">Sleman</span>
                         </div>
+                    </div>
+                    <div class="tw-px-3 tw-pb-3 tw-flex tw-flex-col tw-flex-grow">
+                        <h3 class="tw-font-medium tw-text-[#212529] tw-text-[13px] tw-leading-snug tw-line-clamp-2 tw-mb-1 tw-flex-grow" itemprop="name">
+                            <t t-out="product.name"/>
+                        </h3>
+                        <p class="tw-text-[11px] tw-text-gray-400 tw-mb-2 tw-flex tw-items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-3 tw-h-3 tw-mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg> Sleman
+                        </p>
                         
-                        <!-- Price & Rating Row -->
-                        <div class="tw-flex tw-justify-between tw-items-end tw-mt-2">
+                        <div class="tw-flex tw-justify-between tw-items-center tw-mt-auto">
                             <!-- Price -->
                             <t t-set="template_price_vals" t-value="get_product_prices(product)"/>
-                            <div class="tw-font-['Urbanist'] tw-font-extrabold tw-text-[#212529] tw-text-[16px]" itemprop="offers" itemscope="itemscope" itemtype="http://schema.org/Offer">
+                            <div class="tw-font-bold tw-text-[#212529] tw-text-[14px]" itemprop="offers" itemscope="itemscope" itemtype="http://schema.org/Offer">
                                 <span t-if="template_price_vals['price_reduce'] or not website.prevent_zero_price_sale" t-esc="template_price_vals['price_reduce']" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
                                 <span t-else="" t-field="website.prevent_zero_price_sale_text"/>
                                 <span itemprop="price" style="display:none;" t-esc="template_price_vals['price_reduce']" />
@@ -203,10 +179,12 @@
                             
                             <!-- Rating -->
                             <div class="tw-flex tw-items-center tw-gap-1">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#FFC107"/>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-3 tw-h-3 tw-text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                 </svg>
-                                <span class="tw-font-['Urbanist'] tw-font-normal tw-text-[12px] tw-text-[rgba(0,0,0,0.25)]">5.0</span>
+                                <span class="tw-text-[11px] tw-text-gray-500">
+                                    <t t-esc="product.rating_avg or 5.0"/>
+                                </span>
                             </div>
                         </div>
                         
@@ -215,7 +193,7 @@
                         <t t-set="product_variant_id" t-value="product._get_first_possible_variant_id()"/>
                         <input name="product_id" t-att-value="product_variant_id" type="hidden"/>
                     </div>
-                </div>
+                </a>
             </form>
         </xpath>
     </template>
