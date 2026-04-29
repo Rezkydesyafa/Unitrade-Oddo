@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ==============================
+         FORM VIEW
+    ============================== -->
+    <record id="view_seller_verification_form" model="ir.ui.view">
+        <field name="name">unitrade.seller.verification.form</field>
+        <field name="model">unitrade.seller.verification</field>
+        <field name="arch" type="xml">
+            <form string="Verifikasi KTM Seller">
+                <header>
+                    <button name="action_approve" type="object"
+                            string="Approve" class="btn-primary"
+                            invisible="state != 'pending'"/>
+                    <button name="action_reject" type="object"
+                            string="Reject" class="btn-danger"
+                            invisible="state != 'pending'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,pending,approved,rejected"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="partner_id" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Informasi KTM">
+                            <field name="ktm_image" widget="image" class="oe_avatar"/>
+                            <field name="ktm_filename"/>
+                            <field name="attachment_id"/>
+                        </group>
+                        <group string="Hasil OCR">
+                            <field name="nim_extracted"/>
+                            <field name="nim_valid"/>
+                            <field name="nim_registered"/>
+                            <field name="name_confidence"/>
+                            <field name="confidence_flag"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="OCR Raw Text">
+                            <field name="ocr_raw_text"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==============================
+         LIST VIEW
+    ============================== -->
+    <record id="view_seller_verification_tree" model="ir.ui.view">
+        <field name="name">unitrade.seller.verification.tree</field>
+        <field name="model">unitrade.seller.verification</field>
+        <field name="arch" type="xml">
+            <tree string="Verifikasi KTM Seller" decoration-warning="state == 'pending'" decoration-success="state == 'approved'" decoration-danger="state == 'rejected'">
+                <field name="partner_id"/>
+                <field name="nim_extracted"/>
+                <field name="nim_valid"/>
+                <field name="nim_registered"/>
+                <field name="name_confidence" widget="float" digits="[4,3]"/>
+                <field name="confidence_flag"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'pending'"
+                       decoration-success="state == 'approved'"
+                       decoration-danger="state == 'rejected'"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ==============================
+         SEARCH VIEW
+    ============================== -->
+    <record id="view_seller_verification_search" model="ir.ui.view">
+        <field name="name">unitrade.seller.verification.search</field>
+        <field name="model">unitrade.seller.verification</field>
+        <field name="arch" type="xml">
+            <search string="Cari Verifikasi">
+                <field name="partner_id"/>
+                <field name="nim_extracted"/>
+                <separator/>
+                <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_pending" string="Pending" domain="[('state', '=', 'pending')]"/>
+                <filter name="filter_approved" string="Approved" domain="[('state', '=', 'approved')]"/>
+                <filter name="filter_rejected" string="Rejected" domain="[('state', '=', 'rejected')]"/>
+                <separator/>
+                <filter name="filter_low_confidence" string="Low Confidence" domain="[('confidence_flag', '=', 'low')]"/>
+                <filter name="filter_high_confidence" string="High Confidence" domain="[('confidence_flag', '=', 'high')]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter name="group_confidence" string="Confidence Flag" context="{'group_by': 'confidence_flag'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ==============================
+         ACTION
+    ============================== -->
+    <record id="action_seller_verification" model="ir.actions.act_window">
+        <field name="name">Verifikasi Seller</field>
+        <field name="res_model">unitrade.seller.verification</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_seller_verification_search"/>
+        <field name="context">{'search_default_filter_pending': 1}</field>
+    </record>
+
+    <!-- ==============================
+         MENU (under existing UniTrade root)
+    ============================== -->
+    <menuitem id="menu_seller_verification"
+              name="Verifikasi Seller"
+              parent="unitrade_seller.menu_unitrade_sellers"
+              action="action_seller_verification"
+              sequence="30"
+              groups="base.group_system"/>
+
+</odoo>

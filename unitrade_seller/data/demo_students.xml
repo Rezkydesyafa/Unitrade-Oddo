@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <record id="demo_student_1" model="unisa.student">
+            <field name="nim">2411501044</field>
+            <field name="name">Mohamad Dwi Rezky Desyafa</field>
+            <field name="faculty">Teknik Informatika</field>
+        </record>
+
+        <record id="demo_student_2" model="unisa.student">
+            <field name="nim">2411201078</field>
+            <field name="name">Dewi Lestari</field>
+            <field name="faculty">Teknik Informatika</field>
+        </record>
+
+        <record id="demo_student_3" model="unisa.student">
+            <field name="nim">2310201055</field>
+            <field name="name">Siti Rahayu</field>
+            <field name="faculty">Ilmu Kesehatan</field>
+        </record>
+
+        <record id="demo_student_4" model="unisa.student">
+            <field name="nim">2210301001</field>
+            <field name="name">Ahmad Fauzi</field>
+            <field name="faculty">Farmasi</field>
+        </record>
+
+        <record id="demo_student_5" model="unisa.student">
+            <field name="nim">2312401033</field>
+            <field name="name">Rizky Pratama</field>
+            <field name="faculty">Psikologi</field>
+        </record>
+
+        <record id="demo_student_6" model="unisa.student">
+            <field name="nim">2411501035</field>
+            <field name="name">Ibnu Al Wahit Prayoga</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_7" model="unisa.student">
+            <field name="nim">2411501021</field>
+            <field name="name">Fuad Adl Darmawan</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+    </data>
+</odoo>
