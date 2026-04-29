@@ -25,9 +25,18 @@ KTM_KEYWORDS = [
 ]
 NAME_PATTERN = re.compile(r'[A-Za-z]{2,}(?:\s+[A-Za-z]{2,})+')
 
-# To use Google Cloud Vision API, set your API key here.
-# For production, it's recommended to store this in Odoo's config file or environment variables.
-GOOGLE_VISION_API_KEY = os.environ.get('GOOGLE_VISION_API_KEY', 'AIzaSyD6b-7M_ADxVKJ4QxD3UJOQN5rzl1argTk')
+# Load environment variables from .env file at the root of the project manually
+# to avoid 'dotenv' module missing errors in Odoo Windows Service
+env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env')
+if os.path.exists(env_path):
+    with open(env_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                key, value = line.split('=', 1)
+                os.environ[key.strip()] = value.strip()
+
+GOOGLE_VISION_API_KEY = os.environ.get('GOOGLE_VISION_API_KEY', '')
 
 
 class KTMOCRService:
