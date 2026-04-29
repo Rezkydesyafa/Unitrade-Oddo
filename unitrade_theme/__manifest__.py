@@ -23,6 +23,7 @@
         'views/login_templates.xml',
         'views/otp_templates.xml',
         'views/seller_verification.xml',
+        'views/cart_templates.xml',
     ],
     'assets': {
         'web.assets_frontend': [

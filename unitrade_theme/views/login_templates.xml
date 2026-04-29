@@ -16,55 +16,61 @@
         <xpath expr="//t[@t-call='web.login_layout']" position="inside">
             <t t-if="request.params.get('admin') != '1'">
                 <div class="tw-fixed tw-inset-0 tw-z-[9999] tw-bg-white tw-overflow-y-auto tw-font-['Urbanist']">
-                    <div class="tw-min-h-screen tw-w-full tw-flex tw-justify-center tw-items-center tw-p-[20px] md:tw-p-[40px]">
-                        <div class="tw-w-full tw-max-w-[1380px] tw-flex tw-flex-col lg:tw-flex-row tw-gap-[40px] lg:tw-gap-[26px]">
+                    <div class="tw-h-screen tw-w-full tw-flex tw-justify-center tw-items-center tw-p-[16px] md:tw-p-[24px]">
+                        <div class="tw-w-full tw-max-w-[1280px] tw-flex tw-flex-col lg:tw-flex-row tw-gap-[24px] lg:tw-gap-[32px] tw-items-center tw-h-full tw-max-h-[850px]">
                             
                             <!-- Left Column: Form -->
-                            <div class="tw-flex-1 tw-max-w-[670px] tw-flex tw-flex-col tw-justify-center tw-relative tw-bg-white tw-rounded-[40px]">
-                                <div class="tw-px-[20px] md:tw-px-[74px] tw-py-[40px] md:tw-py-[60px]">
-                                    <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-[rgba(0,0,0,0.53)] tw-mb-[40px]">UniTrade</p>
+                            <div class="tw-flex-1 tw-max-w-[580px] tw-flex tw-flex-col tw-justify-center tw-relative tw-bg-white tw-rounded-[40px] tw-h-full">
+                                <div class="tw-px-[20px] md:tw-px-[50px] tw-py-[16px] md:tw-py-[24px] tw-overflow-hidden tw-flex tw-flex-col tw-justify-center tw-h-full">
+                                    <div class="tw-flex tw-items-center tw-gap-[8px] tw-mb-[16px]">
+                                        <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="Logo" class="tw-h-[24px] tw-w-auto" onerror="this.style.display='none'"/>
+                                        <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-[rgba(0,0,0,0.53)] tw-m-0">UniTrade</p>
+                                    </div>
                                     
-                                    <h1 class="tw-font-['Urbanist'] tw-font-medium tw-text-[48px] tw-text-black tw-leading-[1.1] tw-mb-[24px]">
+                                    <h1 class="tw-font-['Urbanist'] tw-font-medium tw-text-[32px] md:tw-text-[36px] tw-text-black tw-leading-[1.1] tw-mb-[12px]">
                                         Welcome to<br/>UniTrade
                                     </h1>
                                     
-                                    <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-[rgba(0,0,0,0.36)] tw-leading-[1.4] tw-mb-[50px] tw-max-w-[483px]">
-                                        Worem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed 
+                                    <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[14px] md:tw-text-[15px] tw-text-[rgba(0,0,0,0.36)] tw-leading-[1.4] tw-mb-[24px] tw-max-w-[483px]">
+                                        Masuk ke akun Anda untuk mulai berbelanja produk kreatif dari mahasiswa atau kelola toko Anda sendiri dengan mudah dan aman.
                                     </p>
                                     
                                     <form class="tw-w-full tw-max-w-[521px]" role="form" t-attf-action="/web/login{{ '?debug' if debug else '' }}" method="post">
                                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                        <input type="hidden" name="redirect" t-att-value="redirect"/>
+                                        <input type="hidden" name="redirect" t-att-value="redirect if redirect and redirect != '/my' and redirect != '/odoo' else '/'" />
                                         
-                                        <p t-if="error" class="tw-text-red-500 tw-text-sm tw-mb-4" role="alert">
+                                        <p t-if="error" class="tw-text-red-500 tw-text-sm tw-mb-[12px]" role="alert">
                                             <t t-esc="error"/>
                                         </p>
                                         
-                                        <!-- Email Field -->
-                                        <div class="tw-mb-[24px]">
-                                            <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[24px] tw-py-[14px] tw-flex tw-items-center tw-bg-white">
-                                                <input type="email" placeholder="Email" name="login" t-att-value="login" required="required" autofocus="autofocus" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[16px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
+                                        <!-- Form Fields Wrapper -->
+                                        <div class="tw-space-y-[12px] tw-mb-[16px]">
+                                            <!-- Email Field -->
+                                            <div>
+                                                <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[20px] tw-py-[12px] tw-flex tw-items-center tw-bg-white">
+                                                    <input type="email" placeholder="Email" name="login" t-att-value="login" required="required" autofocus="autofocus" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[15px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
+                                                </div>
+                                                <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[11px] tw-text-[#666] tw-mt-[4px] tw-ml-[16px] tw-m-0">Masukan email anda</p>
                                             </div>
-                                            <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[12px] tw-text-[#666] tw-mt-[8px] tw-ml-[16px]">Masukan email anda</p>
-                                        </div>
-                                        
-                                        <!-- Password Field -->
-                                        <div class="tw-mb-[35px]">
-                                            <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[24px] tw-py-[14px] tw-flex tw-items-center tw-bg-white">
-                                                <input type="password" id="passwordInput" placeholder="Password" name="password" required="required" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[16px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
-                                                <button type="button" id="togglePasswordBtn" class="tw-ml-2 tw-text-gray-500 hover:tw-text-black tw-border-none tw-bg-transparent tw-p-0" style="border: none !important;">
-                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/></svg>
-                                                </button>
+                                            
+                                            <!-- Password Field -->
+                                            <div>
+                                                <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[20px] tw-py-[12px] tw-flex tw-items-center tw-bg-white">
+                                                    <input type="password" id="passwordInput" placeholder="Password" name="password" required="required" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[15px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
+                                                    <button type="button" id="togglePasswordBtn" class="tw-ml-2 tw-text-gray-500 hover:tw-text-black tw-border-none tw-bg-transparent tw-p-0" style="border: none !important;">
+                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/></svg>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                         
                                         <!-- Login Button -->
-                                        <button type="submit" class="tw-w-full tw-h-[51px] tw-border-2 tw-border-[#1a1a1a] tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mb-[24px] hover:tw-bg-gray-50 tw-transition-colors tw-bg-transparent">
+                                        <button type="submit" class="tw-w-full tw-h-[46px] tw-border-2 tw-border-[#1a1a1a] tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mb-[16px] hover:tw-bg-gray-50 tw-transition-colors tw-bg-transparent">
                                             <span class="tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-[#1a1a1a] tw-uppercase">Masuk</span>
                                         </button>
                                         
                                         <!-- Or Separator -->
-                                        <div class="tw-flex tw-items-center tw-my-[24px]">
+                                        <div class="tw-flex tw-items-center tw-my-[16px]">
                                             <div class="tw-flex-1 tw-h-px tw-bg-[#b3b3b3]"></div>
                                             <span class="tw-px-[16px] tw-font-['Urbanist'] tw-font-normal tw-text-[12px] tw-text-black">Or</span>
                                             <div class="tw-flex-1 tw-h-px tw-bg-[#b3b3b3]"></div>
@@ -73,7 +79,7 @@
                                         <!-- Google Button -->
                                         <!-- Google Button (dynamic from auth_oauth providers) -->
                                         <t t-foreach="providers" t-as="provider">
-                                            <a t-att-href="provider.get('auth_link')" class="tw-w-full tw-h-[51px] tw-bg-[#1a1a1a] tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mb-[24px] hover:tw-bg-black tw-transition-colors tw-no-underline">
+                                            <a t-att-href="provider.get('auth_link')" class="tw-w-full tw-h-[46px] tw-bg-[#1a1a1a] tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mb-[16px] hover:tw-bg-black tw-transition-colors tw-no-underline">
                                                 <svg class="tw-w-[15px] tw-h-[15px] tw-mr-[8px]" viewBox="0 0 24 24">
                                                     <path fill="#ffffff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                                                     <path fill="#ffffff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -85,11 +91,11 @@
                                         </t>
                                         
                                         <!-- Footer Links -->
-                                        <div class="tw-flex tw-justify-between tw-items-center tw-mt-[20px]">
-                                            <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-[#212529] tw-m-0">
+                                        <div class="tw-flex tw-justify-between tw-items-center tw-mt-[12px]">
+                                            <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[13px] tw-text-[#212529] tw-m-0">
                                                 Lupa password? <a href="/web/reset_password" class="tw-text-[#5155fa] hover:tw-underline tw-no-underline">klik disini</a>
                                             </p>
-                                            <p t-if="signup_enabled" class="tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-[#212529] tw-m-0">
+                                            <p t-if="signup_enabled" class="tw-font-['Urbanist'] tw-font-normal tw-text-[13px] tw-text-[#212529] tw-m-0">
                                                 Belum punya akun? <a href="/web/signup" class="tw-text-[#5155fa] hover:tw-underline tw-no-underline">Buat akun</a>
                                             </p>
                                         </div>
@@ -117,55 +123,56 @@
                             </div>
                             
                             <!-- Right Column: Images & Cards -->
-                            <div class="tw-hidden lg:tw-flex tw-flex-col tw-gap-[26px] tw-flex-1 tw-max-w-[670px] tw-relative">
+                            <!-- Right Column: Images & Cards -->
+                            <div class="tw-hidden lg:tw-flex tw-flex-col tw-gap-[16px] tw-flex-1 tw-max-w-[600px] tw-relative tw-h-full tw-justify-center">
                                 <!-- Main Image Card -->
-                                <div class="tw-relative tw-w-full tw-h-[594px] tw-rounded-[40px] tw-overflow-hidden">
+                                <div class="tw-relative tw-w-full tw-flex-1 tw-min-h-[300px] tw-max-h-[550px] tw-rounded-[40px] tw-overflow-hidden">
                                     <img src="/unitrade_theme/static/src/img/login_bg.jpg" alt="Office" class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover" onerror="this.src='https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&amp;fit=crop&amp;q=80&amp;w=1440'"/>
                                     <div class="tw-absolute tw-inset-0 tw-bg-black/10"></div>
                                     
-                                    <!-- Floyd Miles Overlay Card -->
-                                    <div class="tw-absolute tw-bottom-[27px] tw-left-[31px] tw-right-[31px] tw-h-[159px] tw-bg-[rgba(0,0,0,0.24)] tw-backdrop-blur-[10px] tw-rounded-[30px] tw-p-[20px] tw-pl-[111px]">
-                                        <img src="https://i.pravatar.cc/100?img=11" alt="Floyd" class="tw-absolute tw-left-[20px] tw-top-[62px] tw-w-[49px] tw-h-[49px] tw-rounded-full tw-object-cover"/>
+                                    <!-- Testimonial Overlay Card -->
+                                    <div class="tw-absolute tw-bottom-[20px] tw-left-[20px] tw-right-[20px] xl:tw-bottom-[27px] xl:tw-left-[31px] xl:tw-right-[31px] tw-bg-[rgba(0,0,0,0.24)] tw-backdrop-blur-[10px] tw-rounded-[30px] tw-p-[20px] tw-pl-[90px] xl:tw-pl-[111px]">
+                                        <img src="https://i.pravatar.cc/100?img=11" alt="Budi" class="tw-absolute tw-left-[16px] xl:tw-left-[20px] tw-top-[50%] -tw-translate-y-1/2 tw-w-[49px] tw-h-[49px] tw-rounded-full tw-object-cover"/>
                                         
                                         <!-- Arrows -->
-                                        <div class="tw-absolute tw-right-[74px] tw-top-[13px] tw-w-[49px] tw-h-[49px] tw-rounded-full tw-border tw-border-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-white/10 tw-transition">
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="tw-text-white">
+                                        <div class="tw-absolute tw-right-[64px] tw-top-[13px] tw-w-[40px] tw-h-[40px] tw-rounded-full tw-border tw-border-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-white/10 tw-transition">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="tw-text-white">
                                                 <path d="M17 7L7 17M7 17H17M7 17V7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                         </div>
-                                        <div class="tw-absolute tw-right-[20px] tw-top-[13px] tw-w-[49px] tw-h-[49px] tw-rounded-full tw-border tw-border-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-white/10 tw-transition">
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="tw-text-white">
+                                        <div class="tw-absolute tw-right-[16px] tw-top-[13px] tw-w-[40px] tw-h-[40px] tw-rounded-full tw-border tw-border-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-white/10 tw-transition">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="tw-text-white">
                                                 <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                         </div>
                                         
-                                        <h3 class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-white tw-mt-[35px] tw-mb-[4px]">Floyd Miles</h3>
-                                        <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[12px] tw-text-white tw-leading-[16px] tw-max-w-[363px] tw-m-0">
-                                            Worem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus.
+                                        <h3 class="tw-font-['Urbanist'] tw-font-medium tw-text-[16px] tw-text-white tw-mt-[28px] tw-mb-[4px]">Budi Santoso</h3>
+                                        <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[12px] tw-text-white tw-leading-[1.4] tw-max-w-[363px] tw-m-0">
+                                            "Platform e-commerce yang sangat membantu mahasiswa untuk berwirausaha dan menjangkau pembeli di seluruh kampus!"
                                         </p>
                                     </div>
                                 </div>
                                 
                                 <!-- Join Card -->
-                                <div class="tw-relative tw-w-full tw-h-[102px] tw-bg-[rgba(0,0,0,0.04)] tw-rounded-[23px] tw-px-[40px] tw-flex tw-items-center">
+                                <div class="tw-relative tw-w-full tw-h-[90px] tw-bg-[rgba(0,0,0,0.04)] tw-rounded-[23px] tw-px-[24px] xl:tw-px-[40px] tw-flex tw-items-center tw-shrink-0">
                                     <div class="tw-flex tw-items-center tw-w-full">
                                         <div class="tw-flex -tw-space-x-[15px] tw-flex-shrink-0">
-                                            <img src="https://i.pravatar.cc/100?img=12" class="tw-w-[50px] tw-h-[50px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover tw-z-30"/>
-                                            <img src="https://i.pravatar.cc/100?img=13" class="tw-w-[50px] tw-h-[50px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover tw-z-20"/>
+                                            <img src="https://i.pravatar.cc/100?img=12" class="tw-w-[44px] tw-h-[44px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover tw-z-30"/>
+                                            <img src="https://i.pravatar.cc/100?img=13" class="tw-w-[44px] tw-h-[44px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover tw-z-20"/>
                                             <div class="tw-relative tw-z-10">
-                                                <img src="https://i.pravatar.cc/100?img=14" class="tw-w-[50px] tw-h-[50px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover"/>
-                                                <div class="tw-absolute tw-bottom-0 tw-right-0 tw-w-[15px] tw-h-[15px] tw-bg-black tw-rounded-full tw-border tw-border-white"></div>
+                                                <img src="https://i.pravatar.cc/100?img=14" class="tw-w-[44px] tw-h-[44px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover"/>
+                                                <div class="tw-absolute tw-bottom-0 tw-right-0 tw-w-[12px] tw-h-[12px] tw-bg-black tw-rounded-full tw-border tw-border-white"></div>
                                             </div>
                                         </div>
-                                        <div class="tw-ml-[30px] tw-flex-1">
-                                            <h4 class="tw-font-['Urbanist'] tw-font-medium tw-text-[16px] tw-text-black tw-m-0 tw-mb-[4px]">Bergabung dengan 10k+ User</h4>
-                                            <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[12px] tw-text-[rgba(0,0,0,0.36)] tw-m-0 tw-max-w-[363px] tw-leading-[14px]">
-                                                Worem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus.
+                                        <div class="tw-ml-[20px] xl:tw-ml-[30px] tw-flex-1">
+                                            <h4 class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-black tw-m-0 tw-mb-[2px]">Bergabung dengan 10k+ User</h4>
+                                            <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[11px] xl:tw-text-[12px] tw-text-[rgba(0,0,0,0.36)] tw-m-0 tw-max-w-[363px] tw-leading-[1.4]">
+                                                Bergabung dengan ribuan mahasiswa dan UMKM lainnya untuk mengembangkan bisnis dan menemukan produk unik.
                                             </p>
                                         </div>
                                     </div>
-                                    <div class="tw-absolute tw-right-[20px] tw-top-[17px] tw-w-[69px] tw-h-[69px] tw-rounded-full tw-border tw-border-black tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-black/5 tw-transition">
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="tw-text-black">
+                                    <div class="tw-absolute tw-right-[16px] xl:tw-right-[20px] tw-top-[50%] -tw-translate-y-1/2 tw-w-[50px] tw-h-[50px] tw-rounded-full tw-border tw-border-black tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-black/5 tw-transition">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="tw-text-black">
                                             <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
                                         </svg>
                                     </div>
@@ -192,20 +199,23 @@
         <xpath expr="//form[hasclass('oe_signup_form')]" position="after">
             <t t-if="request.params.get('admin') != '1'">
                 <div class="tw-fixed tw-inset-0 tw-z-[9999] tw-bg-white tw-overflow-y-auto tw-font-['Urbanist']">
-                    <div class="tw-min-h-screen tw-w-full tw-flex tw-justify-center tw-items-center tw-p-[20px] md:tw-p-[40px]">
-                        <div class="tw-w-full tw-max-w-[1380px] tw-flex tw-flex-col lg:tw-flex-row tw-gap-[40px] lg:tw-gap-[26px]">
+                    <div class="tw-h-screen tw-w-full tw-flex tw-justify-center tw-items-center tw-p-[16px] md:tw-p-[24px]">
+                        <div class="tw-w-full tw-max-w-[1280px] tw-flex tw-flex-col lg:tw-flex-row tw-gap-[24px] lg:tw-gap-[32px] tw-items-center tw-h-full tw-max-h-[850px]">
                             
                             <!-- Left Column: Form -->
-                            <div class="tw-flex-1 tw-max-w-[670px] tw-flex tw-flex-col tw-justify-center tw-relative tw-bg-white tw-rounded-[40px]">
-                                <div class="tw-px-[20px] md:tw-px-[74px] tw-py-[40px] md:tw-py-[60px]">
-                                    <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-[rgba(0,0,0,0.53)] tw-mb-[40px]">UniTrade</p>
+                            <div class="tw-flex-1 tw-max-w-[580px] tw-flex tw-flex-col tw-justify-center tw-relative tw-bg-white tw-rounded-[40px] tw-h-full">
+                                <div class="tw-px-[20px] md:tw-px-[50px] tw-py-[16px] md:tw-py-[24px] tw-overflow-hidden tw-flex tw-flex-col tw-justify-center tw-h-full">
+                                    <div class="tw-flex tw-items-center tw-gap-[8px] tw-mb-[12px]">
+                                        <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="Logo" class="tw-h-[24px] tw-w-auto" onerror="this.style.display='none'"/>
+                                        <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-[rgba(0,0,0,0.53)] tw-m-0">UniTrade</p>
+                                    </div>
                                     
-                                    <h1 class="tw-font-['Urbanist'] tw-font-medium tw-text-[48px] tw-text-black tw-leading-[1.1] tw-mb-[24px]">
+                                    <h1 class="tw-font-['Urbanist'] tw-font-medium tw-text-[28px] md:tw-text-[32px] tw-text-black tw-leading-[1.1] tw-mb-[8px]">
                                         Welcome to<br/>UniTrade
                                     </h1>
                                     
-                                    <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-[rgba(0,0,0,0.36)] tw-leading-[1.4] tw-mb-[50px] tw-max-w-[483px]">
-                                        Worem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed 
+                                    <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[13px] md:tw-text-[14px] tw-text-[rgba(0,0,0,0.36)] tw-leading-[1.3] tw-mb-[16px] tw-max-w-[483px]">
+                                        Daftarkan diri Anda untuk mulai berbelanja produk berkualitas dari mahasiswa atau buat toko Anda sendiri sekarang juga.
                                     </p>
                                     
                                     <form class="tw-w-full tw-max-w-[521px]" role="form" method="post" t-attf-action="/web/signup{{ '?debug' if debug else '' }}">
@@ -214,54 +224,57 @@
                                         <input type="hidden" name="token" t-att-value="token"/>
                                         
                                         <!-- Error Message -->
-                                        <p t-if="error" class="tw-text-red-500 tw-text-sm tw-mb-4" role="alert">
+                                        <p t-if="error" class="tw-text-red-500 tw-text-sm tw-mb-[8px]" role="alert">
                                             <t t-esc="error"/>
                                         </p>
                                         
-                                        <!-- Name Field -->
-                                        <div class="tw-mb-[24px]">
-                                            <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[24px] tw-py-[14px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
-                                                <input type="text" placeholder="Nama" name="name" t-att-value="name" required="required" autofocus="autofocus" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[16px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
+                                        <!-- Form Fields Wrapper -->
+                                        <div class="tw-space-y-[10px] tw-mb-[16px]">
+                                            <!-- Name Field -->
+                                            <div>
+                                                <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[20px] tw-py-[10px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
+                                                    <input type="text" placeholder="Nama" name="name" t-att-value="name" required="required" autofocus="autofocus" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        <!-- Email Field -->
-                                        <div class="tw-mb-[24px]">
-                                            <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[24px] tw-py-[14px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
-                                                <input type="text" id="signupLoginInput" placeholder="Email atau Nomor hp" name="login" t-att-value="login" required="required" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[16px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
+                                            <!-- Email Field -->
+                                            <div>
+                                                <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[20px] tw-py-[10px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
+                                                    <input type="text" id="signupLoginInput" placeholder="Email atau Nomor hp" name="login" t-att-value="login" required="required" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
+                                                </div>
+                                                <p id="signupLoginHint" class="tw-font-['Urbanist'] tw-font-normal tw-text-[11px] tw-text-[#666] tw-mt-[2px] tw-ml-[16px] tw-m-0">@gmail atau +62</p>
+                                                <p id="signupEmailError" class="tw-font-['Urbanist'] tw-font-normal tw-text-[11px] tw-text-red-500 tw-mt-[2px] tw-ml-[16px] tw-hidden tw-m-0"></p>
                                             </div>
-                                            <p id="signupLoginHint" class="tw-font-['Urbanist'] tw-font-normal tw-text-[12px] tw-text-[#666] tw-mt-[8px] tw-ml-[16px]">@gmail atau +62</p>
-                                            <p id="signupEmailError" class="tw-font-['Urbanist'] tw-font-normal tw-text-[12px] tw-text-red-500 tw-mt-[4px] tw-ml-[16px] tw-hidden tw-m-0"></p>
-                                        </div>
-                                        
-                                        <!-- Password Field -->
-                                        <div class="tw-mb-[24px]">
-                                            <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[24px] tw-py-[14px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
-                                                <input type="password" id="signupPasswordInput" placeholder="Password baru" name="password" required="required" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[16px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;" minlength="8"/>
-                                                <button type="button" id="toggleSignupPasswordBtn" class="tw-ml-2 tw-text-gray-500 hover:tw-text-black tw-border-none tw-bg-transparent tw-p-0 tw-cursor-pointer" style="border: none !important;">
-                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/></svg>
-                                                </button>
+                                            
+                                            <!-- Password Field -->
+                                            <div>
+                                                <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[20px] tw-py-[10px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
+                                                    <input type="password" id="signupPasswordInput" placeholder="Password baru" name="password" required="required" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;" minlength="8"/>
+                                                    <button type="button" id="toggleSignupPasswordBtn" class="tw-ml-2 tw-text-gray-500 hover:tw-text-black tw-border-none tw-bg-transparent tw-p-0 tw-cursor-pointer" style="border: none !important;">
+                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/></svg>
+                                                    </button>
+                                                </div>
+                                                <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[11px] tw-text-[#666] tw-mt-[2px] tw-ml-[16px] tw-m-0">Minimal 8 karakter</p>
                                             </div>
-                                            <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[12px] tw-text-[#666] tw-mt-[8px] tw-ml-[16px]">Minimal 8 karakter</p>
-                                        </div>
 
-                                        <!-- Confirm Password Field -->
-                                        <div class="tw-mb-[35px]">
-                                            <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[24px] tw-py-[14px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
-                                                <input type="password" id="signupConfirmPasswordInput" placeholder="Masukan password" name="confirm_password" required="required" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[16px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;" minlength="8"/>
-                                                <button type="button" id="toggleSignupConfirmPasswordBtn" class="tw-ml-2 tw-text-gray-500 hover:tw-text-black tw-border-none tw-bg-transparent tw-p-0 tw-cursor-pointer" style="border: none !important;">
-                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/></svg>
-                                                </button>
+                                            <!-- Confirm Password Field -->
+                                            <div>
+                                                <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[20px] tw-py-[10px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
+                                                    <input type="password" id="signupConfirmPasswordInput" placeholder="Masukan password" name="confirm_password" required="required" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;" minlength="8"/>
+                                                    <button type="button" id="toggleSignupConfirmPasswordBtn" class="tw-ml-2 tw-text-gray-500 hover:tw-text-black tw-border-none tw-bg-transparent tw-p-0 tw-cursor-pointer" style="border: none !important;">
+                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/></svg>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                         
                                         <!-- Signup Button -->
-                                        <button type="submit" class="tw-w-full tw-h-[51px] tw-border-2 tw-border-[#1a1a1a] tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mb-[24px] hover:tw-bg-gray-50 tw-transition-colors tw-bg-transparent tw-cursor-pointer">
+                                        <button type="submit" class="tw-w-full tw-h-[46px] tw-border-2 tw-border-[#1a1a1a] tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mb-[12px] hover:tw-bg-gray-50 tw-transition-colors tw-bg-transparent tw-cursor-pointer">
                                             <span class="tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-[#1a1a1a] tw-capitalize">Daftar akun</span>
                                         </button>
                                         
                                         <!-- Or Separator -->
-                                        <div class="tw-flex tw-items-center tw-my-[24px]">
+                                        <div class="tw-flex tw-items-center tw-my-[12px]">
                                             <div class="tw-flex-1 tw-h-px tw-bg-[#b3b3b3]"></div>
                                             <span class="tw-px-[16px] tw-font-['Urbanist'] tw-font-normal tw-text-[12px] tw-text-black">Or</span>
                                             <div class="tw-flex-1 tw-h-px tw-bg-[#b3b3b3]"></div>
@@ -269,7 +282,7 @@
                                         
                                         <!-- Google Button (dynamic from auth_oauth providers) -->
                                         <t t-foreach="providers" t-as="provider">
-                                            <a t-att-href="provider.get('auth_link')" class="tw-w-full tw-h-[51px] tw-bg-[#1a1a1a] tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mb-[24px] hover:tw-bg-black tw-transition-colors tw-no-underline tw-cursor-pointer">
+                                            <a t-att-href="provider.get('auth_link')" class="tw-w-full tw-h-[46px] tw-bg-[#1a1a1a] tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mb-[12px] hover:tw-bg-black tw-transition-colors tw-no-underline tw-cursor-pointer">
                                                 <svg class="tw-w-[15px] tw-h-[15px] tw-mr-[8px]" viewBox="0 0 24 24">
                                                     <path fill="#ffffff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                                                     <path fill="#ffffff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -281,7 +294,7 @@
                                         </t>
                                         
                                         <!-- Footer Links -->
-                                        <div class="tw-flex tw-justify-center tw-items-center tw-mt-[20px]">
+                                        <div class="tw-flex tw-justify-center tw-items-center tw-mt-[12px]">
                                             <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[12px] tw-text-[#212529] tw-m-0">
                                                 Sudah punya akun? <a href="/web/login" class="tw-text-[#5155fa] hover:tw-underline tw-no-underline">Masuk</a>
                                             </p>
@@ -383,55 +396,56 @@
                             </div>
                             
                             <!-- Right Column: Images & Cards -->
-                            <div class="tw-hidden lg:tw-flex tw-flex-col tw-gap-[26px] tw-flex-1 tw-max-w-[670px] tw-relative">
+                            <!-- Right Column: Images & Cards -->
+                            <div class="tw-hidden lg:tw-flex tw-flex-col tw-gap-[16px] tw-flex-1 tw-max-w-[600px] tw-relative tw-h-full tw-justify-center">
                                 <!-- Main Image Card -->
-                                <div class="tw-relative tw-w-full tw-h-[594px] tw-rounded-[40px] tw-overflow-hidden">
+                                <div class="tw-relative tw-w-full tw-flex-1 tw-min-h-[300px] tw-max-h-[550px] tw-rounded-[40px] tw-overflow-hidden">
                                     <img src="/unitrade_theme/static/src/img/login_bg.jpg" alt="Chair" class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover" onerror="this.src='https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?auto=format&amp;fit=crop&amp;q=80&amp;w=1440'"/>
                                     <div class="tw-absolute tw-inset-0 tw-bg-black/10"></div>
                                     
-                                    <!-- Floyd Miles Overlay Card -->
-                                    <div class="tw-absolute tw-bottom-[27px] tw-left-[31px] tw-right-[31px] tw-h-[159px] tw-bg-[rgba(0,0,0,0.24)] tw-backdrop-blur-[10px] tw-rounded-[30px] tw-p-[20px] tw-pl-[111px]">
-                                        <img src="https://i.pravatar.cc/100?img=11" alt="Floyd" class="tw-absolute tw-left-[20px] tw-top-[62px] tw-w-[49px] tw-h-[49px] tw-rounded-full tw-object-cover"/>
+                                    <!-- Testimonial Overlay Card -->
+                                    <div class="tw-absolute tw-bottom-[20px] tw-left-[20px] tw-right-[20px] xl:tw-bottom-[27px] xl:tw-left-[31px] xl:tw-right-[31px] tw-bg-[rgba(0,0,0,0.24)] tw-backdrop-blur-[10px] tw-rounded-[30px] tw-p-[20px] tw-pl-[90px] xl:tw-pl-[111px]">
+                                        <img src="https://i.pravatar.cc/100?img=11" alt="Budi" class="tw-absolute tw-left-[16px] xl:tw-left-[20px] tw-top-[50%] -tw-translate-y-1/2 tw-w-[49px] tw-h-[49px] tw-rounded-full tw-object-cover"/>
                                         
                                         <!-- Arrows -->
-                                        <div class="tw-absolute tw-right-[74px] tw-top-[13px] tw-w-[49px] tw-h-[49px] tw-rounded-full tw-border tw-border-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-white/10 tw-transition">
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="tw-text-white">
+                                        <div class="tw-absolute tw-right-[64px] tw-top-[13px] tw-w-[40px] tw-h-[40px] tw-rounded-full tw-border tw-border-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-white/10 tw-transition">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="tw-text-white">
                                                 <path d="M17 7L7 17M7 17H17M7 17V7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                         </div>
-                                        <div class="tw-absolute tw-right-[20px] tw-top-[13px] tw-w-[49px] tw-h-[49px] tw-rounded-full tw-border tw-border-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-white/10 tw-transition">
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="tw-text-white">
+                                        <div class="tw-absolute tw-right-[16px] tw-top-[13px] tw-w-[40px] tw-h-[40px] tw-rounded-full tw-border tw-border-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-white/10 tw-transition">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="tw-text-white">
                                                 <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                         </div>
                                         
-                                        <h3 class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-white tw-mt-[35px] tw-mb-[4px]">Floyd Miles</h3>
-                                        <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[12px] tw-text-white tw-leading-[16px] tw-max-w-[363px] tw-m-0">
-                                            Worem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus.
+                                        <h3 class="tw-font-['Urbanist'] tw-font-medium tw-text-[16px] tw-text-white tw-mt-[28px] tw-mb-[4px]">Budi Santoso</h3>
+                                        <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[12px] tw-text-white tw-leading-[1.4] tw-max-w-[363px] tw-m-0">
+                                            "Platform e-commerce yang sangat membantu mahasiswa untuk berwirausaha dan menjangkau pembeli di seluruh kampus!"
                                         </p>
                                     </div>
                                 </div>
                                 
                                 <!-- Join Card -->
-                                <div class="tw-relative tw-w-full tw-h-[102px] tw-bg-[rgba(0,0,0,0.04)] tw-rounded-[23px] tw-px-[40px] tw-flex tw-items-center hover:tw-bg-black/5 tw-transition-colors tw-cursor-pointer">
+                                <div class="tw-relative tw-w-full tw-h-[90px] tw-bg-[rgba(0,0,0,0.04)] tw-rounded-[23px] tw-px-[24px] xl:tw-px-[40px] tw-flex tw-items-center tw-shrink-0 hover:tw-bg-black/5 tw-transition-colors tw-cursor-pointer">
                                     <div class="tw-flex tw-items-center tw-w-full">
                                         <div class="tw-flex -tw-space-x-[15px] tw-flex-shrink-0">
-                                            <img src="https://i.pravatar.cc/100?img=12" class="tw-w-[50px] tw-h-[50px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover tw-z-30"/>
-                                            <img src="https://i.pravatar.cc/100?img=13" class="tw-w-[50px] tw-h-[50px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover tw-z-20"/>
+                                            <img src="https://i.pravatar.cc/100?img=12" class="tw-w-[44px] tw-h-[44px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover tw-z-30"/>
+                                            <img src="https://i.pravatar.cc/100?img=13" class="tw-w-[44px] tw-h-[44px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover tw-z-20"/>
                                             <div class="tw-relative tw-z-10">
-                                                <img src="https://i.pravatar.cc/100?img=14" class="tw-w-[50px] tw-h-[50px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover"/>
-                                                <div class="tw-absolute tw-bottom-0 tw-right-0 tw-w-[15px] tw-h-[15px] tw-bg-black tw-rounded-full tw-border tw-border-white"></div>
+                                                <img src="https://i.pravatar.cc/100?img=14" class="tw-w-[44px] tw-h-[44px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover"/>
+                                                <div class="tw-absolute tw-bottom-0 tw-right-0 tw-w-[12px] tw-h-[12px] tw-bg-black tw-rounded-full tw-border tw-border-white"></div>
                                             </div>
                                         </div>
-                                        <div class="tw-ml-[30px] tw-flex-1">
-                                            <h4 class="tw-font-['Urbanist'] tw-font-medium tw-text-[16px] tw-text-black tw-m-0 tw-mb-[4px]">Bergabung dengan 10k+ User</h4>
-                                            <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[12px] tw-text-[rgba(0,0,0,0.36)] tw-m-0 tw-max-w-[363px] tw-leading-[14px]">
-                                                Worem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus.
+                                        <div class="tw-ml-[20px] xl:tw-ml-[30px] tw-flex-1">
+                                            <h4 class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-black tw-m-0 tw-mb-[2px]">Bergabung dengan 10k+ User</h4>
+                                            <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[11px] xl:tw-text-[12px] tw-text-[rgba(0,0,0,0.36)] tw-m-0 tw-max-w-[363px] tw-leading-[1.4]">
+                                                Bergabung dengan ribuan mahasiswa dan UMKM lainnya untuk mengembangkan bisnis dan menemukan produk unik.
                                             </p>
                                         </div>
                                     </div>
-                                    <div class="tw-absolute tw-right-[20px] tw-top-[17px] tw-w-[69px] tw-h-[69px] tw-rounded-full tw-border tw-border-black tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-black tw-group tw-transition">
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="tw-text-black group-hover:tw-text-white tw-transition">
+                                    <div class="tw-absolute tw-right-[16px] xl:tw-right-[20px] tw-top-[50%] -tw-translate-y-1/2 tw-w-[50px] tw-h-[50px] tw-rounded-full tw-border tw-border-black tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-black tw-group tw-transition">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="tw-text-black group-hover:tw-text-white tw-transition">
                                             <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
                                         </svg>
                                     </div>
@@ -461,56 +475,56 @@
         <xpath expr="//t[@t-call='web.login_layout']" position="inside">
             <t t-if="request.params.get('admin') != '1'">
                 <div class="tw-fixed tw-inset-0 tw-z-[9999] tw-bg-white tw-overflow-y-auto tw-font-['Urbanist']">
-                    <div class="tw-min-h-screen tw-w-full tw-flex tw-justify-center tw-items-center tw-p-[20px] md:tw-p-[40px]">
-                        <div class="tw-w-full tw-max-w-[1380px] tw-flex tw-flex-col lg:tw-flex-row tw-gap-[40px] lg:tw-gap-[26px]">
+                    <div class="tw-h-screen tw-w-full tw-flex tw-justify-center tw-items-center tw-p-[16px] md:tw-p-[24px]">
+                        <div class="tw-w-full tw-max-w-[1280px] tw-flex tw-flex-col lg:tw-flex-row tw-gap-[24px] lg:tw-gap-[32px] tw-items-center tw-h-full tw-max-h-[850px]">
                             
                             <!-- Left Column: Form -->
-                            <div class="tw-flex-1 tw-max-w-[670px] tw-flex tw-flex-col tw-justify-center tw-relative tw-bg-white tw-rounded-[40px]">
-                                <div class="tw-px-[20px] md:tw-px-[74px] tw-py-[40px] md:tw-py-[60px]">
-                                    <div class="tw-flex tw-items-center tw-gap-[8px] tw-mb-[40px]">
+                            <div class="tw-flex-1 tw-max-w-[580px] tw-flex tw-flex-col tw-justify-center tw-relative tw-bg-white tw-rounded-[40px] tw-h-full">
+                                <div class="tw-px-[20px] md:tw-px-[50px] tw-py-[16px] md:tw-py-[24px] tw-overflow-hidden tw-flex tw-flex-col tw-justify-center tw-h-full">
+                                    <div class="tw-flex tw-items-center tw-gap-[8px] tw-mb-[16px]">
                                         <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="Logo" class="tw-h-[24px] tw-w-auto" onerror="this.style.display='none'"/>
                                         <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-[rgba(0,0,0,0.53)] tw-m-0">UniTrade</p>
                                     </div>
                                     
-                                    <h1 class="tw-font-['Urbanist'] tw-font-medium tw-text-[48px] tw-text-black tw-leading-[1.1] tw-mb-[24px]">
+                                    <h1 class="tw-font-['Urbanist'] tw-font-medium tw-text-[32px] md:tw-text-[36px] tw-text-black tw-leading-[1.1] tw-mb-[12px]">
                                         Reset Password
                                     </h1>
                                     
-                                    <p t-if="not token and not message" class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-[rgba(0,0,0,0.36)] tw-leading-[1.4] tw-mb-[50px] tw-max-w-[483px]">
+                                    <p t-if="not token and not message" class="tw-font-['Urbanist'] tw-font-medium tw-text-[14px] md:tw-text-[15px] tw-text-[rgba(0,0,0,0.36)] tw-leading-[1.4] tw-mb-[24px] tw-max-w-[483px]">
                                         Masukkan email Anda yang terdaftar, dan kami akan mengirimkan link untuk mereset password.
                                     </p>
-                                    <p t-if="token and not invalid_token and not message and not password_changed" class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-[rgba(0,0,0,0.36)] tw-leading-[1.4] tw-mb-[50px] tw-max-w-[483px]">
+                                    <p t-if="token and not invalid_token and not message and not password_changed" class="tw-font-['Urbanist'] tw-font-medium tw-text-[14px] md:tw-text-[15px] tw-text-[rgba(0,0,0,0.36)] tw-leading-[1.4] tw-mb-[24px] tw-max-w-[483px]">
                                         Silakan masukkan password baru Anda.
                                     </p>
-                                    <p t-if="invalid_token" class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-red-500 tw-leading-[1.4] tw-mb-[50px] tw-max-w-[483px]">
+                                    <p t-if="invalid_token" class="tw-font-['Urbanist'] tw-font-medium tw-text-[14px] md:tw-text-[15px] tw-text-red-500 tw-leading-[1.4] tw-mb-[24px] tw-max-w-[483px]">
                                         Link reset password tidak valid atau sudah kadaluarsa.
                                     </p>
                                     
                                     <!-- Success Message -->
-                                    <div t-if="message" class="tw-bg-[#f0fdf4] tw-border tw-border-[#bbf7d0] tw-rounded-[12px] tw-p-[16px] tw-mb-[40px] tw-max-w-[521px]">
-                                        <p class="tw-text-[#166534] tw-font-['Urbanist'] tw-text-[15px] tw-m-0">
+                                    <div t-if="message" class="tw-bg-[#f0fdf4] tw-border tw-border-[#bbf7d0] tw-rounded-[12px] tw-p-[16px] tw-mb-[24px] tw-max-w-[521px]">
+                                        <p class="tw-text-[#166534] tw-font-['Urbanist'] tw-text-[14px] tw-m-0">
                                             <t t-esc="message"/>
                                         </p>
                                     </div>
                                     
                                     <!-- Password Changed Success -->
                                     <div t-if="password_changed" class="tw-w-full tw-max-w-[521px]">
-                                        <div class="tw-bg-[#f0fdf4] tw-border tw-border-[#bbf7d0] tw-rounded-[16px] tw-p-[24px] tw-mb-[32px] tw-flex tw-items-start tw-gap-[14px]">
+                                        <div class="tw-bg-[#f0fdf4] tw-border tw-border-[#bbf7d0] tw-rounded-[16px] tw-p-[16px] tw-mb-[24px] tw-flex tw-items-start tw-gap-[14px]">
                                             <!-- Success Icon (SVG checkmark circle) -->
-                                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" class="tw-flex-shrink-0" style="margin-top: 2px;">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="tw-flex-shrink-0" style="margin-top: 2px;">
                                                 <circle cx="12" cy="12" r="10" fill="#bbf7d0"/>
                                                 <path d="M8 12L10.5 14.5L16 9" stroke="#166534" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                             <div class="tw-flex-1">
-                                                <p class="tw-text-[#166534] tw-font-['Urbanist'] tw-font-semibold tw-text-[17px] tw-m-0 tw-mb-[6px]">
+                                                <p class="tw-text-[#166534] tw-font-['Urbanist'] tw-font-semibold tw-text-[15px] tw-m-0 tw-mb-[4px]">
                                                     Password berhasil diubah!
                                                 </p>
-                                                <p class="tw-text-[#15803d] tw-font-['Urbanist'] tw-text-[14px] tw-m-0 tw-leading-[1.5]">
-                                                    Silakan login menggunakan password baru Anda. Anda akan dialihkan ke halaman login dalam <span id="countdown-timer">3</span> detik.
+                                                <p class="tw-text-[#15803d] tw-font-['Urbanist'] tw-text-[13px] tw-m-0 tw-leading-[1.5]">
+                                                    Silakan login menggunakan password baru Anda. Anda akan dialihkan dalam <span id="countdown-timer">3</span> detik.
                                                 </p>
                                             </div>
                                         </div>
-                                        <a href="/web/login" class="tw-w-full tw-h-[51px] tw-bg-[#1a1a1a] tw-border-none tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mb-[24px] hover:tw-bg-black tw-transition-colors tw-cursor-pointer tw-no-underline">
+                                        <a href="/web/login" class="tw-w-full tw-h-[46px] tw-bg-[#1a1a1a] tw-border-none tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mb-[16px] hover:tw-bg-black tw-transition-colors tw-cursor-pointer tw-no-underline">
                                             <span class="tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-white tw-uppercase">Ke Halaman Login</span>
                                         </a>
                                         <!-- JS Countdown + Redirect -->
@@ -537,33 +551,36 @@
                                         <input type="hidden" name="token" t-att-value="token"/>
                                         
                                         <!-- Error Message -->
-                                        <p t-if="error" class="tw-text-red-500 tw-text-sm tw-mb-[24px]" role="alert">
+                                        <p t-if="error" class="tw-text-red-500 tw-text-sm tw-mb-[16px]" role="alert">
                                             <t t-esc="error"/>
                                         </p>
                                         
                                         <!-- State 1: Enter Email (not token) -->
                                         <t t-if="not token">
-                                            <div class="tw-mb-[35px]">
-                                                <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[24px] tw-py-[14px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
-                                                    <input type="email" placeholder="Email" name="login" t-att-value="login" required="required" autofocus="autofocus" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[16px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
+                                            <div class="tw-mb-[24px]">
+                                                <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[20px] tw-py-[12px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
+                                                    <input type="email" placeholder="Email" name="login" t-att-value="login" required="required" autofocus="autofocus" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[15px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
                                                 </div>
-                                                <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[12px] tw-text-[#666] tw-mt-[8px] tw-ml-[16px]">Masukkan email anda</p>
+                                                <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[11px] tw-text-[#666] tw-mt-[4px] tw-ml-[16px]">Masukkan email anda</p>
                                             </div>
                                         </t>
                                         
                                         <!-- State 2: Enter New Password (token present) -->
                                         <t t-if="token and not invalid_token">
-                                            <div class="tw-mb-[24px]">
-                                                <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[24px] tw-py-[14px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
-                                                    <input type="password" id="resetPasswordInput" placeholder="Password Baru" name="password" required="required" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[16px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;" minlength="8" autofocus="autofocus"/>
+                                            <div class="tw-space-y-[12px] tw-mb-[16px]">
+                                                <div>
+                                                    <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[20px] tw-py-[12px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
+                                                        <input type="password" id="resetPasswordInput" placeholder="Password Baru" name="password" required="required" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[15px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;" minlength="8" autofocus="autofocus"/>
+                                                    </div>
+                                                    <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[11px] tw-text-[#666] tw-mt-[4px] tw-ml-[16px] tw-m-0">Minimal 8 karakter</p>
                                                 </div>
-                                                <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[12px] tw-text-[#666] tw-mt-[6px] tw-ml-[16px] tw-m-0">Minimal 8 karakter</p>
-                                            </div>
-                                            <div class="tw-mb-[35px]">
-                                                <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[24px] tw-py-[14px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
-                                                    <input type="password" id="resetConfirmPasswordInput" placeholder="Konfirmasi Password Baru" name="confirm_password" required="required" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[16px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;" minlength="8"/>
+                                                <div>
+                                                    <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[20px] tw-py-[12px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
+                                                        <input type="password" id="resetConfirmPasswordInput" placeholder="Konfirmasi Password Baru" name="confirm_password" required="required" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[15px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;" minlength="8"/>
+                                                    </div>
                                                 </div>
                                             </div>
+                                        </t>
                                             <script type="text/javascript">
                                                 document.addEventListener("DOMContentLoaded", function() {
                                                     const pwd = document.getElementById("resetPasswordInput");
@@ -581,10 +598,9 @@
                                                     }
                                                 });
                                             </script>
-                                        </t>
                                         
                                         <!-- Submit Button -->
-                                        <button type="submit" class="tw-w-full tw-h-[51px] tw-bg-[#1a1a1a] tw-border-none tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mb-[24px] hover:tw-bg-black tw-transition-colors tw-cursor-pointer">
+                                        <button type="submit" class="tw-w-full tw-h-[46px] tw-bg-[#1a1a1a] tw-border-none tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mb-[16px] hover:tw-bg-black tw-transition-colors tw-cursor-pointer">
                                             <span class="tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-white tw-uppercase">
                                                 <t t-if="not token">Kirim Link Reset</t>
                                                 <t t-else="">Ubah Password</t>
@@ -606,55 +622,56 @@
                             </div>
                             
                             <!-- Right Column: Images & Cards -->
-                            <div class="tw-hidden lg:tw-flex tw-flex-col tw-gap-[26px] tw-flex-1 tw-max-w-[670px] tw-relative">
+                            <!-- Right Column: Images & Cards -->
+                            <div class="tw-hidden lg:tw-flex tw-flex-col tw-gap-[16px] tw-flex-1 tw-max-w-[600px] tw-relative tw-h-full tw-justify-center">
                                 <!-- Main Image Card -->
-                                <div class="tw-relative tw-w-full tw-h-[594px] tw-rounded-[40px] tw-overflow-hidden">
+                                <div class="tw-relative tw-w-full tw-flex-1 tw-min-h-[300px] tw-max-h-[550px] tw-rounded-[40px] tw-overflow-hidden">
                                     <img src="/unitrade_theme/static/src/img/reset_bg.jpg" alt="Office Workspace" class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover" onerror="this.src='https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&amp;fit=crop&amp;q=80&amp;w=1440'"/>
                                     <div class="tw-absolute tw-inset-0 tw-bg-black/10"></div>
                                     
-                                    <!-- Floyd Miles Overlay Card -->
-                                    <div class="tw-absolute tw-bottom-[27px] tw-left-[31px] tw-right-[31px] tw-h-[159px] tw-bg-[rgba(0,0,0,0.24)] tw-backdrop-blur-[10px] tw-rounded-[30px] tw-p-[20px] tw-pl-[111px]">
-                                        <img src="https://i.pravatar.cc/100?img=11" alt="Floyd" class="tw-absolute tw-left-[20px] tw-top-[62px] tw-w-[49px] tw-h-[49px] tw-rounded-full tw-object-cover"/>
+                                    <!-- Testimonial Overlay Card -->
+                                    <div class="tw-absolute tw-bottom-[20px] tw-left-[20px] tw-right-[20px] xl:tw-bottom-[27px] xl:tw-left-[31px] xl:tw-right-[31px] tw-bg-[rgba(0,0,0,0.24)] tw-backdrop-blur-[10px] tw-rounded-[30px] tw-p-[20px] tw-pl-[90px] xl:tw-pl-[111px]">
+                                        <img src="https://i.pravatar.cc/100?img=11" alt="Budi" class="tw-absolute tw-left-[16px] xl:tw-left-[20px] tw-top-[50%] -tw-translate-y-1/2 tw-w-[49px] tw-h-[49px] tw-rounded-full tw-object-cover"/>
                                         
                                         <!-- Arrows -->
-                                        <div class="tw-absolute tw-right-[74px] tw-top-[13px] tw-w-[49px] tw-h-[49px] tw-rounded-full tw-border tw-border-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-white/10 tw-transition">
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="tw-text-white">
+                                        <div class="tw-absolute tw-right-[64px] tw-top-[13px] tw-w-[40px] tw-h-[40px] tw-rounded-full tw-border tw-border-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-white/10 tw-transition">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="tw-text-white">
                                                 <path d="M17 7L7 17M7 17H17M7 17V7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                         </div>
-                                        <div class="tw-absolute tw-right-[20px] tw-top-[13px] tw-w-[49px] tw-h-[49px] tw-rounded-full tw-border tw-border-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-white/10 tw-transition">
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="tw-text-white">
+                                        <div class="tw-absolute tw-right-[16px] tw-top-[13px] tw-w-[40px] tw-h-[40px] tw-rounded-full tw-border tw-border-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-white/10 tw-transition">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="tw-text-white">
                                                 <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                         </div>
                                         
-                                        <h3 class="tw-font-['Urbanist'] tw-font-medium tw-text-[18px] tw-text-white tw-mt-[35px] tw-mb-[4px]">Floyd Miles</h3>
-                                        <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[12px] tw-text-white tw-leading-[16px] tw-max-w-[363px] tw-m-0">
-                                            Worem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus.
+                                        <h3 class="tw-font-['Urbanist'] tw-font-medium tw-text-[16px] tw-text-white tw-mt-[28px] tw-mb-[4px]">Budi Santoso</h3>
+                                        <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[12px] tw-text-white tw-leading-[1.4] tw-max-w-[363px] tw-m-0">
+                                            "Platform e-commerce yang sangat membantu mahasiswa untuk berwirausaha dan menjangkau pembeli di seluruh kampus!"
                                         </p>
                                     </div>
                                 </div>
                                 
                                 <!-- Join Card -->
-                                <div class="tw-relative tw-w-full tw-h-[102px] tw-bg-[rgba(0,0,0,0.04)] tw-rounded-[23px] tw-px-[40px] tw-flex tw-items-center">
+                                <div class="tw-relative tw-w-full tw-h-[90px] tw-bg-[rgba(0,0,0,0.04)] tw-rounded-[23px] tw-px-[24px] xl:tw-px-[40px] tw-flex tw-items-center tw-shrink-0 hover:tw-bg-black/5 tw-transition-colors tw-cursor-pointer">
                                     <div class="tw-flex tw-items-center tw-w-full">
                                         <div class="tw-flex -tw-space-x-[15px] tw-flex-shrink-0">
-                                            <img src="https://i.pravatar.cc/100?img=12" class="tw-w-[50px] tw-h-[50px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover tw-z-30"/>
-                                            <img src="https://i.pravatar.cc/100?img=13" class="tw-w-[50px] tw-h-[50px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover tw-z-20"/>
+                                            <img src="https://i.pravatar.cc/100?img=12" class="tw-w-[44px] tw-h-[44px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover tw-z-30"/>
+                                            <img src="https://i.pravatar.cc/100?img=13" class="tw-w-[44px] tw-h-[44px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover tw-z-20"/>
                                             <div class="tw-relative tw-z-10">
-                                                <img src="https://i.pravatar.cc/100?img=14" class="tw-w-[50px] tw-h-[50px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover"/>
-                                                <div class="tw-absolute tw-bottom-0 tw-right-0 tw-w-[15px] tw-h-[15px] tw-bg-black tw-rounded-full tw-border tw-border-white"></div>
+                                                <img src="https://i.pravatar.cc/100?img=14" class="tw-w-[44px] tw-h-[44px] tw-rounded-full tw-border-2 tw-border-white tw-object-cover"/>
+                                                <div class="tw-absolute tw-bottom-0 tw-right-0 tw-w-[12px] tw-h-[12px] tw-bg-black tw-rounded-full tw-border tw-border-white"></div>
                                             </div>
                                         </div>
-                                        <div class="tw-ml-[30px] tw-flex-1">
-                                            <h4 class="tw-font-['Urbanist'] tw-font-medium tw-text-[16px] tw-text-black tw-m-0 tw-mb-[4px]">Bergabung dengan 10k+ User</h4>
-                                            <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[12px] tw-text-[rgba(0,0,0,0.36)] tw-m-0 tw-max-w-[363px] tw-leading-[14px]">
-                                                Worem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus.
+                                        <div class="tw-ml-[20px] xl:tw-ml-[30px] tw-flex-1">
+                                            <h4 class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-black tw-m-0 tw-mb-[2px]">Bergabung dengan 10k+ User</h4>
+                                            <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[11px] xl:tw-text-[12px] tw-text-[rgba(0,0,0,0.36)] tw-m-0 tw-max-w-[363px] tw-leading-[1.4]">
+                                                Bergabung dengan ribuan mahasiswa dan UMKM lainnya untuk mengembangkan bisnis dan menemukan produk unik.
                                             </p>
                                         </div>
                                     </div>
-                                    <div class="tw-absolute tw-right-[20px] tw-top-[17px] tw-w-[69px] tw-h-[69px] tw-rounded-full tw-border tw-border-black tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-black/5 tw-transition">
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="tw-text-black">
+                                    <div class="tw-absolute tw-right-[16px] xl:tw-right-[20px] tw-top-[50%] -tw-translate-y-1/2 tw-w-[50px] tw-h-[50px] tw-rounded-full tw-border tw-border-black tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-black tw-group tw-transition">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="tw-text-black group-hover:tw-text-white tw-transition">
                                             <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
                                         </svg>
                                     </div>

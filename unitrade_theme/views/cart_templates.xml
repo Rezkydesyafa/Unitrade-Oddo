@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================================================================
+         1. CART PAGE — Inject styles + override title
+    ================================================================ -->
+    <template id="unitrade_cart_page" inherit_id="website_sale.cart" name="UniTrade Cart Page">
+
+        <xpath expr="//div[hasclass('col')]" position="before">
+            <style type="text/css">
+                /* ── Global background ──────────────────────────────── */
+                #wrapwrap,
+                body {
+                    background-color: #ffffff !important;
+                }
+                .o_website_sale_checkout {
+                    background-color: #ffffff !important;
+                    padding-top: 32px !important;
+                    padding-bottom: 48px !important;
+                }
+                .o_website_sale_checkout .row {
+                    row-gap: 32px;
+                }
+
+                /* ── Page title ─────────────────────────────────────── */
+                .unitrade-cart-title {
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-weight: 800;
+                    font-size: 24px;
+                    color: #111;
+                    margin-bottom: 24px;
+                }
+
+                /* ── Product rows: container ────────────────────────── */
+                #cart_products.js_cart_lines {
+                    display: flex !important;
+                    flex-direction: column !important;
+                    gap: 16px !important; /* Spacing antar elemen */
+                    margin-bottom: 0 !important;
+                }
+
+                /* ── Product rows: card style ────────────────────────── */
+                .o_cart_product {
+                    background: #ffffff !important;
+                    border-radius: 16px !important;
+                    border: 1px solid #f0f0f0 !important; /* Border tipis */
+                    padding: 20px !important;
+                    margin-bottom: 0 !important;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important; /* Shadow halus */
+                    transition: box-shadow 0.2s ease !important;
+                    align-items: stretch !important;
+                    gap: 20px !important;
+                }
+                .o_cart_product:hover {
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+                }
+                /* Remove default border-bottom separators */
+                .o_cart_product.border-bottom { border-bottom: none !important; }
+                .o_cart_product.pt-4, .o_cart_product.pb-4 { padding: 20px !important; }
+
+                /* ── Product image ──────────────────────────────────── */
+                .o_cart_product .o_image_64_max {
+                    width: 80px !important;
+                    height: 80px !important;
+                    max-width: 80px !important;
+                    max-height: 80px !important;
+                    border-radius: 12px !important;
+                    object-fit: cover !important;
+                    background: #f8f8f8;
+                    display: block;
+                }
+                .o_cart_product > div:first-child {
+                    width: 80px !important;
+                    min-width: 80px !important;
+                }
+
+                /* ── Name and details ────────────────────────────────── */
+                .o_cart_product .flex-grow-1 {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: flex-start;
+                    padding-top: 4px;
+                }
+                .o_cart_product h6,
+                .o_cart_product .h6 {
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-weight: 700 !important;
+                    font-size: 16px !important;
+                    color: #111 !important;
+                    margin-bottom: 4px !important;
+                }
+                .o_cart_product h6 a,
+                .o_cart_product .h6 a {
+                    color: #111 !important;
+                    text-decoration: none !important;
+                }
+                .o_cart_product h6 a:hover { color: #555 !important; }
+                .o_cart_product .text-muted { font-size: 13px !important; }
+
+                /* ── Right Section (Price, Delete, Qty) ─────────────── */
+                .o_cart_product > div.d-flex.flex-column.align-items-end {
+                    display: grid !important;
+                    grid-template-columns: auto auto;
+                    grid-template-rows: 1fr auto;
+                    gap: 8px 16px;
+                    align-items: end;
+                    min-width: max-content;
+                }
+
+                /* ── Line price (Top Right) ─────────────────────────── */
+                .o_cart_product [name="website_sale_cart_line_price"] {
+                    grid-column: 1 / -1;
+                    grid-row: 1;
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-weight: 700 !important;
+                    font-size: 16px !important;
+                    color: #111 !important;
+                    text-align: right !important;
+                    align-self: start; /* Align to top */
+                    margin-bottom: auto !important;
+                }
+
+                /* ── Delete Icon (Bottom Right, left of qty) ────────── */
+                .unitrade-delete-icon {
+                    grid-column: 1;
+                    grid-row: 2;
+                    color: #9ca3af !important;
+                    transition: color 0.2s ease !important;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 6px;
+                    margin-bottom: 2px;
+                }
+                .unitrade-delete-icon:hover { color: #ef4444 !important; }
+                .unitrade-delete-icon svg { width: 20px; height: 20px; }
+
+                /* ── Quantity controls (Bottom Right) ───────────────── */
+                .o_cart_product .css_quantity {
+                    grid-column: 2;
+                    grid-row: 2;
+                    background: transparent !important;
+                    border: none !important;
+                    display: inline-flex !important;
+                    align-items: center !important;
+                    margin-bottom: 0 !important;
+                    gap: 6px !important;
+                }
+                .o_cart_product .css_quantity .btn-link {
+                    background: #ffffff !important;
+                    border: 1px solid #e5e5e5 !important;
+                    border-radius: 8px !important;
+                    width: 32px !important;
+                    height: 32px !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    padding: 0 !important;
+                    color: #111 !important;
+                    text-decoration: none !important;
+                    transition: border-color 0.15s, background-color 0.15s !important;
+                }
+                .o_cart_product .css_quantity .btn-link:hover {
+                    background: #f9f9f9 !important;
+                    border-color: #111 !important;
+                }
+                .o_cart_product .css_quantity i.fa { font-size: 11px !important; }
+                .o_cart_product .css_quantity input.js_quantity {
+                    background: #ffffff !important;
+                    border: 1px solid #e5e5e5 !important;
+                    border-radius: 8px !important;
+                    box-shadow: none !important;
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-weight: 600 !important;
+                    font-size: 14px !important;
+                    color: #111 !important;
+                    text-align: center !important;
+                    width: 40px !important;
+                    height: 32px !important;
+                    padding: 0 !important;
+                }
+                .o_cart_product .css_quantity input.js_quantity:focus { border-color: #111 !important; outline: none; }
+
+                /* ── Cart right-side summary card ───────────────────── */
+                #o_cart_summary {
+                    z-index: 10;
+                }
+                @media (min-width: 992px) {
+                    #o_cart_summary {
+                        position: sticky !important;
+                        top: 110px !important;
+                        align-self: flex-start;
+                    }
+                }
+                #o_cart_summary .o_total_card,
+                #o_cart_summary .card {
+                    background: #ffffff !important;
+                    border-radius: 16px !important;
+                    border: 1px solid #f0f0f0 !important;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+                    overflow: hidden;
+                }
+                #o_cart_summary .card-body,
+                #o_cart_summary .p-lg-4 {
+                    padding: 24px !important;
+                }
+
+                /* ── Summary label ──────────────────────────────────── */
+                .unitrade-summary-title {
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-weight: 800;
+                    font-size: 18px;
+                    color: #111;
+                    display: block;
+                    margin-bottom: 20px;
+                }
+
+                /* ── Totals text (subtotal, tax, total) ─────────────── */
+                #o_cart_summary .o_total { font-family: 'Urbanist', sans-serif !important; }
+                #o_cart_summary .monetary_field,
+                #o_cart_summary [name="website_sale_cart_summary_line_price"] {
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-weight: 700 !important;
+                    color: #111 !important;
+                }
+
+                /* ── Checkout / main navigation button ──────────────── */
+                a[name="website_sale_main_button"].btn-primary,
+                .o_wsale_cart_summary a.btn-primary {
+                    background-color: #111 !important;
+                    border-color: #111 !important;
+                    border-radius: 999px !important;
+                    padding: 14px 24px !important;
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-weight: 700 !important;
+                    font-size: 15px !important;
+                    width: 100% !important;
+                    text-align: center !important;
+                    transition: background 0.2s, transform 0.1s !important;
+                }
+                a[name="website_sale_main_button"].btn-primary:hover {
+                    background-color: #333 !important;
+                    border-color: #333 !important;
+                    transform: translateY(-1px) !important;
+                }
+
+                /* ── Back / secondary navigation link ───────────────── */
+                .o_website_sale_checkout .o_cta_navigation_container a.text-center,
+                a[name="website_sale_main_button"].text-center {
+                    font-family: 'Urbanist', sans-serif !important;
+                    color: #888 !important;
+                    font-size: 14px !important;
+                    text-decoration: none !important;
+                }
+
+                /* ── Promo / coupon code form ───────────────────────── */
+                form[name="coupon_code"] .input-group {
+                    border-radius: 12px !important;
+                    overflow: hidden;
+                    border: 1px solid #e5e5e5 !important;
+                }
+                form[name="coupon_code"] input[name="promo"] {
+                    border: none !important;
+                    box-shadow: none !important;
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-size: 14px !important;
+                    padding: 10px 16px !important;
+                    border-radius: 0 !important;
+                    background: #fff !important;
+                }
+                form[name="coupon_code"] input[name="promo"]:focus { outline: none !important; }
+                form[name="coupon_code"] .btn-secondary,
+                form[name="coupon_code"] .a-submit {
+                    background: #111 !important;
+                    color: #fff !important;
+                    border: none !important;
+                    border-radius: 0 !important;
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-weight: 600 !important;
+                    font-size: 14px !important;
+                    padding: 10px 18px !important;
+                    transition: background 0.15s !important;
+                }
+                form[name="coupon_code"] .btn-secondary:hover,
+                form[name="coupon_code"] .a-submit:hover { background: #333 !important; }
+
+                /* ── Empty cart state ───────────────────────────────── */
+                .js_cart_lines.alert.alert-info {
+                    border-radius: 16px !important;
+                    border: 1px solid #f0f0f0 !important;
+                    background: #fff !important;
+                    color: #555 !important;
+                    font-family: 'Urbanist', sans-serif !important;
+                    padding: 32px !important;
+                    text-align: center !important;
+                    font-size: 16px !important;
+                }
+
+                /* ── Responsive: mobile stack ───────────────────────── */
+                @media (max-width: 767px) {
+                    .o_cart_product {
+                        flex-direction: column !important;
+                        align-items: flex-start !important;
+                        gap: 16px !important;
+                        position: relative;
+                    }
+                    /* Container text info (Name, etc) */
+                    .o_cart_product .flex-grow-1 { width: 100%; padding-right: 80px; }
+                    /* Product Name */
+                    .o_cart_product h6, .o_cart_product .h6 {
+                        font-size: 15px !important;
+                        display: -webkit-box;
+                        -webkit-line-clamp: 2;
+                        -webkit-box-orient: vertical;
+                        overflow: hidden;
+                    }
+                    /* Right side container */
+                    .o_cart_product > div.d-flex.flex-column.align-items-end {
+                        width: 100%;
+                        display: flex !important;
+                        flex-direction: row !important;
+                        justify-content: flex-end;
+                        align-items: center !important;
+                    }
+                    /* Price absolute top right */
+                    .o_cart_product [name="website_sale_cart_line_price"] {
+                        position: absolute;
+                        top: 20px;
+                        right: 20px;
+                        margin: 0 !important;
+                    }
+                    .unitrade-delete-icon { order: 1; margin-right: 8px; }
+                    .o_cart_product .css_quantity { order: 2; }
+                }
+            </style>
+        </xpath>
+
+        <!-- Replace default "Order overview" h3 with custom title -->
+        <xpath expr="//h3[normalize-space(text())='Order overview']" position="replace">
+            <h1 class="unitrade-cart-title">Keranjang Belanja</h1>
+        </xpath>
+
+    </template>
+
+    <!-- ================================================================
+         2. CART LINES — Replace trash/delete button with SVG icon
+    ================================================================ -->
+    <template id="unitrade_cart_lines_delete" inherit_id="website_sale.cart_lines" name="UniTrade Cart Delete Button">
+
+        <!-- Hide the default "Remove" text and mobile trash btn completely -->
+        <xpath expr="//div[hasclass('flex-grow-1')]/div[last()]" position="replace"/>
+
+        <!-- Inject custom SVG delete button inside the right-side controls container, before qty -->
+        <xpath expr="//div[@name='website_sale_cart_line_quantity']" position="before">
+            <a href="#"
+               class="js_delete_product unitrade-delete-icon"
+               aria-label="Hapus dari keranjang"
+               title="Hapus"
+               t-att-data-line-id="line.id"
+               t-att-data-product-id="line.product_id.id">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+            </a>
+        </xpath>
+
+    </template>
+
+    <!-- ================================================================
+         3. CART SUMMARY SIDEBAR — Inject "Ringkasan Pesanan" title at TOP
+    ================================================================ -->
+    <template id="unitrade_cart_summary_title" inherit_id="website_sale.checkout_layout" name="UniTrade Cart Summary Title">
+        <!-- Inject before the total table inside the summary card -->
+        <xpath expr="//div[@id='o_cart_summary']//t[@t-call='website_sale.total']" position="before">
+            <span class="unitrade-summary-title">Ringkasan Pesanan</span>
+        </xpath>
+    </template>
+
+    <!-- ================================================================
+         4. CHECKOUT WIZARD / BREADCRUMB — Tailwind Breadcrumb
+    ================================================================ -->
+    <template id="unitrade_wizard_checkout" inherit_id="website_sale.wizard_checkout" name="UniTrade Wizard Checkout">
+        <xpath expr="//t[@t-call='website.step_wizard']" position="replace">
+            <t t-set="wizard_step" t-value="website._get_checkout_steps()"/>
+            
+            <!-- Breadcrumbs with Tailwind matching the Shop page -->
+            <div class="tw-w-full tw-mb-6 tw-flex tw-justify-start tw-relative tw-z-10">
+                <div class="tw-bg-white tw-rounded-[12px] tw-px-5 tw-py-2.5 tw-flex tw-items-center tw-gap-3 tw-shadow-sm tw-w-max tw-border tw-border-gray-100">
+                    <a href="/" class="tw-flex tw-items-center tw-gap-2 tw-text-gray-500 hover:tw-text-[#0f172a] tw-no-underline tw-transition-colors">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <path d="M12 16v-4"></path>
+                            <circle cx="12" cy="16" r="0.5" fill="currentColor"></circle>
+                        </svg>
+                        <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[14px]">Home</span>
+                    </a>
+                    <span class="tw-text-gray-300">/</span>
+                    <a href="/shop" class="tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-gray-500 hover:tw-text-[#0f172a] tw-no-underline tw-transition-colors">Shop</a>
+                    <t t-foreach="wizard_step" t-as="step">
+                        <t t-set="is_current_step" t-value="xmlid in step[0]"/>
+                        <t t-if="is_current_step">
+                            <span class="tw-text-gray-300">/</span>
+                            <span class="tw-font-['Urbanist'] tw-font-semibold tw-text-[14px] tw-text-[#0f172a]">
+                                <t t-if="str(step[1]['name']) == 'Review Order'">Keranjang Belanja</t>
+                                <t t-else=""><t t-out="step[1]['name']"/></t>
+                            </span>
+                        </t>
+                    </t>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+</odoo>

@@ -523,16 +523,3 @@ class UnitradeWebsite(Website):
             response.qcontext['products'] = best_products
             
         return response
-
-    @http.route('/seller-verification', type='http', auth='user', website=True, sitemap=False)
-    def seller_verification_page(self, **kw):
-        """Render the seller verification (KTM upload) page."""
-        return request.render('unitrade_theme.seller_verification', {})
-
-    @http.route('/seller-verification/submit', type='http', auth='user', website=True, methods=['POST'], csrf=True)
-    def seller_verification_submit(self, **kw):
-        """Handle the KTM upload submission."""
-        # For now, just redirect back or to a success page.
-        # In a real scenario, we would save the file to the user's record or a verification model.
-        return request.redirect('/seller-verification?success=1')
-
