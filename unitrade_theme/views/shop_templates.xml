@@ -35,60 +35,100 @@
                 <!-- Filter Sidebar -->
                 <aside id="products_grid_before" class="d-none d-lg-block col-3 px-3 clearfix">
                     <div class="tw-bg-white tw-rounded-[14px] tw-p-[24px] tw-w-full tw-shadow-sm tw-border tw-border-solid tw-border-gray-200">
-                        <!-- Filter UI -->
-                        <div class="tw-flex tw-items-center tw-gap-2 tw-mb-8">
-                            <i class="fa fa-sliders tw-text-[20px] tw-text-[#212529]"></i>
-                            <h5 class="tw-font-['Urbanist'] tw-font-bold tw-text-[18px] tw-text-[#212529] tw-m-0">Filter</h5>
+                        <!-- Filter Header -->
+                        <div class="tw-flex tw-items-center tw-justify-between tw-mb-8">
+                            <h5 class="tw-font-['Urbanist'] tw-font-bold tw-text-[20px] tw-text-[#1a1a1a] tw-m-0">Filter</h5>
+                            <button type="button" id="ut-btn-reset" class="tw-border tw-border-gray-300 tw-bg-transparent tw-px-4 tw-py-1.5 tw-rounded-full tw-font-['Urbanist'] tw-text-[13px] tw-text-[#b3b3b3] hover:tw-text-black hover:tw-border-black tw-transition-colors tw-cursor-pointer">Reset filters</button>
                         </div>
                         
                         <!-- Lokasi -->
                         <div class="tw-mb-8">
-                            <h6 class="tw-font-['Urbanist'] tw-font-semibold tw-text-[16px] tw-text-[#212529] tw-mb-4 tw-text-left">Lokasi</h6>
-                            <div class="tw-flex tw-flex-col tw-gap-3">
-                                <label class="tw-flex tw-items-center tw-gap-3 tw-cursor-pointer">
-                                    <input type="radio" name="lokasi" checked="checked" class="tw-accent-[#212529] tw-w-[17px] tw-h-[17px]"/>
-                                    <span class="tw-font-['Urbanist'] tw-text-[14px] tw-text-[#1a1a1a]">Sleman</span>
+                            <h6 class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-[#4a4a4a] tw-mb-3 tw-text-left">Lokasi</h6>
+                            <div class="tw-bg-[#fafafa] tw-p-[4px] tw-rounded-full tw-flex tw-items-center tw-w-full">
+                                <label class="tw-cursor-pointer tw-m-0 tw-flex-1 tw-text-center">
+                                    <input type="radio" name="lokasi" value="terdekat" class="tw-hidden peer"/>
+                                    <div class="tw-py-[6px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-[#b3b3b3] peer-checked:tw-font-bold peer-checked:tw-text-[#1a1a1a] peer-checked:tw-bg-white peer-checked:tw-shadow-[0_2px_8px_rgba(0,0,0,0.06)] tw-transition-all">Terdekat</div>
                                 </label>
-                                <label class="tw-flex tw-items-center tw-gap-3 tw-cursor-pointer">
-                                    <input type="radio" name="lokasi" class="tw-accent-[#212529] tw-w-[17px] tw-h-[17px]"/>
-                                    <span class="tw-font-['Urbanist'] tw-text-[14px] tw-text-[#1a1a1a]">Yogyakarta</span>
+                                <label class="tw-cursor-pointer tw-m-0 tw-flex-1 tw-text-center">
+                                    <input type="radio" name="lokasi" value="kabupaten" class="tw-hidden peer"/>
+                                    <div class="tw-py-[6px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-[#b3b3b3] peer-checked:tw-font-bold peer-checked:tw-text-[#1a1a1a] peer-checked:tw-bg-white peer-checked:tw-shadow-[0_2px_8px_rgba(0,0,0,0.06)] tw-transition-all">Kabupaten</div>
+                                </label>
+                                <label class="tw-cursor-pointer tw-m-0 tw-flex-1 tw-text-center">
+                                    <input type="radio" name="lokasi" value="diy" class="tw-hidden peer"/>
+                                    <div class="tw-py-[6px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-[#b3b3b3] peer-checked:tw-font-bold peer-checked:tw-text-[#1a1a1a] peer-checked:tw-bg-white peer-checked:tw-shadow-[0_2px_8px_rgba(0,0,0,0.06)] tw-transition-all">DIY</div>
                                 </label>
                             </div>
                         </div>
-                        
-                        <hr class="tw-border-t tw-border-gray-100 tw-my-6"/>
                         
                         <!-- Harga -->
                         <div class="tw-mb-8">
-                            <h6 class="tw-font-['Urbanist'] tw-font-semibold tw-text-[16px] tw-text-[#212529] tw-mb-4 tw-text-left">Harga</h6>
-                            <div class="tw-flex tw-flex-col tw-gap-4">
-                                <div class="tw-flex tw-items-center tw-bg-transparent tw-border tw-border-[rgba(0,0,0,0.1)] tw-rounded-[12px] tw-overflow-hidden tw-h-[38px] focus-within:tw-border-black tw-transition-colors">
-                                    <span class="tw-bg-[#f5f5f7] tw-w-[40px] tw-h-full tw-flex tw-items-center tw-justify-center tw-font-['Urbanist'] tw-font-medium tw-text-gray-500 tw-text-[14px] tw-border-r tw-border-[rgba(0,0,0,0.1)]">Rp</span>
-                                    <input type="number" placeholder="Harga minimal" class="tw-w-full tw-px-3 tw-py-1 tw-bg-transparent tw-border-none tw-outline-none tw-font-['Urbanist'] tw-text-[14px] tw-text-black placeholder:tw-text-gray-400"/>
+                            <h6 class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-[#4a4a4a] tw-mb-8 tw-text-left">Harga</h6>
+                            <div class="tw-relative tw-w-full tw-h-[40px] tw-flex tw-items-center tw-mb-4">
+                                <!-- Track Background -->
+                                <div class="tw-absolute tw-w-full tw-h-[10px] tw-bg-[#f0f0f0] tw-rounded-full tw-z-0"></div>
+                                <!-- Active Track -->
+                                <div id="slider-track" class="tw-absolute tw-h-[10px] tw-bg-[#e0e0e0] tw-rounded-full tw-z-10" style="left: 10%; right: 50%;"></div>
+                                
+                                <!-- Tooltips -->
+                                <div id="min-tooltip" class="tw-absolute tw-bg-black tw-text-white tw-px-3 tw-py-1 tw-rounded-full tw-font-['Urbanist'] tw-font-bold tw-text-[11px] tw-z-30 tw-pointer-events-none -tw-translate-x-1/2 tw-top-full tw-mt-[8px]" style="left: 10%;">
+                                    0 K
                                 </div>
-                                <div class="tw-flex tw-items-center tw-bg-transparent tw-border tw-border-[rgba(0,0,0,0.1)] tw-rounded-[12px] tw-overflow-hidden tw-h-[38px] focus-within:tw-border-black tw-transition-colors">
-                                    <span class="tw-bg-[#f5f5f7] tw-w-[40px] tw-h-full tw-flex tw-items-center tw-justify-center tw-font-['Urbanist'] tw-font-medium tw-text-gray-500 tw-text-[14px] tw-border-r tw-border-[rgba(0,0,0,0.1)]">Rp</span>
-                                    <input type="number" placeholder="Harga maximal" class="tw-w-full tw-px-3 tw-py-1 tw-bg-transparent tw-border-none tw-outline-none tw-font-['Urbanist'] tw-text-[14px] tw-text-black placeholder:tw-text-gray-400"/>
+                                <div id="max-tooltip" class="tw-absolute tw-bg-black tw-text-white tw-px-3 tw-py-1 tw-rounded-full tw-font-['Urbanist'] tw-font-bold tw-text-[11px] tw-z-30 tw-pointer-events-none -tw-translate-x-1/2 tw-bottom-full tw-mb-[8px]" style="left: 50%;">
+                                    200 K
                                 </div>
+
+                                <!-- Range Inputs -->
+                                <input type="range" id="min-price" min="0" max="500" value="0" step="5" class="tw-absolute tw-w-full tw-h-0 tw-appearance-none tw-pointer-events-none tw-z-20 tw-outline-none custom-range-slider"/>
+                                <input type="range" id="max-price" min="0" max="500" value="200" step="5" class="tw-absolute tw-w-full tw-h-0 tw-appearance-none tw-pointer-events-none tw-z-20 tw-outline-none custom-range-slider"/>
+                                
+                                <!-- Hidden inputs for Odoo logic -->
+                                <input type="hidden" name="min_price" id="odoo-min-price" value="0"/>
+                                <input type="hidden" name="max_price" id="odoo-max-price" value="200000"/>
                             </div>
+                            
+                            <style>
+                                .custom-range-slider::-webkit-slider-thumb {
+                                    -webkit-appearance: none;
+                                    appearance: none;
+                                    pointer-events: auto;
+                                    width: 16px;
+                                    height: 16px;
+                                    background-color: #000;
+                                    border-radius: 50%;
+                                    cursor: pointer;
+                                    border: none;
+                                }
+                                .custom-range-slider::-moz-range-thumb {
+                                    pointer-events: auto;
+                                    width: 16px;
+                                    height: 16px;
+                                    background-color: #000;
+                                    border-radius: 50%;
+                                    cursor: pointer;
+                                    border: none;
+                                }
+                            </style>
                         </div>
                         
-                        <hr class="tw-border-t tw-border-gray-100 tw-my-6"/>
-                        
-                        <!-- Rating -->
-                        <div>
-                            <h6 class="tw-font-['Urbanist'] tw-font-semibold tw-text-[16px] tw-text-[#212529] tw-mb-4 tw-text-left">Rating</h6>
-                            <div class="tw-flex tw-flex-col tw-gap-3">
-                                <label class="tw-flex tw-items-center tw-gap-3 tw-cursor-pointer">
-                                    <input type="radio" name="rating" checked="checked" class="tw-accent-[#212529] tw-w-[17px] tw-h-[17px]"/>
-                                    <div class="tw-flex tw-items-center tw-gap-1">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#FFC107"/>
-                                        </svg>
-                                        <span class="tw-font-['Urbanist'] tw-text-[14px] tw-text-[#1a1a1a]">4 ke atas</span>
-                                    </div>
+                        <!-- Kondisi -->
+                        <div class="tw-mb-10">
+                            <h6 class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-[#4a4a4a] tw-mb-3 tw-text-left">Kondisi</h6>
+                            <div class="tw-bg-[#fafafa] tw-p-[4px] tw-rounded-full tw-flex tw-items-center tw-w-[75%]">
+                                <label class="tw-cursor-pointer tw-m-0 tw-flex-1 tw-text-center">
+                                    <input type="radio" name="kondisi" value="baru" class="tw-hidden peer"/>
+                                    <div class="tw-py-[6px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-[#b3b3b3] peer-checked:tw-font-bold peer-checked:tw-text-[#1a1a1a] peer-checked:tw-bg-white peer-checked:tw-shadow-[0_2px_8px_rgba(0,0,0,0.06)] tw-transition-all">Baru</div>
+                                </label>
+                                <label class="tw-cursor-pointer tw-m-0 tw-flex-1 tw-text-center">
+                                    <input type="radio" name="kondisi" value="bekas" class="tw-hidden peer"/>
+                                    <div class="tw-py-[6px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-[#b3b3b3] peer-checked:tw-font-bold peer-checked:tw-text-[#1a1a1a] peer-checked:tw-bg-white peer-checked:tw-shadow-[0_2px_8px_rgba(0,0,0,0.06)] tw-transition-all">Bekas</div>
                                 </label>
                             </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="tw-flex tw-items-center tw-gap-3">
+                            <button type="button" id="ut-btn-simpan" class="tw-flex-1 tw-bg-black tw-text-white tw-py-[12px] tw-rounded-full tw-font-['Urbanist'] tw-font-bold tw-text-[15px] hover:tw-bg-[#333] tw-transition-colors tw-cursor-pointer tw-border-0">Simpan</button>
+                            <button type="button" id="ut-btn-batal" class="tw-flex-1 tw-bg-white tw-border tw-border-gray-300 tw-text-[#b3b3b3] tw-py-[12px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[15px] hover:tw-text-black hover:tw-border-black tw-transition-colors tw-cursor-pointer">Batal</button>
                         </div>
                         
                     </div>
@@ -96,13 +136,14 @@
                 
                 <div id="products_grid" class="col-12 col-lg-9 tw-pl-4">
                     <!-- Top Sort Bar -->
-                    <div class="tw-bg-white tw-rounded-[14px] tw-h-[64px] tw-px-[24px] tw-flex tw-items-center tw-mb-6 tw-shadow-sm tw-border tw-border-solid tw-border-gray-200">
+                    <div id="ut-sort-bar" class="tw-bg-white tw-rounded-[14px] tw-h-[64px] tw-px-[24px] tw-flex tw-items-center tw-mb-6 tw-shadow-sm tw-border tw-border-solid tw-border-gray-200">
                         <span class="tw-font-['Urbanist'] tw-font-semibold tw-text-[15px] tw-text-gray-600 tw-mr-6">Urutan</span>
                         <div class="tw-flex tw-gap-[12px]">
-                            <div class="tw-bg-[#1a1a1a] tw-text-white tw-px-5 tw-h-[36px] tw-rounded-full tw-font-['Urbanist'] tw-font-semibold tw-text-[14px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-shadow-sm">Terkait</div>
-                            <div class="tw-text-gray-600 hover:tw-bg-gray-100 hover:tw-text-black tw-px-5 tw-h-[36px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-transition-colors">Terlaris</div>
-                            <div class="tw-text-gray-600 hover:tw-bg-gray-100 hover:tw-text-black tw-px-5 tw-h-[36px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-transition-colors">Terbaru</div>
-                            <div class="tw-text-gray-600 hover:tw-bg-gray-100 hover:tw-text-black tw-px-5 tw-h-[36px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-transition-colors">Promo</div>
+                            <div data-sort="terkait" class="tw-px-5 tw-h-[36px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-transition-colors tw-text-gray-600 hover:tw-bg-gray-100 hover:tw-text-black">Terkait</div>
+                            <div data-sort="terlaris" class="tw-px-5 tw-h-[36px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-transition-colors tw-text-gray-600 hover:tw-bg-gray-100 hover:tw-text-black">Terlaris</div>
+                            <div data-sort="terbaru" class="tw-px-5 tw-h-[36px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-transition-colors tw-text-gray-600 hover:tw-bg-gray-100 hover:tw-text-black">Terbaru</div>
+                            <div data-sort="termurah" class="tw-px-5 tw-h-[36px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-transition-colors tw-text-gray-600 hover:tw-bg-gray-100 hover:tw-text-black">Termurah</div>
+                            <div data-sort="termahal" class="tw-px-5 tw-h-[36px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-transition-colors tw-text-gray-600 hover:tw-bg-gray-100 hover:tw-text-black">Termahal</div>
                         </div>
                     </div>
                     
@@ -133,6 +174,165 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Shop Filter & Sort JS (inline to guarantee execution) -->
+            <script>
+                <![CDATA[
+                (function() {
+                    function initShopFilters() {
+                        if (!window.location.pathname.startsWith('/shop')) return;
+
+                        var params = new URLSearchParams(window.location.search);
+
+                        // --- 1. RESTORE LOKASI ---
+                        var lokasiVal = params.get('lokasi') || '';
+                        if (lokasiVal) {
+                            var r = document.querySelector('input[name="lokasi"][value="' + lokasiVal + '"]');
+                            if (r) r.checked = true;
+                        }
+
+                        // --- 2. RESTORE KONDISI (URL: new/used → radio: baru/bekas) ---
+                        var kondisiVal = params.get('kondisi') || '';
+                        if (kondisiVal) {
+                            var map = { 'new': 'baru', 'used': 'bekas' };
+                            var rv = map[kondisiVal] || kondisiVal;
+                            var kr = document.querySelector('input[name="kondisi"][value="' + rv + '"]');
+                            if (kr) kr.checked = true;
+                        }
+                        if (!kondisiVal) {
+                            var allK = document.querySelectorAll('input[name="kondisi"]');
+                            for (var i = 0; i < allK.length; i++) allK[i].checked = false;
+                        }
+
+                        // --- 3. PRICE SLIDER ---
+                        var minSlider = document.getElementById('min-price');
+                        var maxSlider = document.getElementById('max-price');
+                        var minTooltip = document.getElementById('min-tooltip');
+                        var maxTooltip = document.getElementById('max-tooltip');
+                        var sliderTrack = document.getElementById('slider-track');
+                        var odooMin = document.getElementById('odoo-min-price');
+                        var odooMax = document.getElementById('odoo-max-price');
+
+                        if (minSlider && maxSlider) {
+                            var urlMin = parseInt(params.get('ut_min_price') || '0');
+                            var urlMax = parseInt(params.get('ut_max_price') || '0');
+                            if (urlMin > 0) minSlider.value = Math.round(urlMin / 1000);
+                            if (urlMax > 0) maxSlider.value = Math.round(urlMax / 1000);
+
+                            function updateSlider(e) {
+                                var minVal = parseInt(minSlider.value);
+                                var maxVal = parseInt(maxSlider.value);
+                                if (minVal >= maxVal) {
+                                    if (e && e.target && e.target.id === 'min-price') {
+                                        minSlider.value = maxVal - 1;
+                                        minVal = maxVal - 1;
+                                    } else {
+                                        maxSlider.value = minVal + 1;
+                                        maxVal = minVal + 1;
+                                    }
+                                }
+                                var minPct = (minVal / parseInt(minSlider.max)) * 100;
+                                var maxPct = (maxVal / parseInt(maxSlider.max)) * 100;
+                                if (sliderTrack) {
+                                    sliderTrack.style.left = minPct + '%';
+                                    sliderTrack.style.right = (100 - maxPct) + '%';
+                                }
+                                if (minTooltip) {
+                                    minTooltip.style.left = minPct + '%';
+                                    minTooltip.innerText = minVal + ' K';
+                                }
+                                if (maxTooltip) {
+                                    maxTooltip.style.left = maxPct + '%';
+                                    maxTooltip.innerText = maxVal + ' K';
+                                }
+                                if (odooMin) odooMin.value = minVal * 1000;
+                                if (odooMax) odooMax.value = maxVal * 1000;
+                            }
+                            minSlider.addEventListener('input', updateSlider);
+                            maxSlider.addEventListener('input', updateSlider);
+                            updateSlider();
+                        }
+
+                        // --- 4. SORT BAR ---
+                        var sortBar = document.getElementById('ut-sort-bar');
+                        var currentSort = params.get('sort') || 'terkait';
+                        if (sortBar) {
+                            var pills = sortBar.querySelectorAll('[data-sort]');
+                            for (var j = 0; j < pills.length; j++) {
+                                (function(pill) {
+                                    var sk = pill.getAttribute('data-sort');
+                                    if (sk === currentSort) {
+                                        pill.style.backgroundColor = '#1a1a1a';
+                                        pill.style.color = '#fff';
+                                        pill.style.fontWeight = '600';
+                                    }
+                                    pill.addEventListener('click', function() {
+                                        var p = new URLSearchParams(window.location.search);
+                                        p.set('sort', sk);
+                                        window.location.href = '/shop?' + p.toString();
+                                    });
+                                })(pills[j]);
+                            }
+                        }
+
+                        // --- 5. SIMPAN BUTTON ---
+                        var simpanBtn = document.getElementById('ut-btn-simpan');
+                        if (simpanBtn) {
+                            simpanBtn.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                var p = new URLSearchParams();
+                                var s = params.get('search');
+                                if (s) p.set('search', s);
+                                var so = params.get('sort');
+                                if (so) p.set('sort', so);
+
+                                var lc = document.querySelector('input[name="lokasi"]:checked');
+                                if (lc && lc.value) p.set('lokasi', lc.value);
+
+                                var mnP = odooMin ? parseInt(odooMin.value) : 0;
+                                var mxP = odooMax ? parseInt(odooMax.value) : 0;
+                                if (mnP > 0) p.set('ut_min_price', mnP);
+                                if (mxP > 0) p.set('ut_max_price', mxP);
+
+                                var kc = document.querySelector('input[name="kondisi"]:checked');
+                                if (kc && kc.value) {
+                                    var km = { 'baru': 'new', 'bekas': 'used' };
+                                    p.set('kondisi', km[kc.value] || kc.value);
+                                }
+                                window.location.href = '/shop?' + p.toString();
+                            });
+                        }
+
+                        // --- 6. BATAL BUTTON ---
+                        var batalBtn = document.getElementById('ut-btn-batal');
+                        if (batalBtn) {
+                            batalBtn.addEventListener('click', function() {
+                                window.location.reload();
+                            });
+                        }
+
+                        // --- 7. RESET BUTTON ---
+                        var resetBtn = document.getElementById('ut-btn-reset');
+                        if (resetBtn) {
+                            resetBtn.addEventListener('click', function() {
+                                var p = new URLSearchParams();
+                                var s = params.get('search');
+                                if (s) p.set('search', s);
+                                var qs = p.toString();
+                                window.location.href = '/shop' + (qs ? '?' + qs : '');
+                            });
+                        }
+                    }
+
+                    // Run when DOM is ready (handle both cases)
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', initShopFilters);
+                    } else {
+                        initShopFilters();
+                    }
+                })();
+                ]]>
+            </script>
         </xpath>
     </template>
 

@@ -29,6 +29,7 @@
         'web.assets_frontend': [
             'unitrade_theme/static/src/css/output.css',
             'unitrade_theme/static/src/js/main.js',
+            'unitrade_theme/static/src/js/shop_filter.js',
         ],
     },
     'installable': True,
