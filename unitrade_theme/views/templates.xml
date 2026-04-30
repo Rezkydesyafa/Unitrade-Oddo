@@ -101,10 +101,19 @@
                                             <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-gray-300 group-hover/item:tw-text-[#fffffc]">Pengaturan</span>
                                         </a>
                                         
-                                        <a href="/seller-verification" class="tw-flex tw-items-center tw-gap-3 tw-px-4 tw-py-2.5 tw-rounded-xl hover:tw-bg-white/10 tw-transition-colors tw-group/item tw-no-underline tw-mt-1">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-[18px] tw-h-[18px] tw-text-gray-300 group-hover/item:tw-text-[#fffffc]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                                            <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-gray-300 group-hover/item:tw-text-[#fffffc]">Jadilah penjual</span>
-                                        </a>
+                                        <t t-if="request.env.user.x_is_seller">
+                                            <a href="/seller/dashboard" class="tw-flex tw-items-center tw-gap-3 tw-px-4 tw-py-2.5 tw-rounded-xl hover:tw-bg-white/10 tw-transition-colors tw-group/item tw-no-underline tw-mt-1">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-[18px] tw-h-[18px] tw-text-emerald-400 group-hover/item:tw-text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                                                <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-emerald-400 group-hover/item:tw-text-emerald-300">Dashboard Penjual</span>
+                                                <span class="tw-ml-auto tw-bg-emerald-500/20 tw-text-emerald-400 tw-text-[10px] tw-px-1.5 tw-py-0.5 tw-rounded-full tw-font-bold">✓</span>
+                                            </a>
+                                        </t>
+                                        <t t-else="">
+                                            <a href="/seller-verification" class="tw-flex tw-items-center tw-gap-3 tw-px-4 tw-py-2.5 tw-rounded-xl hover:tw-bg-white/10 tw-transition-colors tw-group/item tw-no-underline tw-mt-1">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-[18px] tw-h-[18px] tw-text-gray-300 group-hover/item:tw-text-[#fffffc]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                                                <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-gray-300 group-hover/item:tw-text-[#fffffc]">Jadilah penjual</span>
+                                            </a>
+                                        </t>
                                         
                                         <div class="tw-h-px tw-bg-white/10 tw-my-2"></div>
                                         

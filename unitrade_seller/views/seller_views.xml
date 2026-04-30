@@ -31,9 +31,9 @@
             <form string="Detail Penjual">
                 <header>
                     <button name="action_submit_verification" string="Submit Verifikasi" type="object" class="btn-primary" invisible="status != 'draft'"/>
-                    <button name="action_verify" string="✅ Approve" type="object" class="btn-success" invisible="status != 'pending'" groups="unitrade_seller.group_unitrade_admin"/>
-                    <button name="action_reject" string="❌ Reject" type="object" class="btn-danger" invisible="status != 'pending'" groups="unitrade_seller.group_unitrade_admin"/>
-                    <button name="action_reset_to_draft" string="Reset ke Draft" type="object" invisible="status not in ('rejected',)" groups="unitrade_seller.group_unitrade_admin"/>
+                    <button name="action_verify" string="✅ Approve" type="object" class="btn-success" invisible="status != 'pending'" groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
+                    <button name="action_reject" string="❌ Reject" type="object" class="btn-danger" invisible="status != 'pending'" groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
+                    <button name="action_reset_to_draft" string="Reset ke Draft" type="object" invisible="status not in ('rejected',)" groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
                     <field name="status" widget="statusbar" statusbar_visible="draft,pending,verified"/>
                 </header>
                 <sheet>

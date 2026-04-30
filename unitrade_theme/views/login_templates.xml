@@ -37,7 +37,7 @@
                                     
                                     <form class="tw-w-full tw-max-w-[521px]" role="form" t-attf-action="/web/login{{ '?debug' if debug else '' }}" method="post">
                                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                        <input type="hidden" name="redirect" t-att-value="redirect"/>
+                                        <input type="hidden" name="redirect" t-att-value="redirect if redirect and redirect != '/my' and redirect != '/odoo' else '/'" />
                                         
                                         <p t-if="error" class="tw-text-red-500 tw-text-sm tw-mb-[12px]" role="alert">
                                             <t t-esc="error"/>
