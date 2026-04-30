@@ -35,60 +35,150 @@
                 <!-- Filter Sidebar -->
                 <aside id="products_grid_before" class="d-none d-lg-block col-3 px-3 clearfix">
                     <div class="tw-bg-white tw-rounded-[14px] tw-p-[24px] tw-w-full tw-shadow-sm tw-border tw-border-solid tw-border-gray-200">
-                        <!-- Filter UI -->
-                        <div class="tw-flex tw-items-center tw-gap-2 tw-mb-8">
-                            <i class="fa fa-sliders tw-text-[20px] tw-text-[#212529]"></i>
-                            <h5 class="tw-font-['Urbanist'] tw-font-bold tw-text-[18px] tw-text-[#212529] tw-m-0">Filter</h5>
+                        <!-- Filter Header -->
+                        <div class="tw-flex tw-items-center tw-justify-between tw-mb-8">
+                            <h5 class="tw-font-['Urbanist'] tw-font-bold tw-text-[20px] tw-text-[#1a1a1a] tw-m-0">Filter</h5>
+                            <button type="button" class="tw-border tw-border-gray-300 tw-bg-transparent tw-px-4 tw-py-1.5 tw-rounded-full tw-font-['Urbanist'] tw-text-[13px] tw-text-[#b3b3b3] hover:tw-text-black hover:tw-border-black tw-transition-colors">Reset filters</button>
                         </div>
                         
                         <!-- Lokasi -->
+                        <!-- Lokasi -->
                         <div class="tw-mb-8">
-                            <h6 class="tw-font-['Urbanist'] tw-font-semibold tw-text-[16px] tw-text-[#212529] tw-mb-4 tw-text-left">Lokasi</h6>
-                            <div class="tw-flex tw-flex-col tw-gap-3">
-                                <label class="tw-flex tw-items-center tw-gap-3 tw-cursor-pointer">
-                                    <input type="radio" name="lokasi" checked="checked" class="tw-accent-[#212529] tw-w-[17px] tw-h-[17px]"/>
-                                    <span class="tw-font-['Urbanist'] tw-text-[14px] tw-text-[#1a1a1a]">Sleman</span>
+                            <h6 class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-[#4a4a4a] tw-mb-3 tw-text-left">Lokasi</h6>
+                            <div class="tw-bg-[#fafafa] tw-p-[4px] tw-rounded-full tw-flex tw-items-center tw-w-full">
+                                <label class="tw-cursor-pointer tw-m-0 tw-flex-1 tw-text-center">
+                                    <input type="radio" name="lokasi" value="terdekat" checked="checked" class="tw-hidden peer"/>
+                                    <div class="tw-py-[6px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-[#b3b3b3] peer-checked:tw-font-bold peer-checked:tw-text-[#1a1a1a] peer-checked:tw-bg-white peer-checked:tw-shadow-[0_2px_8px_rgba(0,0,0,0.06)] tw-transition-all">Terdekat</div>
                                 </label>
-                                <label class="tw-flex tw-items-center tw-gap-3 tw-cursor-pointer">
-                                    <input type="radio" name="lokasi" class="tw-accent-[#212529] tw-w-[17px] tw-h-[17px]"/>
-                                    <span class="tw-font-['Urbanist'] tw-text-[14px] tw-text-[#1a1a1a]">Yogyakarta</span>
+                                <label class="tw-cursor-pointer tw-m-0 tw-flex-1 tw-text-center">
+                                    <input type="radio" name="lokasi" value="kabupaten" class="tw-hidden peer"/>
+                                    <div class="tw-py-[6px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-[#b3b3b3] peer-checked:tw-font-bold peer-checked:tw-text-[#1a1a1a] peer-checked:tw-bg-white peer-checked:tw-shadow-[0_2px_8px_rgba(0,0,0,0.06)] tw-transition-all">Kabupaten</div>
+                                </label>
+                                <label class="tw-cursor-pointer tw-m-0 tw-flex-1 tw-text-center">
+                                    <input type="radio" name="lokasi" value="diy" class="tw-hidden peer"/>
+                                    <div class="tw-py-[6px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-[#b3b3b3] peer-checked:tw-font-bold peer-checked:tw-text-[#1a1a1a] peer-checked:tw-bg-white peer-checked:tw-shadow-[0_2px_8px_rgba(0,0,0,0.06)] tw-transition-all">DIY</div>
                                 </label>
                             </div>
                         </div>
-                        
-                        <hr class="tw-border-t tw-border-gray-100 tw-my-6"/>
                         
                         <!-- Harga -->
                         <div class="tw-mb-8">
-                            <h6 class="tw-font-['Urbanist'] tw-font-semibold tw-text-[16px] tw-text-[#212529] tw-mb-4 tw-text-left">Harga</h6>
-                            <div class="tw-flex tw-flex-col tw-gap-4">
-                                <div class="tw-flex tw-items-center tw-bg-transparent tw-border tw-border-[rgba(0,0,0,0.1)] tw-rounded-[12px] tw-overflow-hidden tw-h-[38px] focus-within:tw-border-black tw-transition-colors">
-                                    <span class="tw-bg-[#f5f5f7] tw-w-[40px] tw-h-full tw-flex tw-items-center tw-justify-center tw-font-['Urbanist'] tw-font-medium tw-text-gray-500 tw-text-[14px] tw-border-r tw-border-[rgba(0,0,0,0.1)]">Rp</span>
-                                    <input type="number" placeholder="Harga minimal" class="tw-w-full tw-px-3 tw-py-1 tw-bg-transparent tw-border-none tw-outline-none tw-font-['Urbanist'] tw-text-[14px] tw-text-black placeholder:tw-text-gray-400"/>
+                            <h6 class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-[#4a4a4a] tw-mb-8 tw-text-left">Harga</h6>
+                            <div class="tw-relative tw-w-full tw-h-[40px] tw-flex tw-items-center tw-mb-4">
+                                <!-- Track Background -->
+                                <div class="tw-absolute tw-w-full tw-h-[10px] tw-bg-[#f0f0f0] tw-rounded-full tw-z-0"></div>
+                                <!-- Active Track -->
+                                <div id="slider-track" class="tw-absolute tw-h-[10px] tw-bg-[#e0e0e0] tw-rounded-full tw-z-10" style="left: 20%; right: 40%;"></div>
+                                
+                                <!-- Tooltips -->
+                                <div id="min-tooltip" class="tw-absolute tw-bg-black tw-text-white tw-px-3 tw-py-1 tw-rounded-full tw-font-['Urbanist'] tw-font-bold tw-text-[11px] tw-z-30 tw-pointer-events-none -tw-translate-x-1/2 tw-top-full tw-mt-[8px]" style="left: 20%;">
+                                    20 K
                                 </div>
-                                <div class="tw-flex tw-items-center tw-bg-transparent tw-border tw-border-[rgba(0,0,0,0.1)] tw-rounded-[12px] tw-overflow-hidden tw-h-[38px] focus-within:tw-border-black tw-transition-colors">
-                                    <span class="tw-bg-[#f5f5f7] tw-w-[40px] tw-h-full tw-flex tw-items-center tw-justify-center tw-font-['Urbanist'] tw-font-medium tw-text-gray-500 tw-text-[14px] tw-border-r tw-border-[rgba(0,0,0,0.1)]">Rp</span>
-                                    <input type="number" placeholder="Harga maximal" class="tw-w-full tw-px-3 tw-py-1 tw-bg-transparent tw-border-none tw-outline-none tw-font-['Urbanist'] tw-text-[14px] tw-text-black placeholder:tw-text-gray-400"/>
+                                <div id="max-tooltip" class="tw-absolute tw-bg-black tw-text-white tw-px-3 tw-py-1 tw-rounded-full tw-font-['Urbanist'] tw-font-bold tw-text-[11px] tw-z-30 tw-pointer-events-none -tw-translate-x-1/2 tw-bottom-full tw-mb-[8px]" style="left: 60%;">
+                                    100 K
                                 </div>
+
+                                <!-- Range Inputs -->
+                                <input type="range" id="min-price" min="0" max="200" value="20" step="1" class="tw-absolute tw-w-full tw-h-0 tw-appearance-none tw-pointer-events-none tw-z-20 tw-outline-none custom-range-slider"/>
+                                <input type="range" id="max-price" min="0" max="200" value="100" step="1" class="tw-absolute tw-w-full tw-h-0 tw-appearance-none tw-pointer-events-none tw-z-20 tw-outline-none custom-range-slider"/>
+                                
+                                <!-- Hidden inputs for Odoo logic -->
+                                <input type="hidden" name="min_price" id="odoo-min-price" value="20000"/>
+                                <input type="hidden" name="max_price" id="odoo-max-price" value="100000"/>
                             </div>
+                            
+                            <style>
+                                .custom-range-slider::-webkit-slider-thumb {
+                                    -webkit-appearance: none;
+                                    appearance: none;
+                                    pointer-events: auto;
+                                    width: 16px;
+                                    height: 16px;
+                                    background-color: #000;
+                                    border-radius: 50%;
+                                    cursor: pointer;
+                                    border: none;
+                                }
+                                .custom-range-slider::-moz-range-thumb {
+                                    pointer-events: auto;
+                                    width: 16px;
+                                    height: 16px;
+                                    background-color: #000;
+                                    border-radius: 50%;
+                                    cursor: pointer;
+                                    border: none;
+                                }
+                            </style>
+                            <script type="text/javascript">
+                                <![CDATA[
+                                document.addEventListener("DOMContentLoaded", function() {
+                                    const minSlider = document.getElementById("min-price");
+                                    const maxSlider = document.getElementById("max-price");
+                                    const minTooltip = document.getElementById("min-tooltip");
+                                    const maxTooltip = document.getElementById("max-tooltip");
+                                    const track = document.getElementById("slider-track");
+                                    const odooMin = document.getElementById("odoo-min-price");
+                                    const odooMax = document.getElementById("odoo-max-price");
+
+                                    function updateSlider(e) {
+                                        let minVal = parseInt(minSlider.value);
+                                        let maxVal = parseInt(maxSlider.value);
+
+                                        if (minVal >= maxVal) {
+                                            if (e && e.target.id === "min-price") {
+                                                minSlider.value = maxVal - 1;
+                                                minVal = maxVal - 1;
+                                            } else {
+                                                maxSlider.value = minVal + 1;
+                                                maxVal = minVal + 1;
+                                            }
+                                        }
+
+                                        const minPercent = (minVal / minSlider.max) * 100;
+                                        const maxPercent = (maxVal / maxSlider.max) * 100;
+
+                                        track.style.left = minPercent + "%";
+                                        track.style.right = (100 - maxPercent) + "%";
+
+                                        minTooltip.style.left = minPercent + "%";
+                                        maxTooltip.style.left = maxPercent + "%";
+
+                                        minTooltip.innerText = minVal + " K";
+                                        maxTooltip.innerText = maxVal + " K";
+                                        
+                                        if (odooMin) odooMin.value = minVal * 1000;
+                                        if (odooMax) odooMax.value = maxVal * 1000;
+                                    }
+
+                                    if (minSlider && maxSlider) {
+                                        minSlider.addEventListener("input", updateSlider);
+                                        maxSlider.addEventListener("input", updateSlider);
+                                        updateSlider();
+                                    }
+                                });
+                                ]]>
+                            </script>
                         </div>
                         
-                        <hr class="tw-border-t tw-border-gray-100 tw-my-6"/>
-                        
-                        <!-- Rating -->
-                        <div>
-                            <h6 class="tw-font-['Urbanist'] tw-font-semibold tw-text-[16px] tw-text-[#212529] tw-mb-4 tw-text-left">Rating</h6>
-                            <div class="tw-flex tw-flex-col tw-gap-3">
-                                <label class="tw-flex tw-items-center tw-gap-3 tw-cursor-pointer">
-                                    <input type="radio" name="rating" checked="checked" class="tw-accent-[#212529] tw-w-[17px] tw-h-[17px]"/>
-                                    <div class="tw-flex tw-items-center tw-gap-1">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#FFC107"/>
-                                        </svg>
-                                        <span class="tw-font-['Urbanist'] tw-text-[14px] tw-text-[#1a1a1a]">4 ke atas</span>
-                                    </div>
+                        <!-- Kondisi -->
+                        <div class="tw-mb-10">
+                            <h6 class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-[#4a4a4a] tw-mb-3 tw-text-left">Kondisi</h6>
+                            <div class="tw-bg-[#fafafa] tw-p-[4px] tw-rounded-full tw-flex tw-items-center tw-w-[75%]">
+                                <label class="tw-cursor-pointer tw-m-0 tw-flex-1 tw-text-center">
+                                    <input type="radio" name="kondisi" value="baru" checked="checked" class="tw-hidden peer"/>
+                                    <div class="tw-py-[6px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-[#b3b3b3] peer-checked:tw-font-bold peer-checked:tw-text-[#1a1a1a] peer-checked:tw-bg-white peer-checked:tw-shadow-[0_2px_8px_rgba(0,0,0,0.06)] tw-transition-all">Baru</div>
+                                </label>
+                                <label class="tw-cursor-pointer tw-m-0 tw-flex-1 tw-text-center">
+                                    <input type="radio" name="kondisi" value="bekas" class="tw-hidden peer"/>
+                                    <div class="tw-py-[6px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-[#b3b3b3] peer-checked:tw-font-bold peer-checked:tw-text-[#1a1a1a] peer-checked:tw-bg-white peer-checked:tw-shadow-[0_2px_8px_rgba(0,0,0,0.06)] tw-transition-all">Bekas</div>
                                 </label>
                             </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="tw-flex tw-items-center tw-gap-3">
+                            <button type="submit" class="tw-flex-1 tw-bg-black tw-text-white tw-py-[12px] tw-rounded-full tw-font-['Urbanist'] tw-font-bold tw-text-[15px] hover:tw-bg-[#333] tw-transition-colors">Simpan</button>
+                            <button type="button" class="tw-flex-1 tw-bg-white tw-border tw-border-gray-300 tw-text-[#b3b3b3] tw-py-[12px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[15px] hover:tw-text-black hover:tw-border-black tw-transition-colors">Batal</button>
                         </div>
                         
                     </div>
