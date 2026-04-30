@@ -166,6 +166,104 @@ class UnitradeWebsiteSale(WebsiteSale):
         }
 
     @http.route()
+    def shop(self, page=0, category=None, search='', min_price=0.0, max_price=0.0, ppg=False, **post):
+        """Override shop to apply UniTrade sidebar filters and sorting."""
+        response = super().shop(
+            page=page, category=category, search=search,
+            min_price=min_price, max_price=max_price, ppg=ppg, **post
+        )
+
+        if not hasattr(response, 'qcontext'):
+            return response
+
+        # --- Read filter params from URL ---
+        ut_lokasi = post.get('lokasi', '')
+        ut_kondisi = post.get('kondisi', '')
+        ut_sort = post.get('sort', '')
+        ut_min_price = 0
+        ut_max_price = 0
+        try:
+            ut_min_price = int(post.get('ut_min_price', 0))
+        except (ValueError, TypeError):
+            pass
+        try:
+            ut_max_price = int(post.get('ut_max_price', 0))
+        except (ValueError, TypeError):
+            pass
+
+        # --- Build extra domain ---
+        extra_domain = []
+        if ut_kondisi in ('new', 'used'):
+            extra_domain.append(('x_condition', '=', ut_kondisi))
+        if ut_min_price > 0:
+            extra_domain.append(('list_price', '>=', ut_min_price))
+        if ut_max_price > 0:
+            extra_domain.append(('list_price', '<=', ut_max_price))
+        if ut_lokasi == 'kabupaten':
+            extra_domain.append(('x_seller_location', 'ilike', 'Sleman'))
+        elif ut_lokasi == 'diy':
+            extra_domain.append(('x_seller_location', 'ilike', 'Yogyakarta'))
+
+        # --- Determine sort order ---
+        sort_map = {
+            'terkait': 'website_sequence asc',
+            'terlaris': 'sales_count desc',
+            'terbaru': 'create_date desc',
+            'termurah': 'list_price asc',
+            'termahal': 'list_price desc',
+        }
+        order = sort_map.get(ut_sort, 'website_sequence asc')
+
+        # --- Re-query products if extra filters or sort is applied ---
+        if extra_domain or ut_sort:
+            Product = request.env['product.template'].sudo()
+            # Start with the base domain Odoo already uses
+            base_domain = [('sale_ok', '=', True), ('website_published', '=', True)]
+            if search:
+                base_domain += ['|',
+                    ('name', 'ilike', search),
+                    ('description_sale', 'ilike', search),
+                ]
+            if category:
+                base_domain.append(('public_categ_ids', 'child_of', int(category)))
+
+            full_domain = base_domain + extra_domain
+
+            # Count & paging
+            product_count = Product.search_count(full_domain)
+            ppg_val = response.qcontext.get('ppg', 20)
+            pager = request.website.pager(
+                url='/shop',
+                total=product_count,
+                page=page,
+                step=ppg_val,
+                url_args={
+                    'search': search,
+                    'lokasi': ut_lokasi,
+                    'kondisi': ut_kondisi,
+                    'sort': ut_sort,
+                    'ut_min_price': str(ut_min_price) if ut_min_price else '',
+                    'ut_max_price': str(ut_max_price) if ut_max_price else '',
+                }
+            )
+            products = Product.search(
+                full_domain, order=order,
+                limit=ppg_val, offset=pager['offset']
+            )
+            response.qcontext['products'] = products
+            response.qcontext['pager'] = pager
+            response.qcontext['search_count'] = product_count
+
+        # --- Pass filter state to template ---
+        response.qcontext['ut_lokasi'] = ut_lokasi
+        response.qcontext['ut_kondisi'] = ut_kondisi
+        response.qcontext['ut_sort'] = ut_sort
+        response.qcontext['ut_min_price'] = ut_min_price
+        response.qcontext['ut_max_price'] = ut_max_price
+
+        return response
+
+    @http.route()
     def product(self, product, category='', search='', **kwargs):
         """Override to inject pre-computed UniTrade variables into qcontext."""
         response = super().product(product, category=category, search=search, **kwargs)

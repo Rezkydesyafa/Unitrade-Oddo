@@ -1483,6 +1483,10 @@
   border-width: 2px;
 }
 
+.tw-border-0 {
+  border-width: 0px;
+}
+
 .tw-border-solid {
   border-style: solid;
 }
