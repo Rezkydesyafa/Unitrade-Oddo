@@ -44,85 +44,46 @@
                         <!-- Lokasi -->
                         <div class="tw-mb-8">
                             <h6 class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-[#4a4a4a] tw-mb-3 tw-text-left">Lokasi</h6>
-                            <div class="tw-bg-[#fafafa] tw-p-[4px] tw-rounded-full tw-flex tw-items-center tw-w-full">
-                                <label class="tw-cursor-pointer tw-m-0 tw-flex-1 tw-text-center">
-                                    <input type="radio" name="lokasi" value="terdekat" class="tw-hidden peer"/>
-                                    <div class="tw-py-[6px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-[#b3b3b3] peer-checked:tw-font-bold peer-checked:tw-text-[#1a1a1a] peer-checked:tw-bg-white peer-checked:tw-shadow-[0_2px_8px_rgba(0,0,0,0.06)] tw-transition-all">Terdekat</div>
-                                </label>
-                                <label class="tw-cursor-pointer tw-m-0 tw-flex-1 tw-text-center">
-                                    <input type="radio" name="lokasi" value="kabupaten" class="tw-hidden peer"/>
-                                    <div class="tw-py-[6px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-[#b3b3b3] peer-checked:tw-font-bold peer-checked:tw-text-[#1a1a1a] peer-checked:tw-bg-white peer-checked:tw-shadow-[0_2px_8px_rgba(0,0,0,0.06)] tw-transition-all">Kabupaten</div>
-                                </label>
-                                <label class="tw-cursor-pointer tw-m-0 tw-flex-1 tw-text-center">
-                                    <input type="radio" name="lokasi" value="diy" class="tw-hidden peer"/>
-                                    <div class="tw-py-[6px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-[#b3b3b3] peer-checked:tw-font-bold peer-checked:tw-text-[#1a1a1a] peer-checked:tw-bg-white peer-checked:tw-shadow-[0_2px_8px_rgba(0,0,0,0.06)] tw-transition-all">DIY</div>
-                                </label>
+                            <div class="tw-bg-[#fafafa] tw-p-[4px] tw-rounded-full tw-flex tw-items-center tw-w-full" id="ut-lokasi-group">
+                                <div class="ut-pill ut-pill-inactive" data-group="lokasi" data-value="terdekat">Terdekat</div>
+                                <div class="ut-pill ut-pill-inactive" data-group="lokasi" data-value="kabupaten">Kabupaten</div>
+                                <div class="ut-pill ut-pill-inactive" data-group="lokasi" data-value="diy">DIY</div>
                             </div>
+                            <input type="hidden" name="lokasi" id="ut-lokasi-val" value=""/>
                         </div>
                         
                         <!-- Harga -->
                         <div class="tw-mb-8">
                             <h6 class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-[#4a4a4a] tw-mb-8 tw-text-left">Harga</h6>
-                            <div class="tw-relative tw-w-full tw-h-[40px] tw-flex tw-items-center tw-mb-4">
-                                <!-- Track Background -->
-                                <div class="tw-absolute tw-w-full tw-h-[10px] tw-bg-[#f0f0f0] tw-rounded-full tw-z-0"></div>
-                                <!-- Active Track -->
-                                <div id="slider-track" class="tw-absolute tw-h-[10px] tw-bg-[#e0e0e0] tw-rounded-full tw-z-10" style="left: 10%; right: 50%;"></div>
-                                
-                                <!-- Tooltips -->
-                                <div id="min-tooltip" class="tw-absolute tw-bg-black tw-text-white tw-px-3 tw-py-1 tw-rounded-full tw-font-['Urbanist'] tw-font-bold tw-text-[11px] tw-z-30 tw-pointer-events-none -tw-translate-x-1/2 tw-top-full tw-mt-[8px]" style="left: 10%;">
-                                    0 K
-                                </div>
-                                <div id="max-tooltip" class="tw-absolute tw-bg-black tw-text-white tw-px-3 tw-py-1 tw-rounded-full tw-font-['Urbanist'] tw-font-bold tw-text-[11px] tw-z-30 tw-pointer-events-none -tw-translate-x-1/2 tw-bottom-full tw-mb-[8px]" style="left: 50%;">
-                                    200 K
-                                </div>
-
-                                <!-- Range Inputs -->
-                                <input type="range" id="min-price" min="0" max="500" value="0" step="5" class="tw-absolute tw-w-full tw-h-0 tw-appearance-none tw-pointer-events-none tw-z-20 tw-outline-none custom-range-slider"/>
-                                <input type="range" id="max-price" min="0" max="500" value="200" step="5" class="tw-absolute tw-w-full tw-h-0 tw-appearance-none tw-pointer-events-none tw-z-20 tw-outline-none custom-range-slider"/>
-                                
-                                <!-- Hidden inputs for Odoo logic -->
+                            <div class="tw-relative tw-w-full tw-mb-4" style="height: 50px;">
+                                <div style="position:absolute; top:50%; transform:translateY(-50%); width:100%; height:10px; background:#f0f0f0; border-radius:999px; z-index:1; pointer-events:none;"></div>
+                                <div id="slider-track" style="position:absolute; top:50%; transform:translateY(-50%); height:10px; background:#d0d0d0; border-radius:999px; z-index:2; pointer-events:none; left:0%; right:0%;"></div>
+                                <div id="min-tooltip" class="tw-bg-black tw-text-white tw-px-3 tw-py-1 tw-rounded-full tw-font-['Urbanist'] tw-font-bold tw-text-[11px]" style="position:absolute; top:100%; margin-top:4px; z-index:5; pointer-events:none; transform:translateX(-50%); left:0%;">0 K</div>
+                                <div id="max-tooltip" class="tw-bg-black tw-text-white tw-px-3 tw-py-1 tw-rounded-full tw-font-['Urbanist'] tw-font-bold tw-text-[11px]" style="position:absolute; bottom:100%; margin-bottom:4px; z-index:5; pointer-events:none; transform:translateX(-50%); left:100%;">5000 K</div>
+                                <input type="range" id="min-price" min="0" max="5000" value="0" step="10" class="custom-range-slider" style="position:absolute; top:50%; transform:translateY(-50%); width:100%; height:10px; -webkit-appearance:none; appearance:none; background:transparent; pointer-events:none; z-index:10; margin:0; outline:none;"/>
+                                <input type="range" id="max-price" min="0" max="5000" value="5000" step="10" class="custom-range-slider" style="position:absolute; top:50%; transform:translateY(-50%); width:100%; height:10px; -webkit-appearance:none; appearance:none; background:transparent; pointer-events:none; z-index:11; margin:0; outline:none;"/>
                                 <input type="hidden" name="min_price" id="odoo-min-price" value="0"/>
-                                <input type="hidden" name="max_price" id="odoo-max-price" value="200000"/>
+                                <input type="hidden" name="max_price" id="odoo-max-price" value="5000000"/>
                             </div>
-                            
                             <style>
-                                .custom-range-slider::-webkit-slider-thumb {
-                                    -webkit-appearance: none;
-                                    appearance: none;
-                                    pointer-events: auto;
-                                    width: 16px;
-                                    height: 16px;
-                                    background-color: #000;
-                                    border-radius: 50%;
-                                    cursor: pointer;
-                                    border: none;
-                                }
-                                .custom-range-slider::-moz-range-thumb {
-                                    pointer-events: auto;
-                                    width: 16px;
-                                    height: 16px;
-                                    background-color: #000;
-                                    border-radius: 50%;
-                                    cursor: pointer;
-                                    border: none;
-                                }
+                                .custom-range-slider::-webkit-slider-runnable-track { background:transparent; height:10px; }
+                                .custom-range-slider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; pointer-events:auto; width:18px; height:18px; background:#000; border-radius:50%; cursor:pointer; border:none; position:relative; z-index:50; margin-top:-4px; }
+                                .custom-range-slider::-moz-range-track { background:transparent; height:10px; border:none; }
+                                .custom-range-slider::-moz-range-thumb { pointer-events:auto; width:18px; height:18px; background:#000; border-radius:50%; cursor:pointer; border:none; }
+                                .ut-pill { flex:1; text-align:center; padding:6px 0; border-radius:999px; font-family:'Urbanist',sans-serif; font-size:14px; cursor:pointer; transition:all 0.2s ease; user-select:none; }
+                                .ut-pill-inactive { color:#b3b3b3; font-weight:500; background:transparent; }
+                                .ut-pill-active { color:#1a1a1a; font-weight:700; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
                             </style>
                         </div>
                         
                         <!-- Kondisi -->
                         <div class="tw-mb-10">
                             <h6 class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-[#4a4a4a] tw-mb-3 tw-text-left">Kondisi</h6>
-                            <div class="tw-bg-[#fafafa] tw-p-[4px] tw-rounded-full tw-flex tw-items-center tw-w-[75%]">
-                                <label class="tw-cursor-pointer tw-m-0 tw-flex-1 tw-text-center">
-                                    <input type="radio" name="kondisi" value="baru" class="tw-hidden peer"/>
-                                    <div class="tw-py-[6px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-[#b3b3b3] peer-checked:tw-font-bold peer-checked:tw-text-[#1a1a1a] peer-checked:tw-bg-white peer-checked:tw-shadow-[0_2px_8px_rgba(0,0,0,0.06)] tw-transition-all">Baru</div>
-                                </label>
-                                <label class="tw-cursor-pointer tw-m-0 tw-flex-1 tw-text-center">
-                                    <input type="radio" name="kondisi" value="bekas" class="tw-hidden peer"/>
-                                    <div class="tw-py-[6px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-[#b3b3b3] peer-checked:tw-font-bold peer-checked:tw-text-[#1a1a1a] peer-checked:tw-bg-white peer-checked:tw-shadow-[0_2px_8px_rgba(0,0,0,0.06)] tw-transition-all">Bekas</div>
-                                </label>
+                            <div class="tw-bg-[#fafafa] tw-p-[4px] tw-rounded-full tw-flex tw-items-center tw-w-[75%]" id="ut-kondisi-group">
+                                <div class="ut-pill ut-pill-inactive" data-group="kondisi" data-value="baru">Baru</div>
+                                <div class="ut-pill ut-pill-inactive" data-group="kondisi" data-value="bekas">Bekas</div>
                             </div>
+                            <input type="hidden" name="kondisi" id="ut-kondisi-val" value=""/>
                         </div>
 
                         <!-- Action Buttons -->
@@ -175,164 +136,6 @@
                 </div>
             </div>
 
-            <!-- Shop Filter & Sort JS (inline to guarantee execution) -->
-            <script>
-                <![CDATA[
-                (function() {
-                    function initShopFilters() {
-                        if (!window.location.pathname.startsWith('/shop')) return;
-
-                        var params = new URLSearchParams(window.location.search);
-
-                        // --- 1. RESTORE LOKASI ---
-                        var lokasiVal = params.get('lokasi') || '';
-                        if (lokasiVal) {
-                            var r = document.querySelector('input[name="lokasi"][value="' + lokasiVal + '"]');
-                            if (r) r.checked = true;
-                        }
-
-                        // --- 2. RESTORE KONDISI (URL: new/used → radio: baru/bekas) ---
-                        var kondisiVal = params.get('kondisi') || '';
-                        if (kondisiVal) {
-                            var map = { 'new': 'baru', 'used': 'bekas' };
-                            var rv = map[kondisiVal] || kondisiVal;
-                            var kr = document.querySelector('input[name="kondisi"][value="' + rv + '"]');
-                            if (kr) kr.checked = true;
-                        }
-                        if (!kondisiVal) {
-                            var allK = document.querySelectorAll('input[name="kondisi"]');
-                            for (var i = 0; i < allK.length; i++) allK[i].checked = false;
-                        }
-
-                        // --- 3. PRICE SLIDER ---
-                        var minSlider = document.getElementById('min-price');
-                        var maxSlider = document.getElementById('max-price');
-                        var minTooltip = document.getElementById('min-tooltip');
-                        var maxTooltip = document.getElementById('max-tooltip');
-                        var sliderTrack = document.getElementById('slider-track');
-                        var odooMin = document.getElementById('odoo-min-price');
-                        var odooMax = document.getElementById('odoo-max-price');
-
-                        if (minSlider && maxSlider) {
-                            var urlMin = parseInt(params.get('ut_min_price') || '0');
-                            var urlMax = parseInt(params.get('ut_max_price') || '0');
-                            if (urlMin > 0) minSlider.value = Math.round(urlMin / 1000);
-                            if (urlMax > 0) maxSlider.value = Math.round(urlMax / 1000);
-
-                            function updateSlider(e) {
-                                var minVal = parseInt(minSlider.value);
-                                var maxVal = parseInt(maxSlider.value);
-                                if (minVal >= maxVal) {
-                                    if (e && e.target && e.target.id === 'min-price') {
-                                        minSlider.value = maxVal - 1;
-                                        minVal = maxVal - 1;
-                                    } else {
-                                        maxSlider.value = minVal + 1;
-                                        maxVal = minVal + 1;
-                                    }
-                                }
-                                var minPct = (minVal / parseInt(minSlider.max)) * 100;
-                                var maxPct = (maxVal / parseInt(maxSlider.max)) * 100;
-                                if (sliderTrack) {
-                                    sliderTrack.style.left = minPct + '%';
-                                    sliderTrack.style.right = (100 - maxPct) + '%';
-                                }
-                                if (minTooltip) {
-                                    minTooltip.style.left = minPct + '%';
-                                    minTooltip.innerText = minVal + ' K';
-                                }
-                                if (maxTooltip) {
-                                    maxTooltip.style.left = maxPct + '%';
-                                    maxTooltip.innerText = maxVal + ' K';
-                                }
-                                if (odooMin) odooMin.value = minVal * 1000;
-                                if (odooMax) odooMax.value = maxVal * 1000;
-                            }
-                            minSlider.addEventListener('input', updateSlider);
-                            maxSlider.addEventListener('input', updateSlider);
-                            updateSlider();
-                        }
-
-                        // --- 4. SORT BAR ---
-                        var sortBar = document.getElementById('ut-sort-bar');
-                        var currentSort = params.get('sort') || 'terkait';
-                        if (sortBar) {
-                            var pills = sortBar.querySelectorAll('[data-sort]');
-                            for (var j = 0; j < pills.length; j++) {
-                                (function(pill) {
-                                    var sk = pill.getAttribute('data-sort');
-                                    if (sk === currentSort) {
-                                        pill.style.backgroundColor = '#1a1a1a';
-                                        pill.style.color = '#fff';
-                                        pill.style.fontWeight = '600';
-                                    }
-                                    pill.addEventListener('click', function() {
-                                        var p = new URLSearchParams(window.location.search);
-                                        p.set('sort', sk);
-                                        window.location.href = '/shop?' + p.toString();
-                                    });
-                                })(pills[j]);
-                            }
-                        }
-
-                        // --- 5. SIMPAN BUTTON ---
-                        var simpanBtn = document.getElementById('ut-btn-simpan');
-                        if (simpanBtn) {
-                            simpanBtn.addEventListener('click', function(e) {
-                                e.preventDefault();
-                                var p = new URLSearchParams();
-                                var s = params.get('search');
-                                if (s) p.set('search', s);
-                                var so = params.get('sort');
-                                if (so) p.set('sort', so);
-
-                                var lc = document.querySelector('input[name="lokasi"]:checked');
-                                if (lc && lc.value) p.set('lokasi', lc.value);
-
-                                var mnP = odooMin ? parseInt(odooMin.value) : 0;
-                                var mxP = odooMax ? parseInt(odooMax.value) : 0;
-                                if (mnP > 0) p.set('ut_min_price', mnP);
-                                if (mxP > 0) p.set('ut_max_price', mxP);
-
-                                var kc = document.querySelector('input[name="kondisi"]:checked');
-                                if (kc && kc.value) {
-                                    var km = { 'baru': 'new', 'bekas': 'used' };
-                                    p.set('kondisi', km[kc.value] || kc.value);
-                                }
-                                window.location.href = '/shop?' + p.toString();
-                            });
-                        }
-
-                        // --- 6. BATAL BUTTON ---
-                        var batalBtn = document.getElementById('ut-btn-batal');
-                        if (batalBtn) {
-                            batalBtn.addEventListener('click', function() {
-                                window.location.reload();
-                            });
-                        }
-
-                        // --- 7. RESET BUTTON ---
-                        var resetBtn = document.getElementById('ut-btn-reset');
-                        if (resetBtn) {
-                            resetBtn.addEventListener('click', function() {
-                                var p = new URLSearchParams();
-                                var s = params.get('search');
-                                if (s) p.set('search', s);
-                                var qs = p.toString();
-                                window.location.href = '/shop' + (qs ? '?' + qs : '');
-                            });
-                        }
-                    }
-
-                    // Run when DOM is ready (handle both cases)
-                    if (document.readyState === 'loading') {
-                        document.addEventListener('DOMContentLoaded', initShopFilters);
-                    } else {
-                        initShopFilters();
-                    }
-                })();
-                ]]>
-            </script>
         </xpath>
     </template>
 

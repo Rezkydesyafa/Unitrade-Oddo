@@ -165,6 +165,18 @@ class UnitradeWebsiteSale(WebsiteSale):
             'ut_product_images': product.product_template_image_ids or [],
         }
 
+    @staticmethod
+    def _haversine(lat1, lon1, lat2, lon2):
+        """Calculate distance in km between two GPS coordinates."""
+        R = 6371
+        dlat = math.radians(lat2 - lat1)
+        dlon = math.radians(lon2 - lon1)
+        a = (math.sin(dlat / 2) ** 2 +
+             math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) *
+             math.sin(dlon / 2) ** 2)
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        return R * c
+
     @http.route()
     def shop(self, page=0, category=None, search='', min_price=0.0, max_price=0.0, ppg=False, **post):
         """Override shop to apply UniTrade sidebar filters and sorting."""
@@ -182,12 +194,19 @@ class UnitradeWebsiteSale(WebsiteSale):
         ut_sort = post.get('sort', '')
         ut_min_price = 0
         ut_max_price = 0
+        ut_lat = 0.0
+        ut_lon = 0.0
         try:
             ut_min_price = int(post.get('ut_min_price', 0))
         except (ValueError, TypeError):
             pass
         try:
             ut_max_price = int(post.get('ut_max_price', 0))
+        except (ValueError, TypeError):
+            pass
+        try:
+            ut_lat = float(post.get('lat', 0))
+            ut_lon = float(post.get('lon', 0))
         except (ValueError, TypeError):
             pass
 
@@ -199,10 +218,21 @@ class UnitradeWebsiteSale(WebsiteSale):
             extra_domain.append(('list_price', '>=', ut_min_price))
         if ut_max_price > 0:
             extra_domain.append(('list_price', '<=', ut_max_price))
+
+        # Location filters
+        DIY_KEYWORDS = ['Yogyakarta', 'Sleman', 'Bantul', 'Kulon Progo', 'Gunungkidul']
         if ut_lokasi == 'kabupaten':
             extra_domain.append(('x_seller_location', 'ilike', 'Sleman'))
         elif ut_lokasi == 'diy':
-            extra_domain.append(('x_seller_location', 'ilike', 'Yogyakarta'))
+            diy_domain = ['|'] * (len(DIY_KEYWORDS) - 1)
+            for kw in DIY_KEYWORDS:
+                diy_domain.append(('x_seller_location', 'ilike', kw))
+            extra_domain += diy_domain
+        elif ut_lokasi == 'terdekat':
+            extra_domain += [
+                ('x_seller_latitude', '!=', 0),
+                ('x_seller_longitude', '!=', 0),
+            ]
 
         # --- Determine sort order ---
         sort_map = {
@@ -215,9 +245,9 @@ class UnitradeWebsiteSale(WebsiteSale):
         order = sort_map.get(ut_sort, 'website_sequence asc')
 
         # --- Re-query products if extra filters or sort is applied ---
-        if extra_domain or ut_sort:
+        needs_requery = bool(extra_domain) or bool(ut_sort)
+        if needs_requery:
             Product = request.env['product.template'].sudo()
-            # Start with the base domain Odoo already uses
             base_domain = [('sale_ok', '=', True), ('website_published', '=', True)]
             if search:
                 base_domain += ['|',
@@ -228,31 +258,52 @@ class UnitradeWebsiteSale(WebsiteSale):
                 base_domain.append(('public_categ_ids', 'child_of', int(category)))
 
             full_domain = base_domain + extra_domain
-
-            # Count & paging
-            product_count = Product.search_count(full_domain)
             ppg_val = response.qcontext.get('ppg', 20)
-            pager = request.website.pager(
-                url='/shop',
-                total=product_count,
-                page=page,
-                step=ppg_val,
-                url_args={
-                    'search': search,
-                    'lokasi': ut_lokasi,
-                    'kondisi': ut_kondisi,
-                    'sort': ut_sort,
-                    'ut_min_price': str(ut_min_price) if ut_min_price else '',
-                    'ut_max_price': str(ut_max_price) if ut_max_price else '',
-                }
-            )
-            products = Product.search(
-                full_domain, order=order,
-                limit=ppg_val, offset=pager['offset']
-            )
-            response.qcontext['products'] = products
-            response.qcontext['pager'] = pager
-            response.qcontext['search_count'] = product_count
+
+            # Special handling for "terdekat" — sort by Haversine distance
+            if ut_lokasi == 'terdekat' and ut_lat and ut_lon:
+                all_products = Product.search(full_domain)
+                product_with_dist = []
+                for p in all_products:
+                    dist = self._haversine(ut_lat, ut_lon, p.x_seller_latitude, p.x_seller_longitude)
+                    product_with_dist.append((p, dist))
+                product_with_dist.sort(key=lambda x: x[1])
+
+                product_count = len(product_with_dist)
+                offset = int(page) * ppg_val if page else 0
+                pager = request.website.pager(
+                    url='/shop', total=product_count, page=page, step=ppg_val,
+                    url_args={
+                        'search': search, 'lokasi': ut_lokasi, 'kondisi': ut_kondisi,
+                        'sort': ut_sort,
+                        'ut_min_price': str(ut_min_price) if ut_min_price else '',
+                        'ut_max_price': str(ut_max_price) if ut_max_price else '',
+                        'lat': str(ut_lat), 'lon': str(ut_lon),
+                    }
+                )
+                page_products = [pd[0] for pd in product_with_dist[offset:offset + ppg_val]]
+                products = Product.browse([p.id for p in page_products]) if page_products else Product.browse([])
+                response.qcontext['products'] = products
+                response.qcontext['pager'] = pager
+                response.qcontext['search_count'] = product_count
+            else:
+                product_count = Product.search_count(full_domain)
+                pager = request.website.pager(
+                    url='/shop', total=product_count, page=page, step=ppg_val,
+                    url_args={
+                        'search': search, 'lokasi': ut_lokasi, 'kondisi': ut_kondisi,
+                        'sort': ut_sort,
+                        'ut_min_price': str(ut_min_price) if ut_min_price else '',
+                        'ut_max_price': str(ut_max_price) if ut_max_price else '',
+                    }
+                )
+                products = Product.search(
+                    full_domain, order=order,
+                    limit=ppg_val, offset=pager['offset']
+                )
+                response.qcontext['products'] = products
+                response.qcontext['pager'] = pager
+                response.qcontext['search_count'] = product_count
 
         # --- Pass filter state to template ---
         response.qcontext['ut_lokasi'] = ut_lokasi
