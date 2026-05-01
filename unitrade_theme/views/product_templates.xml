@@ -1,0 +1,588 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="unitrade_product_detail" inherit_id="website_sale.product" name="UniTrade Product Detail Override">
+        <xpath expr="//section[@id='product_detail']" position="replace">
+            <section id="product_detail" class="tw-bg-[#f5f5f7] tw-w-full tw-min-h-screen tw-pb-16" style="font-family: 'Urbanist', 'Inter', sans-serif;">
+                <div class="unitrade-detail-scope">
+                <div class="tw-max-w-[1300px] tw-mx-auto tw-px-6 tw-pt-6">
+
+                    <!-- Breadcrumbs -->
+                    <div class="tw-w-full tw-mb-6 tw-flex tw-justify-start">
+                        <div class="tw-bg-white tw-rounded-[12px] tw-px-5 tw-py-2.5 tw-flex tw-items-center tw-gap-3 tw-shadow-sm tw-w-max tw-border tw-border-gray-100">
+                            <a href="/" class="tw-flex tw-items-center tw-gap-2 tw-text-gray-600 hover:tw-text-[#0f172a] tw-no-underline tw-transition-colors">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <path d="M12 16v-4"></path>
+                                    <circle cx="12" cy="16" r="0.5" fill="currentColor"></circle>
+                                </svg>
+                                <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[14px]">Home</span>
+                            </a>
+                            <span class="tw-text-gray-300">/</span>
+                            <a href="/shop" class="tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-gray-600 hover:tw-text-[#0f172a] tw-no-underline">Produk</a>
+                            <span class="tw-text-gray-300">/</span>
+                            <span class="tw-font-['Urbanist'] tw-font-semibold tw-text-[14px] tw-text-[#0f172a]">
+                                <t t-esc="product.name"/>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Top Section: Image Left + Info Right -->
+                    <div class="tw-grid tw-grid-cols-1 lg:tw-grid-cols-2 tw-gap-10 tw-mb-8">
+
+                        <!-- LEFT: Image gallery -->
+                        <div>
+                            <!-- Main image container -->
+                            <div class="tw-bg-[#f5f5f5] tw-rounded-[8px] tw-p-4 tw-mb-4">
+                                <div class="tw-w-full tw-aspect-[560/384] tw-rounded-[8px] tw-overflow-hidden tw-bg-white">
+                                    <img id="ut-main-image"
+                                        t-attf-src="/web/image/product.template/#{product.id}/image_1920"
+                                        t-att-alt="product.name"
+                                        class="tw-w-full tw-h-full tw-object-contain"/>
+                                </div>
+                            </div>
+                            <!-- Thumbnails -->
+                            <div class="tw-flex tw-gap-3 tw-overflow-x-auto ut-thumbnail-container tw-pb-2">
+                            <div class="tw-flex tw-gap-3 tw-mt-4">
+                                <!-- Main Image as First Thumbnail -->
+                                <div class="ut-thumb tw-w-20 tw-h-16 tw-rounded-[8px] tw-border-2 tw-border-[#525252] tw-overflow-hidden tw-cursor-pointer tw-bg-white"
+                                    t-attf-data-src="/web/image/product.template/#{product.id}/image_1920">
+                                    <img t-attf-src="/web/image/product.template/#{product.id}/image_128"
+                                        class="tw-w-full tw-h-full tw-object-contain ut-thumb-img"/>
+                                </div>
+                                <!-- Additional Images -->
+                                <t t-foreach="product.product_template_image_ids" t-as="img">
+                                    <div class="ut-thumb tw-w-20 tw-h-16 tw-rounded-[8px] tw-border-2 tw-border-transparent tw-overflow-hidden tw-cursor-pointer tw-bg-white"
+                                        t-attf-data-src="/web/image/product.image/#{img.id}/image_1920">
+                                        <img t-attf-src="/web/image/product.image/#{img.id}/image_128"
+                                            class="tw-w-full tw-h-full tw-object-contain ut-thumb-img"/>
+                                    </div>
+                                </t>
+                            </div>
+                            </div>
+
+                        </div>
+
+                        <!-- RIGHT: Product info -->
+                        <div class="tw-flex tw-flex-col tw-gap-3">
+
+                            <!-- Product name -->
+                            <h1 class="tw-text-[30px] tw-leading-[36px] tw-font-semibold tw-text-[#525252] tw-m-0"
+                                t-field="product.name"></h1>
+
+                            <!-- Rating row -->
+                            <div class="tw-flex tw-items-center tw-gap-2">
+                                <div class="tw-flex tw-items-center tw-gap-[2px] tw-text-[#FFC107]">
+                                    <i class="fa fa-star" style="font-size:14px;"></i>
+                                    <i class="fa fa-star" style="font-size:14px;"></i>
+                                    <i class="fa fa-star" style="font-size:14px;"></i>
+                                    <i class="fa fa-star" style="font-size:14px;"></i>
+                                    <i class="fa fa-star-half-o" style="font-size:14px;"></i>
+                                </div>
+                                <span class="tw-text-[#525252]" style="font-size:16px;">
+                                    (<t t-esc="product.rating_avg or '4.2'"/>) • <t t-esc="product.rating_count or '156'"/> reviews
+                                </span>
+                            </div>
+
+                            <!-- Condition badge -->
+                            <div>
+                                <t t-set="condition_label" t-value="product.x_condition or 'baru'"/>
+                                <span class="tw-inline-flex tw-items-center tw-justify-center tw-px-4 tw-py-0"
+                                    style="border: 1px solid #2a2e33; border-radius: 32px; height: 24px; font-size: 16px; color: #000; line-height: 24px;">
+                                    <t t-esc="condition_label"/>
+                                </span>
+                            </div>
+
+                            <!-- Price -->
+                            <div style="font-size: 30px; line-height: 36px; color: #525252; font-weight: 400;">
+                                <span t-field="product.list_price"
+                                    t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                            </div>
+
+                            <!-- Stock info -->
+                            <p style="font-size: 16px; color: #525252; margin: 0; font-weight: 500;">In Stock • Free Ongkir</p>
+
+                            <!-- Add to cart form -->
+                            <form t-if="product._is_add_to_cart_possible()" action="/shop/cart/update" method="POST">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" t-nocache="csrf"/>
+                                <div class="js_product js_main_product">
+                                    <t t-set="product_variant" t-value="product._get_first_possible_variant_id()"/>
+                                    <input type="hidden" class="product_id" name="product_id" t-att-value="product_variant"/>
+                                    <input type="hidden" class="product_template_id" name="product_template_id" t-att-value="product.id"/>
+
+                                    <!-- Subtotal label + Qty -->
+                                    <div class="tw-flex tw-flex-col tw-gap-2 tw-mb-4">
+                                        <p style="font-size:16px; color:#525252; font-weight:500; margin:0;">Subtotal</p>
+
+                                        <!-- Quantity Selector: identik dengan pola cart Odoo native -->
+                                        <div class="css_quantity input-group tw-flex tw-items-center tw-gap-3" style="width:max-content;">
+                                            <a href="#" class="btn btn-link"
+                                                onclick="utChangeQty(-1); return false;"
+                                                aria-label="Remove one"
+                                                style="width:40px; height:40px; border:2px solid #525252; border-radius:50%; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; text-decoration:none; flex-shrink:0; padding:0;">
+                                                <i class="fa fa-minus" style="color:#525252; font-size:12px;"></i>
+                                            </a>
+
+                                            <input type="text"
+                                                class="js_quantity quantity form-control"
+                                                name="add_qty"
+                                                t-att-value="add_qty or 1"
+                                                data-min="1"
+                                                style="width:64px !important; height:40px !important; border:2px solid #525252 !important; border-radius:26px !important; background:transparent !important; text-align:center !important; padding:0 !important; margin:0 !important; font-size:16px !important; color:#525252 !important; outline:none !important; box-shadow:none !important; flex:none !important;"/>
+
+                                            <a href="#" class="btn btn-link float_left"
+                                                onclick="utChangeQty(1); return false;"
+                                                aria-label="Add one"
+                                                style="width:40px; height:40px; border:2px solid #525252; border-radius:50%; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; text-decoration:none; flex-shrink:0; padding:0;">
+                                                <i class="fa fa-plus" style="color:#525252; font-size:12px;"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <!-- CTA Row -->
+                                    <div class="tw-flex tw-items-center tw-gap-3">
+                                        <!-- Belanja / Login button -->
+                                        <t t-if="user_id._is_public()">
+                                            <a href="/web/login"
+                                                class="tw-flex-1 tw-flex tw-items-center tw-justify-center tw-gap-2 ut-btn-dark"
+                                                style="background:#1a1d1f; color:#fff; height:48px; border-radius:24px; border:none; font-size:16px; cursor:pointer; width:100%; text-decoration:none;">
+                                                <i class="fa fa-sign-in"></i>
+                                                Perlu masuk terlebih dahulu
+                                            </a>
+                                        </t>
+                                        <t t-else="">
+                                            <button id="add_to_cart" type="submit"
+                                                class="tw-flex-1 tw-flex tw-items-center tw-justify-center tw-gap-2"
+                                                style="background:#1a1d1f; color:#fff; height:48px; border-radius:24px; border:none; font-size:16px; cursor:pointer; width:100%;">
+                                                <i class="fa fa-shopping-cart"></i>
+                                                Belanja
+                                            </button>
+                                            <!-- Wishlist (red circle) -->
+                                            <a href="#" title="Wishlist"
+                                                onclick="utWishlistClick(this); return false;"
+                                                t-att-data-product-id="product._get_first_possible_variant_id()"
+                                                style="width:48px; height:48px; border-radius:50%; background:#E53E3E; color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; text-decoration:none;">
+                                                <i class="fa fa-heart" style="font-size:16px;"></i>
+                                            </a>
+                                        </t>
+                                        <!-- Share (dark circle) -->
+                                        <a href="#" title="Bagikan"
+                                            class="ut-btn-dark"
+                                            onclick="utShowShareModal(); return false;"
+                                            style="width:48px; height:48px; border-radius:50%; background:#1a1d1f; color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; text-decoration:none;">
+                                            <i class="fa fa-share" style="font-size:16px;"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <!-- Seller Info -->
+                            <div class="tw-flex tw-flex-col tw-gap-4 tw-mt-2">
+                                <!-- Avatar + Name + Status -->
+                                <div class="tw-flex tw-items-center tw-gap-3">
+                                    <t t-if="product.x_seller_id">
+                                        <img t-attf-src="/web/image/unitrade.seller/#{product.x_seller_id.id}/x_avatar_128"
+                                            t-att-onerror="'this.src=\'/web/static/img/user_menu_avatar.png\''"
+                                            style="width:51px; height:51px; border-radius:50%; object-fit:cover; flex-shrink:0;"
+                                            alt="Seller"/>
+                                    </t>
+                                    <img t-else=""
+                                        src="/web/static/img/user_menu_avatar.png"
+                                        style="width:51px; height:51px; border-radius:50%; object-fit:cover; flex-shrink:0;"/>
+                                    <div>
+                                        <p style="font-size:20px; font-weight:500; color:#000; margin:0; line-height:24px;">
+                                            <t t-esc="product.x_seller_id.sudo().name if product.x_seller_id else 'Dero sala'"/>
+                                        </p>
+                                        <p style="font-size:16px; color:#525252; margin:0; line-height:24px; display:flex; align-items:center; gap:4px;">
+                                            Aktif
+                                            <span style="width:7px; height:7px; background:#28a745; border-radius:50%; display:inline-block;"></span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <!-- Action buttons -->
+                                <div class="tw-flex tw-gap-4">
+                                    <a href="#"
+                                        class="ut-btn-outline"
+                                        style="width:163px; height:48px; border:2px solid #212529; border-radius:24px; color:#212529; font-size:16px; display:flex; align-items:center; justify-content:center; text-decoration:none; background:transparent; box-sizing:border-box;">
+                                        Kunjungi profile
+                                    </a>
+                                    <a href="#"
+                                        class="ut-btn-dark"
+                                        style="width:217px; height:48px; border:1px solid #525252; border-radius:24px; background:#212529; color:#f5f5f7; font-size:16px; display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; box-sizing:border-box;">
+                                        <i class="fa fa-commenting-o"></i> Chat penjual
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Map Section -->
+                    <div style="width:100%; height:229px; background:#212529; border-radius:8px; overflow:hidden; position:relative; margin-bottom:3.5rem;">
+                        <t t-if="product.x_seller_latitude and product.x_seller_longitude">
+                            <iframe style="width:100%; height:465px; position:absolute; top:-118px; left:0; border:none;"
+                                t-attf-src="https://maps.google.com/maps?q=#{product.x_seller_latitude},#{product.x_seller_longitude}&amp;z=14&amp;output=embed"
+                                allowfullscreen="" loading="lazy"></iframe>
+                        </t>
+                        <t t-else="">
+                            <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+                                <span style="color:rgba(255,255,255,0.5);">Peta tidak tersedia</span>
+                            </div>
+                        </t>
+                    </div>
+
+                    <!-- Tabs: Deskripsi / Rating & Ulasan -->
+                    <div class="tw-mb-10" id="ut-tabs-wrapper">
+
+                        <!-- Tab Headers -->
+                        <div style="display:flex; gap:48px; border-bottom:2px solid #525252;">
+                            <button id="ut-tab-deskripsi" type="button"
+                                onclick="utSwitchTab(this, 'deskripsi')"
+                                style="padding:10px 0 8px; font-size:20px; font-weight:600; color:#212529; background:none; border:none; border-bottom:2px solid #212529; margin-bottom:-2px; cursor:pointer; white-space:nowrap;">
+                                Deskripsi
+                            </button>
+                            <button id="ut-tab-ulasan" type="button"
+                                onclick="utSwitchTab(this, 'ulasan')"
+                                style="padding:10px 0 8px; font-size:20px; font-weight:400; color:#525252; background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-2px; cursor:pointer; white-space:nowrap;">
+                                Rating &amp; Ulasan
+                            </button>
+                        </div>
+
+                        <!-- Tab Content: Deskripsi -->
+                        <div id="tab-deskripsi" style="display:block; padding:32px 0;">
+                            <div style="color:#525252; font-size:16px; line-height:24px; max-width:1145px;">
+                                <t t-if="product.description_sale">
+                                    <div t-field="product.description_sale"></div>
+                                </t>
+                                <t t-else="">
+                                    <p>These premium wireless headphones deliver exceptional audio quality with advanced active noise cancellation technology. Perfect for music lovers, commuters, and professionals who demand the best in audio performance.</p>
+                                    <p style="margin-top:16px;">The ergonomic design ensures all-day comfort while the long-lasting battery keeps you connected for up to 30 hours of continuous playback.</p>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- Tab Content: Rating & Ulasan -->
+                        <div id="tab-ulasan" style="display:none; padding:32px 0;">
+
+                            <!-- Rating Filter + Summary Box -->
+                            <div style="background:#fff; border-radius:32px; padding:28px 48px; margin-bottom:40px; display:flex; align-items:flex-start; justify-content:space-between; gap:24px;">
+                                <!-- Filter chips -->
+                                <div style="display:flex; flex-wrap:wrap; gap:12px; flex:1;">
+                                    <button style="height:44px; padding:0 32px; border-radius:22px; background:#212529; color:#fff; font-size:20px; font-weight:600; border:none; cursor:pointer;">Terbaru</button>
+                                    <button style="height:44px; padding:0 24px; border-radius:22px; border:1px solid #525252; background:transparent; color:#525252; font-size:20px; font-weight:500; cursor:pointer;">Terlama</button>
+                                    <button style="height:44px; padding:0 20px; border-radius:22px; border:1px solid #525252; background:transparent; color:#525252; font-size:20px; font-weight:500; cursor:pointer;">5 bintang (2)</button>
+                                    <button style="height:44px; padding:0 20px; border-radius:22px; border:1px solid #525252; background:transparent; color:#525252; font-size:20px; font-weight:500; cursor:pointer;">4 bintang (0)</button>
+                                    <button style="height:44px; padding:0 20px; border-radius:22px; border:1px solid #525252; background:transparent; color:#525252; font-size:20px; font-weight:500; cursor:pointer;">3 bintang (0)</button>
+                                    <button style="height:44px; padding:0 20px; border-radius:22px; border:1px solid #525252; background:transparent; color:#525252; font-size:20px; font-weight:500; cursor:pointer;">2 bintang (0)</button>
+                                    <button style="height:44px; padding:0 20px; border-radius:22px; border:1px solid #525252; background:transparent; color:#525252; font-size:20px; font-weight:500; cursor:pointer;">1 bintang (0)</button>
+                                </div>
+                                <!-- Rating Summary -->
+                                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex-shrink:0; margin-left:24px;">
+                                    <div style="display:flex; align-items:baseline; gap:8px;">
+                                        <span style="font-size:40px; font-weight:700; color:#000;">5</span>
+                                        <span style="font-size:20px; font-weight:600; color:#000;">Out Of</span>
+                                        <span style="font-size:40px; font-weight:700; color:#000;">5</span>
+                                    </div>
+                                    <div style="display:flex; gap:4px; margin-top:4px;">
+                                        <i class="fa fa-star" style="color:#E53E3E; font-size:20px;"></i>
+                                        <i class="fa fa-star" style="color:#E53E3E; font-size:20px;"></i>
+                                        <i class="fa fa-star" style="color:#E53E3E; font-size:20px;"></i>
+                                        <i class="fa fa-star" style="color:#E53E3E; font-size:20px;"></i>
+                                        <i class="fa fa-star" style="color:#E53E3E; font-size:20px;"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Review Item 1 -->
+                            <div style="display:flex; gap:16px; margin-bottom:40px;">
+                                <img src="/web/static/img/user_menu_avatar.png"
+                                    style="width:51px; height:51px; border-radius:50%; object-fit:cover; flex-shrink:0;"/>
+                                <div style="flex:1;">
+                                    <p style="font-size:16px; color:#525252; margin:0; font-weight:400;">Nigga</p>
+                                    <p style="font-size:9px; color:#939393; margin:0 0 12px;">Date &amp; time</p>
+
+                                    <!-- Review photos -->
+                                    <div style="display:flex; gap:12px; margin-bottom:16px;">
+                                        <div style="width:84px; height:68px; border-radius:16px; background:#5155fa; overflow:hidden;"></div>
+                                        <div style="width:84px; height:68px; border-radius:16px; background:#5155fa; overflow:hidden;"></div>
+                                        <div style="width:84px; height:68px; border-radius:16px; background:#5155fa; overflow:hidden;"></div>
+                                    </div>
+
+                                    <p style="font-size:16px; color:#525252; line-height:24px; margin:0 0 16px; max-width:1095px;">
+                                        The ergonomicThese premium wireless headphones deliver exceptional audio quality with advanced active noise cancellation technology. Perfect for music lovers, commuters, and professionals who demand the best in audio performance. design ensures all-day comfort while the long-lasting battery keeps you connected for up to 30 hours of continuous playback.
+                                    </p>
+
+                                    <!-- Actions -->
+                                    <div style="display:flex; gap:12px;">
+                                        <div style="height:26px; padding:0 20px; border-radius:52px; background:#212529; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                                            <span style="font-size:12px; color:#fff;">Report</span>
+                                        </div>
+                                        <div style="height:26px; padding:0 16px; border-radius:52px; border:1px solid #d9d9d9; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;">
+                                            <i class="fa fa-thumbs-up" style="color:#d9d9d9; font-size:12px;"></i>
+                                            <span style="font-size:12px; color:#d9d9d9;">Membantu</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Review Item 2 -->
+                            <div style="display:flex; gap:16px; margin-bottom:40px;">
+                                <img src="/web/static/img/user_menu_avatar.png"
+                                    style="width:51px; height:51px; border-radius:50%; object-fit:cover; flex-shrink:0; filter:grayscale(1);"/>
+                                <div style="flex:1;">
+                                    <p style="font-size:16px; color:#525252; margin:0; font-weight:400;">Miau Miau</p>
+                                    <p style="font-size:9px; color:#939393; margin:0 0 12px;">Date &amp; time</p>
+
+                                    <div style="display:flex; gap:12px; margin-bottom:16px;">
+                                        <div style="width:84px; height:68px; border-radius:16px; background:#5155fa; overflow:hidden;"></div>
+                                        <div style="width:84px; height:68px; border-radius:16px; background:#5155fa; overflow:hidden;"></div>
+                                        <div style="width:84px; height:68px; border-radius:16px; background:#5155fa; overflow:hidden;"></div>
+                                    </div>
+
+                                    <p style="font-size:16px; color:#525252; line-height:24px; margin:0 0 16px; max-width:1095px;">
+                                        The ergonomicThese premium wireless headphones deliver exceptional audio quality with advanced active noise cancellation technology. Perfect for music lovers, commuters, and professionals who demand the best in audio performance. design ensures all-day comfort while the long-lasting battery keeps you connected for up to 30 hours of continuous playback.
+                                    </p>
+
+                                    <div style="display:flex; gap:12px;">
+                                        <div style="height:26px; padding:0 20px; border-radius:52px; background:#212529; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                                            <span style="font-size:12px; color:#fff;">Report</span>
+                                        </div>
+                                        <div style="height:26px; padding:0 16px; border-radius:52px; border:1px solid #d9d9d9; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;">
+                                            <i class="fa fa-thumbs-up" style="color:#d9d9d9; font-size:12px;"></i>
+                                            <span style="font-size:12px; color:#d9d9d9;">Membantu</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- See more -->
+                            <div style="text-align:center; margin-top:32px;">
+                                <a href="#" style="color:#525252; font-size:16px; font-weight:600; text-decoration:underline;">Lihat selengkapnya</a>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <!-- Related Products -->
+                    <div class="tw-mb-16">
+                        <h2 style="font-size:32px; font-weight:600; color:#212529; margin-bottom:32px;">Produk lain di toko ini</h2>
+                        <t t-set="seller_products" t-value="request.env['product.template'].search([('id', '=', product.id)], limit=6)"/>
+                        <div class="tw-flex tw-gap-[30px] tw-overflow-x-auto tw-pt-5 tw-pb-8 tw-px-2">
+                            <t t-foreach="seller_products" t-as="p">
+                                <a t-att-href="p.website_url"
+                                    class="ut-card"
+                                    style="display:flex; flex-direction:column; width:178px; min-width:178px; background:#fff; border:1px solid #d9d9d9; border-radius:22px; overflow:hidden; text-decoration:none; transition:box-shadow 0.2s; flex-shrink:0;">
+                                    <!-- Image -->
+                                    <div style="width:162px; height:133px; border-radius:12px; overflow:hidden; background:#d9d9d9; margin:9px auto 0; flex-shrink:0;">
+                                        <img t-attf-src="/web/image/product.template/#{p.id}/image_1920"
+                                            t-att-alt="p.name"
+                                            style="width:100%; height:100%; object-fit:cover;"/>
+                                    </div>
+                                    <!-- Info -->
+                                    <div style="padding:8px 12px 12px;">
+                                        <p style="font-size:16px; font-weight:600; color:#212529; margin:0 0 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                            <t t-esc="p.name"/>
+                                        </p>
+                                        <p style="font-size:12px; color:rgba(0,0,0,0.25); margin:0 0 6px; display:flex; align-items:center; gap:3px;">
+                                            <i class="fa fa-map-marker" style="font-size:11px;"></i> Sleman
+                                        </p>
+                                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                                            <p style="font-size:16px; font-weight:800; color:#212529; margin:0;">
+                                                <span t-field="p.list_price"
+                                                    t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                                            </p>
+                                            <div style="display:flex; align-items:center; gap:2px;">
+                                                <i class="fa fa-star" style="color:#FFC107; font-size:12px;"></i>
+                                                <span style="font-size:12px; color:rgba(0,0,0,0.25);">
+                                                    <t t-esc="p.rating_avg or '5.0'"/>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </t>
+                        </div>
+                    </div>
+
+                    <!-- Hidden Odoo Hooks -->
+                    <div style="display:none;">
+                        <div id="product_detail_main" data-name="Product Page"/>
+                        <div id="o_wsale_cta_wrapper"/>
+                        <div id="add_to_cart_wrap"/>
+                        <div id="o_product_terms_and_share"/>
+                        <div id="product_option_block"/>
+                        <div id="contact_us_wrapper"/>
+                        <div id="product_attributes_simple"/>
+                        <div id="product_documents"/>
+                    </div>
+
+                </div>
+                </div>
+                <!-- Share Modal UI Implementation (Figma 119-1984) -->
+                <div id="ut-share-modal" class="tw-hidden tw-fixed tw-inset-0 tw-z-[9999] tw-flex tw-items-center tw-justify-center tw-bg-black/50 overlay-animate">
+                    <!-- Backdrop -->
+                    <div onclick="utHideShareModal()" class="tw-absolute tw-inset-0"></div>
+                    <div class="tw-relative tw-bg-white tw-rounded-[32px] tw-p-10 tw-w-[90%] tw-max-w-[520px] tw-shadow-2xl popup-animate">
+                        <div class="tw-flex tw-justify-between tw-items-center tw-mb-10">
+                            <h2 class="tw-text-[40px] tw-font-bold tw-text-[#1A1D1F] tw-m-0">Share</h2>
+                            <button type="button" onclick="utHideShareModal()" class="tw-bg-transparent tw-border-none tw-cursor-pointer tw-p-2 hover:tw-opacity-50 tw-transition-opacity">
+                                <i class="fa fa-times tw-text-3xl tw-text-[#1A1D1F]"></i>
+                            </button>
+                        </div>
+
+                        <!-- Social Icons -->
+                        <div class="tw-flex tw-justify-between tw-mb-12">
+                            <div class="tw-flex tw-flex-col tw-items-center tw-gap-3">
+                                <div onclick="utShareWhatsApp()" class="tw-w-[88px] tw-h-[88px] tw-bg-[#F8F7F2] tw-rounded-full tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-[#f0efe9] tw-transition-all">
+                                    <i class="fa fa-whatsapp tw-text-[36px] tw-text-[#1A1D1F]"></i>
+                                </div>
+                                <span class="tw-text-[16px] tw-font-semibold tw-text-[#1A1D1F]">Whatsapp</span>
+                            </div>
+                            <div class="tw-flex tw-flex-col tw-items-center tw-gap-3">
+                                <div class="tw-w-[88px] tw-h-[88px] tw-bg-[#F8F7F2] tw-rounded-full tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-[#f0efe9] tw-transition-all">
+                                    <i class="fa fa-instagram tw-text-[36px] tw-text-[#1A1D1F]"></i>
+                                </div>
+                                <span class="tw-text-[16px] tw-font-semibold tw-text-[#1A1D1F]">Instagram</span>
+                            </div>
+                            <div class="tw-flex tw-flex-col tw-items-center tw-gap-3">
+                                <div class="tw-w-[88px] tw-h-[88px] tw-bg-[#F8F7F2] tw-rounded-full tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-[#f0efe9] tw-transition-all">
+                                    <i class="fa fa-music tw-text-[36px] tw-text-[#1A1D1F]"></i>
+                                </div>
+                                <span class="tw-text-[16px] tw-font-semibold tw-text-[#1A1D1F]">Tiktok</span>
+                            </div>
+                            <div class="tw-flex tw-flex-col tw-items-center tw-gap-3">
+                                <div class="tw-w-[88px] tw-h-[88px] tw-bg-[#F8F7F2] tw-rounded-full tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-[#f0efe9] tw-transition-all">
+                                    <i class="fa fa-ellipsis-h tw-text-[36px] tw-text-[#1A1D1F]"></i>
+                                </div>
+                                <span class="tw-text-[16px] tw-font-semibold tw-text-[#1A1D1F]">Lainnya</span>
+                            </div>
+                        </div>
+
+                        <!-- Page Link -->
+                        <h3 class="tw-text-[22px] tw-font-bold tw-text-[#1A1D1F] tw-mb-5">Page Link</h3>
+                        <div class="tw-flex tw-items-center tw-bg-[#F8F7F2] tw-rounded-[20px] tw-px-6 tw-py-5 tw-justify-between">
+                            <span id="ut-share-url-text" class="tw-text-[#525252] tw-text-[16px] tw-truncate tw-pr-4" t-esc="product.website_url"/>
+                            <button type="button" onclick="utCopyShareLink(this)" class="tw-bg-transparent tw-border-none tw-cursor-pointer hover:tw-opacity-50 tw-transition-opacity tw-p-1">
+                                <i class="fa fa-clone tw-text-2xl tw-text-[#1A1D1F]"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Script: pola identik dengan seller_verification.xml -->
+                <script>
+                    /* ── Quantity Counter ─── */
+                    function utChangeQty(change) {
+                        var input = document.querySelector('input[name="add_qty"]');
+                        if (!input) return;
+                        var currentVal = parseInt(input.value) || 1;
+                        var minVal = parseInt(input.getAttribute('data-min')) || 1;
+                        var newVal = currentVal + change;
+                        if (newVal >= minVal) {
+                            input.value = newVal;
+                            var event = new Event('change', { bubbles: true });
+                            input.dispatchEvent(event);
+                        }
+                    }
+
+                    /* ── Share Modal (global functions for onclick) ─── */
+                    function utShowShareModal() {
+                        var modal = document.getElementById('ut-share-modal');
+                        if (!modal) return;
+                        var urlEl = document.getElementById('ut-share-url-text');
+                        if (urlEl) urlEl.innerText = window.location.href;
+                        modal.classList.remove('tw-hidden');
+                        document.body.style.overflow = 'hidden';
+                    }
+                    function utHideShareModal() {
+                        var modal = document.getElementById('ut-share-modal');
+                        if (modal) modal.classList.add('tw-hidden');
+                        document.body.style.overflow = '';
+                    }
+                    function utCopyShareLink(btn) {
+                        var url = window.location.href;
+                        var icon = btn ? btn.querySelector('i') : null;
+                        function flash() {
+                            if (!icon) return;
+                            var orig = icon.className;
+                            icon.className = 'fa fa-check tw-text-2xl';
+                            icon.style.color = '#28a745';
+                            setTimeout(function() { icon.className = orig; icon.style.color = ''; }, 1500);
+                        }
+                        if (navigator.clipboard) {
+                            navigator.clipboard.writeText(url).then(flash).catch(function() {
+                                var ta = document.createElement('textarea');
+                                ta.value = url; document.body.appendChild(ta); ta.select();
+                                document.execCommand('copy'); document.body.removeChild(ta); flash();
+                            });
+                        } else {
+                            var ta = document.createElement('textarea');
+                            ta.value = url; document.body.appendChild(ta); ta.select();
+                            document.execCommand('copy'); document.body.removeChild(ta); flash();
+                        }
+                    }
+                    function utShareWhatsApp() {
+                        var url = encodeURIComponent(window.location.href);
+                        window.open('https://wa.me/?text=' + url, '_blank');
+                    }
+                    function utWishlistClick(btn) {
+                        var pid = btn.getAttribute('data-product-id');
+                        if (!pid) return;
+                        fetch('/shop/wishlist/add', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ jsonrpc: '2.0', method: 'call', id: 1, params: { product_id: parseInt(pid, 10) } })
+                        }).then(function() {
+                            var icon = btn.querySelector('.fa-heart');
+                            if (icon) {
+                                icon.style.transform = 'scale(1.35)';
+                                icon.style.transition = 'transform 0.2s ease';
+                                setTimeout(function() { icon.style.transform = 'scale(1)'; }, 300);
+                            }
+                        }).catch(function(e) { console.error('[UniTrade] Wishlist:', e); });
+                    }
+                    function utSwitchTab(btn, tabName) {
+                        var tabs = ['deskripsi', 'ulasan'];
+                        for (var i = 0; i &lt; tabs.length; i++) {
+                            var panel = document.getElementById('tab-' + tabs[i]);
+                            var tb = document.getElementById('ut-tab-' + tabs[i]);
+                            if (panel) panel.style.display = 'none';
+                            if (tb) { tb.style.fontWeight = '400'; tb.style.color = '#525252'; tb.style.borderBottomColor = 'transparent'; }
+                        }
+                        var active = document.getElementById('tab-' + tabName);
+                        if (active) active.style.display = 'block';
+                        btn.style.fontWeight = '600';
+                        btn.style.color = '#212529';
+                        btn.style.borderBottomColor = '#212529';
+                    }
+
+                    /* ── Gallery thumbnail (IIFE - immediate) ──────── */
+                    (function() {
+                        var mainImg = document.getElementById('ut-main-image');
+                        var thumbs = document.querySelectorAll('.ut-thumb');
+                        for (var i = 0; i &lt; thumbs.length; i++) {
+                            (function(thumb) {
+                                thumb.addEventListener('click', function() {
+                                    var src = thumb.getAttribute('data-src');
+                                    if (mainImg) {
+                                        if (src) {
+                                            mainImg.src = src;
+                                            for (var j = 0; j &lt; thumbs.length; j++) {
+                                                thumbs[j].style.borderColor = 'transparent';
+                                            }
+                                            thumb.style.borderColor = '#525252';
+                                        }
+                                    }
+                                });
+                            })(thumbs[i]);
+                        }
+                    })();
+                </script>
+
+            </section>
+        </xpath>
+
+        <xpath expr="//div[@id='product_full_description']" position="replace">
+            <div id="product_full_description" class="d-none"/>
+        </xpath>
+    </template>
+</odoo>

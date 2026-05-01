@@ -3,6 +3,114 @@
 @tailwind utilities;
 
 /* ============================================
+   UniTrade — Scoped Bootstrap Reset (Flat CSS)
+   Targets only elements inside .unitrade-detail-scope
+   Uses flat selectors — NO CSS nesting (&)
+   ============================================ */
+
+/* Buttons */
+.unitrade-detail-scope button,
+.unitrade-detail-scope .btn {
+  background-image: none;
+  box-shadow: none;
+}
+.unitrade-detail-scope button:focus,
+.unitrade-detail-scope .btn:focus,
+.unitrade-detail-scope button:active,
+.unitrade-detail-scope .btn:active {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Links */
+.unitrade-detail-scope a {
+  text-decoration: none;
+}
+.unitrade-detail-scope a:hover,
+.unitrade-detail-scope a:focus {
+  text-decoration: none;
+  box-shadow: none;
+}
+
+/* Inputs — neutralize Bootstrap .form-control intrusive styles */
+.unitrade-detail-scope .form-control:focus {
+  outline: none;
+  box-shadow: none;
+}
+.unitrade-detail-scope input.quantity {
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background-color: transparent !important;
+  text-align: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+/* ============================================
+   UniTrade — Elegant Hover Effects
+   ============================================ */
+
+/* Global Transition */
+.unitrade-detail-scope a, 
+.unitrade-detail-scope button,
+.unitrade-detail-scope .ut-thumb,
+.unitrade-detail-scope .ut-tab-btn,
+.unitrade-detail-scope .ut-filter-chip {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Generic Hover Opacity */
+.unitrade-detail-scope a:hover,
+.unitrade-detail-scope button:hover {
+  opacity: 0.9;
+}
+
+/* Dark Buttons (Belanja, Chat, Share) */
+.unitrade-detail-scope .ut-btn-dark:hover,
+.unitrade-detail-scope #add_to_cart:hover {
+  background-color: #000000 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+}
+
+/* Outline/Counter Buttons */
+.unitrade-detail-scope .ut-btn-outline:hover,
+.unitrade-detail-scope .js_add_cart_json:hover {
+  background-color: rgba(33, 37, 41, 0.08) !important;
+  border-color: #000 !important;
+  transform: translateY(-1px);
+}
+
+/* Wishlist Button */
+.unitrade-detail-scope .ut-btn-wishlist:hover {
+  background-color: #c53030 !important;
+  transform: scale(1.08);
+  box-shadow: 0 4px 15px rgba(197, 48, 48, 0.3) !important;
+}
+
+/* Thumbnails */
+.unitrade-detail-scope .ut-thumb:hover {
+  transform: scale(1.03);
+  border-color: #525252 !important;
+}
+
+/* Related Product Cards */
+.unitrade-detail-scope .ut-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important;
+  border-color: #212529 !important;
+}
+
+/* Tabs */
+.unitrade-detail-scope .ut-tab-btn:hover {
+  color: #000 !important;
+  opacity: 0.85;
+}
+
+/* ============================================
    UniTrade Marketplace — Custom Styles
    ============================================ */
 

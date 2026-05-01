@@ -121,4 +121,67 @@ document.addEventListener('DOMContentLoaded', function () {
             showImage(0);
         }
     });
+
+    // =============================================
+    // PDP: Thumbnail Gallery Switching
+    // =============================================
+    const mainImage = document.getElementById('ut-main-image');
+    const thumbnails = document.querySelectorAll('.ut-thumb');
+    
+    if (mainImage && thumbnails.length > 0) {
+        thumbnails.forEach(thumb => {
+            thumb.addEventListener('click', function() {
+                // Remove active class from all
+                thumbnails.forEach(t => {
+                    t.classList.remove('tw-border-gray-800');
+                    t.classList.add('tw-border-gray-200');
+                });
+                
+                // Add active class to clicked
+                this.classList.remove('tw-border-gray-200');
+                this.classList.add('tw-border-gray-800');
+                
+                // Update main image src
+                const imgSrc = this.querySelector('img').getAttribute('src');
+                mainImage.setAttribute('src', imgSrc);
+            });
+        });
+    }
+
+    // =============================================
+    // PDP: Tabs Switching
+    // =============================================
+    const tabBtns = document.querySelectorAll('.ut-tab-btn');
+    const tabContents = document.querySelectorAll('.ut-tab-content');
+    
+    if (tabBtns.length > 0 && tabContents.length > 0) {
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const target = this.getAttribute('data-target');
+                
+                // Reset buttons
+                tabBtns.forEach(b => {
+                    b.classList.remove('tw-text-black', 'tw-border-b-2', 'tw-border-black', 'tw-font-bold');
+                    b.classList.add('tw-text-gray-500', 'tw-font-medium');
+                });
+                
+                // Activate clicked button
+                this.classList.remove('tw-text-gray-500', 'tw-font-medium');
+                this.classList.add('tw-text-black', 'tw-border-b-2', 'tw-border-black', 'tw-font-bold');
+                
+                // Hide all contents
+                tabContents.forEach(content => {
+                    content.classList.remove('tw-block');
+                    content.classList.add('tw-hidden');
+                });
+                
+                // Show target content
+                const targetContent = document.getElementById('tab-' + target);
+                if (targetContent) {
+                    targetContent.classList.remove('tw-hidden');
+                    targetContent.classList.add('tw-block');
+                }
+            });
+        });
+    }
 });
