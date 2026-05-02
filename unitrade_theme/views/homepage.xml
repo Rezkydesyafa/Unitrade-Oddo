@@ -174,7 +174,7 @@
                 </div>
                 <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-4 tw-gap-6">
                     <!-- Kategori 1 -->
-                    <a href="/shop" class="tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
+                    <a href="/shop" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
                         <div class="tw-w-[44px] tw-h-[44px] tw-bg-blue-50 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-mr-4">
                             <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-6 tw-h-6 tw-text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 7.146v1.206a4.502 4.502 0 01-3.6 4.414A4.501 4.501 0 016.75 8.352V7.146A3.75 3.75 0 0110.5 3.396h.375A3.75 3.75 0 0114.625 7.146zM15 7.146V9A2.25 2.25 0 0017.25 11.25H18c1.38 0 2.5-1.12 2.5-2.5v-1.125a2.5 2.5 0 00-2.5-2.5h-3zm-1.5 8.604a11.954 11.954 0 01-9 0m9 0c.91.312 1.8.683 2.656 1.107m-11.656-1.107c-.91.312-1.8.683-2.656 1.107" />
@@ -186,7 +186,7 @@
                         </div>
                     </a>
                     <!-- Kategori 2 -->
-                    <a href="/shop" class="tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
+                    <a href="/shop" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
                         <div class="tw-w-[44px] tw-h-[44px] tw-bg-pink-50 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-mr-4">
                             <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-6 tw-h-6 tw-text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
@@ -198,7 +198,7 @@
                         </div>
                     </a>
                     <!-- Kategori 3 -->
-                    <a href="/shop" class="tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
+                    <a href="/shop" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
                         <div class="tw-w-[44px] tw-h-[44px] tw-bg-purple-50 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-mr-4">
                             <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-6 tw-h-6 tw-text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
@@ -210,7 +210,7 @@
                         </div>
                     </a>
                     <!-- Kategori 4 -->
-                    <a href="/shop" class="tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
+                    <a href="/shop" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
                         <div class="tw-w-[44px] tw-h-[44px] tw-bg-emerald-50 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-mr-4">
                             <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-6 tw-h-6 tw-text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
@@ -232,49 +232,11 @@
                 </div>
 
                 <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-4 lg:tw-grid-cols-6 tw-gap-3 md:tw-gap-4">
-                    <!-- Odoo dynamically loops through products, we will simulate the Figma grid design -->
                     <t t-foreach="products or []" t-as="product">
-                        <a t-att-href="'/shop/product/%s' % product.id" class="tw-bg-white tw-border tw-border-solid tw-border-gray-200 tw-rounded-[14px] tw-overflow-hidden tw-shadow-sm hover:tw-shadow-md hover:-tw-translate-y-1 tw-transition-all tw-duration-300 tw-flex tw-flex-col tw-h-full tw-no-underline tw-group">
-                            <div class="tw-p-2">
-                                <div class="tw-w-full tw-aspect-square tw-rounded-[10px] tw-overflow-hidden tw-bg-gray-100 tw-relative">
-                                    <t t-if="product.image_1920">
-                                        <img t-att-src="'/web/image/product.template/%s/image_1920' % product.id"
-                                             t-att-alt="product.name"
-                                             class="tw-w-full tw-h-full tw-object-cover group-hover:tw-scale-105 tw-transition-transform tw-duration-300"/>
-                                    </t>
-                                    <t t-else="">
-                                        <img src="/unitrade_theme/static/description/icon.png" class="tw-w-full tw-h-full tw-object-cover tw-opacity-50 group-hover:tw-scale-105 tw-transition-transform tw-duration-300"/>
-                                    </t>
-                                </div>
-                            </div>
-                            <div class="tw-px-3 tw-pb-3 tw-flex tw-flex-col tw-flex-grow">
-                                <h3 class="tw-font-medium tw-text-[#212529] tw-text-[13px] tw-leading-snug tw-line-clamp-2 tw-mb-1 tw-flex-grow">
-                                    <t t-esc="product.name"/>
-                                </h3>
-                                <p class="tw-text-[11px] tw-text-gray-400 tw-mb-2 tw-flex tw-items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-3 tw-h-3 tw-mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                      <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg> Sleman
-                                </p>
-                                
-                                <div class="tw-flex tw-justify-between tw-items-center tw-mt-auto">
-                                    <p class="tw-font-bold tw-text-[#212529] tw-text-[14px] tw-m-0">
-                                        Rp <t t-esc="'{:,.0f}'.format(product.list_price).replace(',', '.')"/>
-                                    </p>
-                                    
-                                    <!-- Rating -->
-                                    <div class="tw-flex tw-items-center tw-gap-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-3 tw-h-3 tw-text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                        </svg>
-                                        <span class="tw-text-[11px] tw-text-gray-500">
-                                            <t t-esc="product.rating_avg or 0.0"/>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
+                        <t t-set="ut_card_href" t-value="product.website_url"/>
+                        <t t-set="ut_card_product" t-value="product"/>
+                        <t t-set="ut_card_class" t-value="'tw-bg-white tw-border tw-border-solid tw-border-gray-200 tw-rounded-[14px] tw-overflow-hidden tw-shadow-sm hover:tw-shadow-md hover:-tw-translate-y-1 tw-transition-all tw-duration-300 tw-flex tw-flex-col tw-h-full tw-no-underline tw-group'"/>
+                        <t t-call="unitrade_theme.unitrade_product_card"/>
                     </t>
                     
                     <!-- Fallback placeholders if no products found in database yet -->

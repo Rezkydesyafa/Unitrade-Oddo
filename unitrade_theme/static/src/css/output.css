@@ -1014,6 +1014,10 @@
   width: 15px;
 }
 
+.tw-w-\[178px\] {
+  width: 178px;
+}
+
 .tw-w-\[18px\] {
   width: 18px;
 }
@@ -1101,6 +1105,10 @@
 
 .tw-min-w-\[16px\] {
   min-width: 16px;
+}
+
+.tw-min-w-\[178px\] {
+  min-width: 178px;
 }
 
 .tw-max-w-2xl {
@@ -3033,6 +3041,28 @@
    UniTrade Marketplace — Custom Styles
    ============================================ */
 
+.ut-product-card-link,
+.ut-product-card-link:hover,
+.ut-product-card-link:focus,
+.ut-product-card-link:active,
+.ut-product-card-link *,
+.ut-product-card-link:hover *,
+.ut-product-card-link:focus *,
+.ut-product-card-link:active * {
+  text-decoration: none !important;
+}
+
+.ut-category-card,
+.ut-category-card:hover,
+.ut-category-card:focus,
+.ut-category-card:active,
+.ut-category-card *,
+.ut-category-card:hover *,
+.ut-category-card:focus *,
+.ut-category-card:active * {
+  text-decoration: none !important;
+}
+
 /* Base layer overrides (compatible with Odoo Bootstrap) */
 
 /* Animations */
@@ -3204,11 +3234,6 @@
 .hover\:tw-text-gray-600:hover {
   --tw-text-opacity: 1;
   color: rgb(75 85 99 / var(--tw-text-opacity, 1));
-}
-
-.hover\:tw-text-red-500:hover {
-  --tw-text-opacity: 1;
-  color: rgb(239 68 68 / var(--tw-text-opacity, 1));
 }
 
 .hover\:tw-underline:hover {

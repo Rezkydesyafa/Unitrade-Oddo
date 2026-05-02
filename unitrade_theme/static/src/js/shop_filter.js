@@ -1,10 +1,9 @@
 /** @odoo-module **/
 
 import publicWidget from "@web/legacy/js/public/public_widget";
-import { Component, onMounted, onWillUnmount, useEffect, useRef, useState } from "@odoo/owl";
-import { mountComponent } from "@web/env";
-import "@web/core/network/rpc_service";
-import { useService } from "@web/core/utils/hooks";
+import { Component, mount, onMounted, onWillUnmount, useEffect, useRef, useState } from "@odoo/owl";
+import { templates } from "@web/core/assets";
+import { jsonrpc } from "@web/core/network/rpc_service";
 
 const MAX_PRICE_K = 5000;
 const MIN_GAP_K = 10;
@@ -47,7 +46,6 @@ export class UnitradeShopFilter extends Component {
     };
 
     setup() {
-        this.rpc = useService("rpc");
         this.resultsRef = useRef("results");
         this.requestSeq = 0;
         this.onPopState = () => this.restoreFromUrl({ load: true });
@@ -320,7 +318,7 @@ export class UnitradeShopFilter extends Component {
 
         this.state.loading = true;
         try {
-            const result = await this.rpc("/unitrade/shop/filter", payload);
+            const result = await jsonrpc("/unitrade/shop/filter", payload);
             if (requestId !== this.requestSeq) {
                 return;
             }
@@ -340,38 +338,11 @@ export class UnitradeShopFilter extends Component {
     }
 
     async onResultsClick(ev) {
-        const wishlistBtn = ev.target.closest(".unitrade-wishlist-btn");
-        if (wishlistBtn) {
-            ev.preventDefault();
-            ev.stopPropagation();
-            await this.toggleWishlist(wishlistBtn);
-            return;
-        }
-
         const pagerLink = ev.target.closest(".products_pager a[href]");
         if (pagerLink) {
             ev.preventDefault();
             const page = this._pageFromHref(pagerLink.href);
             await this.loadResults({ page });
-        }
-    }
-
-    async toggleWishlist(button) {
-        const productId = intOrDefault(button.dataset.productId, 0);
-        if (!productId) {
-            return;
-        }
-        try {
-            const result = await this.rpc("/unitrade/wishlist/toggle", { product_id: productId });
-            if (result.added) {
-                button.classList.add("tw-text-red-500");
-                button.classList.remove("tw-text-gray-400");
-            } else {
-                button.classList.remove("tw-text-red-500");
-                button.classList.add("tw-text-gray-400");
-            }
-        } catch (error) {
-            console.error("Wishlist toggle error:", error);
         }
     }
 
@@ -415,7 +386,7 @@ publicWidget.registry.UnitradeShopFilter = publicWidget.Widget.extend({
         };
 
         this.el.innerHTML = "";
-        this.component = await mountComponent(UnitradeShopFilter, this.el, { props });
+        this.component = await mount(UnitradeShopFilter, this.el, { props, templates });
         return superPromise;
     },
 

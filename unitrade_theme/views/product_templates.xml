@@ -368,37 +368,10 @@
                         <t t-set="seller_products" t-value="request.env['product.template'].search([('id', '=', product.id)], limit=6)"/>
                         <div class="tw-flex tw-gap-[30px] tw-overflow-x-auto tw-pt-5 tw-pb-8 tw-px-2">
                             <t t-foreach="seller_products" t-as="p">
-                                <a t-att-href="p.website_url"
-                                    class="ut-card"
-                                    style="display:flex; flex-direction:column; width:178px; min-width:178px; background:#fff; border:1px solid #d9d9d9; border-radius:22px; overflow:hidden; text-decoration:none; transition:box-shadow 0.2s; flex-shrink:0;">
-                                    <!-- Image -->
-                                    <div style="width:162px; height:133px; border-radius:12px; overflow:hidden; background:#d9d9d9; margin:9px auto 0; flex-shrink:0;">
-                                        <img t-attf-src="/web/image/product.template/#{p.id}/image_1920"
-                                            t-att-alt="p.name"
-                                            style="width:100%; height:100%; object-fit:cover;"/>
-                                    </div>
-                                    <!-- Info -->
-                                    <div style="padding:8px 12px 12px;">
-                                        <p style="font-size:16px; font-weight:600; color:#212529; margin:0 0 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                            <t t-esc="p.name"/>
-                                        </p>
-                                        <p style="font-size:12px; color:rgba(0,0,0,0.25); margin:0 0 6px; display:flex; align-items:center; gap:3px;">
-                                            <i class="fa fa-map-marker" style="font-size:11px;"></i> Sleman
-                                        </p>
-                                        <div style="display:flex; align-items:center; justify-content:space-between;">
-                                            <p style="font-size:16px; font-weight:800; color:#212529; margin:0;">
-                                                <span t-field="p.list_price"
-                                                    t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
-                                            </p>
-                                            <div style="display:flex; align-items:center; gap:2px;">
-                                                <i class="fa fa-star" style="color:#FFC107; font-size:12px;"></i>
-                                                <span style="font-size:12px; color:rgba(0,0,0,0.25);">
-                                                    <t t-esc="p.rating_avg or '5.0'"/>
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a>
+                                <t t-set="ut_card_product" t-value="p"/>
+                                <t t-set="ut_card_href" t-value="p.website_url"/>
+                                <t t-set="ut_card_class" t-value="'tw-bg-white tw-border tw-border-solid tw-border-gray-200 tw-rounded-[14px] tw-overflow-hidden tw-shadow-sm hover:tw-shadow-md hover:-tw-translate-y-1 tw-transition-all tw-duration-300 tw-flex tw-flex-col tw-w-[178px] tw-min-w-[178px] tw-h-full tw-no-underline tw-group tw-shrink-0'"/>
+                                <t t-call="unitrade_theme.unitrade_product_card"/>
                             </t>
                         </div>
                     </div>

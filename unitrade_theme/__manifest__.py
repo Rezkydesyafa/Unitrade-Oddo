@@ -17,6 +17,7 @@
         'security/ir.model.access.csv',
         'data/oauth_provider.xml',
         'views/templates.xml',
+        'views/product_card_templates.xml',
         'views/homepage.xml',
         'views/shop_templates.xml',
         'views/product_templates.xml',

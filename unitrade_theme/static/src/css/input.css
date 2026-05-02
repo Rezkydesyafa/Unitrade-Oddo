@@ -114,6 +114,28 @@
    UniTrade Marketplace — Custom Styles
    ============================================ */
 
+.ut-product-card-link,
+.ut-product-card-link:hover,
+.ut-product-card-link:focus,
+.ut-product-card-link:active,
+.ut-product-card-link *,
+.ut-product-card-link:hover *,
+.ut-product-card-link:focus *,
+.ut-product-card-link:active * {
+  text-decoration: none !important;
+}
+
+.ut-category-card,
+.ut-category-card:hover,
+.ut-category-card:focus,
+.ut-category-card:active,
+.ut-category-card *,
+.ut-category-card:hover *,
+.ut-category-card:focus *,
+.ut-category-card:active * {
+  text-decoration: none !important;
+}
+
 /* Base layer overrides (compatible with Odoo Bootstrap) */
 @layer components {
     /* Hero Section */
