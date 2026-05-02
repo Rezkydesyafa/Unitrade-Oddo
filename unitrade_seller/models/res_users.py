@@ -1,9 +1,6 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 import logging
-import random
-import string
-from datetime import datetime, timedelta
 
 _logger = logging.getLogger(__name__)
 
@@ -55,12 +52,8 @@ class ResUsersUniTrade(models.Model):
         string='Tanggal Lahir',
     )
 
-    def _generate_otp(self):
-        """Generate 6-digit OTP code"""
-        return ''.join(random.choices(string.digits, k=6))
-
     def action_send_otp(self):
-        """Send OTP verification email"""
+        """Send OTP verification email using unitrade.otp as the source of truth."""
         self.ensure_one()
 
         # Rate limiting: max 3 attempts per 5 minutes
@@ -73,12 +66,13 @@ class ResUsersUniTrade(models.Model):
                 # Reset attempts after expiry
                 self.x_otp_attempts = 0
 
-        otp_code = self._generate_otp()
-        expiry = datetime.now() + timedelta(minutes=5)
+        otp_record = self.env['unitrade.otp'].sudo().generate_otp(
+            self.id, self.email or self.login
+        )
 
         self.write({
-            'x_otp_code': otp_code,
-            'x_otp_expiry': expiry,
+            'x_otp_code': otp_record.code,
+            'x_otp_expiry': otp_record.expires_at,
             'x_otp_attempts': self.x_otp_attempts + 1,
         })
 
@@ -90,22 +84,24 @@ class ResUsersUniTrade(models.Model):
         if template:
             template.send_mail(self.id, force_send=True)
             _logger.info('OTP sent to user %s (%s)', self.name, self.email)
+            self.write({'x_otp_code': False})
         else:
             _logger.warning('OTP mail template not found')
+            self.write({'x_otp_code': False})
 
         return True
 
     def action_verify_otp(self, otp_input):
-        """Verify OTP code submitted by user"""
+        """Verify OTP code submitted by user using unitrade.otp."""
         self.ensure_one()
 
-        if not self.x_otp_code:
+        if not otp_input:
             raise ValidationError(_('Belum ada OTP yang dikirim. Kirim OTP terlebih dahulu.'))
 
         if self.x_otp_expiry and self.x_otp_expiry < fields.Datetime.now():
             raise ValidationError(_('Kode OTP sudah kadaluarsa. Kirim ulang OTP.'))
 
-        if self.x_otp_code != otp_input:
+        if not self.env['unitrade.otp'].sudo().verify_otp(self.id, otp_input):
             raise ValidationError(_('Kode OTP tidak valid. Silakan coba lagi.'))
 
         # OTP verified

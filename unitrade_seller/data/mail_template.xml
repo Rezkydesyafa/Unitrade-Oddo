@@ -95,7 +95,7 @@
                     {{ object.rejection_reason }}
                 </div>
                 <p>Anda bisa mengajukan ulang verifikasi dengan memperbaiki data KTM.</p>
-                <a href="/unitrade/seller/register" style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 15px;">
+                <a href="/seller-verification" style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 15px;">
                     Coba Lagi →
                 </a>
             </div>

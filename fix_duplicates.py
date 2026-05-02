@@ -1,6 +1,6 @@
-import psycopg2
+from db_connection import connect
 
-conn = psycopg2.connect(dbname='unitrade_db', user='openpg', password='admin', host='localhost', port=5432)
+conn = connect()
 cur = conn.cursor()
 
 # Kita sisakan ID 8 (yang ada OAuth UID-nya), dan ganti login untuk ID 6 dan 7

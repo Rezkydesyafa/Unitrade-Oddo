@@ -23,6 +23,11 @@ class ProductTemplateUniTrade(models.Model):
         related='x_seller_id.user_id',
         store=True,
     )
+    x_seller_name = fields.Char(
+        string='Nama Penjual',
+        related='x_seller_id.name',
+        store=True,
+    )
     x_seller_location = fields.Char(
         string='Lokasi Penjual',
         help='Kota/kabupaten penjual',
@@ -32,6 +37,23 @@ class ProductTemplateUniTrade(models.Model):
     )
     x_seller_longitude = fields.Float(
         string='Longitude', digits=(10, 7),
+    )
+    x_item_district = fields.Selection([
+        ('yogyakarta', 'Kota Yogyakarta'),
+        ('sleman', 'Sleman'),
+        ('bantul', 'Bantul'),
+        ('kulon_progo', 'Kulon Progo'),
+        ('gunungkidul', 'Gunungkidul'),
+    ], string='Kabupaten/Kota Barang', index=True)
+    x_item_province = fields.Selection([
+        ('diy', 'DI Yogyakarta'),
+        ('other', 'Lainnya'),
+    ], string='Provinsi Barang', default='diy', index=True)
+    x_item_latitude = fields.Float(
+        string='Latitude Barang', digits=(10, 7),
+    )
+    x_item_longitude = fields.Float(
+        string='Longitude Barang', digits=(10, 7),
     )
     x_is_marketplace = fields.Boolean(
         string='Produk Marketplace',
@@ -62,6 +84,11 @@ class ProductTemplateUniTrade(models.Model):
     x_free_shipping = fields.Boolean(
         string='Gratis Ongkir',
         default=False,
+    )
+    x_discount_percent = fields.Float(
+        string='Diskon (%)',
+        digits=(5, 2),
+        default=0.0,
     )
 
     @api.model

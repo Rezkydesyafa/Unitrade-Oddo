@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "skills": {
+    "brainstorming": {
+      "source": "unclecatvn/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/brainstorming/SKILL.md",
+      "computedHash": "acfa0bf379eadc603d385c5e78ab61756f8f53d3be6c7b35a592b3e92b8fcb08"
+    },
+    "odoo-17": {
+      "source": "unclecatvn/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/odoo-17.0/SKILL.md",
+      "computedHash": "fd26ee2deb1666a8cbfbeb28adc3f1b92e75271fe4dcd85e79d3847162a33fa3"
+    },
+    "payment-integration": {
+      "source": "unclecatvn/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/payment-integration/SKILL.md",
+      "computedHash": "532b0c1eda4e0ee80863f073b7cab05d432c463bd630d57e36c28c7c38a2bb04"
+    },
+    "writing-skills": {
+      "source": "unclecatvn/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/writing-skills/SKILL.md",
+      "computedHash": "12af022a8c05f4a2ea805d943f6c0150434961eadd76013b56300d850464dd08"
+    }
+  }
+}

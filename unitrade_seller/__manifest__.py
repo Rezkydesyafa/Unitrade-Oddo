@@ -13,7 +13,7 @@
     'author': 'Tim 1 - UNISA Yogyakarta',
     'website': 'https://unitrade.dev',
     'category': 'Website',
-    'depends': ['base', 'website', 'sale', 'mail'],
+    'depends': ['base', 'website', 'sale', 'mail', 'unitrade_theme'],
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',

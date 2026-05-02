@@ -10,9 +10,15 @@
                     <field name="x_is_marketplace"/>
                     <field name="x_condition"/>
                     <field name="x_seller_id"/>
+                    <field name="x_seller_name" readonly="1"/>
                     <field name="x_seller_location"/>
                     <field name="x_seller_latitude"/>
                     <field name="x_seller_longitude"/>
+                    <field name="x_item_province"/>
+                    <field name="x_item_district"/>
+                    <field name="x_item_latitude"/>
+                    <field name="x_item_longitude"/>
+                    <field name="x_discount_percent"/>
                 </group>
             </xpath>
         </field>

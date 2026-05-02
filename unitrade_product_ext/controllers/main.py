@@ -127,13 +127,13 @@ class UnitradeWebsiteSale(WebsiteSale):
         is_public_user = request.env.user._is_public()
         if not is_public_user:
             try:
-                wish = request.env['product.wishlist'].sudo().search([
-                    ('partner_id', '=', request.env.user.partner_id.id),
-                    ('product_id.product_tmpl_id', '=', product.id),
+                wish = request.env['unitrade.wishlist'].sudo().search([
+                    ('user_id', '=', request.env.uid),
+                    ('product_id', '=', product.id),
                 ], limit=1)
                 is_in_wishlist = bool(wish)
             except Exception:
-                pass
+                _logger.exception('Failed to check UniTrade wishlist for product %s', product.id)
 
         # Stock text
         try:
