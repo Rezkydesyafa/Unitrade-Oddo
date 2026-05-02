@@ -29,6 +29,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Wishlist toggle (heart icon)
     // =============================================
     document.querySelectorAll('.unitrade-wishlist-btn').forEach((btn) => {
+        if (btn.closest('#ut-shop-owl-mount')) {
+            return;
+        }
         btn.addEventListener('click', async function (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -42,9 +45,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ product_id: parseInt(productId) }),
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'call',
+                        params: { product_id: parseInt(productId) },
+                    }),
                 });
-                const result = await response.json();
+                const payload = await response.json();
+                const result = payload.result || payload;
 
                 if (result.added) {
                     this.classList.add('tw-text-red-500');

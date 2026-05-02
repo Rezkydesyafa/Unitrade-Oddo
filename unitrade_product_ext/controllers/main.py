@@ -1,10 +1,19 @@
 from odoo import http
 from odoo.http import request
 from odoo.addons.website_sale.controllers.main import WebsiteSale
+from odoo.osv import expression
 import logging
 import math
 
 _logger = logging.getLogger(__name__)
+
+DIY_DISTRICTS = {
+    'yogyakarta': 'Kota Yogyakarta',
+    'sleman': 'Sleman',
+    'bantul': 'Bantul',
+    'kulon_progo': 'Kulon Progo',
+    'gunungkidul': 'Gunungkidul',
+}
 
 
 def _safe_get(record, field_name, default=False):
@@ -177,6 +186,13 @@ class UnitradeWebsiteSale(WebsiteSale):
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
         return R * c
 
+    @staticmethod
+    def _product_coordinates(product):
+        """Return item coordinates, falling back to seller coordinates for existing data."""
+        lat = _safe_get(product, 'x_item_latitude', 0) or _safe_get(product, 'x_seller_latitude', 0)
+        lon = _safe_get(product, 'x_item_longitude', 0) or _safe_get(product, 'x_seller_longitude', 0)
+        return lat, lon
+
     @http.route()
     def shop(self, page=0, category=None, search='', min_price=0.0, max_price=0.0, ppg=False, **post):
         """Override shop to apply UniTrade sidebar filters and sorting."""
@@ -220,19 +236,37 @@ class UnitradeWebsiteSale(WebsiteSale):
             extra_domain.append(('list_price', '<=', ut_max_price))
 
         # Location filters
-        DIY_KEYWORDS = ['Yogyakarta', 'Sleman', 'Bantul', 'Kulon Progo', 'Gunungkidul']
         if ut_lokasi == 'kabupaten':
-            extra_domain.append(('x_seller_location', 'ilike', 'Sleman'))
-        elif ut_lokasi == 'diy':
-            diy_domain = ['|'] * (len(DIY_KEYWORDS) - 1)
-            for kw in DIY_KEYWORDS:
-                diy_domain.append(('x_seller_location', 'ilike', kw))
-            extra_domain += diy_domain
-        elif ut_lokasi == 'terdekat':
-            extra_domain += [
-                ('x_seller_latitude', '!=', 0),
-                ('x_seller_longitude', '!=', 0),
+            seller_location_domains = [
+                [('x_seller_location', 'ilike', label)]
+                for label in DIY_DISTRICTS.values()
             ]
+            extra_domain = expression.AND([
+                extra_domain,
+                expression.OR([
+                    [('x_item_district', 'in', list(DIY_DISTRICTS.keys()))],
+                ] + seller_location_domains),
+            ])
+        elif ut_lokasi == 'diy':
+            seller_location_domains = [
+                [('x_seller_location', 'ilike', label)]
+                for label in DIY_DISTRICTS.values()
+            ]
+            extra_domain = expression.AND([
+                extra_domain,
+                expression.OR([
+                    [('x_item_province', '=', 'diy')],
+                    [('x_item_district', 'in', list(DIY_DISTRICTS.keys()))],
+                ] + seller_location_domains),
+            ])
+        elif ut_lokasi == 'terdekat':
+            extra_domain = expression.AND([
+                extra_domain,
+                expression.OR([
+                    [('x_item_latitude', '!=', 0), ('x_item_longitude', '!=', 0)],
+                    [('x_seller_latitude', '!=', 0), ('x_seller_longitude', '!=', 0)],
+                ]),
+            ])
 
         # --- Determine sort order ---
         sort_map = {
@@ -259,27 +293,31 @@ class UnitradeWebsiteSale(WebsiteSale):
 
             full_domain = base_domain + extra_domain
             ppg_val = response.qcontext.get('ppg', 20)
+            url_args = {
+                'search': search,
+                'lokasi': ut_lokasi,
+                'kondisi': ut_kondisi,
+                'sort': ut_sort,
+                'ut_min_price': str(ut_min_price) if ut_min_price else '',
+                'ut_max_price': str(ut_max_price) if ut_max_price else '',
+            }
 
             # Special handling for "terdekat" — sort by Haversine distance
             if ut_lokasi == 'terdekat' and ut_lat and ut_lon:
                 all_products = Product.search(full_domain)
                 product_with_dist = []
                 for p in all_products:
-                    dist = self._haversine(ut_lat, ut_lon, p.x_seller_latitude, p.x_seller_longitude)
+                    product_lat, product_lon = self._product_coordinates(p)
+                    dist = self._haversine(ut_lat, ut_lon, product_lat, product_lon)
                     product_with_dist.append((p, dist))
                 product_with_dist.sort(key=lambda x: x[1])
 
                 product_count = len(product_with_dist)
                 offset = int(page) * ppg_val if page else 0
+                url_args.update({'lat': str(ut_lat), 'lon': str(ut_lon)})
                 pager = request.website.pager(
                     url='/shop', total=product_count, page=page, step=ppg_val,
-                    url_args={
-                        'search': search, 'lokasi': ut_lokasi, 'kondisi': ut_kondisi,
-                        'sort': ut_sort,
-                        'ut_min_price': str(ut_min_price) if ut_min_price else '',
-                        'ut_max_price': str(ut_max_price) if ut_max_price else '',
-                        'lat': str(ut_lat), 'lon': str(ut_lon),
-                    }
+                    url_args=url_args
                 )
                 page_products = [pd[0] for pd in product_with_dist[offset:offset + ppg_val]]
                 products = Product.browse([p.id for p in page_products]) if page_products else Product.browse([])
@@ -290,12 +328,7 @@ class UnitradeWebsiteSale(WebsiteSale):
                 product_count = Product.search_count(full_domain)
                 pager = request.website.pager(
                     url='/shop', total=product_count, page=page, step=ppg_val,
-                    url_args={
-                        'search': search, 'lokasi': ut_lokasi, 'kondisi': ut_kondisi,
-                        'sort': ut_sort,
-                        'ut_min_price': str(ut_min_price) if ut_min_price else '',
-                        'ut_max_price': str(ut_max_price) if ut_max_price else '',
-                    }
+                    url_args=url_args
                 )
                 products = Product.search(
                     full_domain, order=order,
@@ -313,6 +346,55 @@ class UnitradeWebsiteSale(WebsiteSale):
         response.qcontext['ut_max_price'] = ut_max_price
 
         return response
+
+    @http.route('/unitrade/shop/filter', type='json', auth='public', website=True, csrf=False)
+    def unitrade_shop_filter(self, **post):
+        """Return the UniTrade shop product grid for OWL filter updates."""
+        payload = dict(post)
+
+        try:
+            page = int(payload.pop('page', 0) or 0)
+        except (ValueError, TypeError):
+            page = 0
+
+        search = payload.pop('search', '') or ''
+        category_id = payload.pop('category_id', '') or payload.pop('category', '') or None
+        ppg = payload.pop('ppg', False) or False
+
+        try:
+            category = int(category_id) if category_id else None
+        except (ValueError, TypeError):
+            category = None
+
+        try:
+            response = self.shop(
+                page=page,
+                category=category,
+                search=search,
+                min_price=0.0,
+                max_price=0.0,
+                ppg=ppg,
+                **payload
+            )
+            if not hasattr(response, 'qcontext'):
+                return {'html': '', 'search_count': 0}
+
+            qcontext = response.qcontext
+            html = request.env['ir.ui.view']._render_template(
+                'unitrade_theme.unitrade_shop_results_fragment',
+                qcontext
+            )
+            return {
+                'html': str(html),
+                'search_count': qcontext.get('search_count', 0),
+            }
+        except Exception:
+            _logger.exception('Failed to render UniTrade OWL shop filter response')
+            return {
+                'html': '',
+                'search_count': 0,
+                'error': 'filter_render_failed',
+            }
 
     @http.route()
     def product(self, product, category='', search='', **kwargs):

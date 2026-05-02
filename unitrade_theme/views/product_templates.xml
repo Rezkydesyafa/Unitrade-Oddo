@@ -527,7 +527,7 @@
                     function utWishlistClick(btn) {
                         var pid = btn.getAttribute('data-product-id');
                         if (!pid) return;
-                        fetch('/shop/wishlist/add', {
+                        fetch('/unitrade/wishlist/toggle', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ jsonrpc: '2.0', method: 'call', id: 1, params: { product_id: parseInt(pid, 10) } })

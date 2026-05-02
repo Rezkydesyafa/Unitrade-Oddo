@@ -1,266 +1,428 @@
 /** @odoo-module **/
+
 import publicWidget from "@web/legacy/js/public/public_widget";
+import { Component, onMounted, onWillUnmount, useEffect, useRef, useState } from "@odoo/owl";
+import { mountComponent } from "@web/env";
+import "@web/core/network/rpc_service";
+import { useService } from "@web/core/utils/hooks";
 
-publicWidget.registry.UnitradeShopFilter = publicWidget.Widget.extend({
-    selector: '.o_wsale_products_main_row',
-    events: {
-        'click #ut-btn-simpan': '_onSimpan',
-        'click #ut-btn-batal': '_onBatal',
-        'click #ut-btn-reset': '_onReset',
-        'input #min-price': '_onSliderInput',
-        'input #max-price': '_onSliderInput',
-        'click [data-sort]': '_onSort',
-        'click .ut-pill': '_onPillClick',
-    },
+const MAX_PRICE_K = 5000;
+const MIN_GAP_K = 10;
+const DEFAULT_LAT = -7.7956;
+const DEFAULT_LON = 110.3695;
 
-    start() {
-        this.params = new URLSearchParams(window.location.search);
-        this.minSlider = this.el.querySelector('#min-price');
-        this.maxSlider = this.el.querySelector('#max-price');
-        this.minTooltip = this.el.querySelector('#min-tooltip');
-        this.maxTooltip = this.el.querySelector('#max-tooltip');
-        this.sliderTrack = this.el.querySelector('#slider-track');
-        this.odooMin = this.el.querySelector('#odoo-min-price');
-        this.odooMax = this.el.querySelector('#odoo-max-price');
-        this.lokasiInput = this.el.querySelector('#ut-lokasi-val');
-        this.kondisiInput = this.el.querySelector('#ut-kondisi-val');
-        // Store user geolocation if available
-        this.userLat = parseFloat(this.params.get('lat') || '0');
-        this.userLon = parseFloat(this.params.get('lon') || '0');
-        this._restoreFilters();
-        this._updateSlider();
-        return this._super.apply(this, arguments);
-    },
+function intOrDefault(value, fallback) {
+    const parsed = parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : fallback;
+}
 
-    // ─── PILL TOGGLE (Lokasi & Kondisi) ─────────────────────
-    _onPillClick(ev) {
-        var pill = ev.currentTarget;
-        var group = pill.getAttribute('data-group');
-        var value = pill.getAttribute('data-value');
+function floatOrDefault(value, fallback) {
+    const parsed = parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+}
 
-        // Find all pills in same group
-        var siblings = this.el.querySelectorAll('.ut-pill[data-group="' + group + '"]');
-        for (var i = 0; i < siblings.length; i++) {
-            siblings[i].classList.remove('ut-pill-active');
-            siblings[i].classList.add('ut-pill-inactive');
+function normalizeKondisi(value) {
+    const map = { new: "baru", used: "bekas" };
+    return map[value] || value || "";
+}
+
+function toServerKondisi(value) {
+    const map = { baru: "new", bekas: "used" };
+    return map[value] || value || "";
+}
+
+export class UnitradeShopFilter extends Component {
+    static template = "unitrade_theme.ShopFilter";
+    static props = {
+        initialResultsHtml: { type: String, optional: true },
+        search: { type: String, optional: true },
+        categoryId: { type: String, optional: true },
+        ppg: { type: String, optional: true },
+    };
+    static defaultProps = {
+        initialResultsHtml: "",
+        search: "",
+        categoryId: "",
+        ppg: "",
+    };
+
+    setup() {
+        this.rpc = useService("rpc");
+        this.resultsRef = useRef("results");
+        this.requestSeq = 0;
+        this.onPopState = () => this.restoreFromUrl({ load: true });
+        this.basePath = window.location.pathname.replace(/\/page\/\d+\/?$/, "") || "/shop";
+
+        this.state = useState(this._stateFromCurrentUrl());
+
+        onMounted(() => {
+            this._writeResultsHtml();
+            window.addEventListener("popstate", this.onPopState);
+        });
+
+        onWillUnmount(() => {
+            window.removeEventListener("popstate", this.onPopState);
+        });
+
+        useEffect(
+            () => {
+                this._writeResultsHtml();
+            },
+            () => [this.state.resultsHtml]
+        );
+    }
+
+    _stateFromCurrentUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const minPrice = intOrDefault(params.get("ut_min_price"), 0);
+        const maxPrice = intOrDefault(params.get("ut_max_price"), 0);
+        return {
+            lokasi: params.get("lokasi") || "",
+            kondisi: normalizeKondisi(params.get("kondisi")),
+            sort: params.get("sort") || "terkait",
+            minK: minPrice > 0 ? Math.round(minPrice / 1000) : 0,
+            maxK: maxPrice > 0 ? Math.round(maxPrice / 1000) : MAX_PRICE_K,
+            userLat: floatOrDefault(params.get("lat"), 0),
+            userLon: floatOrDefault(params.get("lon"), 0),
+            loading: false,
+            geoLoading: false,
+            resultsHtml: this.props.initialResultsHtml,
+        };
+    }
+
+    _applyStateFromUrl() {
+        const next = this._stateFromCurrentUrl();
+        this.state.lokasi = next.lokasi;
+        this.state.kondisi = next.kondisi;
+        this.state.sort = next.sort;
+        this.state.minK = next.minK;
+        this.state.maxK = next.maxK;
+        this.state.userLat = next.userLat;
+        this.state.userLon = next.userLon;
+    }
+
+    _writeResultsHtml() {
+        if (this.resultsRef.el) {
+            this.resultsRef.el.innerHTML = this.state.resultsHtml || "";
         }
+    }
 
-        // Toggle: if clicking already-selected, deselect
-        var hiddenInput = this.el.querySelector('#ut-' + group + '-val');
-        if (hiddenInput && hiddenInput.value === value) {
-            hiddenInput.value = '';
-        } else {
-            pill.classList.remove('ut-pill-inactive');
-            pill.classList.add('ut-pill-active');
-            if (hiddenInput) hiddenInput.value = value;
+    get minPct() {
+        return (this.state.minK / MAX_PRICE_K) * 100;
+    }
 
-            // If "terdekat" selected, request geolocation
-            if (group === 'lokasi' && value === 'terdekat') {
-                this._requestGeolocation();
-            }
+    get maxPct() {
+        return (this.state.maxK / MAX_PRICE_K) * 100;
+    }
+
+    get trackStyle() {
+        return [
+            "position:absolute",
+            "top:50%",
+            "transform:translateY(-50%)",
+            "height:10px",
+            "background:#d0d0d0",
+            "border-radius:999px",
+            "z-index:2",
+            "pointer-events:none",
+            `left:${this.minPct}%`,
+            `right:${100 - this.maxPct}%`,
+        ].join(";") + ";";
+    }
+
+    get minTooltipStyle() {
+        return [
+            "position:absolute",
+            "top:100%",
+            "margin-top:4px",
+            "z-index:5",
+            "pointer-events:none",
+            "transform:translateX(-50%)",
+            `left:${this.minPct}%`,
+        ].join(";") + ";";
+    }
+
+    get maxTooltipStyle() {
+        return [
+            "position:absolute",
+            "bottom:100%",
+            "margin-bottom:4px",
+            "z-index:5",
+            "pointer-events:none",
+            "transform:translateX(-50%)",
+            `left:${this.maxPct}%`,
+        ].join(";") + ";";
+    }
+
+    formatK(valueK) {
+        if (valueK >= 1000) {
+            const jt = valueK / 1000;
+            return `${jt % 1 === 0 ? jt.toFixed(0) : jt.toFixed(1)} Jt`;
         }
-    },
+        return `${valueK} K`;
+    }
 
-    // ─── GEOLOCATION ────────────────────────────────────────
-    _requestGeolocation() {
-        var self = this;
+    pillClass(group, value) {
+        const active = this.state[group] === value;
+        const loading = group === "lokasi" && value === "terdekat" && this.state.geoLoading;
+        return [
+            "ut-pill",
+            active ? "ut-pill-active" : "ut-pill-inactive",
+            loading ? "ut-pill-loading" : "",
+        ].filter(Boolean).join(" ");
+    }
+
+    sortClass(value) {
+        const base = "tw-px-5 tw-h-[36px] tw-rounded-full tw-font-['Urbanist'] tw-text-[14px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-transition-colors";
+        if (this.state.sort === value) {
+            return `${base} tw-bg-[#1a1a1a] tw-text-white tw-font-semibold`;
+        }
+        return `${base} tw-font-medium tw-text-gray-600 hover:tw-bg-gray-100 hover:tw-text-black`;
+    }
+
+    togglePill(group, value) {
+        this.state[group] = this.state[group] === value ? "" : value;
+        if (group === "lokasi" && this.state.lokasi === "terdekat") {
+            this.requestGeolocation({ alertOnDenied: false });
+        }
+    }
+
+    onMinInput(ev) {
+        let value = intOrDefault(ev.target.value, 0);
+        if (value >= this.state.maxK) {
+            value = Math.max(0, this.state.maxK - MIN_GAP_K);
+        }
+        this.state.minK = value;
+    }
+
+    onMaxInput(ev) {
+        let value = intOrDefault(ev.target.value, MAX_PRICE_K);
+        if (value <= this.state.minK) {
+            value = Math.min(MAX_PRICE_K, this.state.minK + MIN_GAP_K);
+        }
+        this.state.maxK = value;
+    }
+
+    async changeSort(sortKey) {
+        this.state.sort = sortKey;
+        await this.loadResults({ page: 0 });
+    }
+
+    async applyFilters(ev) {
+        if (ev) {
+            ev.preventDefault();
+        }
+        await this.loadResults({ page: 0 });
+    }
+
+    async resetFilters(ev) {
+        if (ev) {
+            ev.preventDefault();
+        }
+        this.state.lokasi = "";
+        this.state.kondisi = "";
+        this.state.sort = "terkait";
+        this.state.minK = 0;
+        this.state.maxK = MAX_PRICE_K;
+        this.state.userLat = 0;
+        this.state.userLon = 0;
+        await this.loadResults({ page: 0 });
+    }
+
+    async restoreFromUrl(options = {}) {
+        this._applyStateFromUrl();
+        if (options.load) {
+            await this.loadResults({ page: this._pageFromCurrentPath(), replace: true });
+        }
+    }
+
+    async requestGeolocation(options = {}) {
         if (!navigator.geolocation) {
-            alert('Browser Anda tidak mendukung Geolocation. Filter "Terdekat" akan menampilkan semua produk.');
+            this.state.userLat = DEFAULT_LAT;
+            this.state.userLon = DEFAULT_LON;
+            if (options.alertOnDenied) {
+                window.alert('Browser Anda tidak mendukung Geolocation. Menggunakan lokasi default (Yogyakarta).');
+            }
             return;
         }
 
-        // Show loading indicator on the pill
-        var pill = this.el.querySelector('.ut-pill[data-value="terdekat"]');
-        if (pill) pill.innerText = 'Mencari...';
+        this.state.geoLoading = true;
+        try {
+            const position = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 300000,
+                });
+            });
+            this.state.userLat = position.coords.latitude;
+            this.state.userLon = position.coords.longitude;
+        } catch (error) {
+            this.state.userLat = DEFAULT_LAT;
+            this.state.userLon = DEFAULT_LON;
+            if (options.alertOnDenied && error && error.code === 1) {
+                window.alert("Izin lokasi ditolak. Menggunakan lokasi default (Yogyakarta).");
+            }
+        } finally {
+            this.state.geoLoading = false;
+        }
+    }
 
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                self.userLat = position.coords.latitude;
-                self.userLon = position.coords.longitude;
-                if (pill) pill.innerText = 'Terdekat ✓';
-            },
-            function(error) {
-                // Fallback: use Yogyakarta city center coordinates
-                self.userLat = -7.7956;
-                self.userLon = 110.3695;
-                if (pill) pill.innerText = 'Terdekat';
-                var msg = 'Izin lokasi ditolak. Menggunakan lokasi default (Yogyakarta).';
-                if (error.code === 1) {
-                    // Permission denied
-                    alert(msg);
-                }
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
-        );
-    },
+    _buildParams() {
+        const params = new URLSearchParams();
+        const search = this.props.search || new URLSearchParams(window.location.search).get("search") || "";
+        if (search) {
+            params.set("search", search);
+        }
+        if (this.state.sort && this.state.sort !== "terkait") {
+            params.set("sort", this.state.sort);
+        }
+        if (this.state.lokasi) {
+            params.set("lokasi", this.state.lokasi);
+        }
+        if (this.state.lokasi === "terdekat" && this.state.userLat && this.state.userLon) {
+            params.set("lat", this.state.userLat.toFixed(6));
+            params.set("lon", this.state.userLon.toFixed(6));
+        }
+        if (this.state.minK > 0) {
+            params.set("ut_min_price", String(this.state.minK * 1000));
+        }
+        if (this.state.maxK < MAX_PRICE_K) {
+            params.set("ut_max_price", String(this.state.maxK * 1000));
+        }
+        if (this.state.kondisi) {
+            params.set("kondisi", toServerKondisi(this.state.kondisi));
+        }
+        return params;
+    }
 
-    // ─── RESTORE FILTERS ────────────────────────────────────
-    _restoreFilters() {
-        // Restore lokasi
-        var lokasi = this.params.get('lokasi') || '';
-        if (lokasi && this.lokasiInput) {
-            this.lokasiInput.value = lokasi;
-            var pill = this.el.querySelector('.ut-pill[data-group="lokasi"][data-value="' + lokasi + '"]');
-            if (pill) {
-                pill.classList.remove('ut-pill-inactive');
-                pill.classList.add('ut-pill-active');
-                if (lokasi === 'terdekat' && this.userLat) {
-                    pill.innerText = 'Terdekat ✓';
-                }
+    _payloadFromParams(params, page) {
+        const payload = Object.fromEntries(params.entries());
+        payload.page = page || 0;
+        payload.search = this.props.search || payload.search || "";
+        payload.category_id = this.props.categoryId || "";
+        payload.ppg = this.props.ppg || "";
+        return payload;
+    }
+
+    async loadResults(options = {}) {
+        if (this.state.loading) {
+            return;
+        }
+        if (this.state.lokasi === "terdekat" && (!this.state.userLat || !this.state.userLon)) {
+            await this.requestGeolocation({ alertOnDenied: true });
+        }
+
+        const page = options.page || 0;
+        const params = this._buildParams();
+        const payload = this._payloadFromParams(params, page);
+        const requestId = ++this.requestSeq;
+
+        this.state.loading = true;
+        try {
+            const result = await this.rpc("/unitrade/shop/filter", payload);
+            if (requestId !== this.requestSeq) {
+                return;
+            }
+            if (result.error) {
+                throw new Error(result.error);
+            }
+            this.state.resultsHtml = result.html || "";
+            this._updateUrl(params, page, options.replace);
+        } catch (error) {
+            console.error("UniTrade shop filter error:", error);
+            window.alert("Filter belum bisa dimuat. Silakan coba lagi.");
+        } finally {
+            if (requestId === this.requestSeq) {
+                this.state.loading = false;
             }
         }
+    }
 
-        // Restore kondisi (URL uses new/used, pills use baru/bekas)
-        var kondisi = this.params.get('kondisi') || '';
-        if (kondisi && this.kondisiInput) {
-            var map = { 'new': 'baru', 'used': 'bekas' };
-            var val = map[kondisi] || kondisi;
-            this.kondisiInput.value = val;
-            var kpill = this.el.querySelector('.ut-pill[data-group="kondisi"][data-value="' + val + '"]');
-            if (kpill) {
-                kpill.classList.remove('ut-pill-inactive');
-                kpill.classList.add('ut-pill-active');
-            }
+    async onResultsClick(ev) {
+        const wishlistBtn = ev.target.closest(".unitrade-wishlist-btn");
+        if (wishlistBtn) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            await this.toggleWishlist(wishlistBtn);
+            return;
         }
 
-        // Restore price slider from URL
-        if (this.minSlider && this.maxSlider) {
-            var urlMin = parseInt(this.params.get('ut_min_price') || '0');
-            var urlMax = parseInt(this.params.get('ut_max_price') || '0');
-            if (urlMin > 0) this.minSlider.value = Math.round(urlMin / 1000);
-            if (urlMax > 0) this.maxSlider.value = Math.round(urlMax / 1000);
+        const pagerLink = ev.target.closest(".products_pager a[href]");
+        if (pagerLink) {
+            ev.preventDefault();
+            const page = this._pageFromHref(pagerLink.href);
+            await this.loadResults({ page });
         }
+    }
 
-        // Restore sort highlight
-        var sort = this.params.get('sort') || 'terkait';
-        var pills = this.el.querySelectorAll('[data-sort]');
-        for (var j = 0; j < pills.length; j++) {
-            if (pills[j].getAttribute('data-sort') === sort) {
-                pills[j].style.backgroundColor = '#1a1a1a';
-                pills[j].style.color = '#fff';
-                pills[j].style.fontWeight = '600';
-            }
+    async toggleWishlist(button) {
+        const productId = intOrDefault(button.dataset.productId, 0);
+        if (!productId) {
+            return;
         }
-    },
-
-    // ─── SLIDER ─────────────────────────────────────────────
-    _onSliderInput(ev) { this._updateSlider(ev); },
-
-    _updateSlider(ev) {
-        if (!this.minSlider || !this.maxSlider) return;
-        var minVal = parseInt(this.minSlider.value);
-        var maxVal = parseInt(this.maxSlider.value);
-        if (minVal >= maxVal) {
-            if (ev && ev.target && ev.target.id === 'min-price') {
-                this.minSlider.value = maxVal - 10; minVal = maxVal - 10;
+        try {
+            const result = await this.rpc("/unitrade/wishlist/toggle", { product_id: productId });
+            if (result.added) {
+                button.classList.add("tw-text-red-500");
+                button.classList.remove("tw-text-gray-400");
             } else {
-                this.maxSlider.value = minVal + 10; maxVal = minVal + 10;
+                button.classList.remove("tw-text-red-500");
+                button.classList.add("tw-text-gray-400");
             }
+        } catch (error) {
+            console.error("Wishlist toggle error:", error);
         }
-        var sliderMax = parseInt(this.minSlider.max);
-        var minPct = (minVal / sliderMax) * 100;
-        var maxPct = (maxVal / sliderMax) * 100;
-        if (this.sliderTrack) {
-            this.sliderTrack.style.left = minPct + '%';
-            this.sliderTrack.style.right = (100 - maxPct) + '%';
+    }
+
+    _pageFromHref(href) {
+        const url = new URL(href, window.location.origin);
+        const match = url.pathname.match(/\/page\/(\d+)\/?$/);
+        if (match) {
+            return intOrDefault(match[1], 0);
         }
-        if (this.minTooltip) {
-            this.minTooltip.style.left = minPct + '%';
-            this.minTooltip.innerText = this._formatK(minVal);
+        return intOrDefault(url.searchParams.get("page"), 0);
+    }
+
+    _pageFromCurrentPath() {
+        const match = window.location.pathname.match(/\/page\/(\d+)\/?$/);
+        return match ? intOrDefault(match[1], 0) : 0;
+    }
+
+    _updateUrl(params, page, replace = false) {
+        let path = this.basePath || "/shop";
+        if (page) {
+            path = `${path.replace(/\/$/, "")}/page/${page}`;
         }
-        if (this.maxTooltip) {
-            this.maxTooltip.style.left = maxPct + '%';
-            this.maxTooltip.innerText = this._formatK(maxVal);
-        }
-        if (this.odooMin) this.odooMin.value = minVal * 1000;
-        if (this.odooMax) this.odooMax.value = maxVal * 1000;
+        const query = params.toString();
+        const url = `${path}${query ? `?${query}` : ""}`;
+        const method = replace ? "replaceState" : "pushState";
+        window.history[method]({}, "", url);
+    }
+}
+
+publicWidget.registry.UnitradeShopFilter = publicWidget.Widget.extend({
+    selector: "#ut-shop-owl-mount",
+
+    async start() {
+        const superPromise = this._super.apply(this, arguments);
+        const results = this.el.querySelector("#ut-shop-results");
+        const props = {
+            initialResultsHtml: results ? results.innerHTML : "",
+            search: this.el.dataset.search || "",
+            categoryId: this.el.dataset.categoryId || "",
+            ppg: this.el.dataset.ppg || "",
+        };
+
+        this.el.innerHTML = "";
+        this.component = await mountComponent(UnitradeShopFilter, this.el, { props });
+        return superPromise;
     },
 
-    _formatK(valK) {
-        if (valK >= 1000) {
-            var jt = valK / 1000;
-            return (jt % 1 === 0 ? jt.toFixed(0) : jt.toFixed(1)) + ' Jt';
+    destroy() {
+        if (this.component && this.component.destroy) {
+            this.component.destroy();
         }
-        return valK + ' K';
-    },
-
-    // ─── SORT ───────────────────────────────────────────────
-    _onSort(ev) {
-        var sortKey = ev.currentTarget.getAttribute('data-sort');
-        var p = new URLSearchParams(window.location.search);
-        p.set('sort', sortKey);
-        window.location.href = '/shop?' + p.toString();
-    },
-
-    // ─── SIMPAN ─────────────────────────────────────────────
-    _onSimpan(ev) {
-        ev.preventDefault();
-        var p = new URLSearchParams();
-        var s = this.params.get('search');
-        if (s) p.set('search', s);
-        var so = this.params.get('sort');
-        if (so) p.set('sort', so);
-
-        // Lokasi
-        var lokasi = this.lokasiInput ? this.lokasiInput.value : '';
-        if (lokasi) p.set('lokasi', lokasi);
-
-        // If terdekat, include coordinates
-        if (lokasi === 'terdekat') {
-            if (this.userLat && this.userLon) {
-                p.set('lat', this.userLat.toFixed(6));
-                p.set('lon', this.userLon.toFixed(6));
-            } else {
-                // Try to get geolocation synchronously-ish
-                var self = this;
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        function(pos) {
-                            p.set('lat', pos.coords.latitude.toFixed(6));
-                            p.set('lon', pos.coords.longitude.toFixed(6));
-                            self._navigateWithParams(p);
-                        },
-                        function() {
-                            // Fallback to Yogyakarta
-                            p.set('lat', '-7.795600');
-                            p.set('lon', '110.369500');
-                            self._navigateWithParams(p);
-                        },
-                        { timeout: 5000 }
-                    );
-                    return; // Wait for async geolocation
-                }
-            }
-        }
-
-        // Price
-        var mnP = this.odooMin ? parseInt(this.odooMin.value) : 0;
-        var mxP = this.odooMax ? parseInt(this.odooMax.value) : 0;
-        if (mnP > 0) p.set('ut_min_price', mnP);
-        if (mxP > 0 && mxP < 5000000) p.set('ut_max_price', mxP);
-
-        // Kondisi (baru→new, bekas→used)
-        var kondisi = this.kondisiInput ? this.kondisiInput.value : '';
-        if (kondisi) {
-            var km = { 'baru': 'new', 'bekas': 'used' };
-            p.set('kondisi', km[kondisi] || kondisi);
-        }
-
-        this._navigateWithParams(p);
-    },
-
-    _navigateWithParams(p) {
-        window.location.href = '/shop?' + p.toString();
-    },
-
-    // ─── BATAL & RESET ──────────────────────────────────────
-    _onBatal() { window.location.reload(); },
-
-    _onReset() {
-        var p = new URLSearchParams();
-        var s = this.params.get('search');
-        if (s) p.set('search', s);
-        var qs = p.toString();
-        window.location.href = '/shop' + (qs ? '?' + qs : '');
+        this._super.apply(this, arguments);
     },
 });

@@ -31,6 +31,10 @@
                 </div>
             </div>
 
+            <div id="ut-shop-owl-mount"
+                t-att-data-search="search or ''"
+                t-att-data-category-id="category.id if category else ''"
+                t-att-data-ppg="ppg or ''">
             <div class="row o_wsale_products_main_row align-items-start flex-nowrap tw-w-full tw-max-w-[1200px] tw-mx-auto tw-m-0 tw-px-0 md:tw-px-4">
                 <!-- Filter Sidebar -->
                 <aside id="products_grid_before" class="d-none d-lg-block col-3 px-3 clearfix">
@@ -44,7 +48,7 @@
                         <!-- Lokasi -->
                         <div class="tw-mb-8">
                             <h6 class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-[#4a4a4a] tw-mb-3 tw-text-left">Lokasi</h6>
-                            <div class="tw-bg-[#fafafa] tw-p-[4px] tw-rounded-full tw-flex tw-items-center tw-w-full" id="ut-lokasi-group">
+                            <div class="tw-bg-[#fafafa] tw-p-[4px] tw-rounded-full tw-flex tw-items-center tw-w-full tw-min-h-[44px]" id="ut-lokasi-group">
                                 <div class="ut-pill ut-pill-inactive" data-group="lokasi" data-value="terdekat">Terdekat</div>
                                 <div class="ut-pill ut-pill-inactive" data-group="lokasi" data-value="kabupaten">Kabupaten</div>
                                 <div class="ut-pill ut-pill-inactive" data-group="lokasi" data-value="diy">DIY</div>
@@ -70,9 +74,10 @@
                                 .custom-range-slider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; pointer-events:auto; width:18px; height:18px; background:#000; border-radius:50%; cursor:pointer; border:none; position:relative; z-index:50; margin-top:-4px; }
                                 .custom-range-slider::-moz-range-track { background:transparent; height:10px; border:none; }
                                 .custom-range-slider::-moz-range-thumb { pointer-events:auto; width:18px; height:18px; background:#000; border-radius:50%; cursor:pointer; border:none; }
-                                .ut-pill { flex:1; text-align:center; padding:6px 0; border-radius:999px; font-family:'Urbanist',sans-serif; font-size:14px; cursor:pointer; transition:all 0.2s ease; user-select:none; }
+                                .ut-pill { flex:1 1 0; min-width:0; height:36px; display:flex; align-items:center; justify-content:center; text-align:center; padding:0 8px; border-radius:999px; font-family:'Urbanist',sans-serif; font-size:13px; line-height:1; white-space:nowrap; cursor:pointer; transition:all 0.2s ease; user-select:none; }
                                 .ut-pill-inactive { color:#b3b3b3; font-weight:500; background:transparent; }
                                 .ut-pill-active { color:#1a1a1a; font-weight:700; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+                                .ut-pill-loading { font-size:12px; }
                             </style>
                         </div>
                         
@@ -108,35 +113,42 @@
                         </div>
                     </div>
                     
-                    <!-- Products Grid Container -->
-                    <div t-if="products" class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 xl:tw-grid-cols-5 tw-gap-3 md:tw-gap-4 tw-mb-8 tw-w-full">
-                        <t t-foreach="products" t-as="product">
-                            <div class="oe_product tw-h-full">
-                                <t t-call="website_sale.products_item">
-                                    <t t-set="product" t-value="product"/>
-                                </t>
-                            </div>
-                        </t>
-                    </div>
-                    <div t-else="" class="tw-w-full tw-flex tw-flex-col tw-items-center tw-justify-center tw-pt-[80px] tw-pb-[120px]">
-                        <svg class="tw-w-[111px] tw-h-[111px] tw-opacity-68 tw-mb-[15px] tw-text-[#d9d9d9]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75l-2.489-2.489m0 0a3.375 3.375 0 10-4.773-4.773 3.375 3.375 0 004.774 4.774zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <p class="tw-font-['Urbanist'] tw-font-bold tw-text-[#212529] tw-text-[18px] tw-opacity-68 tw-leading-[28px] tw-m-0">
-                            Sepertinya barang yang kamu cari tidak ada
-                        </p>
-                        <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[#737373] tw-text-[16px] tw-opacity-68 tw-leading-[28px] tw-m-0">
-                            Coba gunakan kata kunci yang lain atau umum
-                        </p>
-                    </div>
-                    
-                    <div class="products_pager d-flex justify-content-center pt-5 pb-3">
-                        <t t-call="website.pager"/>
+                    <div id="ut-shop-results">
+                        <t t-call="unitrade_theme.unitrade_shop_results_fragment"/>
                     </div>
                 </div>
             </div>
+            </div>
 
         </xpath>
+    </template>
+
+    <template id="unitrade_shop_results_fragment" name="UniTrade Shop Results Fragment">
+        <!-- Products Grid Container -->
+        <div t-if="products" class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 xl:tw-grid-cols-5 tw-gap-3 md:tw-gap-4 tw-mb-8 tw-w-full">
+            <t t-foreach="products" t-as="product">
+                <div class="oe_product tw-h-full">
+                    <t t-call="website_sale.products_item">
+                        <t t-set="product" t-value="product"/>
+                    </t>
+                </div>
+            </t>
+        </div>
+        <div t-else="" class="tw-w-full tw-flex tw-flex-col tw-items-center tw-justify-center tw-pt-[80px] tw-pb-[120px]">
+            <svg class="tw-w-[111px] tw-h-[111px] tw-opacity-68 tw-mb-[15px] tw-text-[#d9d9d9]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75l-2.489-2.489m0 0a3.375 3.375 0 10-4.773-4.773 3.375 3.375 0 004.774 4.774zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="tw-font-['Urbanist'] tw-font-bold tw-text-[#212529] tw-text-[18px] tw-opacity-68 tw-leading-[28px] tw-m-0">
+                Sepertinya barang yang kamu cari tidak ada
+            </p>
+            <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[#737373] tw-text-[16px] tw-opacity-68 tw-leading-[28px] tw-m-0">
+                Coba gunakan kata kunci yang lain atau umum
+            </p>
+        </div>
+
+        <div class="products_pager d-flex justify-content-center pt-5 pb-3">
+            <t t-call="website.pager"/>
+        </div>
     </template>
 
     <!-- Override individual product card -->
@@ -157,6 +169,14 @@
                             <span t-field="image_holder.image_1920"
                                 t-options="{'widget': 'image', 'preview_image': 'image_512', 'itemprop': 'image', 'class': 'tw-w-full tw-h-full tw-object-cover position-absolute group-hover:tw-scale-105 tw-transition-transform tw-duration-300'}"
                                 class="oe_product_image_img_wrapper d-flex h-100 justify-content-center align-items-center position-absolute tw-w-full tw-h-full"/>
+                            <t t-if="product.x_discount_percent">
+                                <span class="tw-absolute tw-top-2 tw-left-2 tw-bg-black tw-text-white tw-rounded-full tw-px-2 tw-py-1 tw-font-['Urbanist'] tw-font-bold tw-text-[10px]">
+                                    -<t t-esc="'{:,.0f}'.format(product.x_discount_percent)"/>%
+                                </span>
+                            </t>
+                            <button type="button" t-att-data-product-id="product.id" class="unitrade-wishlist-btn tw-absolute tw-top-2 tw-right-2 tw-w-8 tw-h-8 tw-rounded-full tw-bg-white/90 tw-text-gray-400 tw-border-0 tw-flex tw-items-center tw-justify-center tw-shadow-sm hover:tw-text-red-500 tw-transition-colors" aria-label="Toggle wishlist">
+                                <i class="fa fa-heart"></i>
+                            </button>
                         </div>
                     </div>
                     <div class="tw-px-3 tw-pb-3 tw-flex tw-flex-col tw-flex-grow">
@@ -167,7 +187,8 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-3 tw-h-3 tw-mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                               <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg> Sleman
+                            </svg>
+                            <t t-esc="product.x_seller_location or product.x_item_district or 'Yogyakarta'"/>
                         </p>
                         
                         <div class="tw-flex tw-justify-between tw-items-center tw-mt-auto">

@@ -20,8 +20,13 @@ class UnitradeWishlistController(http.Controller):
 
     @http.route('/unitrade/wishlist/toggle', type='json', auth='user', methods=['POST'])
     def wishlist_toggle(self, **kwargs):
-        data = request.jsonrequest
-        product_id = data.get('product_id')
+        data = request.jsonrequest or {}
+        params = data.get('params') if isinstance(data, dict) else {}
+        product_id = kwargs.get('product_id') or (params or {}).get('product_id') or data.get('product_id')
+        try:
+            product_id = int(product_id)
+        except (TypeError, ValueError):
+            return {'added': False, 'message': 'Produk tidak valid'}
 
         Wishlist = request.env['unitrade.wishlist'].sudo()
         existing = Wishlist.search([
