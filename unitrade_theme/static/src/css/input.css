@@ -2,6 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* UniTrade theme tokens: change colors here to update CSS and Tailwind token classes. */
+  --ut-color-primary: #0071e3;
+  --ut-color-secondary: #0066cc;
+  --ut-color-accent: #ff9500;
+  --ut-color-success: #34c759;
+  --ut-color-danger: #ff3b30;
+  --ut-color-danger-hover: #d70015;
+
+  --ut-color-text-main: #1d1d1f;
+  --ut-color-text-body: #515154;
+  --ut-color-text-muted: #6e6e73;
+  --ut-color-text-subtle: #86868b;
+  --ut-color-heading: #1d1d1f;
+  --ut-color-heading-strong: #000000;
+  --ut-color-inverse: #ffffff;
+
+  --ut-color-bg-main: #f5f5f7;
+  --ut-color-bg-page: #f5f5f7;
+  --ut-color-bg-surface: #ffffff;
+  --ut-color-bg-muted: #f2f2f2;
+  --ut-color-border: #d2d2d7;
+  --ut-color-border-strong: #86868b;
+  --ut-color-divider: #e5e5ea;
+
+  --ut-color-button-bg: #000000;
+  --ut-color-button-bg-hover: #000000;
+  --ut-color-button-text: #ffffff;
+  --ut-color-button-outline-text: #1d1d1f;
+  --ut-color-button-outline-border: #86868b;
+
+  --ut-shadow-button: rgba(0, 0, 0, 0.2);
+  --ut-shadow-card: rgba(0, 0, 0, 0.08);
+  --ut-shadow-danger: rgba(197, 48, 48, 0.3);
+}
+
 /* ============================================
    UniTrade — Scoped Bootstrap Reset (Flat CSS)
    Targets only elements inside .unitrade-detail-scope
@@ -54,7 +90,7 @@
    ============================================ */
 
 /* Global Transition */
-.unitrade-detail-scope a, 
+.unitrade-detail-scope a,
 .unitrade-detail-scope button,
 .unitrade-detail-scope .ut-thumb,
 .unitrade-detail-scope .ut-tab-btn,
@@ -71,42 +107,46 @@
 /* Dark Buttons (Belanja, Chat, Share) */
 .unitrade-detail-scope .ut-btn-dark:hover,
 .unitrade-detail-scope #add_to_cart:hover {
-  background-color: #000000 !important;
+  background-color: var(--ut-color-button-bg-hover) !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+  box-shadow: 0 4px 12px var(--ut-shadow-button) !important;
 }
 
 /* Outline/Counter Buttons */
 .unitrade-detail-scope .ut-btn-outline:hover,
 .unitrade-detail-scope .js_add_cart_json:hover {
-  background-color: rgba(33, 37, 41, 0.08) !important;
-  border-color: #000 !important;
+  background-color: color-mix(
+    in srgb,
+    var(--ut-color-button-bg) 8%,
+    transparent
+  ) !important;
+  border-color: var(--ut-color-heading-strong) !important;
   transform: translateY(-1px);
 }
 
 /* Wishlist Button */
 .unitrade-detail-scope .ut-btn-wishlist:hover {
-  background-color: #c53030 !important;
+  background-color: var(--ut-color-danger-hover) !important;
   transform: scale(1.08);
-  box-shadow: 0 4px 15px rgba(197, 48, 48, 0.3) !important;
+  box-shadow: 0 4px 15px var(--ut-shadow-danger) !important;
 }
 
 /* Thumbnails */
 .unitrade-detail-scope .ut-thumb:hover {
   transform: scale(1.03);
-  border-color: #525252 !important;
+  border-color: var(--ut-color-border-strong) !important;
 }
 
 /* Related Product Cards */
 .unitrade-detail-scope .ut-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important;
-  border-color: #212529 !important;
+  box-shadow: 0 10px 25px var(--ut-shadow-card) !important;
+  border-color: var(--ut-color-heading) !important;
 }
 
 /* Tabs */
 .unitrade-detail-scope .ut-tab-btn:hover {
-  color: #000 !important;
+  color: var(--ut-color-heading-strong) !important;
   opacity: 0.85;
 }
 
@@ -150,7 +190,7 @@
   min-height: 144px;
   margin: 0 auto 64px;
   padding: 26px 52px;
-  background: #ffffff;
+  background: var(--ut-color-bg-surface);
   border-radius: 32px;
 }
 
@@ -166,10 +206,10 @@
   min-width: 120px;
   height: 44px;
   padding: 0 22px;
-  border: 1px solid #525252;
+  border: 1px solid var(--ut-color-button-outline-border);
   border-radius: 22px;
   background: transparent;
-  color: #525252;
+  color: var(--ut-color-button-outline-text);
   font-family: Urbanist, Inter, sans-serif;
   font-size: 20px;
   font-weight: 500;
@@ -179,9 +219,9 @@
 }
 
 .ut-review-chip-active {
-  border-color: #212529;
-  background: #212529;
-  color: #ffffff;
+  border-color: var(--ut-color-button-bg);
+  background: var(--ut-color-button-bg);
+  color: var(--ut-color-button-text);
   font-weight: 600;
 }
 
@@ -198,7 +238,7 @@
   display: flex;
   align-items: baseline;
   gap: 8px;
-  color: #000000;
+  color: var(--ut-color-heading-strong);
 }
 
 .ut-review-score-value,
@@ -231,7 +271,7 @@
   gap: 25px;
   padding: 0 0 34px;
   margin: 0 0 34px;
-  border-bottom: 1px solid #b8b8b8;
+  border-bottom: 1px solid var(--ut-color-divider);
   background: transparent;
 }
 
@@ -245,7 +285,7 @@
   border-radius: 999px;
   object-fit: cover;
   flex-shrink: 0;
-  background: #f4f4f4;
+  background: var(--ut-color-bg-muted);
 }
 
 .ut-review-body {
@@ -261,7 +301,7 @@
 
 .ut-review-name {
   margin: 0;
-  color: #525252;
+  color: var(--ut-color-text-body);
   font-family: Inter, sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -270,7 +310,7 @@
 
 .ut-review-date {
   margin: -2px 0 0;
-  color: #939393;
+  color: var(--ut-color-text-subtle);
   font-family: Inter, sans-serif;
   font-size: 9px;
   font-weight: 400;
@@ -291,13 +331,13 @@
   border: 0;
   border-radius: 16px;
   object-fit: cover;
-  background: #f4f4f4;
+  background: var(--ut-color-bg-muted);
 }
 
 .ut-review-comment {
   max-width: 1095px;
   margin: 0 0 16px;
-  color: #525252;
+  color: var(--ut-color-text-body);
   font-family: Inter, sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -327,15 +367,15 @@
 .ut-review-report {
   min-width: 76px;
   border: none;
-  background: #212529;
-  color: #ffffff;
+  background: var(--ut-color-button-bg);
+  color: var(--ut-color-button-text);
 }
 
 .ut-review-helpful {
   min-width: 112px;
-  border: 1px solid #525252;
+  border: 1px solid var(--ut-color-button-outline-border);
   background: transparent;
-  color: #525252;
+  color: var(--ut-color-button-outline-text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -347,14 +387,18 @@
   margin-top: -78px;
   padding-top: 96px;
   text-align: center;
-  background: linear-gradient(to bottom, rgba(245,245,247,0), #f5f5f7 48%);
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--ut-color-bg-page) 0%, transparent),
+    var(--ut-color-bg-page) 48%
+  );
   pointer-events: none;
 }
 
 .ut-review-more {
   border: none;
   background: transparent;
-  color: #525252;
+  color: var(--ut-color-text-body);
   font-family: Urbanist, Inter, sans-serif;
   font-size: 16px;
   font-weight: 600;
@@ -407,149 +451,158 @@
 
 /* Base layer overrides (compatible with Odoo Bootstrap) */
 @layer components {
-    /* Hero Section */
-    .unitrade-hero {
-        @apply tw-bg-gradient-to-br tw-from-indigo-600 tw-to-purple-700;
-        @apply tw-text-white tw-py-20 tw-px-4;
-        @apply tw-relative tw-overflow-hidden;
-    }
+  /* Hero Section */
+  .unitrade-hero {
+    @apply tw-bg-gradient-to-br tw-from-indigo-600 tw-to-purple-700;
+    @apply tw-text-white tw-py-20 tw-px-4;
+    @apply tw-relative tw-overflow-hidden;
+  }
 
-    .unitrade-hero::before {
-        content: '';
-        @apply tw-absolute tw-inset-0 tw-opacity-10;
-        background-image: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.3) 0%, transparent 50%),
-                          radial-gradient(circle at 80% 20%, rgba(255,255,255,0.2) 0%, transparent 50%);
-    }
+  .unitrade-hero::before {
+    content: '';
+    @apply tw-absolute tw-inset-0 tw-opacity-10;
+    background-image:
+      radial-gradient(
+        circle at 20% 80%,
+        rgba(255, 255, 255, 0.3) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 80% 20%,
+        rgba(255, 255, 255, 0.2) 0%,
+        transparent 50%
+      );
+  }
 
-    /* Product Card */
-    .unitrade-card {
-        @apply tw-bg-white tw-rounded-2xl tw-shadow-md tw-overflow-hidden;
-        @apply tw-transition-all tw-duration-300 tw-ease-in-out;
-        @apply tw-border tw-border-gray-100;
-    }
+  /* Product Card */
+  .unitrade-card {
+    @apply tw-bg-white tw-rounded-2xl tw-shadow-md tw-overflow-hidden;
+    @apply tw-transition-all tw-duration-300 tw-ease-in-out;
+    @apply tw-border tw-border-gray-100;
+  }
 
-    .unitrade-card:hover {
-        @apply tw-shadow-xl tw--translate-y-1;
-    }
+  .unitrade-card:hover {
+    @apply tw-shadow-xl tw--translate-y-1;
+  }
 
-    /* Buttons */
-    .unitrade-btn-primary {
-        @apply tw-bg-indigo-600 tw-text-white tw-px-6 tw-py-3 tw-rounded-xl;
-        @apply tw-font-semibold tw-text-sm;
-        @apply tw-transition-all tw-duration-200;
-        @apply tw-shadow-md tw-shadow-indigo-200;
-    }
+  /* Buttons */
+  .unitrade-btn-primary {
+    @apply tw-bg-indigo-600 tw-text-white tw-px-6 tw-py-3 tw-rounded-xl;
+    @apply tw-font-semibold tw-text-sm;
+    @apply tw-transition-all tw-duration-200;
+    @apply tw-shadow-md tw-shadow-indigo-200;
+  }
 
-    .unitrade-btn-primary:hover {
-        @apply tw-bg-indigo-700 tw-shadow-lg tw-shadow-indigo-300;
-        @apply tw--translate-y-0.5;
-    }
+  .unitrade-btn-primary:hover {
+    @apply tw-bg-indigo-700 tw-shadow-lg tw-shadow-indigo-300;
+    @apply tw--translate-y-0.5;
+  }
 
-    .unitrade-btn-secondary {
-        @apply tw-bg-white tw-text-indigo-600 tw-px-6 tw-py-3 tw-rounded-xl;
-        @apply tw-font-semibold tw-text-sm tw-border-2 tw-border-indigo-200;
-        @apply tw-transition-all tw-duration-200;
-    }
+  .unitrade-btn-secondary {
+    @apply tw-bg-white tw-text-indigo-600 tw-px-6 tw-py-3 tw-rounded-xl;
+    @apply tw-font-semibold tw-text-sm tw-border-2 tw-border-indigo-200;
+    @apply tw-transition-all tw-duration-200;
+  }
 
-    .unitrade-btn-secondary:hover {
-        @apply tw-bg-indigo-50 tw-border-indigo-400;
-    }
+  .unitrade-btn-secondary:hover {
+    @apply tw-bg-indigo-50 tw-border-indigo-400;
+  }
 
-    /* Badge */
-    .unitrade-badge {
-        @apply tw-inline-flex tw-items-center tw-px-3 tw-py-1 tw-rounded-full;
-        @apply tw-text-xs tw-font-semibold;
-    }
+  /* Badge */
+  .unitrade-badge {
+    @apply tw-inline-flex tw-items-center tw-px-3 tw-py-1 tw-rounded-full;
+    @apply tw-text-xs tw-font-semibold;
+  }
 
-    .unitrade-badge-new {
-        @apply tw-bg-emerald-100 tw-text-emerald-700;
-    }
+  .unitrade-badge-new {
+    @apply tw-bg-emerald-100 tw-text-emerald-700;
+  }
 
-    .unitrade-badge-used {
-        @apply tw-bg-amber-100 tw-text-amber-700;
-    }
+  .unitrade-badge-used {
+    @apply tw-bg-amber-100 tw-text-amber-700;
+  }
 
-    .unitrade-badge-verified {
-        @apply tw-bg-blue-100 tw-text-blue-700;
-    }
+  .unitrade-badge-verified {
+    @apply tw-bg-blue-100 tw-text-blue-700;
+  }
 
-    /* Navigation */
-    .unitrade-nav {
-        @apply tw-bg-white/80 tw-backdrop-blur-lg tw-border-b tw-border-gray-100;
-        @apply tw-sticky tw-top-0 tw-z-50;
-    }
+  /* Navigation */
+  .unitrade-nav {
+    @apply tw-bg-white/80 tw-backdrop-blur-lg tw-border-b tw-border-gray-100;
+    @apply tw-sticky tw-top-0 tw-z-50;
+  }
 
-    /* Section Headers */
-    .unitrade-section-title {
-        @apply tw-text-2xl tw-font-bold tw-text-gray-900;
-        @apply tw-relative tw-pb-3;
-    }
+  /* Section Headers */
+  .unitrade-section-title {
+    @apply tw-text-2xl tw-font-bold tw-text-gray-900;
+    @apply tw-relative tw-pb-3;
+  }
 
-    .unitrade-section-title::after {
-        content: '';
-        @apply tw-absolute tw-bottom-0 tw-left-0 tw-w-12 tw-h-1;
-        @apply tw-bg-gradient-to-r tw-from-indigo-600 tw-to-purple-600 tw-rounded-full;
-    }
+  .unitrade-section-title::after {
+    content: '';
+    @apply tw-absolute tw-bottom-0 tw-left-0 tw-w-12 tw-h-1;
+    @apply tw-bg-gradient-to-r tw-from-indigo-600 tw-to-purple-600 tw-rounded-full;
+  }
 
-    /* Search Bar */
-    .unitrade-search {
-        @apply tw-bg-gray-50 tw-border tw-border-gray-200 tw-rounded-2xl;
-        @apply tw-px-5 tw-py-3.5 tw-text-sm;
-        @apply tw-transition-all tw-duration-200;
-        @apply tw-w-full;
-    }
+  /* Search Bar */
+  .unitrade-search {
+    @apply tw-bg-gray-50 tw-border tw-border-gray-200 tw-rounded-2xl;
+    @apply tw-px-5 tw-py-3.5 tw-text-sm;
+    @apply tw-transition-all tw-duration-200;
+    @apply tw-w-full;
+  }
 
-    .unitrade-search:focus {
-        @apply tw-outline-none tw-ring-2 tw-ring-indigo-500/30 tw-border-indigo-400;
-        @apply tw-bg-white tw-shadow-md;
-    }
+  .unitrade-search:focus {
+    @apply tw-outline-none tw-ring-2 tw-ring-indigo-500/30 tw-border-indigo-400;
+    @apply tw-bg-white tw-shadow-md;
+  }
 
-    /* Footer */
-    .unitrade-footer {
-        @apply tw-bg-gray-900 tw-text-gray-300 tw-py-16;
-    }
+  /* Footer */
+  .unitrade-footer {
+    @apply tw-bg-gray-900 tw-text-gray-300 tw-py-16;
+  }
 
-    /* Rating Stars */
-    .unitrade-stars {
-        @apply tw-flex tw-items-center tw-gap-0.5;
-    }
+  /* Rating Stars */
+  .unitrade-stars {
+    @apply tw-flex tw-items-center tw-gap-0.5;
+  }
 
-    .unitrade-star-filled {
-        @apply tw-text-amber-400;
-    }
+  .unitrade-star-filled {
+    @apply tw-text-amber-400;
+  }
 
-    .unitrade-star-empty {
-        @apply tw-text-gray-300;
-    }
+  .unitrade-star-empty {
+    @apply tw-text-gray-300;
+  }
 }
 
 /* Animations */
 @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .unitrade-animate-in {
-    animation: fadeInUp 0.5s ease-out forwards;
+  animation: fadeInUp 0.5s ease-out forwards;
 }
 
 .unitrade-slide-in {
-    animation: slideIn 0.3s ease-out forwards;
+  animation: slideIn 0.3s ease-out forwards;
 }

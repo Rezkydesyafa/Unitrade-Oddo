@@ -2,14 +2,14 @@
 <odoo>
     <template id="unitrade_product_detail" inherit_id="website_sale.product" name="UniTrade Product Detail Override">
         <xpath expr="//section[@id='product_detail']" position="replace">
-            <section id="product_detail" class="tw-bg-[#f5f5f7] tw-w-full tw-min-h-screen tw-pb-16" style="font-family: 'Urbanist', 'Inter', sans-serif;">
+            <section id="product_detail" class="tw-bg-[var(--ut-color-bg-page)] tw-w-full tw-min-h-screen tw-pb-16" style="font-family: 'Urbanist', 'Inter', sans-serif;">
                 <div class="unitrade-detail-scope">
                 <div class="tw-max-w-[1300px] tw-mx-auto tw-px-6 tw-pt-6">
 
                     <!-- Breadcrumbs -->
                     <div class="tw-w-full tw-mb-6 tw-flex tw-justify-start">
                         <div class="tw-bg-white tw-rounded-[12px] tw-px-5 tw-py-2.5 tw-flex tw-items-center tw-gap-3 tw-shadow-sm tw-w-max tw-border tw-border-gray-100">
-                            <a href="/" class="tw-flex tw-items-center tw-gap-2 tw-text-gray-600 hover:tw-text-[#0f172a] tw-no-underline tw-transition-colors">
+                            <a href="/" class="tw-flex tw-items-center tw-gap-2 tw-text-text-muted hover:tw-text-heading tw-no-underline tw-transition-colors">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                                     <path d="M12 16v-4"></path>
@@ -18,9 +18,9 @@
                                 <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[14px]">Home</span>
                             </a>
                             <span class="tw-text-gray-300">/</span>
-                            <a href="/shop" class="tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-gray-600 hover:tw-text-[#0f172a] tw-no-underline">Produk</a>
+                            <a href="/shop" class="tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-text-muted hover:tw-text-heading tw-no-underline">Produk</a>
                             <span class="tw-text-gray-300">/</span>
-                            <span class="tw-font-['Urbanist'] tw-font-semibold tw-text-[14px] tw-text-[#0f172a]">
+                            <span class="tw-font-['Urbanist'] tw-font-semibold tw-text-[14px] tw-text-heading">
                                 <t t-esc="product.name"/>
                             </span>
                         </div>
@@ -32,7 +32,7 @@
                         <!-- LEFT: Image gallery -->
                         <div>
                             <!-- Main image container -->
-                            <div class="tw-bg-[#f5f5f5] tw-rounded-[8px] tw-p-4 tw-mb-4">
+                            <div class="tw-bg-[var(--ut-color-bg-muted)] tw-rounded-[8px] tw-p-4 tw-mb-4">
                                 <div class="tw-w-full tw-aspect-[560/384] tw-rounded-[8px] tw-overflow-hidden tw-bg-white">
                                     <img id="ut-main-image"
                                         t-attf-src="/web/image/product.template/#{product.id}/image_1920"
@@ -44,14 +44,14 @@
                             <div class="tw-flex tw-gap-3 tw-overflow-x-auto ut-thumbnail-container tw-pb-2">
                             <div class="tw-flex tw-gap-3 tw-mt-4">
                                 <!-- Main Image as First Thumbnail -->
-                                <div class="ut-thumb tw-w-20 tw-h-16 tw-rounded-[8px] tw-border-2 tw-border-[#525252] tw-overflow-hidden tw-cursor-pointer tw-bg-white"
+                                <div class="ut-thumb tw-w-20 tw-h-16 tw-rounded-[8px] tw-border-2 tw-border-[var(--ut-color-border-strong)] tw-overflow-hidden tw-cursor-pointer tw-bg-bg-surface"
                                     t-attf-data-src="/web/image/product.template/#{product.id}/image_1920">
                                     <img t-attf-src="/web/image/product.template/#{product.id}/image_128"
                                         class="tw-w-full tw-h-full tw-object-contain ut-thumb-img"/>
                                 </div>
                                 <!-- Additional Images -->
                                 <t t-foreach="product.product_template_image_ids" t-as="img">
-                                    <div class="ut-thumb tw-w-20 tw-h-16 tw-rounded-[8px] tw-border-2 tw-border-transparent tw-overflow-hidden tw-cursor-pointer tw-bg-white"
+                                    <div class="ut-thumb tw-w-20 tw-h-16 tw-rounded-[8px] tw-border-2 tw-border-transparent tw-overflow-hidden tw-cursor-pointer tw-bg-bg-surface"
                                         t-attf-data-src="/web/image/product.image/#{img.id}/image_1920">
                                         <img t-attf-src="/web/image/product.image/#{img.id}/image_128"
                                             class="tw-w-full tw-h-full tw-object-contain ut-thumb-img"/>
@@ -66,19 +66,19 @@
                         <div class="tw-flex tw-flex-col tw-gap-3">
 
                             <!-- Product name -->
-                            <h1 class="tw-text-[30px] tw-leading-[36px] tw-font-semibold tw-text-[#525252] tw-m-0"
+                            <h1 class="tw-text-[30px] tw-leading-[36px] tw-font-semibold tw-text-[var(--ut-color-text-body)] tw-m-0"
                                 t-field="product.name"></h1>
 
                             <!-- Rating row -->
                             <div class="tw-flex tw-items-center tw-gap-2">
-                                <div class="tw-flex tw-items-center tw-gap-[2px] tw-text-[#FFC107]">
+                                <div class="tw-flex tw-items-center tw-gap-[2px] tw-text-accent">
                                     <i class="fa fa-star" style="font-size:14px;"></i>
                                     <i class="fa fa-star" style="font-size:14px;"></i>
                                     <i class="fa fa-star" style="font-size:14px;"></i>
                                     <i class="fa fa-star" style="font-size:14px;"></i>
                                     <i class="fa fa-star-half-o" style="font-size:14px;"></i>
                                 </div>
-                                <span class="tw-text-[#525252]" style="font-size:16px;">
+                                <span class="tw-text-[var(--ut-color-text-body)]" style="font-size:16px;">
                                     (<t t-esc="product.rating_avg or '4.2'"/>) • <t t-esc="product.rating_count or '156'"/> reviews
                                 </span>
                             </div>
@@ -87,19 +87,19 @@
                             <div>
                                 <t t-set="condition_label" t-value="product.x_condition or 'baru'"/>
                                 <span class="tw-inline-flex tw-items-center tw-justify-center tw-px-4 tw-py-0"
-                                    style="border: 1px solid #2a2e33; border-radius: 32px; height: 24px; font-size: 16px; color: #000; line-height: 24px;">
+                                    style="border: 1px solid var(--ut-color-heading); border-radius: 32px; height: 24px; font-size: 16px; color: var(--ut-color-heading-strong); line-height: 24px;">
                                     <t t-esc="condition_label"/>
                                 </span>
                             </div>
 
                             <!-- Price -->
-                            <div style="font-size: 30px; line-height: 36px; color: #525252; font-weight: 400;">
+                            <div style="font-size: 30px; line-height: 36px; color: var(--ut-color-text-body); font-weight: 400;">
                                 <span t-field="product.list_price"
                                     t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
                             </div>
 
                             <!-- Stock info -->
-                            <p style="font-size: 16px; color: #525252; margin: 0; font-weight: 500;">In Stock • Free Ongkir</p>
+                            <p style="font-size: 16px; color: var(--ut-color-text-body); margin: 0; font-weight: 500;">In Stock • Free Ongkir</p>
 
                             <!-- Add to cart form -->
                             <form t-if="product._is_add_to_cart_possible()" action="/shop/cart/update" method="POST">
@@ -111,15 +111,15 @@
 
                                     <!-- Subtotal label + Qty -->
                                     <div class="tw-flex tw-flex-col tw-gap-2 tw-mb-4">
-                                        <p style="font-size:16px; color:#525252; font-weight:500; margin:0;">Subtotal</p>
+                                        <p style="font-size:16px; color:var(--ut-color-text-body); font-weight:500; margin:0;">Subtotal</p>
 
                                         <!-- Quantity Selector: identik dengan pola cart Odoo native -->
                                         <div class="css_quantity input-group tw-flex tw-items-center tw-gap-3" style="width:max-content;">
                                             <a href="#" class="btn btn-link"
                                                 onclick="utChangeQty(-1); return false;"
                                                 aria-label="Remove one"
-                                                style="width:40px; height:40px; border:2px solid #525252; border-radius:50%; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; text-decoration:none; flex-shrink:0; padding:0;">
-                                                <i class="fa fa-minus" style="color:#525252; font-size:12px;"></i>
+                                                style="width:40px; height:40px; border:2px solid var(--ut-color-border-strong); border-radius:50%; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; text-decoration:none; flex-shrink:0; padding:0;">
+                                                <i class="fa fa-minus" style="color:var(--ut-color-text-body); font-size:12px;"></i>
                                             </a>
 
                                             <input type="text"
@@ -127,13 +127,13 @@
                                                 name="add_qty"
                                                 t-att-value="add_qty or 1"
                                                 data-min="1"
-                                                style="width:64px !important; height:40px !important; border:2px solid #525252 !important; border-radius:26px !important; background:transparent !important; text-align:center !important; padding:0 !important; margin:0 !important; font-size:16px !important; color:#525252 !important; outline:none !important; box-shadow:none !important; flex:none !important;"/>
+                                                style="width:64px !important; height:40px !important; border:2px solid var(--ut-color-border-strong) !important; border-radius:26px !important; background:transparent !important; text-align:center !important; padding:0 !important; margin:0 !important; font-size:16px !important; color:var(--ut-color-text-body) !important; outline:none !important; box-shadow:none !important; flex:none !important;"/>
 
                                             <a href="#" class="btn btn-link float_left"
                                                 onclick="utChangeQty(1); return false;"
                                                 aria-label="Add one"
-                                                style="width:40px; height:40px; border:2px solid #525252; border-radius:50%; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; text-decoration:none; flex-shrink:0; padding:0;">
-                                                <i class="fa fa-plus" style="color:#525252; font-size:12px;"></i>
+                                                style="width:40px; height:40px; border:2px solid var(--ut-color-border-strong); border-radius:50%; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; text-decoration:none; flex-shrink:0; padding:0;">
+                                                <i class="fa fa-plus" style="color:var(--ut-color-text-body); font-size:12px;"></i>
                                             </a>
                                         </div>
                                     </div>
@@ -144,7 +144,7 @@
                                         <t t-if="user_id._is_public()">
                                             <a href="/web/login"
                                                 class="tw-flex-1 tw-flex tw-items-center tw-justify-center tw-gap-2 ut-btn-dark"
-                                                style="background:#1a1d1f; color:#fff; height:48px; border-radius:24px; border:none; font-size:16px; cursor:pointer; width:100%; text-decoration:none;">
+                                                style="background:var(--ut-color-button-bg); color:var(--ut-color-button-text); height:48px; border-radius:24px; border:none; font-size:16px; cursor:pointer; width:100%; text-decoration:none;">
                                                 <i class="fa fa-sign-in"></i>
                                                 Perlu masuk terlebih dahulu
                                             </a>
@@ -152,7 +152,7 @@
                                         <t t-else="">
                                             <button id="add_to_cart" type="submit"
                                                 class="tw-flex-1 tw-flex tw-items-center tw-justify-center tw-gap-2"
-                                                style="background:#1a1d1f; color:#fff; height:48px; border-radius:24px; border:none; font-size:16px; cursor:pointer; width:100%;">
+                                                style="background:var(--ut-color-button-bg); color:var(--ut-color-button-text); height:48px; border-radius:24px; border:none; font-size:16px; cursor:pointer; width:100%;">
                                                 <i class="fa fa-shopping-cart"></i>
                                                 Belanja
                                             </button>
@@ -164,7 +164,7 @@
                                         <a href="#" title="Bagikan"
                                             class="ut-btn-dark"
                                             onclick="utToggleSharePopover(this); return false;"
-                                            style="width:48px; height:48px; border-radius:50%; background:#1a1d1f; color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; text-decoration:none;">
+                                            style="width:48px; height:48px; border-radius:50%; background:var(--ut-color-button-bg); color:var(--ut-color-button-text); display:flex; align-items:center; justify-content:center; flex-shrink:0; text-decoration:none;">
                                             <i class="fa fa-share" style="font-size:16px;"></i>
                                         </a>
                                     </div>
@@ -185,12 +185,12 @@
                                         src="/web/static/img/user_menu_avatar.png"
                                         style="width:51px; height:51px; border-radius:50%; object-fit:cover; flex-shrink:0;"/>
                                     <div>
-                                        <p style="font-size:20px; font-weight:500; color:#000; margin:0; line-height:24px;">
+                                        <p style="font-size:20px; font-weight:500; color:var(--ut-color-heading-strong); margin:0; line-height:24px;">
                                             <t t-esc="product.x_seller_id.sudo().name if product.x_seller_id else 'Dero sala'"/>
                                         </p>
-                                        <p style="font-size:16px; color:#525252; margin:0; line-height:24px; display:flex; align-items:center; gap:4px;">
+                                        <p style="font-size:16px; color:var(--ut-color-text-body); margin:0; line-height:24px; display:flex; align-items:center; gap:4px;">
                                             Aktif
-                                            <span style="width:7px; height:7px; background:#28a745; border-radius:50%; display:inline-block;"></span>
+                                            <span style="width:7px; height:7px; background:var(--ut-color-success); border-radius:50%; display:inline-block;"></span>
                                         </p>
                                     </div>
                                 </div>
@@ -198,12 +198,12 @@
                                 <div class="tw-flex tw-gap-4">
                                     <a href="#"
                                         class="ut-btn-outline"
-                                        style="width:163px; height:48px; border:2px solid #212529; border-radius:24px; color:#212529; font-size:16px; display:flex; align-items:center; justify-content:center; text-decoration:none; background:transparent; box-sizing:border-box;">
+                                        style="width:163px; height:48px; border:2px solid var(--ut-color-heading); border-radius:24px; color:var(--ut-color-heading); font-size:16px; display:flex; align-items:center; justify-content:center; text-decoration:none; background:transparent; box-sizing:border-box;">
                                         Kunjungi profile
                                     </a>
                                     <a href="#"
                                         class="ut-btn-dark"
-                                        style="width:217px; height:48px; border:1px solid #525252; border-radius:24px; background:#212529; color:#f5f5f7; font-size:16px; display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; box-sizing:border-box;">
+                                        style="width:217px; height:48px; border:1px solid var(--ut-color-border-strong); border-radius:24px; background:var(--ut-color-button-bg); color:var(--ut-color-button-text); font-size:16px; display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; box-sizing:border-box;">
                                         <i class="fa fa-commenting-o"></i> Chat penjual
                                     </a>
                                 </div>
@@ -212,7 +212,7 @@
                     </div>
 
                     <!-- Map Section -->
-                    <div style="width:100%; height:229px; background:#212529; border-radius:8px; overflow:hidden; position:relative; margin-bottom:3.5rem;">
+                    <div style="width:100%; height:229px; background:var(--ut-color-heading); border-radius:8px; overflow:hidden; position:relative; margin-bottom:3.5rem;">
                         <t t-if="product.x_seller_latitude and product.x_seller_longitude">
                             <iframe style="width:100%; height:465px; position:absolute; top:-118px; left:0; border:none;"
                                 t-attf-src="https://maps.google.com/maps?q=#{product.x_seller_latitude},#{product.x_seller_longitude}&amp;z=14&amp;output=embed"
@@ -232,19 +232,19 @@
                         <div style="display:flex; gap:48px; border-bottom:1px solid transparent;">
                             <button id="ut-tab-deskripsi" type="button"
                                 onclick="utSwitchTab(this, 'deskripsi')"
-                                style="padding:0 0 13px; font-size:16px; font-weight:600; color:#212529; background:none; border:none; border-bottom:2px solid #212529; margin-bottom:-1px; cursor:pointer; white-space:nowrap;">
+                                style="padding:0 0 13px; font-size:16px; font-weight:600; color:var(--ut-color-heading); background:none; border:none; border-bottom:2px solid var(--ut-color-heading); margin-bottom:-1px; cursor:pointer; white-space:nowrap;">
                                 Deskripsi
                             </button>
                             <button id="ut-tab-ulasan" type="button"
                                 onclick="utSwitchTab(this, 'ulasan')"
-                                style="padding:0 0 13px; font-size:16px; font-weight:400; color:#525252; background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-1px; cursor:pointer; white-space:nowrap;">
+                                style="padding:0 0 13px; font-size:16px; font-weight:400; color:var(--ut-color-text-body); background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-1px; cursor:pointer; white-space:nowrap;">
                                 Rating &amp; Ulasan
                             </button>
                         </div>
 
                         <!-- Tab Content: Deskripsi -->
                         <div id="tab-deskripsi" style="display:block; padding:32px 0;">
-                            <div style="color:#525252; font-size:16px; line-height:24px; max-width:1145px;">
+                            <div style="color:var(--ut-color-text-body); font-size:16px; line-height:24px; max-width:1145px;">
                                 <t t-if="product.description_sale">
                                     <div t-field="product.description_sale"></div>
                                 </t>
@@ -265,7 +265,7 @@
 
                     <!-- Related Products -->
                     <div class="tw-mb-16">
-                        <h2 style="font-size:32px; font-weight:600; color:#212529; margin-bottom:32px;">Produk lain di toko ini</h2>
+                        <h2 style="font-size:32px; font-weight:600; color:var(--ut-color-heading); margin-bottom:32px;">Produk lain di toko ini</h2>
                         <t t-set="seller_products" t-value="request.env['product.template'].search([('id', '=', product.id)], limit=6)"/>
                         <div class="tw-flex tw-gap-[30px] tw-overflow-x-auto tw-pt-5 tw-pb-8 tw-px-2">
                             <t t-foreach="seller_products" t-as="p">
@@ -293,18 +293,18 @@
                 </div>
                 <!-- Share Popover - Figma node 98:1037 -->
                 <div id="ut-share-popover"
-                    class="tw-hidden tw-fixed tw-z-[9999] tw-bg-[#f5f5f7] tw-border tw-border-solid tw-border-[#212529] tw-rounded-[31px] tw-w-[125px] tw-h-[62px] tw-items-center tw-justify-center tw-gap-[10px] tw-shadow-lg"
+                    class="tw-hidden tw-fixed tw-z-[9999] tw-bg-[var(--ut-color-bg-page)] tw-border tw-border-solid tw-border-heading tw-rounded-[31px] tw-w-[125px] tw-h-[62px] tw-items-center tw-justify-center tw-gap-[10px] tw-shadow-lg"
                     data-node-id="98:1037"
                     aria-hidden="true">
                     <button type="button"
                         onclick="utShareWhatsApp(); return false;"
-                        class="tw-w-[39px] tw-h-[39px] tw-rounded-full tw-bg-[#212529] tw-text-white tw-border-0 tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-opacity-90 tw-transition-opacity"
+                        class="tw-w-[39px] tw-h-[39px] tw-rounded-full tw-bg-button tw-text-button-text tw-border-0 tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-opacity-90 tw-transition-opacity"
                         aria-label="Bagikan ke WhatsApp">
                         <i class="fa fa-whatsapp" style="font-size:21px;"></i>
                     </button>
                     <button type="button"
                         onclick="utCopyShareLink(this); return false;"
-                        class="tw-w-[39px] tw-h-[39px] tw-rounded-full tw-bg-transparent tw-text-[#212529] tw-border tw-border-solid tw-border-[#d9d9d9] tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-white tw-transition-colors"
+                        class="tw-w-[39px] tw-h-[39px] tw-rounded-full tw-bg-transparent tw-text-heading tw-border tw-border-solid tw-border-border tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-bg-surface tw-transition-colors"
                         aria-label="Salin link produk">
                         <i class="fa fa-link" style="font-size:18px;"></i>
                     </button>
@@ -367,7 +367,7 @@
                             if (!icon) return;
                             var orig = icon.className;
                             icon.className = 'fa fa-check';
-                            icon.style.color = '#28a745';
+                            icon.style.color = 'var(--ut-color-success)';
                             if (btn) btn.setAttribute('aria-label', 'Link berhasil disalin');
                             setTimeout(function() {
                                 icon.className = orig;
@@ -430,13 +430,13 @@
                             var panel = document.getElementById('tab-' + tabs[i]);
                             var tb = document.getElementById('ut-tab-' + tabs[i]);
                             if (panel) panel.style.display = 'none';
-                            if (tb) { tb.style.fontWeight = '400'; tb.style.color = '#525252'; tb.style.borderBottomColor = 'transparent'; }
+                            if (tb) { tb.style.fontWeight = '400'; tb.style.color = 'var(--ut-color-text-body)'; tb.style.borderBottomColor = 'transparent'; }
                         }
                         var active = document.getElementById('tab-' + tabName);
                         if (active) active.style.display = 'block';
                         btn.style.fontWeight = '600';
-                        btn.style.color = '#212529';
-                        btn.style.borderBottomColor = '#212529';
+                        btn.style.color = 'var(--ut-color-heading)';
+                        btn.style.borderBottomColor = 'var(--ut-color-heading)';
                     }
 
                     /* ── Gallery thumbnail (IIFE - immediate) ──────── */
@@ -453,7 +453,7 @@
                                             for (var j = 0; j &lt; thumbs.length; j++) {
                                                 thumbs[j].style.borderColor = 'transparent';
                                             }
-                                            thumb.style.borderColor = '#525252';
+                                            thumb.style.borderColor = 'var(--ut-color-border-strong)';
                                         }
                                     }
                                 });

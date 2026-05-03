@@ -27,9 +27,9 @@ export class ProductWishlistButton extends Component {
     get buttonClass() {
         const base = "tw-w-12 tw-h-12 tw-rounded-full tw-text-white tw-border-0 tw-flex tw-items-center tw-justify-center tw-shrink-0 tw-cursor-pointer tw-transition-all";
         if (this.state.active) {
-            return `${base} tw-bg-[#E53E3E] hover:tw-bg-[#c53030]`;
+            return `${base} tw-bg-[var(--ut-color-danger)] hover:tw-bg-[var(--ut-color-danger-hover)]`;
         }
-        return `${base} tw-bg-[#1a1d1f] hover:tw-bg-[#E53E3E]`;
+        return `${base} tw-bg-[var(--ut-color-button-bg)] hover:tw-bg-[var(--ut-color-danger)]`;
     }
 
     async toggle() {
@@ -92,16 +92,16 @@ export class ProductReviewPanel extends Component {
 
     summaryStarStyle(star) {
         const active = star <= Math.round(this.state.summary.average || 0);
-        return `color:${active ? "#E53E3E" : "#d9d9d9"}; font-size:20px;`;
+        return `color:${active ? "var(--ut-color-danger)" : "var(--ut-color-border)"}; font-size:20px;`;
     }
 
     reviewStarStyle(rating, star) {
-        return `color:${star <= rating ? "#E53E3E" : "#d9d9d9"}; font-size:14px;`;
+        return `color:${star <= rating ? "var(--ut-color-danger)" : "var(--ut-color-border)"}; font-size:14px;`;
     }
 
     formStarStyle(star) {
         const active = star <= this.state.formRating;
-        return `border:none; background:transparent; color:${active ? "#E53E3E" : "#d9d9d9"}; font-size:22px; cursor:pointer; padding:0 2px;`;
+        return `border:none; background:transparent; color:${active ? "var(--ut-color-danger)" : "var(--ut-color-border)"}; font-size:22px; cursor:pointer; padding:0 2px;`;
     }
 
     async loadReviews(options = {}) {

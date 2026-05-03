@@ -38,9 +38,9 @@
                 </div>
             </div>
 
-            <div t-if="state.canReview" style="background:#fff; border-radius:24px; padding:24px; margin-bottom:32px;">
+            <div t-if="state.canReview" style="background:var(--ut-color-bg-surface); border-radius:24px; padding:24px; margin-bottom:32px;">
                 <div style="display:flex; justify-content:space-between; gap:16px; align-items:center; margin-bottom:16px;">
-                    <h3 style="font-size:20px; font-weight:600; color:#212529; margin:0;">Tulis ulasan</h3>
+                    <h3 style="font-size:20px; font-weight:600; color:var(--ut-color-heading); margin:0;">Tulis ulasan</h3>
                     <div style="display:flex; gap:6px;">
                         <t t-foreach="[1, 2, 3, 4, 5]" t-as="star" t-key="star">
                             <button type="button" t-on-click="() => this.setFormRating(star)" t-att-style="formStarStyle(star)" aria-label="Pilih rating">
@@ -51,27 +51,27 @@
                 </div>
                 <textarea t-model="state.comment"
                     placeholder="Bagikan pengalamanmu tentang produk ini"
-                    style="width:100%; min-height:96px; border:1px solid #d9d9d9; border-radius:16px; padding:14px 16px; resize:vertical; color:#525252; font-size:15px; outline:none;"></textarea>
+                    style="width:100%; min-height:96px; border:1px solid var(--ut-color-border); border-radius:16px; padding:14px 16px; resize:vertical; color:var(--ut-color-text-body); font-size:15px; outline:none;"></textarea>
                 <div style="display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:14px;">
-                    <label style="height:40px; padding:0 18px; border-radius:20px; border:1px solid #d9d9d9; color:#525252; font-size:13px; font-weight:600; display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+                    <label style="height:40px; padding:0 18px; border-radius:20px; border:1px solid var(--ut-color-border); color:var(--ut-color-text-body); font-size:13px; font-weight:600; display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
                         <i class="fa fa-image" style="font-size:13px;"></i>
                         <span t-esc="state.imageName || 'Tambah gambar (opsional)'"></span>
                         <input type="file" accept="image/jpeg,image/png,image/webp" t-on-change="onImageChange" style="display:none;"/>
                     </label>
                     <div t-if="state.imagePreview" style="display:flex; align-items:center; gap:10px;">
-                        <img t-att-src="state.imagePreview" alt="Preview gambar ulasan" style="width:56px; height:56px; border-radius:10px; object-fit:cover; border:1px solid #ececec;"/>
-                        <button type="button" t-on-click="clearImage" style="height:32px; padding:0 14px; border-radius:16px; border:1px solid #d9d9d9; background:transparent; color:#525252; font-size:12px; cursor:pointer;">Hapus</button>
+                        <img t-att-src="state.imagePreview" alt="Preview gambar ulasan" style="width:56px; height:56px; border-radius:10px; object-fit:cover; border:1px solid var(--ut-color-border);"/>
+                        <button type="button" t-on-click="clearImage" style="height:32px; padding:0 14px; border-radius:16px; border:1px solid var(--ut-color-border); background:transparent; color:var(--ut-color-text-body); font-size:12px; cursor:pointer;">Hapus</button>
                     </div>
                     <div style="flex:1;"></div>
-                    <span t-if="state.message" t-att-style="state.error ? 'color:#E53E3E; font-size:13px;' : 'color:#28a745; font-size:13px;'" t-esc="state.message"></span>
-                    <button type="button" t-on-click="submitReview" t-att-disabled="state.submitting" style="height:40px; padding:0 24px; border-radius:20px; border:none; background:#212529; color:#fff; font-size:14px; font-weight:600; cursor:pointer;">
+                    <span t-if="state.message" t-att-style="state.error ? 'color:var(--ut-color-danger); font-size:13px;' : 'color:var(--ut-color-success); font-size:13px;'" t-esc="state.message"></span>
+                    <button type="button" t-on-click="submitReview" t-att-disabled="state.submitting" style="height:40px; padding:0 24px; border-radius:20px; border:none; background:var(--ut-color-button-bg); color:var(--ut-color-button-text); font-size:14px; font-weight:600; cursor:pointer;">
                         <t t-esc="state.submitting ? 'Mengirim...' : 'Kirim ulasan'"/>
                     </button>
                 </div>
             </div>
 
-            <div t-if="state.loading" style="padding:32px 0; color:#525252; text-align:center;">Memuat ulasan...</div>
-            <div t-elif="!state.reviews.length" style="padding:48px 0; color:#525252; text-align:center;">
+            <div t-if="state.loading" style="padding:32px 0; color:var(--ut-color-text-body); text-align:center;">Memuat ulasan...</div>
+            <div t-elif="!state.reviews.length" style="padding:48px 0; color:var(--ut-color-text-body); text-align:center;">
                 Belum ada ulasan untuk produk ini.
             </div>
             <div t-else="" class="ut-review-list">
@@ -90,7 +90,7 @@
                             <div class="ut-review-actions">
                                 <button type="button" class="ut-review-report">Report</button>
                                 <button type="button" class="ut-review-helpful">
-                                    <i class="fa fa-thumbs-up" style="color:#d9d9d9; font-size:12px;"></i>
+                                    <i class="fa fa-thumbs-up" style="color:var(--ut-color-border); font-size:12px;"></i>
                                     <span>Membantu</span>
                                 </button>
                             </div>
