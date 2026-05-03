@@ -64,10 +64,11 @@
                         </div>
 
                         <!-- RIGHT: Product info -->
-                        <div class="tw-flex tw-flex-col tw-gap-5 tw-p-2 lg:tw-p-4 tw-self-start">
+                        <div class="tw-flex tw-flex-col tw-gap-5 tw-p-2 lg:tw-p-4 tw-self-start tw-min-w-0">
 
                             <!-- Product name -->
-                            <h1 class="tw-text-[30px] tw-leading-[36px] tw-font-semibold tw-text-heading tw-m-0"
+                            <h1 class="ut-product-detail-title tw-text-[30px] tw-leading-[36px] tw-font-semibold tw-text-heading tw-m-0"
+                                t-att-title="product.name"
                                 t-field="product.name"></h1>
 
                             <!-- Rating row -->
@@ -205,8 +206,7 @@
                                 <!-- Avatar + Name + Status -->
                                 <div class="tw-flex tw-items-center tw-gap-3">
                                     <t t-if="product.x_seller_id">
-                                        <img t-attf-src="/web/image/unitrade.seller/#{product.x_seller_id.id}/x_avatar_128"
-                                            t-att-onerror="'this.src=\'/web/static/img/user_menu_avatar.png\''"
+                                        <img t-att-src="image_data_uri(product.x_seller_id.x_avatar_128) if product.x_seller_id.x_avatar_128 else '/web/static/img/user_menu_avatar.png'"
                                             style="width:51px; height:51px; border-radius:50%; object-fit:cover; flex-shrink:0;"
                                             alt="Seller"/>
                                     </t>
@@ -225,12 +225,26 @@
                                 </div>
                                 <!-- Action buttons -->
                                 <div class="tw-flex tw-gap-4">
-                                    <a href="#"
+                                    <a t-if="product.x_seller_id"
+                                        t-attf-href="/seller-profile/#{product.x_seller_id.x_profile_uuid or product.x_seller_id.id}"
                                         class="ut-btn-outline"
                                         style="width:163px; height:48px; border:2px solid var(--ut-color-heading); border-radius:24px; color:var(--ut-color-heading); font-size:16px; display:flex; align-items:center; justify-content:center; text-decoration:none; background:transparent; box-sizing:border-box;">
                                         Kunjungi profile
                                     </a>
-                                    <a href="#"
+                                    <a t-else=""
+                                        href="/shop"
+                                        class="ut-btn-outline"
+                                        style="width:163px; height:48px; border:2px solid var(--ut-color-heading); border-radius:24px; color:var(--ut-color-heading); font-size:16px; display:flex; align-items:center; justify-content:center; text-decoration:none; background:transparent; box-sizing:border-box;">
+                                        Kunjungi profile
+                                    </a>
+                                    <a t-if="product.x_seller_id"
+                                        t-attf-href="/seller-profile/#{product.x_seller_id.x_profile_uuid or product.x_seller_id.id}/chat"
+                                        class="ut-btn-dark"
+                                        style="width:217px; height:48px; border:1px solid var(--ut-color-border-strong); border-radius:24px; background:var(--ut-color-button-bg); color:var(--ut-color-button-text); font-size:16px; display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; box-sizing:border-box;">
+                                        <i class="fa fa-commenting-o"></i> Chat penjual
+                                    </a>
+                                    <a t-else=""
+                                        href="/seller-verification"
                                         class="ut-btn-dark"
                                         style="width:217px; height:48px; border:1px solid var(--ut-color-border-strong); border-radius:24px; background:var(--ut-color-button-bg); color:var(--ut-color-button-text); font-size:16px; display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; box-sizing:border-box;">
                                         <i class="fa fa-commenting-o"></i> Chat penjual
@@ -276,24 +290,25 @@
                     </div>
 
                     <!-- Tabs: Deskripsi / Rating & Ulasan -->
-                    <div class="tw-mb-10 tw-bg-bg-surface tw-rounded-[24px] tw-p-6 tw-shadow-sm" id="ut-tabs-wrapper">
+                    <div class="tw-mb-10" id="ut-tabs-wrapper">
 
                         <!-- Tab Headers -->
-                        <div style="display:flex; gap:48px; border-bottom:1px solid var(--ut-color-divider);">
+                        <div class="ut-product-detail-tabbar">
+                            <span class="ut-product-detail-tabbar-label">Produk</span>
                             <button id="ut-tab-deskripsi" type="button"
                                 onclick="utSwitchTab(this, 'deskripsi')"
-                                style="padding:0 0 13px; font-size:16px; font-weight:600; color:var(--ut-color-heading); background:none; border:none; border-bottom:2px solid var(--ut-color-heading); margin-bottom:-1px; cursor:pointer; white-space:nowrap;">
+                                class="ut-product-detail-tab-btn ut-product-detail-tab-active">
                                 Deskripsi
                             </button>
                             <button id="ut-tab-ulasan" type="button"
                                 onclick="utSwitchTab(this, 'ulasan')"
-                                style="padding:0 0 13px; font-size:16px; font-weight:400; color:var(--ut-color-text-body); background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-1px; cursor:pointer; white-space:nowrap;">
+                                class="ut-product-detail-tab-btn">
                                 Rating &amp; Ulasan
                             </button>
                         </div>
 
                         <!-- Tab Content: Deskripsi -->
-                        <div id="tab-deskripsi" style="display:block; padding:32px 0;">
+                        <div id="tab-deskripsi" class="tw-bg-bg-surface tw-rounded-[24px] tw-p-6 tw-shadow-sm tw-mt-5">
                             <div style="color:var(--ut-color-text-body); font-size:16px; line-height:24px; max-width:1145px;">
                                 <div style="margin-bottom:24px; display:grid; gap:4px; color:var(--ut-color-text-body);">
                                     <div>
@@ -328,7 +343,7 @@
                         </div>
 
                         <!-- Tab Content: Rating & Ulasan -->
-                        <div id="tab-ulasan" style="display:none; padding:32px 0;">
+                        <div id="tab-ulasan" class="tw-bg-bg-surface tw-rounded-[24px] tw-p-6 tw-shadow-sm tw-mt-5" style="display:none;">
                             <div id="ut-product-review-owl" t-att-data-product-id="product.id"></div>
                         </div>
 
@@ -490,13 +505,11 @@
                             var panel = document.getElementById('tab-' + tabs[i]);
                             var tb = document.getElementById('ut-tab-' + tabs[i]);
                             if (panel) panel.style.display = 'none';
-                            if (tb) { tb.style.fontWeight = '400'; tb.style.color = 'var(--ut-color-text-body)'; tb.style.borderBottomColor = 'transparent'; }
+                            if (tb) tb.classList.remove('ut-product-detail-tab-active');
                         }
                         var active = document.getElementById('tab-' + tabName);
                         if (active) active.style.display = 'block';
-                        btn.style.fontWeight = '600';
-                        btn.style.color = 'var(--ut-color-heading)';
-                        btn.style.borderBottomColor = 'var(--ut-color-heading)';
+                        btn.classList.add('ut-product-detail-tab-active');
                     }
 
                     /* ── Gallery thumbnail (IIFE - immediate) ──────── */

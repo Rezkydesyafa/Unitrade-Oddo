@@ -45,10 +45,21 @@
                             <field name="user_id" readonly="status != 'draft'"/>
                             <field name="partner_id" readonly="1"/>
                             <field name="nim" readonly="status != 'draft'"/>
+                            <field name="x_profile_location"/>
+                            <field name="x_profile_uuid" readonly="1"/>
                         </group>
                         <group string="KTM Verification">
                             <field name="ktm_image" widget="image" readonly="status != 'draft'"/>
                             <field name="ktm_filename" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Profil Publik">
+                        <field name="x_avatar_128" widget="image" readonly="1"/>
+                        <field name="x_profile_description" placeholder="Tuliskan deskripsi singkat toko atau gaya jualan penjual."/>
+                        <field name="x_profile_address" placeholder="Contoh: Kec. Depok, Kab. Sleman, DI Yogyakarta"/>
+                        <group string="Koordinat Map">
+                            <field name="x_profile_latitude"/>
+                            <field name="x_profile_longitude"/>
                         </group>
                     </group>
                     <group string="Hasil OCR" invisible="not ocr_result">
@@ -74,6 +85,7 @@
                                 <group>
                                     <field name="total_products"/>
                                     <field name="total_orders"/>
+                                    <field name="total_sold"/>
                                 </group>
                                 <group>
                                     <field name="total_revenue" widget="monetary"/>

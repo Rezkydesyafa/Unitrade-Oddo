@@ -3,6 +3,7 @@ from odoo.exceptions import ValidationError
 import logging
 import re
 import base64
+import uuid
 from datetime import datetime
 
 _logger = logging.getLogger(__name__)
@@ -34,6 +35,48 @@ class UnitradeSeller(models.Model):
         related='user_id.partner_id',
         store=True,
         readonly=True,
+    )
+    x_avatar_128 = fields.Image(
+        string='Avatar',
+        related='user_id.avatar_128',
+        readonly=True,
+    )
+    x_profile_description = fields.Text(
+        string='Tentang Penjual',
+        default=(
+            'Mahasiswa aktif yang menjual makanan ringan dan produk buatan sendiri, '
+            'melayani COD area kampus.'
+        ),
+        help='Deskripsi singkat yang tampil pada halaman profil penjual.',
+    )
+    x_profile_location = fields.Char(
+        string='Lokasi Profil',
+        compute='_compute_profile_location',
+        store=False,
+    )
+    x_profile_address = fields.Text(
+        string='Alamat Profil Publik',
+        help='Alamat singkat yang tampil di sidebar profil penjual.',
+    )
+    x_profile_latitude = fields.Float(
+        string='Latitude Profil Publik',
+        digits=(10, 7),
+        default=-7.7162,
+        help='Latitude lokasi penjual untuk map di profil publik.',
+    )
+    x_profile_longitude = fields.Float(
+        string='Longitude Profil Publik',
+        digits=(10, 7),
+        default=110.3554,
+        help='Longitude lokasi penjual untuk map di profil publik.',
+    )
+    x_profile_uuid = fields.Char(
+        string='Public Profile UUID',
+        default=lambda self: str(uuid.uuid4()),
+        copy=False,
+        index=True,
+        readonly=True,
+        help='Public identifier for seller profile URLs.',
     )
 
     # === KTM Verification ===
@@ -104,6 +147,11 @@ class UnitradeSeller(models.Model):
         compute='_compute_seller_stats',
         store=False,
     )
+    total_sold = fields.Integer(
+        string='Total Produk Terjual',
+        compute='_compute_seller_stats',
+        store=False,
+    )
     total_revenue = fields.Float(
         string='Total Pendapatan',
         compute='_compute_seller_stats',
@@ -119,7 +167,30 @@ class UnitradeSeller(models.Model):
     _sql_constraints = [
         ('user_unique', 'UNIQUE(user_id)', 'Setiap user hanya bisa memiliki satu akun penjual!'),
         ('nim_unique', 'UNIQUE(nim)', 'NIM ini sudah terdaftar sebagai penjual!'),
+        ('profile_uuid_unique', 'UNIQUE(x_profile_uuid)', 'UUID profil penjual harus unik!'),
     ]
+
+    def init(self):
+        """Backfill UUIDs for seller records created before the public profile route existed."""
+        self.env.cr.execute("""
+            SELECT id
+              FROM unitrade_seller
+             WHERE x_profile_uuid IS NULL
+                OR x_profile_uuid = ''
+                OR x_profile_uuid IN (
+                    SELECT x_profile_uuid
+                      FROM unitrade_seller
+                     WHERE x_profile_uuid IS NOT NULL
+                       AND x_profile_uuid != ''
+                     GROUP BY x_profile_uuid
+                    HAVING COUNT(*) > 1
+                )
+        """)
+        for seller_id, in self.env.cr.fetchall():
+            self.env.cr.execute(
+                "UPDATE unitrade_seller SET x_profile_uuid = %s WHERE id = %s",
+                (str(uuid.uuid4()), seller_id),
+            )
 
     @api.constrains('nim')
     def _check_nim_format(self):
@@ -146,15 +217,53 @@ class UnitradeSeller(models.Model):
     def _compute_seller_stats(self):
         """Compute seller statistics"""
         for record in self:
-            # Products count
-            products = self.env['product.template'].sudo().search_count([
+            Product = self.env['product.template'].sudo()
+            products = Product.search([
                 ('x_seller_id', '=', record.id)
-            ]) if 'x_seller_id' in self.env['product.template']._fields else 0
+            ]) if 'x_seller_id' in Product._fields else Product.browse()
 
-            record.total_products = products
-            record.total_orders = 0  # Will be computed when order module is ready
+            if products and 'unitrade.review' in self.env.registry:
+                reviews = self.env['unitrade.review'].sudo().search([
+                    ('product_id', 'in', products.ids),
+                    ('is_visible', '=', True),
+                ])
+            else:
+                reviews = []
+
+            sale_count = 0
+            if products and 'sales_count' in Product._fields:
+                sale_count = int(sum(products.mapped('sales_count')))
+
+            record.total_products = len(products)
+            record.total_orders = sale_count
+            record.total_sold = sale_count
             record.total_revenue = 0.0
-            record.average_rating = 0.0
+            record.average_rating = (
+                round(sum(reviews.mapped('rating')) / len(reviews), 1)
+                if reviews
+                else 0.0
+            )
+
+    def _compute_profile_location(self):
+        """Build a compact public location label from the linked partner."""
+        for record in self:
+            partner = record.partner_id
+            if not partner:
+                record.x_profile_location = 'Yogyakarta'
+                continue
+
+            location_parts = [
+                part for part in [partner.city, partner.state_id.name]
+                if part
+            ]
+            record.x_profile_location = ', '.join(location_parts) or 'Yogyakarta'
+
+    def _ensure_profile_uuid(self):
+        """Ensure existing sellers have a public UUID before rendering public links."""
+        for record in self.sudo():
+            if not record.x_profile_uuid:
+                record.write({'x_profile_uuid': str(uuid.uuid4())})
+        return self
 
     # === Actions ===
     def action_submit_verification(self):

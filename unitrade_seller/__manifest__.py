@@ -24,6 +24,12 @@
         'views/seller_menus.xml',
         'views/seller_verification_views.xml',
     ],
+    'assets': {
+        'web.assets_frontend': [
+            'unitrade_seller/static/src/xml/seller_profile_owl.xml',
+            'unitrade_seller/static/src/js/seller_profile_owl.js',
+        ],
+    },
     'installable': True,
     'application': False,
     'auto_install': False,

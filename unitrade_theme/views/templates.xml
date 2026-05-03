@@ -155,44 +155,52 @@
         </xpath>
     </template>
 
+   
     <!-- Footer -->
     <template id="unitrade_footer" inherit_id="website.layout" name="UniTrade Footer Override" active="True">
         <xpath expr="//footer" position="replace">
-        <footer class="ut-site-footer tw-relative tw-w-full tw-bg-transparent tw-min-h-[660px] tw-pt-[90px] tw-overflow-hidden tw-mt-4">
-            <div class="ut-footer-shell tw-absolute tw-inset-x-0 tw-top-[24px] tw-h-[636px] tw-bg-white tw-shadow-[0_-9px_53px_-14px_rgba(0,0,0,0.07)] tw-z-0"></div>
-            <div class="ut-footer-watermark-wrap tw-absolute tw-left-1/2 tw--translate-x-1/2 tw-h-[177px] tw-overflow-hidden tw-text-center tw-pointer-events-none tw-select-none tw-z-0">
-                <span class="ut-footer-watermark tw-font-['Urbanist'] tw-font-extrabold tw-text-[#f0f0f2] tw-leading-none">UniTrade</span>
+        <footer class="tw-relative tw-w-full tw-bg-white tw-pt-16 tw-pb-32 tw-overflow-hidden tw-mt-12">
+            <!-- Watermark text in background -->
+            <div class="tw-absolute tw-bottom-[-5%] tw-left-1/2 tw--translate-x-1/2 tw-w-full tw-text-center tw-pointer-events-none tw-select-none tw-z-0">
+                <span class="tw-font-['Urbanist'] tw-font-extrabold tw-text-[12rem] md:tw-text-[18rem] tw-text-gray-200/40 tw-tracking-widest tw-leading-none">UniTrade</span>
             </div>
 
-            <div class="ut-footer-inner tw-relative tw-z-10 tw-mx-auto">
-                <div class="ut-footer-card tw-bg-white tw-rounded-[38px] tw-shadow-[0_8px_52px_7px_rgba(0,0,0,0.07)] tw-h-[395px] tw-px-[34px] tw-pt-[48px] tw-pb-[42px]">
-                    <div class="tw-flex tw-flex-col md:tw-flex-row md:tw-justify-between tw-gap-10 md:tw-gap-8 tw-items-start">
-                        <div>
-                            <a href="/" class="tw-inline-flex tw-items-center tw-gap-3 tw-mb-[38px] tw-no-underline">
-                                <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="UniTrade Logo" class="tw-h-[46px] tw-w-auto tw-object-contain"/>
-                                <span class="tw-font-['Urbanist'] tw-font-bold tw-text-[18px] tw-leading-6 tw-text-[#212529]">UniTrade</span>
-                            </a>
-                            <p class="tw-text-[#212529] tw-text-[12px] tw-leading-6 tw-text-justify tw-mb-[30px] tw-m-0 tw-max-w-[390px]">
+            <!-- The white card -->
+            <div class="tw-relative tw-z-10 tw-max-w-7xl tw-mx-auto tw-px-4 md:tw-px-8">
+                <div class="tw-bg-white tw-rounded-[40px] tw-shadow-[0_20px_50px_rgba(0,0,0,0.05)] tw-p-8 md:tw-p-16">
+                    <div class="tw-flex tw-flex-col md:tw-flex-row tw-justify-between">
+                        <!-- Left Section -->
+                        <div class="tw-max-w-md">
+                            <div class="tw-flex tw-items-center tw-gap-3 tw-mb-8">
+                                <!-- Logo Image -->
+                                <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="UniTrade Logo" class="tw-h-8 md:tw-h-10 tw-w-auto tw-object-contain"/>
+                                <span class="tw-font-['Urbanist'] tw-font-bold tw-text-2xl tw-text-[#212529]">UniTrade</span>
+                            </div>
+                            <p class="tw-text-gray-600 tw-text-[14px] tw-leading-[1.8] tw-mb-8 tw-m-0">
                                 Horem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus sem sollicitudin lacus, ut interdum tellus elit sed risus. Maecenas eget condimentum velit, sit amet feugiat lectus.
                             </p>
-                            <div class="tw-flex tw-gap-4 tw-items-center">
-                                <a href="#" aria-label="X" class="ut-footer-social tw-text-[#1d1d1f] hover:tw-text-black tw-transition-colors tw-no-underline">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <div class="tw-flex tw-gap-6 tw-items-center tw-mt-8">
+                                <!-- Social icons -->
+                                <a href="#" class="tw-text-[#212529] hover:tw-text-gray-600 tw-transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.32Z"/>
                                     </svg>
                                 </a>
-                                <a href="#" aria-label="WhatsApp" class="ut-footer-social tw-text-[#1d1d1f] hover:tw-text-black tw-transition-colors tw-no-underline">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M20.52 3.48A11.86 11.86 0 0 0 12.06 0C5.48 0 .13 5.35.13 11.93c0 2.1.55 4.16 1.61 5.97L0 24l6.25-1.64a11.9 11.9 0 0 0 5.81 1.48h.01C18.65 23.84 24 18.49 24 11.91c0-3.18-1.24-6.18-3.48-8.43ZM12.07 21.83h-.01a9.9 9.9 0 0 1-5.05-1.38l-.36-.21-3.71.97.99-3.62-.23-.37a9.88 9.88 0 0 1-1.52-5.29c0-5.47 4.45-9.92 9.93-9.92a9.85 9.85 0 0 1 7.02 2.91 9.87 9.87 0 0 1 2.9 7.01c0 5.47-4.45 9.9-9.96 9.9Zm5.44-7.42c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.49s1.07 2.89 1.22 3.09c.15.2 2.11 3.22 5.1 4.52.71.31 1.27.49 1.7.63.72.23 1.37.2 1.88.12.57-.08 1.76-.72 2.01-1.42.25-.7.25-1.3.17-1.42-.07-.13-.27-.2-.57-.35Z"/>
+                                <a href="#" class="tw-text-[#212529] hover:tw-text-gray-600 tw-transition-colors">
+                                    <!-- WhatsApp Icon -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
                                     </svg>
                                 </a>
-                                <a href="#" aria-label="TikTok" class="ut-footer-social tw-text-[#1d1d1f] hover:tw-text-black tw-transition-colors tw-no-underline">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <a href="#" class="tw-text-[#212529] hover:tw-text-gray-600 tw-transition-colors">
+                                    <!-- TikTok Icon -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
                                     </svg>
                                 </a>
-                                <a href="#" aria-label="Instagram" class="ut-footer-social tw-text-[#1d1d1f] hover:tw-text-black tw-transition-colors tw-no-underline">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <a href="#" class="tw-text-[#212529] hover:tw-text-gray-600 tw-transition-colors">
+                                    <!-- Instagram Icon -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                                         <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
                                         <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
@@ -201,33 +209,35 @@
                             </div>
                         </div>
 
-                        <div class="ut-footer-link-columns tw-flex tw-gap-[65px] tw-items-start">
-                            <div class="tw-w-[80px]">
-                                <h4 class="tw-font-semibold tw-text-[#212529] tw-mb-[47px] tw-text-[16px] tw-leading-6">Beli</h4>
-                                <ul class="tw-space-y-[3px] tw-text-[12px] tw-leading-6 tw-p-0 tw-list-none tw-m-0">
-                                    <li><a href="/shop" class="tw-text-black/50 hover:tw-text-black tw-transition-colors tw-no-underline">Makanan</a></li>
-                                    <li><a href="/shop" class="tw-text-black/50 hover:tw-text-black tw-transition-colors tw-no-underline">Minuman</a></li>
-                                    <li><a href="/shop" class="tw-text-black/50 hover:tw-text-black tw-transition-colors tw-no-underline">Pakaian</a></li>
+                        <!-- Right Section Links -->
+                        <div class="tw-flex tw-gap-24 md:tw-gap-32 tw-mt-10 md:tw-mt-0 md:tw-mr-8">
+                            <div>
+                                <h4 class="tw-font-semibold tw-text-[#212529] tw-mb-6 tw-text-[15px]">Beli</h4>
+                                <ul class="tw-space-y-4 tw-text-sm tw-text-gray-500 tw-p-0 tw-list-none">
+                                    <li><a href="/shop" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Makanan</a></li>
+                                    <li><a href="/shop" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Minuman</a></li>
+                                    <li><a href="/shop" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Pakaian</a></li>
                                 </ul>
                             </div>
-
-                            <div class="tw-w-[120px]">
-                                <h4 class="tw-font-semibold tw-text-[#212529] tw-mb-[47px] tw-text-[16px] tw-leading-6">Jual</h4>
-                                <ul class="tw-space-y-[3px] tw-text-[12px] tw-leading-6 tw-p-0 tw-list-none tw-m-0">
-                                    <li><a href="/unitrade/seller/register" class="tw-text-black/50 hover:tw-text-black tw-transition-colors tw-no-underline">Daftar Toko</a></li>
+                            <div>
+                                <h4 class="tw-font-semibold tw-text-[#212529] tw-mb-6 tw-text-[15px]">Jual</h4>
+                                <ul class="tw-space-y-4 tw-text-sm tw-text-gray-500 tw-p-0 tw-list-none">
+                                    <li><a href="/unitrade/seller/register" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Daftar Toko</a></li>
                                 </ul>
                             </div>
                         </div>
                     </div>
 
-                    <div class="tw-w-full tw-h-px tw-bg-[#d2d2d7] tw-mt-[24px] tw-mb-[17px]"></div>
+                    <!-- Horizontal Divider -->
+                    <div class="tw-w-full tw-h-px tw-bg-gray-200 tw-mt-12 tw-mb-6"></div>
 
-                    <div class="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-start md:tw-items-center tw-text-[12px] tw-leading-6 tw-text-[#212529] tw-gap-4">
-                        <p class="tw-m-0">&#169; 2025 UniTrade. All right reserved.</p>
-                        <div class="tw-flex tw-flex-wrap tw-gap-x-[34px] tw-gap-y-3 tw-items-center">
-                            <a href="#" class="tw-text-[#212529] hover:tw-text-black tw-transition-colors tw-underline">Privacy Policy</a>
-                            <a href="#" class="tw-text-[#212529] hover:tw-text-black tw-transition-colors tw-underline">Terms of Service</a>
-                            <a href="#" class="tw-text-[#212529] hover:tw-text-black tw-transition-colors tw-underline">Cookies Settings</a>
+                    <!-- Bottom Copyright & Links -->
+                    <div class="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-center tw-text-[13px] tw-text-gray-500 tw-gap-4 md:tw-gap-0">
+                        <p class="tw-m-0">© 2025 UniTrade. All right reserved.</p>
+                        <div class="tw-flex tw-gap-6 tw-items-center">
+                            <a href="#" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Privacy Policy</a>
+                            <a href="#" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Terms of Service</a>
+                            <a href="#" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Cookies Settings</a>
                         </div>
                     </div>
                 </div>

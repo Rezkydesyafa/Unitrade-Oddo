@@ -70,4 +70,255 @@
             </div>
         </t>
     </template>
+
+    <template id="seller_profile_template" name="UniTrade Seller Profile">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="page_title"/>
+            <section class="ut-seller-profile-page tw-min-h-screen tw-bg-[#f5f5f7] tw-px-4 tw-py-8 md:tw-px-8 lg:tw-px-12" style="font-family: Urbanist, Inter, sans-serif;">
+                <div class="ut-seller-shell tw-mx-auto tw-w-full tw-max-w-[1376px]">
+                    <div t-if="request.params.get('reported')" class="tw-mb-5 tw-rounded-[18px] tw-border tw-border-emerald-200 tw-bg-emerald-50 tw-px-5 tw-py-3 tw-text-sm tw-text-emerald-700">
+                        Laporan diterima dan akan ditinjau admin UniTrade.
+                    </div>
+                    <div t-if="request.params.get('chat')" class="tw-mb-5 tw-rounded-[18px] tw-border tw-border-amber-200 tw-bg-amber-50 tw-px-5 tw-py-3 tw-text-sm tw-text-amber-700">
+                        Penjual belum menambahkan nomor WhatsApp.
+                    </div>
+                    <div t-if="seller_is_preview" class="tw-mb-5 tw-rounded-[18px] tw-border tw-border-amber-200 tw-bg-amber-50 tw-px-5 tw-py-3 tw-text-sm tw-text-amber-700">
+                        Profil ini belum terverifikasi. Status saat ini:
+                        <strong t-esc="seller.status"/>
+                    </div>
+
+                    <div class="tw-grid tw-grid-cols-1 tw-items-start tw-gap-7 lg:tw-grid-cols-[269px_minmax(0,1fr)] lg:tw-gap-8 xl:tw-gap-10">
+                        <aside class="ut-seller-sidebar tw-flex tw-h-fit tw-self-start tw-flex-col tw-rounded-[36px] tw-bg-white tw-p-[17px] tw-shadow-[0_14px_50px_rgba(33,37,41,0.08)]">
+                            <form id="ut-seller-sidebar-search-form" t-attf-action="/seller-profile/#{seller_public_ref}" method="get" class="tw-relative tw-mb-5">
+                                <input id="ut-seller-sidebar-search-tab" type="hidden" name="tab" t-att-value="active_tab"/>
+                                <input id="ut-seller-sidebar-search-input" type="search" name="search" t-att-value="seller_search" class="tw-h-[54px] tw-w-full tw-rounded-[27px] tw-border-0 tw-bg-[#f5f5f7] tw-pl-[58px] tw-pr-4 tw-text-[16px] tw-text-[#212529] tw-outline-none placeholder:tw-text-[#939393]" placeholder="Search..."/>
+                                <button type="submit" class="tw-absolute tw-left-2 tw-top-[7px] tw-flex tw-h-[40px] tw-w-[40px] tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-black tw-text-white" aria-label="Cari di toko">
+                                    <i class="fa fa-search"></i>
+                                </button>
+                            </form>
+
+                            <div class="tw-rounded-[16px] tw-border tw-border-[#d1d5db] tw-px-[14px] tw-py-4">
+                                <h2 class="tw-m-0 tw-mb-2 tw-text-[16px] tw-font-medium tw-leading-6 tw-text-black">Tentang Penjual</h2>
+                                <p class="tw-m-0 tw-text-[14px] tw-leading-6 tw-text-[#525252]">
+                                    <t t-esc="seller.x_profile_description or 'Mahasiswa belum menambahkan informasi tentang dirinya.'"/>
+                                </p>
+                            </div>
+
+                            <div class="tw-mt-3 tw-rounded-[16px] tw-border tw-border-[#d1d5db] tw-px-[14px] tw-py-4">
+                                <h2 class="tw-m-0 tw-mb-3 tw-text-[16px] tw-font-semibold tw-leading-6 tw-text-black">Lokasi</h2>
+                                <div class="tw-mb-3 tw-flex tw-items-start tw-gap-3">
+                                    <span class="tw-flex tw-h-[35px] tw-w-[35px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#f5f5f7] tw-text-black">
+                                        <i class="fa fa-map-marker"></i>
+                                    </span>
+                                    <p class="tw-m-0 tw-text-[14px] tw-font-medium tw-leading-5 tw-text-[#525252]">
+                                        <t t-esc="seller_address"/>
+                                    </p>
+                                </div>
+                                <div class="ut-seller-map tw-mb-3 tw-h-[123px] tw-overflow-hidden tw-rounded-[14px] tw-bg-[#eef1ef]">
+                                    <iframe t-attf-src="https://maps.google.com/maps?q=#{seller_map_lat},#{seller_map_lng}&amp;z=16&amp;output=embed"
+                                        class="tw-h-[170px] tw-w-full tw-border-0"
+                                        style="margin-top: -24px;"
+                                        loading="lazy"
+                                        referrerpolicy="no-referrer-when-downgrade">
+                                    </iframe>
+                                </div>
+                                <div class="tw-flex tw-items-start tw-gap-3">
+                                    <span class="tw-flex tw-h-[35px] tw-w-[35px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#f5f5f7] tw-text-black">
+                                        <i class="fa fa-commenting-o"></i>
+                                    </span>
+                                    <p class="tw-m-0 tw-text-[12px] tw-font-medium tw-leading-5 tw-text-[#525252]">
+                                        Estimasi balasan chat:<br/>
+                                        ±10 menit
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="ut-seller-report-widget tw-pt-4">
+                                <button type="button" class="ut-seller-report-trigger" aria-haspopup="dialog" aria-controls="ut-seller-report-modal">
+                                    <span class="ut-seller-report-trigger-icon">
+                                        <i class="fa fa-flag-o"></i>
+                                    </span>
+                                    <span class="ut-seller-report-trigger-label">Report</span>
+                                </button>
+
+                                <div id="ut-seller-report-modal" class="ut-seller-report-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="ut-seller-report-title">
+                                    <div class="ut-seller-report-backdrop" data-report-close="1"></div>
+                                    <div class="ut-seller-report-dialog">
+                                        <button type="button" class="ut-seller-report-close" data-report-close="1" aria-label="Tutup form report">
+                                            <i class="fa fa-times"></i>
+                                        </button>
+                                        <div class="ut-seller-report-dialog-icon">
+                                            <i class="fa fa-flag-o"></i>
+                                        </div>
+                                        <h2 id="ut-seller-report-title" class="ut-seller-report-title">Laporkan Penjual</h2>
+                                        <p class="ut-seller-report-copy">
+                                            Jelaskan masalah pada toko ini agar admin UniTrade bisa meninjau laporan dengan tepat.
+                                        </p>
+                                        <form t-attf-action="/seller-profile/#{seller_public_ref}/report" method="post" class="ut-seller-report-form">
+                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                            <label for="ut-seller-report-reason" class="ut-seller-report-label">Alasan laporan</label>
+                                            <textarea id="ut-seller-report-reason" name="reason" required="required" maxlength="500" class="ut-seller-report-textarea" placeholder="Contoh: Produk mencurigakan, penjual tidak sesuai identitas, atau aktivitas lain yang perlu ditinjau."></textarea>
+                                            <div class="ut-seller-report-actions">
+                                                <button type="button" class="ut-seller-report-cancel" data-report-close="1">Batal</button>
+                                                <button type="submit" class="ut-seller-report-submit">Kirim laporan</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </aside>
+
+                        <main class="tw-min-w-0">
+                            <div class="tw-mb-7 tw-flex tw-flex-col tw-gap-5 md:tw-flex-row md:tw-items-start md:tw-justify-between">
+                                <div class="tw-flex tw-items-center tw-gap-6">
+                                    <img t-att-src="image_data_uri(seller.x_avatar_128) if seller.x_avatar_128 else '/web/static/img/user_menu_avatar.png'" alt="Avatar penjual" class="tw-h-[114px] tw-w-[114px] tw-rounded-full tw-object-cover"/>
+                                    <div>
+                                        <h1 class="tw-m-0 tw-text-[20px] tw-font-medium tw-leading-6 tw-text-black">
+                                            <t t-esc="seller.name"/>
+                                        </h1>
+                                        <p class="tw-m-0 tw-mt-1 tw-flex tw-items-center tw-gap-2 tw-text-[12px] tw-leading-6 tw-text-[#525252]">
+                                            Aktif
+                                            <span class="tw-h-[7px] tw-w-[7px] tw-rounded-full tw-bg-[#00d26a]"></span>
+                                        </p>
+                                        <p class="tw-m-0 tw-text-[12px] tw-leading-6 tw-text-[#525252]">
+                                            Bergabung <t t-esc="seller_joined_date"/>
+                                        </p>
+                                        <a t-attf-href="/seller-profile/#{seller_public_ref}/chat" class="tw-mt-3 tw-flex tw-h-[42px] tw-w-[178px] tw-items-center tw-justify-center tw-gap-3 tw-rounded-[21px] tw-border tw-border-[#212529] tw-bg-[#212529] tw-text-[14px] tw-text-[#f5f5f7] tw-no-underline">
+                                            <i class="fa fa-commenting"></i>
+                                            Chat penjual
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="tw-flex tw-items-start tw-gap-2 md:tw-mt-[15px] md:tw-pr-5">
+                                    <i class="fa fa-star tw-mt-1 tw-text-[#ffb000]"></i>
+                                    <div>
+                                        <p class="tw-m-0 tw-text-[14px] tw-font-semibold tw-leading-[17px] tw-text-[#212529]">
+                                            <t t-esc="'%.1f' % seller_rating"/> (<t t-esc="seller_review_count"/>) . <t t-esc="seller_total_sold"/> terjual
+                                        </p>
+                                        <p class="tw-m-0 tw-text-[10px] tw-leading-4 tw-text-[#939393]">Rating &amp; Ulasan</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="ut-seller-profile-owl"
+                                t-att-data-profile-ref="seller_public_ref"
+                                t-att-data-initial-tab="active_tab"
+                                t-att-data-initial-rating="seller_review_active_rating"
+                                t-att-data-search="seller_search or ''">
+                                <div id="ut-seller-initial-products">
+                                    <t t-if="active_tab == 'reviews'" t-call="unitrade_seller.seller_profile_reviews_fragment"/>
+                                    <t t-else="" t-call="unitrade_seller.seller_profile_products_fragment"/>
+                                </div>
+                            </div>
+                        </main>
+                    </div>
+                </div>
+            </section>
+        </t>
+    </template>
+
+    <template id="seller_profile_products_fragment" name="UniTrade Seller Profile Products Fragment">
+        <div t-if="seller_products" class="ut-seller-product-grid tw-grid tw-grid-cols-2 tw-gap-5 sm:tw-grid-cols-3 xl:tw-grid-cols-5">
+            <t t-foreach="seller_products" t-as="product">
+                <a t-att-href="product.website_url or '/unitrade/product/%s' % product.id" class="ut-seller-product-card tw-flex tw-h-[253px] tw-flex-col tw-rounded-[22px] tw-border tw-border-[#d9d9d9] tw-bg-white tw-p-[9px] tw-text-[#212529] tw-no-underline tw-transition hover:tw--translate-y-1 hover:tw-shadow-md">
+                    <div class="tw-h-[133px] tw-w-full tw-overflow-hidden tw-rounded-[12px] tw-bg-[#d9d9d9]">
+                        <img t-attf-src="/web/image/product.template/#{product.id}/image_1024" t-att-alt="product.name" class="tw-h-full tw-w-full tw-object-cover"/>
+                    </div>
+                    <h3 class="tw-m-0 tw-mt-2 tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[16px] tw-font-semibold tw-leading-6">
+                        <t t-esc="product.name"/>
+                    </h3>
+                    <p class="tw-m-0 tw-flex tw-items-center tw-gap-1 tw-text-[12px] tw-leading-5 tw-text-black/25">
+                        <i class="fa fa-map-marker"></i>
+                        <span class="tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap">
+                            <t t-esc="product.x_seller_location or seller.x_profile_location or 'Sleman'"/>
+                        </span>
+                    </p>
+                    <div class="tw-mt-auto tw-flex tw-items-center tw-justify-between tw-gap-2">
+                        <strong class="tw-min-w-0 tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[16px] tw-font-extrabold tw-leading-6">
+                            <span t-field="product.list_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                        </strong>
+                        <span class="tw-flex tw-items-center tw-gap-1 tw-text-[12px] tw-text-black/25">
+                            <i class="fa fa-star tw-text-[#ffb000]"></i>
+                            <t t-esc="'%.1f' % (product.x_average_rating or 5.0)"/>
+                        </span>
+                    </div>
+                </a>
+            </t>
+        </div>
+
+        <div t-else="" class="tw-rounded-[24px] tw-border tw-border-[#dbdbdb] tw-bg-white tw-p-10 tw-text-center tw-text-[#525252]">
+            Belum ada produk yang cocok.
+        </div>
+    </template>
+
+    <template id="seller_profile_reviews_fragment" name="UniTrade Seller Profile Reviews Fragment">
+        <div class="ut-seller-reviews ut-review-panel">
+            <div class="ut-review-summary-card">
+                <div class="ut-review-filter-row">
+                    <button type="button"
+                        data-rating=""
+                        t-att-class="'ut-review-chip ut-seller-review-filter %s' % ('ut-review-chip-active' if not seller_review_active_rating else '')">
+                        Semua (<t t-esc="seller_review_count"/>)
+                    </button>
+                    <t t-foreach="seller_review_star_filters" t-as="row">
+                        <button type="button"
+                            t-att-data-rating="row.get('star')"
+                            t-att-class="'ut-review-chip ut-seller-review-filter %s' % ('ut-review-chip-active' if row.get('active') else '')">
+                            <t t-esc="row.get('star')"/> bintang (<t t-esc="row.get('count')"/>)
+                        </button>
+                    </t>
+                </div>
+                <div class="ut-review-score">
+                    <div class="ut-review-score-line">
+                        <span class="ut-review-score-value" t-esc="'%.1f' % seller_rating"></span>
+                        <span class="ut-review-score-label">Out Of</span>
+                        <span class="ut-review-score-max">5</span>
+                    </div>
+                    <div class="ut-review-score-stars">
+                        <t t-foreach="seller_review_star_display" t-as="row">
+                            <i t-att-class="'fa fa-star %s' % ('tw-text-[#ffb000]' if row.get('active') else 'tw-text-[#d2d2d7]')"></i>
+                        </t>
+                    </div>
+                </div>
+            </div>
+
+            <div t-if="seller_reviews" class="ut-review-list">
+                <t t-foreach="seller_reviews" t-as="review">
+                    <article class="ut-review-item">
+                        <img t-attf-src="/web/image/res.users/#{review.user_id.id}/avatar_128" class="ut-review-avatar" alt="Reviewer"/>
+                        <div class="ut-review-body">
+                            <div class="ut-review-head">
+                                <p class="ut-review-name">
+                                    <t t-esc="review.user_id.name or 'Pengguna'"/>
+                                    <span class="tw-ml-2 tw-text-[12px] tw-text-[#939393]">untuk <t t-esc="review.product_id.name"/></span>
+                                </p>
+                                <p class="ut-review-date" t-esc="review.create_date.strftime('%d %b %Y') if review.create_date else 'Date &amp; time'"></p>
+                            </div>
+                            <div class="tw-mb-3 tw-flex tw-gap-1">
+                                <t t-foreach="[1, 2, 3, 4, 5]" t-as="star">
+                                    <i t-att-class="'fa fa-star %s' % ('tw-text-[#ffb000]' if star &lt;= review.rating else 'tw-text-[#d2d2d7]')"></i>
+                                </t>
+                            </div>
+                            <div t-if="review.review_image" class="ut-review-image-row">
+                                <img t-att-src="image_data_uri(review.review_image)" alt="Gambar ulasan" class="ut-review-image"/>
+                            </div>
+                            <p class="ut-review-comment" t-esc="review.comment or 'Tidak ada komentar.'"></p>
+                            <div class="ut-review-actions">
+                                <button type="button" class="ut-review-report">Report</button>
+                                <button type="button" class="ut-review-helpful">
+                                    <i class="fa fa-thumbs-up" style="color:var(--ut-color-border); font-size:12px;"></i>
+                                    <span>Membantu</span>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                </t>
+            </div>
+
+            <div t-else="" class="tw-rounded-[24px] tw-border tw-border-[#dbdbdb] tw-bg-white tw-p-10 tw-text-center tw-text-[#525252]">
+                Belum ada ulasan untuk toko ini.
+            </div>
+        </div>
+    </template>
 </odoo>
