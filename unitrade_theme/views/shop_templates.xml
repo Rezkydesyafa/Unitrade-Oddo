@@ -125,7 +125,7 @@
 
     <template id="unitrade_shop_results_fragment" name="UniTrade Shop Results Fragment">
         <!-- Products Grid Container -->
-        <div t-if="products" class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 xl:tw-grid-cols-5 tw-gap-3 md:tw-gap-4 tw-mb-8 tw-w-full">
+        <div t-if="products" class="ut-product-card-grid tw-grid tw-mb-8 tw-w-full">
             <t t-foreach="products" t-as="product">
                 <div class="oe_product tw-h-full">
                     <t t-call="website_sale.products_item">

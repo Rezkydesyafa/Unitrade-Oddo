@@ -29,7 +29,7 @@ export class ProductWishlistButton extends Component {
         if (this.state.active) {
             return `${base} tw-bg-[var(--ut-color-danger)] hover:tw-bg-[var(--ut-color-danger-hover)]`;
         }
-        return `${base} tw-bg-[var(--ut-color-button-bg)] hover:tw-bg-[var(--ut-color-danger)]`;
+        return `${base} tw-bg-[var(--ut-color-danger)] hover:tw-bg-[var(--ut-color-danger-hover)]`;
     }
 
     async toggle() {

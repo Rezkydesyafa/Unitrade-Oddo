@@ -32,7 +32,7 @@ class UnitradeReview(models.Model):
 
     @api.onchange('product_id', 'user_id')
     def _onchange_review_order_domain(self):
-        domain = [('state', '=', 'sale')]
+        domain = [('state', '=', 'done')]
         if self.user_id:
             domain.append(('partner_id', '=', self.user_id.partner_id.id))
         if self.product_id:
@@ -44,7 +44,7 @@ class UnitradeReview(models.Model):
     @api.constrains('order_id')
     def _check_order_done(self):
         for record in self:
-            if record.order_id.state != 'sale':
+            if record.order_id.state != 'done':
                 raise ValidationError(_('Ulasan hanya bisa diberikan untuk pesanan yang sudah selesai.'))
 
     def action_save_review(self):

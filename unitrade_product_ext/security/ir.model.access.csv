@@ -1,1 +1,8 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_unitrade_product_template_user,unitrade.product.template.user,product.model_product_template,base.group_user,1,0,0,0
+access_unitrade_product_image_user,unitrade.product.image.user,website_sale.model_product_image,base.group_user,1,0,0,0
+access_unitrade_product_template_system,unitrade.product.template.system,product.model_product_template,base.group_system,1,1,1,1
+access_unitrade_product_image_system,unitrade.product.image.system,website_sale.model_product_image,base.group_system,1,1,1,1
+access_unitrade_product_template_admin,unitrade.product.template.admin,product.model_product_template,unitrade_seller.group_unitrade_admin,1,1,1,1
+access_unitrade_product_image_admin,unitrade.product.image.admin,website_sale.model_product_image,unitrade_seller.group_unitrade_admin,1,1,1,1
+access_unitrade_product_category_admin,unitrade.product.category.admin,product.model_product_category,unitrade_seller.group_unitrade_admin,1,0,0,0

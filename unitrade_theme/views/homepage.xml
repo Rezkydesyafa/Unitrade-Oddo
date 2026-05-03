@@ -231,7 +231,7 @@
                     <a href="/shop" class="tw-font-['Urbanist'] tw-font-bold tw-text-[15px] tw-text-black tw-border tw-border-solid tw-border-gray-200 tw-rounded-[24px] tw-px-6 tw-py-2 hover:tw-bg-gray-50 tw-transition-colors tw-no-underline">Explore All</a>
                 </div>
 
-                <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-4 lg:tw-grid-cols-6 tw-gap-3 md:tw-gap-4">
+                <div class="ut-product-card-grid tw-grid">
                     <t t-foreach="products or []" t-as="product">
                         <t t-set="ut_card_href" t-value="product.website_url"/>
                         <t t-set="ut_card_product" t-value="product"/>

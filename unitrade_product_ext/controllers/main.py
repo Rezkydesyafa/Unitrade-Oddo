@@ -82,10 +82,6 @@ class UnitradeWebsiteSale(WebsiteSale):
 
     def _prepare_unitrade_product_values(self, product):
         """Compute all custom field values safely for the product detail template."""
-        rating = _safe_get(product, 'x_average_rating', 0) or 0.0
-        full_stars = int(rating)
-        has_half = (rating - full_stars) >= 0.5
-        review_count = _safe_get(product, 'x_review_count', 0) or 0
         weight = _safe_get(product, 'x_weight_product', 0) or 0
         condition = _safe_get(product, 'x_condition', '')
         brand = _safe_get(product, 'x_brand', '')
@@ -93,7 +89,19 @@ class UnitradeWebsiteSale(WebsiteSale):
         seller_location = _safe_get(product, 'x_seller_location', '')
         seller_lat = _safe_get(product, 'x_seller_latitude', 0)
         seller_lng = _safe_get(product, 'x_seller_longitude', 0)
+        item_lat = _safe_get(product, 'x_item_latitude', 0)
+        item_lng = _safe_get(product, 'x_item_longitude', 0)
+        map_lat = item_lat or seller_lat
+        map_lng = item_lng or seller_lng
         seller = _safe_get(product, 'x_seller_id', False)
+        discount_percent = max(_safe_get(product, 'x_discount_percent', 0) or 0, 0)
+        original_price = product.list_price or 0.0
+        has_discount = bool(discount_percent and original_price > 0)
+        discounted_price = (
+            original_price * (100 - min(discount_percent, 100)) / 100
+            if has_discount
+            else original_price
+        )
 
         # Reviews
         reviews = []
@@ -106,30 +114,46 @@ class UnitradeWebsiteSale(WebsiteSale):
         except Exception:
             pass
 
-        # Seller products
-        seller_products = []
-        if seller:
+        all_reviews = reviews
+        if len(reviews) == 20:
             try:
-                seller_products = request.env['product.template'].sudo().search([
-                    ('x_seller_id', '=', seller.id),
-                    ('id', '!=', product.id),
-                    ('website_published', '=', True),
-                ], limit=8)
+                all_reviews = request.env['unitrade.review'].sudo().search([
+                    ('product_id', '=', product.id),
+                    ('is_visible', '=', True),
+                ])
             except Exception:
-                pass
+                all_reviews = reviews
 
-        # Build related product data as plain dicts (no field access needed in template)
-        seller_products_data = []
-        for rp in seller_products:
-            seller_products_data.append({
-                'id': rp.id,
-                'name': rp.name,
-                'list_price': rp.list_price,
-                'price_formatted': '{:,.0f}'.format(rp.list_price).replace(',', '.'),
-                'location': _safe_get(rp, 'x_seller_location', '') or 'Yogyakarta',
-                'rating': _safe_get(rp, 'x_average_rating', 0) or 0.0,
-                'website_url': rp.website_url,
-            })
+        review_count = len(all_reviews)
+        rating = round(sum(all_reviews.mapped('rating')) / review_count, 1) if review_count else 0.0
+        full_stars = int(rating)
+        has_half = (rating - full_stars) >= 0.5
+
+        # Marketplace recommendations
+        recommended_products = request.env['product.template']
+        try:
+            Product = request.env['product.template'].sudo()
+            base_domain = [
+                ('id', '!=', product.id),
+                ('x_is_marketplace', '=', True),
+                ('sale_ok', '=', True),
+                ('website_published', '=', True),
+            ]
+            if product.categ_id:
+                recommended_products = Product.search(
+                    base_domain + [('categ_id', '=', product.categ_id.id)],
+                    order='create_date desc',
+                    limit=8,
+                )
+            if len(recommended_products) < 8:
+                extra_products = Product.search(
+                    base_domain + [('id', 'not in', recommended_products.ids)],
+                    order='create_date desc',
+                    limit=8 - len(recommended_products),
+                )
+                recommended_products |= extra_products
+        except Exception:
+            _logger.exception('Failed to load UniTrade product recommendations for product %s', product.id)
 
         # Check wishlist
         is_in_wishlist = False
@@ -146,10 +170,18 @@ class UnitradeWebsiteSale(WebsiteSale):
 
         # Stock text
         try:
-            qty = sum(product.product_variant_ids.mapped('qty_available'))
+            qty = (
+                sum(product.product_variant_ids.mapped('qty_available'))
+                if 'qty_available' in product.product_variant_ids._fields
+                else None
+            )
         except Exception:
-            qty = 0
-        stock_text = f'Stok: {int(qty)} tersedia' if qty > 0 else 'Stok habis'
+            qty = None
+        stock_text = (
+            f'Stok: {int(qty)} tersedia'
+            if qty and qty > 0
+            else 'Stok habis' if qty == 0 else 'Tersedia'
+        )
 
         return {
             'ut_rating': rating,
@@ -161,12 +193,18 @@ class UnitradeWebsiteSale(WebsiteSale):
             'ut_condition': condition,
             'ut_brand': brand,
             'ut_specification': specification,
+            'ut_has_discount': has_discount,
+            'ut_discount_percent': discount_percent,
+            'ut_original_price': original_price,
+            'ut_discounted_price': discounted_price,
             'ut_seller_location': seller_location,
             'ut_seller_lat': seller_lat,
             'ut_seller_lng': seller_lng,
+            'ut_map_lat': map_lat,
+            'ut_map_lng': map_lng,
             'ut_seller': seller,
             'ut_reviews': reviews,
-            'ut_seller_products': seller_products_data,
+            'ut_recommended_products': recommended_products,
             'ut_is_in_wishlist': is_in_wishlist,
             'ut_is_public_user': is_public_user,
             'ut_stock_text': stock_text,

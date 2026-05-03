@@ -8,8 +8,8 @@
   --ut-color-secondary: #0066cc;
   --ut-color-accent: #ff9500;
   --ut-color-success: #34c759;
-  --ut-color-danger: #ff3b30;
-  --ut-color-danger-hover: #d70015;
+  --ut-color-danger: #ca2424;
+  --ut-color-danger-hover: #ff4d4d;
 
   --ut-color-text-main: #1d1d1f;
   --ut-color-text-body: #515154;
@@ -27,7 +27,7 @@
   --ut-color-border-strong: #86868b;
   --ut-color-divider: #e5e5ea;
 
-  --ut-color-button-bg: #000000;
+  --ut-color-button-bg: #1d1d1f;
   --ut-color-button-bg-hover: #000000;
   --ut-color-button-text: #ffffff;
   --ut-color-button-outline-text: #1d1d1f;
@@ -165,6 +165,181 @@
   text-decoration: none !important;
 }
 
+.ut-product-card-link {
+  box-sizing: border-box;
+  width: 100%;
+  height: 292px;
+  min-height: 292px;
+}
+
+.ut-product-card-image-wrap {
+  background: #f5f5f7;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ut-product-card-image {
+  padding: 14px;
+  filter: saturate(1.03) contrast(1.02);
+}
+
+.ut-product-card-title {
+  min-height: 36px;
+  max-height: 36px;
+  overflow: hidden;
+}
+
+.ut-product-card-location {
+  min-height: 18px;
+  max-height: 18px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ut-product-card-location svg {
+  flex: 0 0 auto;
+}
+
+.ut-product-card-price {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 116px;
+}
+
+.ut-product-card-bottom {
+  min-height: 24px;
+  margin-top: 14px !important;
+}
+
+.ut-product-card-grid {
+  grid-template-columns: repeat(auto-fill, 188px);
+  gap: 16px;
+  justify-content: start;
+  align-items: stretch;
+}
+
+.ut-product-card-grid .oe_product,
+.ut-product-card-grid > .ut-product-card-link {
+  width: 188px;
+  min-width: 188px;
+}
+
+.ut-site-footer {
+  isolation: isolate;
+}
+
+.ut-footer-shell {
+  border-top-left-radius: 62px;
+  border-top-right-radius: 62px;
+}
+
+.ut-footer-inner {
+  width: min(1150px, 74vw);
+}
+
+.ut-footer-card {
+  backdrop-filter: blur(18px);
+}
+
+.ut-footer-watermark-wrap {
+  top: 492px;
+  width: min(1061px, 74vw);
+}
+
+.ut-footer-watermark {
+  letter-spacing: 0;
+  display: block;
+  font-size: clamp(120px, 13.8vw, 210px);
+  opacity: 0.74;
+  transform: translateY(-6px);
+  white-space: nowrap;
+}
+
+.ut-footer-link-columns {
+  margin-top: 22px;
+  margin-right: 126px;
+}
+
+.ut-footer-social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+  border-radius: 12px;
+}
+
+@media (max-width: 767px) {
+  .ut-product-card-link {
+    height: 278px;
+    min-height: 278px;
+  }
+
+  .ut-product-card-image-wrap {
+    height: 138px;
+  }
+
+  .ut-product-card-image {
+    padding: 12px;
+  }
+
+  .ut-product-card-title {
+    min-height: 34px;
+    max-height: 34px;
+  }
+
+  .ut-product-card-price {
+    max-width: 104px;
+  }
+
+  .ut-product-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .ut-product-card-grid .oe_product,
+  .ut-product-card-grid > .ut-product-card-link {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .ut-site-footer {
+    min-height: auto !important;
+    padding-top: 48px !important;
+    padding-bottom: 112px !important;
+  }
+
+  .ut-footer-inner {
+    width: min(100% - 32px, 1150px);
+  }
+
+  .ut-footer-card {
+    border-radius: 24px !important;
+    height: auto !important;
+    padding: 28px 22px 24px !important;
+  }
+
+  .ut-footer-watermark-wrap {
+    top: auto;
+    bottom: 16px;
+    width: 100%;
+  }
+
+  .ut-footer-watermark {
+    font-size: 6rem !important;
+  }
+
+  .ut-footer-link-columns {
+    margin-top: 0;
+    margin-right: 0;
+    gap: 42px;
+  }
+}
+
 .ut-category-card,
 .ut-category-card:hover,
 .ut-category-card:focus,
@@ -191,6 +366,7 @@
   margin: 0 auto 64px;
   padding: 26px 52px;
   background: var(--ut-color-bg-surface);
+  border: 1px solid var(--ut-color-border);
   border-radius: 32px;
 }
 
@@ -264,6 +440,75 @@
 
 .ut-review-list {
   position: relative;
+}
+
+.ut-review-loading {
+  display: flex;
+  gap: 25px;
+  padding: 18px 0 96px;
+}
+
+.ut-review-skeleton-avatar,
+.ut-review-skeleton-line,
+.ut-review-skeleton-actions span {
+  background: linear-gradient(
+    90deg,
+    var(--ut-color-bg-muted) 0%,
+    var(--ut-color-bg-surface) 46%,
+    var(--ut-color-bg-muted) 92%
+  );
+  background-size: 220% 100%;
+  animation: ut-review-shimmer 1.35s ease-in-out infinite;
+}
+
+.ut-review-skeleton-avatar {
+  width: 51px;
+  height: 51px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.ut-review-skeleton-body {
+  flex: 1;
+  min-width: 0;
+  padding-top: 4px;
+}
+
+.ut-review-skeleton-line {
+  height: 14px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+
+.ut-review-skeleton-name {
+  width: 180px;
+}
+
+.ut-review-skeleton-date {
+  width: 92px;
+  height: 8px;
+  margin-bottom: 28px;
+}
+
+.ut-review-skeleton-text {
+  width: min(100%, 900px);
+}
+
+.ut-review-skeleton-text-short {
+  width: min(68%, 620px);
+  margin-bottom: 22px;
+}
+
+.ut-review-skeleton-actions {
+  display: flex;
+  gap: 32px;
+}
+
+.ut-review-skeleton-actions span {
+  display: block;
+  width: 96px;
+  height: 26px;
+  border-radius: 52px;
 }
 
 .ut-review-item {
@@ -384,13 +629,16 @@
 
 .ut-review-more-wrap {
   position: relative;
-  margin-top: -78px;
-  padding-top: 96px;
+  margin-top: -128px;
+  padding-top: 150px;
+  padding-bottom: 10px;
   text-align: center;
   background: linear-gradient(
     to bottom,
-    color-mix(in srgb, var(--ut-color-bg-page) 0%, transparent),
-    var(--ut-color-bg-page) 48%
+    color-mix(in srgb, var(--ut-color-bg-surface) 0%, transparent) 0%,
+    color-mix(in srgb, var(--ut-color-bg-surface) 72%, transparent) 34%,
+    var(--ut-color-bg-surface) 76%,
+    var(--ut-color-bg-surface) 100%
   );
   pointer-events: none;
 }
@@ -406,6 +654,15 @@
   text-decoration: underline;
   cursor: pointer;
   pointer-events: auto;
+}
+
+@keyframes ut-review-shimmer {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -120% 0;
+  }
 }
 
 @media (max-width: 900px) {

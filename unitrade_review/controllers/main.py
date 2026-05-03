@@ -78,7 +78,7 @@ class UnitradeReviewController(http.Controller):
             return request.env['sale.order']
         return request.env['sale.order'].sudo().search([
             ('partner_id', '=', request.env.user.partner_id.id),
-            ('state', '=', 'sale'),
+            ('state', '=', 'done'),
             ('order_line.product_id.product_tmpl_id', '=', product_id),
         ], order='date_order desc', limit=1)
 
@@ -120,7 +120,13 @@ class UnitradeReviewController(http.Controller):
             except (TypeError, ValueError):
                 pass
 
-        order = 'create_date asc' if sort == 'oldest' else 'create_date desc'
+        order_map = {
+            'oldest': 'create_date asc',
+            'highest': 'rating desc, create_date desc',
+            'lowest': 'rating asc, create_date desc',
+            'newest': 'create_date desc',
+        }
+        order = order_map.get(sort, 'create_date desc')
         Review = request.env['unitrade.review'].sudo()
         total_filtered = Review.search_count(domain)
         reviews = Review.search(domain, order=order, limit=limit, offset=offset)

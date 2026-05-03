@@ -1,0 +1,198 @@
+2026-05-03 07:09:36,247 23008 INFO ? odoo: Odoo version 17.0-20260217 
+2026-05-03 07:09:36,248 23008 INFO ? odoo: Using configuration file at C:\Program Files\Odoo 17.0.20260217\server\odoo.conf 
+2026-05-03 07:09:36,248 23008 INFO ? odoo: addons paths: ['C:\\Program Files\\Odoo 17.0.20260217\\server\\odoo\\addons', 'c:\\program files\\odoo 17.0.20260217\\sessions\\addons\\17.0', 'c:\\program files\\odoo 17.0.20260217\\server\\odoo\\addons', 'c:\\program files\\odoo 17.0.20260217\\server\\addons', 'd:\\unitrade_oddo'] 
+2026-05-03 07:09:36,248 23008 INFO ? odoo: database: openpg@localhost:5432 
+2026-05-03 07:09:36,532 23008 INFO ? odoo.addons.base.models.ir_actions_report: Will use the Wkhtmltopdf binary at C:\Program Files\Odoo 17.0.20260217\thirdparty\wkhtmltopdf.exe 
+2026-05-03 07:09:37,185 23008 INFO unitrade_db odoo.modules.loading: loading 1 modules... 
+2026-05-03 07:09:37,190 23008 INFO unitrade_db odoo.modules.loading: 1 modules loaded in 0.01s, 0 queries (+0 extra) 
+2026-05-03 07:09:37,213 23008 INFO unitrade_db odoo.modules.loading: updating modules list 
+2026-05-03 07:09:37,220 23008 INFO unitrade_db odoo.addons.base.models.ir_module: ALLOW access to module.update_list on [] to user __system__ #1 via n/a 
+2026-05-03 07:09:38,598 23008 WARNING unitrade_db odoo.modules.module: Missing `license` key in manifest for 'techmerch_finance', defaulting to LGPL-3 
+2026-05-03 07:09:38,976 23008 INFO unitrade_db odoo.addons.base.models.ir_module: ALLOW access to module.button_upgrade on ['UniTrade Product Extension'] to user __system__ #1 via n/a 
+2026-05-03 07:09:38,976 23008 INFO unitrade_db odoo.addons.base.models.ir_module: ALLOW access to module.update_list on ['UniTrade Product Extension'] to user __system__ #1 via n/a 
+2026-05-03 07:09:39,796 23008 INFO unitrade_db odoo.addons.base.models.ir_module: ALLOW access to module.button_install on [] to user __system__ #1 via n/a 
+2026-05-03 07:09:39,891 23008 INFO unitrade_db odoo.modules.loading: loading 66 modules... 
+2026-05-03 07:09:41,958 23008 INFO unitrade_db odoo.modules.loading: Loading module unitrade_product_ext (64/66) 
+2026-05-03 07:09:42,231 23008 WARNING unitrade_db odoo.fields: Field unitrade.delivery.status: unknown parameter 'tracking', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-05-03 07:09:42,335 23008 WARNING unitrade_db odoo.fields: Field unitrade.delivery.status: unknown parameter 'tracking', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-05-03 07:09:42,354 23008 INFO unitrade_db odoo.modules.registry: module unitrade_product_ext: creating or updating database tables 
+2026-05-03 07:09:42,505 23008 INFO unitrade_db odoo.modules.loading: loading unitrade_product_ext/security/ir.model.access.csv 
+2026-05-03 07:09:42,544 23008 ERROR unitrade_db odoo.sql_db: bad query: INSERT INTO "ir_model_access" ("active", "create_date", "create_uid", "group_id", "model_id", "name", "perm_create", "perm_read", "perm_unlink", "perm_write", "write_date", "write_uid") VALUES (true, '2026-05-03 07:09:37.173607', 1, 1, 375, 'unitrade.product.template.user', false, true, false, false, '2026-05-03 07:09:37.173607', 1), (true, '2026-05-03 07:09:37.173607', 1, 1, DEFAULT, 'unitrade.product.image.user', false, true, false, false, '2026-05-03 07:09:37.173607', 1), (true, '2026-05-03 07:09:37.173607', 1, 4, 375, 'unitrade.product.template.system', true, true, true, true, '2026-05-03 07:09:37.173607', 1), (true, '2026-05-03 07:09:37.173607', 1, 4, DEFAULT, 'unitrade.product.image.system', true, true, true, true, '2026-05-03 07:09:37.173607', 1), (true, '2026-05-03 07:09:37.173607', 1, 49, 375, 'unitrade.product.template.admin', true, true, true, true, '2026-05-03 07:09:37.173607', 1), (true, '2026-05-03 07:09:37.173607', 1, 49, DEFAULT, 'unitrade.product.image.admin', true, true, true, true, '2026-05-03 07:09:37.173607', 1), (true, '2026-05-03 07:09:37.173607', 1, 49, 381, 'unitrade.product.category.admin', false, true, false, false, '2026-05-03 07:09:37.173607', 1) RETURNING "id"
+ERROR: null value in column "model_id" of relation "ir_model_access" violates not-null constraint
+DETAIL:  Failing row contains (664, null, 1, 1, 1, unitrade.product.image.user, t, t, f, f, f, 2026-05-03 07:09:37.173607, 2026-05-03 07:09:37.173607).
+ 
+2026-05-03 07:09:42,553 23008 ERROR unitrade_db odoo.sql_db: bad query: INSERT INTO "ir_model_access" ("active", "create_date", "create_uid", "group_id", "name", "perm_create", "perm_read", "perm_unlink", "perm_write", "write_date", "write_uid") VALUES (true, '2026-05-03 07:09:37.173607', 1, 1, 'unitrade.product.image.user', false, true, false, false, '2026-05-03 07:09:37.173607', 1) RETURNING "id"
+ERROR: null value in column "model_id" of relation "ir_model_access" violates not-null constraint
+DETAIL:  Failing row contains (666, null, 1, 1, 1, unitrade.product.image.user, t, t, f, f, f, 2026-05-03 07:09:37.173607, 2026-05-03 07:09:37.173607).
+ 
+2026-05-03 07:09:42,561 23008 ERROR unitrade_db odoo.sql_db: bad query: INSERT INTO "ir_model_access" ("active", "create_date", "create_uid", "group_id", "name", "perm_create", "perm_read", "perm_unlink", "perm_write", "write_date", "write_uid") VALUES (true, '2026-05-03 07:09:37.173607', 1, 4, 'unitrade.product.image.system', true, true, true, true, '2026-05-03 07:09:37.173607', 1) RETURNING "id"
+ERROR: null value in column "model_id" of relation "ir_model_access" violates not-null constraint
+DETAIL:  Failing row contains (668, null, 4, 1, 1, unitrade.product.image.system, t, t, t, t, t, 2026-05-03 07:09:37.173607, 2026-05-03 07:09:37.173607).
+ 
+2026-05-03 07:09:42,569 23008 ERROR unitrade_db odoo.sql_db: bad query: INSERT INTO "ir_model_access" ("active", "create_date", "create_uid", "group_id", "name", "perm_create", "perm_read", "perm_unlink", "perm_write", "write_date", "write_uid") VALUES (true, '2026-05-03 07:09:37.173607', 1, 49, 'unitrade.product.image.admin', true, true, true, true, '2026-05-03 07:09:37.173607', 1) RETURNING "id"
+ERROR: null value in column "model_id" of relation "ir_model_access" violates not-null constraint
+DETAIL:  Failing row contains (670, null, 49, 1, 1, unitrade.product.image.admin, t, t, t, t, t, 2026-05-03 07:09:37.173607, 2026-05-03 07:09:37.173607).
+ 
+2026-05-03 07:09:42,710 23008 WARNING unitrade_db odoo.fields: Field unitrade.delivery.status: unknown parameter 'tracking', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-05-03 07:09:42,734 23008 WARNING unitrade_db odoo.modules.loading: Transient module states were reset 
+2026-05-03 07:09:42,734 23008 ERROR unitrade_db odoo.modules.registry: Failed to load registry 
+Traceback (most recent call last):
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\registry.py", line 110, in new
+    odoo.modules.load_modules(registry, force_demo, status, update_module)
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\loading.py", line 481, in load_modules
+    processed_modules += load_marked_modules(env, graph,
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\loading.py", line 366, in load_marked_modules
+    loaded, processed = load_module_graph(
+                        ^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\loading.py", line 229, in load_module_graph
+    load_data(env, idref, mode, kind='data', package=package)
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\loading.py", line 73, in load_data
+    tools.convert_file(env, package.name, filename, idref, mode, noupdate, kind)
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\tools\convert.py", line 678, in convert_file
+    convert_csv_import(env, module, pathname, fp.read(), idref, mode, noupdate)
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\tools\convert.py", line 724, in convert_csv_import
+    raise Exception(_('Module loading %s failed: file %s could not be processed:\n %s') % (module, fname, warning_msg))
+Exception: Module loading unitrade_product_ext failed: file unitrade_product_ext\security/ir.model.access.csv could not be processed:
+ No matching record found for external id 'product.model_product_image' in field 'Model'
+No matching record found for external id 'product.model_product_image' in field 'Model'
+No matching record found for external id 'product.model_product_image' in field 'Model'
+Missing required value for the field 'Model' (model_id)
+Missing required value for the field 'Model' (model_id)
+Missing required value for the field 'Model' (model_id)
+2026-05-03 07:09:42,738 23008 CRITICAL unitrade_db odoo.service.server: Failed to initialize database `unitrade_db`. 
+Traceback (most recent call last):
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\service\server.py", line 1374, in preload_registries
+    registry = Registry.new(dbname, update_module=update_module)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Odoo 17.0.20260217\python\Lib\site-packages\decorator.py", line 235, in fun
+    return caller(func, *(extras + args), **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\tools\func.py", line 87, in locked
+    return func(inst, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\registry.py", line 110, in new
+    odoo.modules.load_modules(registry, force_demo, status, update_module)
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\loading.py", line 481, in load_modules
+    processed_modules += load_marked_modules(env, graph,
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\loading.py", line 366, in load_marked_modules
+    loaded, processed = load_module_graph(
+                        ^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\loading.py", line 229, in load_module_graph
+    load_data(env, idref, mode, kind='data', package=package)
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\loading.py", line 73, in load_data
+    tools.convert_file(env, package.name, filename, idref, mode, noupdate, kind)
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\tools\convert.py", line 678, in convert_file
+    convert_csv_import(env, module, pathname, fp.read(), idref, mode, noupdate)
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\tools\convert.py", line 724, in convert_csv_import
+    raise Exception(_('Module loading %s failed: file %s could not be processed:\n %s') % (module, fname, warning_msg))
+Exception: Module loading unitrade_product_ext failed: file unitrade_product_ext\security/ir.model.access.csv could not be processed:
+ No matching record found for external id 'product.model_product_image' in field 'Model'
+No matching record found for external id 'product.model_product_image' in field 'Model'
+No matching record found for external id 'product.model_product_image' in field 'Model'
+Missing required value for the field 'Model' (model_id)
+Missing required value for the field 'Model' (model_id)
+Missing required value for the field 'Model' (model_id)
+2026-05-03 07:09:42,743 23008 INFO unitrade_db odoo.service.server: Initiating shutdown 
+2026-05-03 07:09:42,743 23008 INFO unitrade_db odoo.service.server: Hit CTRL-C again or send a second signal to force the shutdown. 
+2026-05-03 07:09:42,743 23008 INFO unitrade_db odoo.sql_db: ConnectionPool(used=0/count=0/max=64): Closed 2 connections  
+2026-05-03 07:10:17,841 21384 INFO ? odoo: Odoo version 17.0-20260217 
+2026-05-03 07:10:17,841 21384 INFO ? odoo: Using configuration file at C:\Program Files\Odoo 17.0.20260217\server\odoo.conf 
+2026-05-03 07:10:17,841 21384 INFO ? odoo: addons paths: ['C:\\Program Files\\Odoo 17.0.20260217\\server\\odoo\\addons', 'c:\\program files\\odoo 17.0.20260217\\sessions\\addons\\17.0', 'c:\\program files\\odoo 17.0.20260217\\server\\odoo\\addons', 'c:\\program files\\odoo 17.0.20260217\\server\\addons', 'd:\\unitrade_oddo'] 
+2026-05-03 07:10:17,841 21384 INFO ? odoo: database: openpg@localhost:5432 
+2026-05-03 07:10:18,156 21384 INFO ? odoo.addons.base.models.ir_actions_report: Will use the Wkhtmltopdf binary at C:\Program Files\Odoo 17.0.20260217\thirdparty\wkhtmltopdf.exe 
+2026-05-03 07:10:18,591 21384 INFO unitrade_db odoo.modules.loading: loading 1 modules... 
+2026-05-03 07:10:18,597 21384 INFO unitrade_db odoo.modules.loading: 1 modules loaded in 0.01s, 0 queries (+0 extra) 
+2026-05-03 07:10:18,616 21384 INFO unitrade_db odoo.modules.loading: updating modules list 
+2026-05-03 07:10:18,620 21384 INFO unitrade_db odoo.addons.base.models.ir_module: ALLOW access to module.update_list on [] to user __system__ #1 via n/a 
+2026-05-03 07:10:19,799 21384 WARNING unitrade_db odoo.modules.module: Missing `license` key in manifest for 'techmerch_finance', defaulting to LGPL-3 
+2026-05-03 07:10:20,108 21384 INFO unitrade_db odoo.addons.base.models.ir_module: ALLOW access to module.button_upgrade on ['UniTrade Product Extension'] to user __system__ #1 via n/a 
+2026-05-03 07:10:20,108 21384 INFO unitrade_db odoo.addons.base.models.ir_module: ALLOW access to module.update_list on ['UniTrade Product Extension'] to user __system__ #1 via n/a 
+2026-05-03 07:10:21,040 21384 INFO unitrade_db odoo.addons.base.models.ir_module: ALLOW access to module.button_install on [] to user __system__ #1 via n/a 
+2026-05-03 07:10:21,087 21384 INFO unitrade_db odoo.modules.loading: loading 66 modules... 
+2026-05-03 07:10:22,481 21384 INFO unitrade_db odoo.modules.loading: Loading module unitrade_product_ext (64/66) 
+2026-05-03 07:10:22,639 21384 WARNING unitrade_db odoo.fields: Field unitrade.delivery.status: unknown parameter 'tracking', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-05-03 07:10:22,764 21384 WARNING unitrade_db odoo.fields: Field unitrade.delivery.status: unknown parameter 'tracking', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-05-03 07:10:22,787 21384 INFO unitrade_db odoo.modules.registry: module unitrade_product_ext: creating or updating database tables 
+2026-05-03 07:10:22,910 21384 INFO unitrade_db odoo.modules.loading: loading unitrade_product_ext/security/ir.model.access.csv 
+2026-05-03 07:10:22,947 21384 ERROR unitrade_db odoo.sql_db: bad query: INSERT INTO "ir_model_access" ("active", "create_date", "create_uid", "group_id", "model_id", "name", "perm_create", "perm_read", "perm_unlink", "perm_write", "write_date", "write_uid") VALUES (true, '2026-05-03 07:10:18.580613', 1, 1, 375, 'unitrade.product.template.user', false, true, false, false, '2026-05-03 07:10:18.580613', 1), (true, '2026-05-03 07:10:18.580613', 1, 1, DEFAULT, 'unitrade.product.image.user', false, true, false, false, '2026-05-03 07:10:18.580613', 1), (true, '2026-05-03 07:10:18.580613', 1, 4, 375, 'unitrade.product.template.system', true, true, true, true, '2026-05-03 07:10:18.580613', 1), (true, '2026-05-03 07:10:18.580613', 1, 4, DEFAULT, 'unitrade.product.image.system', true, true, true, true, '2026-05-03 07:10:18.580613', 1), (true, '2026-05-03 07:10:18.580613', 1, 49, 375, 'unitrade.product.template.admin', true, true, true, true, '2026-05-03 07:10:18.580613', 1), (true, '2026-05-03 07:10:18.580613', 1, 49, DEFAULT, 'unitrade.product.image.admin', true, true, true, true, '2026-05-03 07:10:18.580613', 1), (true, '2026-05-03 07:10:18.580613', 1, 49, 381, 'unitrade.product.category.admin', false, true, false, false, '2026-05-03 07:10:18.580613', 1) RETURNING "id"
+ERROR: null value in column "model_id" of relation "ir_model_access" violates not-null constraint
+DETAIL:  Failing row contains (673, null, 1, 1, 1, unitrade.product.image.user, t, t, f, f, f, 2026-05-03 07:10:18.580613, 2026-05-03 07:10:18.580613).
+ 
+2026-05-03 07:10:22,956 21384 ERROR unitrade_db odoo.sql_db: bad query: INSERT INTO "ir_model_access" ("active", "create_date", "create_uid", "group_id", "name", "perm_create", "perm_read", "perm_unlink", "perm_write", "write_date", "write_uid") VALUES (true, '2026-05-03 07:10:18.580613', 1, 1, 'unitrade.product.image.user', false, true, false, false, '2026-05-03 07:10:18.580613', 1) RETURNING "id"
+ERROR: null value in column "model_id" of relation "ir_model_access" violates not-null constraint
+DETAIL:  Failing row contains (675, null, 1, 1, 1, unitrade.product.image.user, t, t, f, f, f, 2026-05-03 07:10:18.580613, 2026-05-03 07:10:18.580613).
+ 
+2026-05-03 07:10:22,963 21384 ERROR unitrade_db odoo.sql_db: bad query: INSERT INTO "ir_model_access" ("active", "create_date", "create_uid", "group_id", "name", "perm_create", "perm_read", "perm_unlink", "perm_write", "write_date", "write_uid") VALUES (true, '2026-05-03 07:10:18.580613', 1, 4, 'unitrade.product.image.system', true, true, true, true, '2026-05-03 07:10:18.580613', 1) RETURNING "id"
+ERROR: null value in column "model_id" of relation "ir_model_access" violates not-null constraint
+DETAIL:  Failing row contains (677, null, 4, 1, 1, unitrade.product.image.system, t, t, t, t, t, 2026-05-03 07:10:18.580613, 2026-05-03 07:10:18.580613).
+ 
+2026-05-03 07:10:22,970 21384 ERROR unitrade_db odoo.sql_db: bad query: INSERT INTO "ir_model_access" ("active", "create_date", "create_uid", "group_id", "name", "perm_create", "perm_read", "perm_unlink", "perm_write", "write_date", "write_uid") VALUES (true, '2026-05-03 07:10:18.580613', 1, 49, 'unitrade.product.image.admin', true, true, true, true, '2026-05-03 07:10:18.580613', 1) RETURNING "id"
+ERROR: null value in column "model_id" of relation "ir_model_access" violates not-null constraint
+DETAIL:  Failing row contains (679, null, 49, 1, 1, unitrade.product.image.admin, t, t, t, t, t, 2026-05-03 07:10:18.580613, 2026-05-03 07:10:18.580613).
+ 
+2026-05-03 07:10:23,109 21384 WARNING unitrade_db odoo.fields: Field unitrade.delivery.status: unknown parameter 'tracking', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-05-03 07:10:23,134 21384 WARNING unitrade_db odoo.modules.loading: Transient module states were reset 
+2026-05-03 07:10:23,135 21384 ERROR unitrade_db odoo.modules.registry: Failed to load registry 
+Traceback (most recent call last):
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\registry.py", line 110, in new
+    odoo.modules.load_modules(registry, force_demo, status, update_module)
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\loading.py", line 481, in load_modules
+    processed_modules += load_marked_modules(env, graph,
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\loading.py", line 366, in load_marked_modules
+    loaded, processed = load_module_graph(
+                        ^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\loading.py", line 229, in load_module_graph
+    load_data(env, idref, mode, kind='data', package=package)
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\loading.py", line 73, in load_data
+    tools.convert_file(env, package.name, filename, idref, mode, noupdate, kind)
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\tools\convert.py", line 678, in convert_file
+    convert_csv_import(env, module, pathname, fp.read(), idref, mode, noupdate)
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\tools\convert.py", line 724, in convert_csv_import
+    raise Exception(_('Module loading %s failed: file %s could not be processed:\n %s') % (module, fname, warning_msg))
+Exception: Module loading unitrade_product_ext failed: file unitrade_product_ext\security/ir.model.access.csv could not be processed:
+ No matching record found for external id 'product.model_product_image' in field 'Model'
+No matching record found for external id 'product.model_product_image' in field 'Model'
+No matching record found for external id 'product.model_product_image' in field 'Model'
+Missing required value for the field 'Model' (model_id)
+Missing required value for the field 'Model' (model_id)
+Missing required value for the field 'Model' (model_id)
+2026-05-03 07:10:23,137 21384 CRITICAL unitrade_db odoo.service.server: Failed to initialize database `unitrade_db`. 
+Traceback (most recent call last):
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\service\server.py", line 1374, in preload_registries
+    registry = Registry.new(dbname, update_module=update_module)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Odoo 17.0.20260217\python\Lib\site-packages\decorator.py", line 235, in fun
+    return caller(func, *(extras + args), **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\tools\func.py", line 87, in locked
+    return func(inst, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\registry.py", line 110, in new
+    odoo.modules.load_modules(registry, force_demo, status, update_module)
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\loading.py", line 481, in load_modules
+    processed_modules += load_marked_modules(env, graph,
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\loading.py", line 366, in load_marked_modules
+    loaded, processed = load_module_graph(
+                        ^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\loading.py", line 229, in load_module_graph
+    load_data(env, idref, mode, kind='data', package=package)
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\modules\loading.py", line 73, in load_data
+    tools.convert_file(env, package.name, filename, idref, mode, noupdate, kind)
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\tools\convert.py", line 678, in convert_file
+    convert_csv_import(env, module, pathname, fp.read(), idref, mode, noupdate)
+  File "C:\Program Files\Odoo 17.0.20260217\server\odoo\tools\convert.py", line 724, in convert_csv_import
+    raise Exception(_('Module loading %s failed: file %s could not be processed:\n %s') % (module, fname, warning_msg))
+Exception: Module loading unitrade_product_ext failed: file unitrade_product_ext\security/ir.model.access.csv could not be processed:
+ No matching record found for external id 'product.model_product_image' in field 'Model'
+No matching record found for external id 'product.model_product_image' in field 'Model'
+No matching record found for external id 'product.model_product_image' in field 'Model'
+Missing required value for the field 'Model' (model_id)
+Missing required value for the field 'Model' (model_id)
+Missing required value for the field 'Model' (model_id)
+2026-05-03 07:10:23,140 21384 INFO unitrade_db odoo.service.server: Initiating shutdown 
+2026-05-03 07:10:23,140 21384 INFO unitrade_db odoo.service.server: Hit CTRL-C again or send a second signal to force the shutdown. 
+2026-05-03 07:10:23,140 21384 INFO unitrade_db odoo.sql_db: ConnectionPool(used=0/count=0/max=64): Closed 2 connections  

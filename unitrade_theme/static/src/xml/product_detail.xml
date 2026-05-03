@@ -17,6 +17,8 @@
                 <div class="ut-review-filter-row">
                     <button type="button" t-on-click="() => this.setSort('newest')" t-att-class="chipClass(state.sort === 'newest')">Terbaru</button>
                     <button type="button" t-on-click="() => this.setSort('oldest')" t-att-class="chipClass(state.sort === 'oldest')">Terlama</button>
+                    <button type="button" t-on-click="() => this.setSort('highest')" t-att-class="chipClass(state.sort === 'highest')">Tertinggi</button>
+                    <button type="button" t-on-click="() => this.setSort('lowest')" t-att-class="chipClass(state.sort === 'lowest')">Terendah</button>
                     <t t-foreach="[5, 4, 3, 2, 1]" t-as="star" t-key="star">
                         <button type="button" t-on-click="() => this.setRating(star)" t-att-class="chipClass(state.rating === star)">
                             <t t-esc="star"/> bintang (<t t-esc="getRatingCount(star)"/>)
@@ -70,7 +72,19 @@
                 </div>
             </div>
 
-            <div t-if="state.loading" style="padding:32px 0; color:var(--ut-color-text-body); text-align:center;">Memuat ulasan...</div>
+            <div t-if="state.loading" class="ut-review-loading">
+                <div class="ut-review-skeleton-avatar"></div>
+                <div class="ut-review-skeleton-body">
+                    <div class="ut-review-skeleton-line ut-review-skeleton-name"></div>
+                    <div class="ut-review-skeleton-line ut-review-skeleton-date"></div>
+                    <div class="ut-review-skeleton-line ut-review-skeleton-text"></div>
+                    <div class="ut-review-skeleton-line ut-review-skeleton-text ut-review-skeleton-text-short"></div>
+                    <div class="ut-review-skeleton-actions">
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
             <div t-elif="!state.reviews.length" style="padding:48px 0; color:var(--ut-color-text-body); text-align:center;">
                 Belum ada ulasan untuk produk ini.
             </div>

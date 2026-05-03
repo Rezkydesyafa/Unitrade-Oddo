@@ -134,25 +134,36 @@ document.addEventListener('DOMContentLoaded', function () {
     // PDP: Thumbnail Gallery Switching
     // =============================================
     const mainImage = document.getElementById('ut-main-image');
-    const thumbnails = document.querySelectorAll('.ut-thumb');
-    
-    if (mainImage && thumbnails.length > 0) {
-        thumbnails.forEach(thumb => {
-            thumb.addEventListener('click', function() {
-                // Remove active class from all
-                thumbnails.forEach(t => {
-                    t.classList.remove('tw-border-gray-800');
-                    t.classList.add('tw-border-gray-200');
-                });
-                
-                // Add active class to clicked
-                this.classList.remove('tw-border-gray-200');
-                this.classList.add('tw-border-gray-800');
-                
-                // Update main image src
-                const imgSrc = this.querySelector('img').getAttribute('src');
+    const thumbnailContainer = document.querySelector('.ut-thumbnail-container');
+
+    if (mainImage && thumbnailContainer && thumbnailContainer.dataset.utGalleryBound !== '1') {
+        thumbnailContainer.dataset.utGalleryBound = '1';
+        mainImage.style.transition = 'opacity 180ms ease';
+
+        thumbnailContainer.addEventListener('click', event => {
+            const thumb = event.target.closest('.ut-thumb');
+            if (!thumb || !thumbnailContainer.contains(thumb)) return;
+
+            const imgSrc = thumb.getAttribute('data-src');
+            if (!imgSrc || mainImage.getAttribute('src') === imgSrc) return;
+
+            mainImage.style.opacity = '0.45';
+
+            const nextImage = new Image();
+            nextImage.onload = () => {
                 mainImage.setAttribute('src', imgSrc);
+                mainImage.style.opacity = '1';
+            };
+            nextImage.onerror = () => {
+                mainImage.setAttribute('src', imgSrc);
+                mainImage.style.opacity = '1';
+            };
+            nextImage.src = imgSrc;
+
+            thumbnailContainer.querySelectorAll('.ut-thumb').forEach(item => {
+                item.style.borderColor = 'transparent';
             });
+            thumb.style.borderColor = 'var(--ut-color-border-strong)';
         });
     }
 
