@@ -136,6 +136,275 @@
   text-decoration: none !important;
 }
 
+.ut-review-panel {
+  max-width: 1216px;
+  margin: 0 auto;
+}
+
+.ut-review-summary-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  width: min(100%, 1186px);
+  min-height: 144px;
+  margin: 0 auto 64px;
+  padding: 26px 52px;
+  background: #ffffff;
+  border-radius: 32px;
+}
+
+.ut-review-filter-row {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: 12px 36px;
+  align-items: center;
+}
+
+.ut-review-chip {
+  min-width: 120px;
+  height: 44px;
+  padding: 0 22px;
+  border: 1px solid #525252;
+  border-radius: 22px;
+  background: transparent;
+  color: #525252;
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 24px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ut-review-chip-active {
+  border-color: #212529;
+  background: #212529;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.ut-review-score {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 168px;
+}
+
+.ut-review-score-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: #000000;
+}
+
+.ut-review-score-value,
+.ut-review-score-max {
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 46px;
+}
+
+.ut-review-score-label {
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.ut-review-score-stars {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.ut-review-list {
+  position: relative;
+}
+
+.ut-review-item {
+  display: flex;
+  gap: 25px;
+  padding: 0 0 34px;
+  margin: 0 0 34px;
+  border-bottom: 1px solid #b8b8b8;
+  background: transparent;
+}
+
+.ut-review-item:last-child {
+  margin-bottom: 0;
+}
+
+.ut-review-avatar {
+  width: 51px;
+  height: 51px;
+  border-radius: 999px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #f4f4f4;
+}
+
+.ut-review-body {
+  flex: 1;
+  min-width: 0;
+  padding-top: 0;
+}
+
+.ut-review-head {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.ut-review-name {
+  margin: 0;
+  color: #525252;
+  font-family: Inter, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+.ut-review-date {
+  margin: -2px 0 0;
+  color: #939393;
+  font-family: Inter, sans-serif;
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+.ut-review-image-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 13px;
+  margin: 0 0 24px;
+}
+
+.ut-review-image {
+  display: block;
+  width: 84px;
+  height: 68px;
+  border: 0;
+  border-radius: 16px;
+  object-fit: cover;
+  background: #f4f4f4;
+}
+
+.ut-review-comment {
+  max-width: 1095px;
+  margin: 0 0 16px;
+  color: #525252;
+  font-family: Inter, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  text-align: justify;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.ut-review-actions {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.ut-review-report,
+.ut-review-helpful {
+  height: 26px;
+  border-radius: 52px;
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 24px;
+  cursor: pointer;
+}
+
+.ut-review-report {
+  min-width: 76px;
+  border: none;
+  background: #212529;
+  color: #ffffff;
+}
+
+.ut-review-helpful {
+  min-width: 112px;
+  border: 1px solid #525252;
+  background: transparent;
+  color: #525252;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ut-review-more-wrap {
+  position: relative;
+  margin-top: -78px;
+  padding-top: 96px;
+  text-align: center;
+  background: linear-gradient(to bottom, rgba(245,245,247,0), #f5f5f7 48%);
+  pointer-events: none;
+}
+
+.ut-review-more {
+  border: none;
+  background: transparent;
+  color: #525252;
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  text-decoration: underline;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+@media (max-width: 900px) {
+  .ut-review-summary-card {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 24px;
+    margin-bottom: 40px;
+  }
+
+  .ut-review-filter-row {
+    gap: 10px;
+  }
+
+  .ut-review-chip {
+    min-width: 0;
+    height: 38px;
+    padding: 0 16px;
+    font-size: 14px;
+  }
+
+  .ut-review-score {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .ut-review-item {
+    gap: 14px;
+    padding-bottom: 28px;
+    margin-bottom: 28px;
+  }
+
+  .ut-review-avatar {
+    width: 42px;
+    height: 42px;
+  }
+
+  .ut-review-comment {
+    text-align: left;
+  }
+}
+
 /* Base layer overrides (compatible with Odoo Bootstrap) */
 @layer components {
     /* Hero Section */

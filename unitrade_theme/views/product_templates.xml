@@ -156,18 +156,14 @@
                                                 <i class="fa fa-shopping-cart"></i>
                                                 Belanja
                                             </button>
-                                            <!-- Wishlist (red circle) -->
-                                            <a href="#" title="Wishlist"
-                                                onclick="utWishlistClick(this); return false;"
-                                                t-att-data-product-id="product._get_first_possible_variant_id()"
-                                                style="width:48px; height:48px; border-radius:50%; background:#E53E3E; color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; text-decoration:none;">
-                                                <i class="fa fa-heart" style="font-size:16px;"></i>
-                                            </a>
+                                            <div id="ut-product-wishlist-owl"
+                                                t-att-data-product-id="product.id"
+                                                t-att-data-active="'1' if ut_is_in_wishlist else '0'"></div>
                                         </t>
                                         <!-- Share (dark circle) -->
                                         <a href="#" title="Bagikan"
                                             class="ut-btn-dark"
-                                            onclick="utShowShareModal(); return false;"
+                                            onclick="utToggleSharePopover(this); return false;"
                                             style="width:48px; height:48px; border-radius:50%; background:#1a1d1f; color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; text-decoration:none;">
                                             <i class="fa fa-share" style="font-size:16px;"></i>
                                         </a>
@@ -233,15 +229,15 @@
                     <div class="tw-mb-10" id="ut-tabs-wrapper">
 
                         <!-- Tab Headers -->
-                        <div style="display:flex; gap:48px; border-bottom:2px solid #525252;">
+                        <div style="display:flex; gap:48px; border-bottom:1px solid transparent;">
                             <button id="ut-tab-deskripsi" type="button"
                                 onclick="utSwitchTab(this, 'deskripsi')"
-                                style="padding:10px 0 8px; font-size:20px; font-weight:600; color:#212529; background:none; border:none; border-bottom:2px solid #212529; margin-bottom:-2px; cursor:pointer; white-space:nowrap;">
+                                style="padding:0 0 13px; font-size:16px; font-weight:600; color:#212529; background:none; border:none; border-bottom:2px solid #212529; margin-bottom:-1px; cursor:pointer; white-space:nowrap;">
                                 Deskripsi
                             </button>
                             <button id="ut-tab-ulasan" type="button"
                                 onclick="utSwitchTab(this, 'ulasan')"
-                                style="padding:10px 0 8px; font-size:20px; font-weight:400; color:#525252; background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-2px; cursor:pointer; white-space:nowrap;">
+                                style="padding:0 0 13px; font-size:16px; font-weight:400; color:#525252; background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-1px; cursor:pointer; white-space:nowrap;">
                                 Rating &amp; Ulasan
                             </button>
                         </div>
@@ -261,102 +257,7 @@
 
                         <!-- Tab Content: Rating & Ulasan -->
                         <div id="tab-ulasan" style="display:none; padding:32px 0;">
-
-                            <!-- Rating Filter + Summary Box -->
-                            <div style="background:#fff; border-radius:32px; padding:28px 48px; margin-bottom:40px; display:flex; align-items:flex-start; justify-content:space-between; gap:24px;">
-                                <!-- Filter chips -->
-                                <div style="display:flex; flex-wrap:wrap; gap:12px; flex:1;">
-                                    <button style="height:44px; padding:0 32px; border-radius:22px; background:#212529; color:#fff; font-size:20px; font-weight:600; border:none; cursor:pointer;">Terbaru</button>
-                                    <button style="height:44px; padding:0 24px; border-radius:22px; border:1px solid #525252; background:transparent; color:#525252; font-size:20px; font-weight:500; cursor:pointer;">Terlama</button>
-                                    <button style="height:44px; padding:0 20px; border-radius:22px; border:1px solid #525252; background:transparent; color:#525252; font-size:20px; font-weight:500; cursor:pointer;">5 bintang (2)</button>
-                                    <button style="height:44px; padding:0 20px; border-radius:22px; border:1px solid #525252; background:transparent; color:#525252; font-size:20px; font-weight:500; cursor:pointer;">4 bintang (0)</button>
-                                    <button style="height:44px; padding:0 20px; border-radius:22px; border:1px solid #525252; background:transparent; color:#525252; font-size:20px; font-weight:500; cursor:pointer;">3 bintang (0)</button>
-                                    <button style="height:44px; padding:0 20px; border-radius:22px; border:1px solid #525252; background:transparent; color:#525252; font-size:20px; font-weight:500; cursor:pointer;">2 bintang (0)</button>
-                                    <button style="height:44px; padding:0 20px; border-radius:22px; border:1px solid #525252; background:transparent; color:#525252; font-size:20px; font-weight:500; cursor:pointer;">1 bintang (0)</button>
-                                </div>
-                                <!-- Rating Summary -->
-                                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex-shrink:0; margin-left:24px;">
-                                    <div style="display:flex; align-items:baseline; gap:8px;">
-                                        <span style="font-size:40px; font-weight:700; color:#000;">5</span>
-                                        <span style="font-size:20px; font-weight:600; color:#000;">Out Of</span>
-                                        <span style="font-size:40px; font-weight:700; color:#000;">5</span>
-                                    </div>
-                                    <div style="display:flex; gap:4px; margin-top:4px;">
-                                        <i class="fa fa-star" style="color:#E53E3E; font-size:20px;"></i>
-                                        <i class="fa fa-star" style="color:#E53E3E; font-size:20px;"></i>
-                                        <i class="fa fa-star" style="color:#E53E3E; font-size:20px;"></i>
-                                        <i class="fa fa-star" style="color:#E53E3E; font-size:20px;"></i>
-                                        <i class="fa fa-star" style="color:#E53E3E; font-size:20px;"></i>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Review Item 1 -->
-                            <div style="display:flex; gap:16px; margin-bottom:40px;">
-                                <img src="/web/static/img/user_menu_avatar.png"
-                                    style="width:51px; height:51px; border-radius:50%; object-fit:cover; flex-shrink:0;"/>
-                                <div style="flex:1;">
-                                    <p style="font-size:16px; color:#525252; margin:0; font-weight:400;">Nigga</p>
-                                    <p style="font-size:9px; color:#939393; margin:0 0 12px;">Date &amp; time</p>
-
-                                    <!-- Review photos -->
-                                    <div style="display:flex; gap:12px; margin-bottom:16px;">
-                                        <div style="width:84px; height:68px; border-radius:16px; background:#5155fa; overflow:hidden;"></div>
-                                        <div style="width:84px; height:68px; border-radius:16px; background:#5155fa; overflow:hidden;"></div>
-                                        <div style="width:84px; height:68px; border-radius:16px; background:#5155fa; overflow:hidden;"></div>
-                                    </div>
-
-                                    <p style="font-size:16px; color:#525252; line-height:24px; margin:0 0 16px; max-width:1095px;">
-                                        The ergonomicThese premium wireless headphones deliver exceptional audio quality with advanced active noise cancellation technology. Perfect for music lovers, commuters, and professionals who demand the best in audio performance. design ensures all-day comfort while the long-lasting battery keeps you connected for up to 30 hours of continuous playback.
-                                    </p>
-
-                                    <!-- Actions -->
-                                    <div style="display:flex; gap:12px;">
-                                        <div style="height:26px; padding:0 20px; border-radius:52px; background:#212529; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                                            <span style="font-size:12px; color:#fff;">Report</span>
-                                        </div>
-                                        <div style="height:26px; padding:0 16px; border-radius:52px; border:1px solid #d9d9d9; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;">
-                                            <i class="fa fa-thumbs-up" style="color:#d9d9d9; font-size:12px;"></i>
-                                            <span style="font-size:12px; color:#d9d9d9;">Membantu</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Review Item 2 -->
-                            <div style="display:flex; gap:16px; margin-bottom:40px;">
-                                <img src="/web/static/img/user_menu_avatar.png"
-                                    style="width:51px; height:51px; border-radius:50%; object-fit:cover; flex-shrink:0; filter:grayscale(1);"/>
-                                <div style="flex:1;">
-                                    <p style="font-size:16px; color:#525252; margin:0; font-weight:400;">Miau Miau</p>
-                                    <p style="font-size:9px; color:#939393; margin:0 0 12px;">Date &amp; time</p>
-
-                                    <div style="display:flex; gap:12px; margin-bottom:16px;">
-                                        <div style="width:84px; height:68px; border-radius:16px; background:#5155fa; overflow:hidden;"></div>
-                                        <div style="width:84px; height:68px; border-radius:16px; background:#5155fa; overflow:hidden;"></div>
-                                        <div style="width:84px; height:68px; border-radius:16px; background:#5155fa; overflow:hidden;"></div>
-                                    </div>
-
-                                    <p style="font-size:16px; color:#525252; line-height:24px; margin:0 0 16px; max-width:1095px;">
-                                        The ergonomicThese premium wireless headphones deliver exceptional audio quality with advanced active noise cancellation technology. Perfect for music lovers, commuters, and professionals who demand the best in audio performance. design ensures all-day comfort while the long-lasting battery keeps you connected for up to 30 hours of continuous playback.
-                                    </p>
-
-                                    <div style="display:flex; gap:12px;">
-                                        <div style="height:26px; padding:0 20px; border-radius:52px; background:#212529; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                                            <span style="font-size:12px; color:#fff;">Report</span>
-                                        </div>
-                                        <div style="height:26px; padding:0 16px; border-radius:52px; border:1px solid #d9d9d9; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;">
-                                            <i class="fa fa-thumbs-up" style="color:#d9d9d9; font-size:12px;"></i>
-                                            <span style="font-size:12px; color:#d9d9d9;">Membantu</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- See more -->
-                            <div style="text-align:center; margin-top:32px;">
-                                <a href="#" style="color:#525252; font-size:16px; font-weight:600; text-decoration:underline;">Lihat selengkapnya</a>
-                            </div>
+                            <div id="ut-product-review-owl" t-att-data-product-id="product.id"></div>
                         </div>
 
                     </div>
@@ -390,55 +291,23 @@
 
                 </div>
                 </div>
-                <!-- Share Modal UI Implementation (Figma 119-1984) -->
-                <div id="ut-share-modal" class="tw-hidden tw-fixed tw-inset-0 tw-z-[9999] tw-flex tw-items-center tw-justify-center tw-bg-black/50 overlay-animate">
-                    <!-- Backdrop -->
-                    <div onclick="utHideShareModal()" class="tw-absolute tw-inset-0"></div>
-                    <div class="tw-relative tw-bg-white tw-rounded-[32px] tw-p-10 tw-w-[90%] tw-max-w-[520px] tw-shadow-2xl popup-animate">
-                        <div class="tw-flex tw-justify-between tw-items-center tw-mb-10">
-                            <h2 class="tw-text-[40px] tw-font-bold tw-text-[#1A1D1F] tw-m-0">Share</h2>
-                            <button type="button" onclick="utHideShareModal()" class="tw-bg-transparent tw-border-none tw-cursor-pointer tw-p-2 hover:tw-opacity-50 tw-transition-opacity">
-                                <i class="fa fa-times tw-text-3xl tw-text-[#1A1D1F]"></i>
-                            </button>
-                        </div>
-
-                        <!-- Social Icons -->
-                        <div class="tw-flex tw-justify-between tw-mb-12">
-                            <div class="tw-flex tw-flex-col tw-items-center tw-gap-3">
-                                <div onclick="utShareWhatsApp()" class="tw-w-[88px] tw-h-[88px] tw-bg-[#F8F7F2] tw-rounded-full tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-[#f0efe9] tw-transition-all">
-                                    <i class="fa fa-whatsapp tw-text-[36px] tw-text-[#1A1D1F]"></i>
-                                </div>
-                                <span class="tw-text-[16px] tw-font-semibold tw-text-[#1A1D1F]">Whatsapp</span>
-                            </div>
-                            <div class="tw-flex tw-flex-col tw-items-center tw-gap-3">
-                                <div class="tw-w-[88px] tw-h-[88px] tw-bg-[#F8F7F2] tw-rounded-full tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-[#f0efe9] tw-transition-all">
-                                    <i class="fa fa-instagram tw-text-[36px] tw-text-[#1A1D1F]"></i>
-                                </div>
-                                <span class="tw-text-[16px] tw-font-semibold tw-text-[#1A1D1F]">Instagram</span>
-                            </div>
-                            <div class="tw-flex tw-flex-col tw-items-center tw-gap-3">
-                                <div class="tw-w-[88px] tw-h-[88px] tw-bg-[#F8F7F2] tw-rounded-full tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-[#f0efe9] tw-transition-all">
-                                    <i class="fa fa-music tw-text-[36px] tw-text-[#1A1D1F]"></i>
-                                </div>
-                                <span class="tw-text-[16px] tw-font-semibold tw-text-[#1A1D1F]">Tiktok</span>
-                            </div>
-                            <div class="tw-flex tw-flex-col tw-items-center tw-gap-3">
-                                <div class="tw-w-[88px] tw-h-[88px] tw-bg-[#F8F7F2] tw-rounded-full tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-[#f0efe9] tw-transition-all">
-                                    <i class="fa fa-ellipsis-h tw-text-[36px] tw-text-[#1A1D1F]"></i>
-                                </div>
-                                <span class="tw-text-[16px] tw-font-semibold tw-text-[#1A1D1F]">Lainnya</span>
-                            </div>
-                        </div>
-
-                        <!-- Page Link -->
-                        <h3 class="tw-text-[22px] tw-font-bold tw-text-[#1A1D1F] tw-mb-5">Page Link</h3>
-                        <div class="tw-flex tw-items-center tw-bg-[#F8F7F2] tw-rounded-[20px] tw-px-6 tw-py-5 tw-justify-between">
-                            <span id="ut-share-url-text" class="tw-text-[#525252] tw-text-[16px] tw-truncate tw-pr-4" t-esc="product.website_url"/>
-                            <button type="button" onclick="utCopyShareLink(this)" class="tw-bg-transparent tw-border-none tw-cursor-pointer hover:tw-opacity-50 tw-transition-opacity tw-p-1">
-                                <i class="fa fa-clone tw-text-2xl tw-text-[#1A1D1F]"></i>
-                            </button>
-                        </div>
-                    </div>
+                <!-- Share Popover - Figma node 98:1037 -->
+                <div id="ut-share-popover"
+                    class="tw-hidden tw-fixed tw-z-[9999] tw-bg-[#f5f5f7] tw-border tw-border-solid tw-border-[#212529] tw-rounded-[31px] tw-w-[125px] tw-h-[62px] tw-items-center tw-justify-center tw-gap-[10px] tw-shadow-lg"
+                    data-node-id="98:1037"
+                    aria-hidden="true">
+                    <button type="button"
+                        onclick="utShareWhatsApp(); return false;"
+                        class="tw-w-[39px] tw-h-[39px] tw-rounded-full tw-bg-[#212529] tw-text-white tw-border-0 tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-opacity-90 tw-transition-opacity"
+                        aria-label="Bagikan ke WhatsApp">
+                        <i class="fa fa-whatsapp" style="font-size:21px;"></i>
+                    </button>
+                    <button type="button"
+                        onclick="utCopyShareLink(this); return false;"
+                        class="tw-w-[39px] tw-h-[39px] tw-rounded-full tw-bg-transparent tw-text-[#212529] tw-border tw-border-solid tw-border-[#d9d9d9] tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-white tw-transition-colors"
+                        aria-label="Salin link produk">
+                        <i class="fa fa-link" style="font-size:18px;"></i>
+                    </button>
                 </div>
 
                 <!-- Script: pola identik dengan seller_verification.xml -->
@@ -457,62 +326,104 @@
                         }
                     }
 
-                    /* ── Share Modal (global functions for onclick) ─── */
-                    function utShowShareModal() {
-                        var modal = document.getElementById('ut-share-modal');
-                        if (!modal) return;
-                        var urlEl = document.getElementById('ut-share-url-text');
-                        if (urlEl) urlEl.innerText = window.location.href;
-                        modal.classList.remove('tw-hidden');
-                        document.body.style.overflow = 'hidden';
+                    /* Share popover */
+                    function utToggleSharePopover(trigger) {
+                        var popover = document.getElementById('ut-share-popover');
+                        if (!popover || !trigger) return;
+                        if (!popover.classList.contains('tw-hidden')) {
+                            utHideShareModal();
+                            return;
+                        }
+                        var rect = trigger.getBoundingClientRect();
+                        var width = 125;
+                        var height = 62;
+                        var gap = 10;
+                        var left = rect.left + (rect.width / 2) - (width / 2);
+                        left = Math.max(12, Math.min(left, window.innerWidth - width - 12));
+                        var top = rect.top - height - gap;
+                        if (top &lt; 12) {
+                            top = rect.bottom + gap;
+                        }
+                        popover.style.left = left + 'px';
+                        popover.style.top = top + 'px';
+                        popover.classList.remove('tw-hidden');
+                        popover.classList.add('tw-flex');
+                        popover.setAttribute('aria-hidden', 'false');
                     }
                     function utHideShareModal() {
-                        var modal = document.getElementById('ut-share-modal');
-                        if (modal) modal.classList.add('tw-hidden');
-                        document.body.style.overflow = '';
+                        var popover = document.getElementById('ut-share-popover');
+                        if (!popover) return;
+                        popover.classList.add('tw-hidden');
+                        popover.classList.remove('tw-flex');
+                        popover.setAttribute('aria-hidden', 'true');
                     }
                     function utCopyShareLink(btn) {
                         var url = window.location.href;
                         var icon = btn ? btn.querySelector('i') : null;
+                        var oldTitle = btn ? btn.getAttribute('aria-label') : '';
+                        var copied = false;
                         function flash() {
+                            copied = true;
                             if (!icon) return;
                             var orig = icon.className;
-                            icon.className = 'fa fa-check tw-text-2xl';
+                            icon.className = 'fa fa-check';
                             icon.style.color = '#28a745';
-                            setTimeout(function() { icon.className = orig; icon.style.color = ''; }, 1500);
+                            if (btn) btn.setAttribute('aria-label', 'Link berhasil disalin');
+                            setTimeout(function() {
+                                icon.className = orig;
+                                icon.style.color = '';
+                                if (btn) btn.setAttribute('aria-label', oldTitle || 'Salin link produk');
+                                utHideShareModal();
+                            }, 900);
                         }
-                        if (navigator.clipboard) {
-                            navigator.clipboard.writeText(url).then(flash).catch(function() {
-                                var ta = document.createElement('textarea');
-                                ta.value = url; document.body.appendChild(ta); ta.select();
-                                document.execCommand('copy'); document.body.removeChild(ta); flash();
-                            });
-                        } else {
+                        function fallbackCopy() {
                             var ta = document.createElement('textarea');
-                            ta.value = url; document.body.appendChild(ta); ta.select();
-                            document.execCommand('copy'); document.body.removeChild(ta); flash();
+                            ta.value = url;
+                            ta.setAttribute('readonly', 'readonly');
+                            ta.style.position = 'fixed';
+                            ta.style.left = '-9999px';
+                            document.body.appendChild(ta);
+                            ta.focus();
+                            ta.select();
+                            try {
+                                document.execCommand('copy');
+                            } catch (err) {
+                                console.warn('[UniTrade] Fallback copy failed:', err);
+                            }
+                            document.body.removeChild(ta);
+                            flash();
+                        }
+                        if (!navigator.clipboard || !document.hasFocus()) {
+                            fallbackCopy();
+                            return;
+                        }
+                        try {
+                            Promise.resolve(navigator.clipboard.writeText(url))
+                                .then(flash)
+                                .catch(function() {
+                                    if (!copied) fallbackCopy();
+                                });
+                        } catch (err) {
+                            fallbackCopy();
                         }
                     }
                     function utShareWhatsApp() {
                         var url = encodeURIComponent(window.location.href);
                         window.open('https://wa.me/?text=' + url, '_blank');
+                        utHideShareModal();
                     }
-                    function utWishlistClick(btn) {
-                        var pid = btn.getAttribute('data-product-id');
-                        if (!pid) return;
-                        fetch('/unitrade/wishlist/toggle', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ jsonrpc: '2.0', method: 'call', id: 1, params: { product_id: parseInt(pid, 10) } })
-                        }).then(function() {
-                            var icon = btn.querySelector('.fa-heart');
-                            if (icon) {
-                                icon.style.transform = 'scale(1.35)';
-                                icon.style.transition = 'transform 0.2s ease';
-                                setTimeout(function() { icon.style.transform = 'scale(1)'; }, 300);
-                            }
-                        }).catch(function(e) { console.error('[UniTrade] Wishlist:', e); });
-                    }
+                    document.addEventListener('click', function(ev) {
+                        var popover = document.getElementById('ut-share-popover');
+                        if (!popover || popover.classList.contains('tw-hidden')) return;
+                        var target = ev.target;
+                        if (popover.contains(target)) return;
+                        var shareTrigger = target.closest ? target.closest('[title="Bagikan"]') : null;
+                        if (shareTrigger) return;
+                        utHideShareModal();
+                    });
+                    document.addEventListener('keydown', function(ev) {
+                        if (ev.key === 'Escape') utHideShareModal();
+                    });
                     function utSwitchTab(btn, tabName) {
                         var tabs = ['deskripsi', 'ulasan'];
                         for (var i = 0; i &lt; tabs.length; i++) {

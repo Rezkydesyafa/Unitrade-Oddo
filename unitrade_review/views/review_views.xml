@@ -7,7 +7,9 @@
             <tree string="Ulasan Produk">
                 <field name="product_id"/>
                 <field name="user_id"/>
+                <field name="order_id"/>
                 <field name="rating"/>
+                <field name="review_image" string="Gambar" widget="image" optional="show"/>
                 <field name="comment"/>
                 <field name="is_visible"/>
                 <field name="create_date"/>
@@ -19,21 +21,40 @@
         <field name="name">unitrade.review.form</field>
         <field name="model">unitrade.review</field>
         <field name="arch" type="xml">
-            <form string="Detail Ulasan">
+            <form string="Detail Ulasan" create="1" edit="1">
+                <header>
+                    <button name="action_save_review"
+                        type="object"
+                        string="Simpan"
+                        class="oe_highlight"/>
+                </header>
                 <sheet>
                     <group>
                         <group>
-                            <field name="product_id"/>
-                            <field name="user_id"/>
-                            <field name="order_id"/>
+                            <field name="product_id" required="1"/>
+                            <field name="user_id" required="1"/>
+                            <field name="order_id" required="1"
+                                options="{'no_create': True}"
+                                placeholder="Pilih pesanan berstatus sale yang berisi produk ini"/>
                         </group>
                         <group>
-                            <field name="rating"/>
+                            <field name="rating" required="1"/>
                             <field name="is_visible"/>
                         </group>
                     </group>
-                    <group string="Komentar">
-                        <field name="comment" nolabel="1"/>
+                    <group string="Gambar Ulasan">
+                        <field name="review_image"
+                            widget="image"
+                            nolabel="1"
+                            class="ut_review_admin_image"
+                            options="{'preview_image': 'review_image'}"/>
+                        <field name="review_image_mimetype" readonly="1"/>
+                    </group>
+                    <group string="Komentar" class="ut_review_admin_comment_group">
+                        <field name="comment" nolabel="1" colspan="4"
+                            class="ut_review_admin_comment"
+                            placeholder="Tulis komentar review produk..."
+                            style="min-height: 160px; width: 100%;"/>
                     </group>
                 </sheet>
             </form>
@@ -44,6 +65,7 @@
         <field name="name">Ulasan Produk</field>
         <field name="res_model">unitrade.review</field>
         <field name="view_mode">tree,form</field>
+        <field name="context">{'default_rating': 5, 'default_is_visible': True}</field>
     </record>
 
     <menuitem id="menu_unitrade_reviews" name="Ulasan" parent="unitrade_seller.menu_unitrade_root" action="action_unitrade_review" sequence="30"/>

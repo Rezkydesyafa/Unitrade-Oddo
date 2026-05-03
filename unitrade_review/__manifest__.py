@@ -10,6 +10,11 @@
         'views/review_views.xml',
         'views/review_templates.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'unitrade_review/static/src/css/review_backend.css',
+        ],
+    },
     'installable': True,
     'license': 'LGPL-3',
 }

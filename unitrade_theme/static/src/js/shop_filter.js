@@ -376,7 +376,7 @@ publicWidget.registry.UnitradeShopFilter = publicWidget.Widget.extend({
     selector: "#ut-shop-owl-mount",
 
     async start() {
-        const superPromise = this._super.apply(this, arguments);
+        const superPromise = this._super ? this._super.apply(this, arguments) : Promise.resolve();
         const results = this.el.querySelector("#ut-shop-results");
         const props = {
             initialResultsHtml: results ? results.innerHTML : "",
@@ -394,6 +394,8 @@ publicWidget.registry.UnitradeShopFilter = publicWidget.Widget.extend({
         if (this.component && this.component.destroy) {
             this.component.destroy();
         }
-        this._super.apply(this, arguments);
+        if (this._super) {
+            this._super.apply(this, arguments);
+        }
     },
 });
