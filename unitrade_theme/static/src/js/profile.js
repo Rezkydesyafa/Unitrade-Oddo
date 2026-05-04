@@ -1,6 +1,7 @@
 /** @odoo-module **/
 
 import publicWidget from "@web/legacy/js/public/public_widget";
+import { jsonrpc } from "@web/core/network/rpc_service";
 
 publicWidget.registry.UnitradeUserProfileForm = publicWidget.Widget.extend({
     selector: ".ut-user-profile-form",
@@ -58,5 +59,48 @@ publicWidget.registry.UnitradeUserProfileForm = publicWidget.Widget.extend({
         this.el.querySelectorAll("[data-profile-control]").forEach((control) => {
             control.disabled = !isEditing;
         });
+    },
+});
+
+publicWidget.registry.UnitradeSettingsNotifications = publicWidget.Widget.extend({
+    selector: "[data-settings-notifications]",
+    events: {
+        "change [data-notification-field]": "_onToggle",
+    },
+
+    async _onToggle(ev) {
+        const input = ev.currentTarget;
+        const field = input.dataset.notificationField;
+        const value = input.checked;
+        const switchControl = input.closest(".ut-settings-switch");
+
+        if (switchControl) {
+            switchControl.classList.add("is-saving");
+        }
+
+        try {
+            const result = await jsonrpc("/my/settings/notifications", {
+                field: field,
+                value: value,
+            });
+
+            if (!result || !result.success) {
+                throw new Error((result && result.message) || "Notification update failed");
+            }
+
+            const values = result.values || {};
+            this.el.querySelectorAll("[data-notification-field]").forEach((control) => {
+                if (Object.prototype.hasOwnProperty.call(values, control.dataset.notificationField)) {
+                    control.checked = Boolean(values[control.dataset.notificationField]);
+                }
+            });
+        } catch (error) {
+            input.checked = !value;
+            console.error("[UniTrade] Settings notification toggle:", error);
+        } finally {
+            if (switchControl) {
+                switchControl.classList.remove("is-saving");
+            }
+        }
     },
 });

@@ -15,6 +15,9 @@ class ResUsers(models.Model):
         ('female', 'Perempuan'),
     ], string='Jenis Kelamin')
     x_birth_date = fields.Date(string='Tanggal Lahir')
+    x_notify_all = fields.Boolean(string='Semua Notifikasi UniTrade', default=True)
+    x_notify_transaction = fields.Boolean(string='Notifikasi Transaksi UniTrade', default=True)
+    x_notify_promo = fields.Boolean(string='Notifikasi Promo UniTrade', default=True)
 
     @api.model
     def _auth_oauth_signin(self, provider, validation, params):

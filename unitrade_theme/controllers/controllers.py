@@ -3,6 +3,8 @@ import re
 import werkzeug
 import base64
 import json
+import glob
+import os
 
 from odoo import http, _, SUPERUSER_ID, fields, tools
 from odoo.http import request
@@ -10,8 +12,10 @@ from odoo.exceptions import UserError, AccessDenied
 from odoo.service import security
 from odoo.addons.auth_signup.models.res_users import SignupError
 from odoo.addons.auth_oauth.controllers.main import OAuthLogin, OAuthController
+from odoo.addons.portal.controllers.portal import get_error
 from odoo.addons.sale.controllers.portal import CustomerPortal
 from odoo.addons.website.controllers.main import Website
+from werkzeug import urls
 
 _logger = logging.getLogger(__name__)
 
@@ -521,6 +525,188 @@ class UnitradePortalProfile(CustomerPortal):
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
         return response
+
+    @http.route('/my/security', type='http', auth='user', website=True, methods=['GET', 'POST'])
+    def security(self, **post):
+        """Keep old Odoo portal URL as a redirect to the UniTrade settings URL."""
+        return request.redirect('/my/settings')
+
+    @http.route('/my/settings', type='http', auth='user', website=True, methods=['GET', 'POST'])
+    def settings(self, **post):
+        """Render and process the UniTrade settings page."""
+        values = self._prepare_unitrade_settings_values()
+
+        if request.httprequest.method == 'POST':
+            operation = post.get('op')
+            if operation == 'password':
+                values.update(self._update_password(
+                    (post.get('old') or '').strip(),
+                    (post.get('new1') or '').strip(),
+                    (post.get('new2') or '').strip()
+                ))
+
+        response = request.render('portal.portal_my_security', values)
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
+        return response
+
+    @http.route('/my/settings/notifications', type='json', auth='user', website=True, methods=['POST'])
+    def update_settings_notifications(self, field=None, value=None, **kwargs):
+        """Persist notification switches from the settings page."""
+        field_name = field if field in {
+            'x_notify_all',
+            'x_notify_transaction',
+            'x_notify_promo',
+        } else None
+        if not field_name:
+            return {'success': False, 'message': _('Pengaturan notifikasi tidak valid.')}
+
+        enabled = bool(value)
+        user = request.env.user.sudo()
+        vals = {field_name: enabled}
+        if field_name == 'x_notify_all':
+            vals.update({
+                'x_notify_transaction': enabled,
+                'x_notify_promo': enabled,
+            })
+        else:
+            transaction = enabled if field_name == 'x_notify_transaction' else user.x_notify_transaction
+            promo = enabled if field_name == 'x_notify_promo' else user.x_notify_promo
+            vals['x_notify_all'] = bool(transaction and promo)
+        user.write(vals)
+        return {
+            'success': True,
+            'values': {
+                'x_notify_all': user.x_notify_all,
+                'x_notify_transaction': user.x_notify_transaction,
+                'x_notify_promo': user.x_notify_promo,
+            },
+        }
+
+    @http.route('/my/settings/session/revoke', type='http', auth='user', website=True, methods=['POST'])
+    def revoke_settings_session(self, sid=None, **post):
+        """Revoke one session owned by the current user."""
+        if not sid:
+            return request.redirect('/my/settings')
+
+        if sid == request.session.sid:
+            request.session.logout()
+            return request.redirect('/web/login?redirect=/')
+
+        session_store = http.root.session_store
+        if session_store.is_valid_key(sid):
+            session = session_store.get(sid)
+            if session.get('uid') == request.env.uid:
+                session_store.delete(session)
+        return request.redirect('/my/settings')
+
+    @http.route('/my/deactivate_account', type='http', auth='user', website=True, methods=['POST'])
+    def deactivate_account(self, validation, password, **post):
+        """Render UniTrade settings again when account deactivation validation fails."""
+        values = self._prepare_unitrade_settings_values()
+        values['open_deactivate_modal'] = True
+
+        if validation != request.env.user.login:
+            values['errors'] = {'deactivate': 'validation'}
+        else:
+            try:
+                request.env['res.users']._check_credentials(password, {'interactive': True})
+                request.env.user.sudo()._deactivate_portal_user(**post)
+                request.session.logout()
+                return request.redirect('/web/login?message=%s' % urls.url_quote(_('Account deleted!')))
+            except AccessDenied:
+                values['errors'] = {'deactivate': 'password'}
+            except UserError as e:
+                values['errors'] = {'deactivate': {'other': str(e)}}
+
+        response = request.render('portal.portal_my_security', values)
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
+        return response
+
+    def _prepare_unitrade_settings_values(self):
+        self._touch_unitrade_session_activity()
+        user = request.env.user.sudo()
+        values = self._prepare_portal_layout_values()
+        values.update({
+            'get_error': get_error,
+            'errors': {},
+            'success': {},
+            'allow_api_keys': bool(request.env['ir.config_parameter'].sudo().get_param('portal.allow_api_keys')),
+            'open_deactivate_modal': False,
+            'page_name': 'my_settings',
+            'notify_all': user.x_notify_all,
+            'notify_transaction': user.x_notify_transaction,
+            'notify_promo': user.x_notify_promo,
+            'session_activity': self._unitrade_session_activity(),
+        })
+        return values
+
+    def _touch_unitrade_session_activity(self):
+        session = request.session
+        session['unitrade_user_agent'] = request.httprequest.headers.get('User-Agent', '')
+        session['unitrade_remote_addr'] = request.httprequest.remote_addr or ''
+        session['unitrade_last_seen'] = fields.Datetime.to_string(fields.Datetime.now())
+
+    def _unitrade_session_activity(self):
+        session_store = http.root.session_store
+        path = getattr(session_store, 'path', '')
+        pattern = os.path.join(path, '*', '*')
+        rows = []
+        for filename in glob.iglob(pattern):
+            sid = os.path.basename(filename)
+            if sid.endswith('.__wz_sess') or not session_store.is_valid_key(sid):
+                continue
+            try:
+                session = session_store.get(sid)
+            except Exception:
+                _logger.debug("Unable to read portal session %s", sid, exc_info=True)
+                continue
+            if session.get('uid') != request.env.uid:
+                continue
+            rows.append({
+                'sid': sid,
+                'is_current': sid == request.session.sid,
+                'device_name': self._unitrade_device_name(session.get('unitrade_user_agent') or ''),
+                'ip_label': session.get('unitrade_remote_addr') or '-',
+                'last_seen': self._unitrade_session_last_seen(session.get('unitrade_last_seen')),
+            })
+
+        rows.sort(key=lambda row: (not row['is_current'], row['device_name']))
+        if not rows:
+            rows.append({
+                'sid': request.session.sid,
+                'is_current': True,
+                'device_name': self._unitrade_device_name(request.httprequest.headers.get('User-Agent', '')),
+                'ip_label': request.httprequest.remote_addr or '-',
+                'last_seen': _('Sedang aktif'),
+            })
+        return rows[:4]
+
+    @staticmethod
+    def _unitrade_device_name(user_agent):
+        user_agent_l = (user_agent or '').lower()
+        if 'android' in user_agent_l:
+            return 'Android'
+        if 'iphone' in user_agent_l or 'ipad' in user_agent_l:
+            return 'iOS'
+        if 'windows' in user_agent_l:
+            if 'chrome' in user_agent_l:
+                return 'Chrome di windows 11'
+            return 'Windows'
+        if 'mac os' in user_agent_l:
+            return 'MacOS'
+        return 'Browser'
+
+    @staticmethod
+    def _unitrade_session_last_seen(value):
+        if not value:
+            return _('Sedang aktif')
+        try:
+            dt_value = fields.Datetime.from_string(value)
+            return 'Aktif %s' % fields.Datetime.context_timestamp(request.env.user, dt_value).strftime('%d %B %Y, %H:%M')
+        except Exception:
+            return _('Sedang aktif')
 
     def _prepare_unitrade_profile_values(self, post):
         error = {}
