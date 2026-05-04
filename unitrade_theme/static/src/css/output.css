@@ -4005,6 +4005,12 @@ body:has(.ut-seller-profile-page) {
   line-height: 18px;
 }
 
+.ut-seller-report-optional {
+  color: #939393;
+  font-size: 12px;
+  font-weight: 500;
+}
+
 .ut-seller-report-textarea {
   width: 100%;
   min-height: 132px;
@@ -4023,6 +4029,72 @@ body:has(.ut-seller-profile-page) {
 .ut-seller-report-textarea:focus {
   border-color: #212529;
   background: #fff;
+}
+
+.ut-seller-report-media-drop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 76px;
+  padding: 14px;
+  border: 1px dashed #d2d2d7;
+  border-radius: 18px;
+  background: #f5f5f7;
+  cursor: pointer;
+}
+
+.ut-seller-report-media-drop:hover {
+  border-color: #212529;
+  background: #fff;
+}
+
+.ut-seller-report-media-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #fff;
+  color: #212529;
+}
+
+.ut-seller-report-media-drop strong {
+  display: block;
+  color: #212529;
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.ut-seller-report-media-drop small {
+  display: block;
+  margin-top: 2px;
+  color: #939393;
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.ut-seller-report-media-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ut-seller-report-media-status {
+  margin: 8px 0 0;
+  color: #939393;
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.ut-seller-report-media-status.ut-is-error {
+  color: #ef2028;
 }
 
 .ut-seller-report-actions {

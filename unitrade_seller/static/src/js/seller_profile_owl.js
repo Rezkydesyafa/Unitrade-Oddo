@@ -307,6 +307,8 @@ publicWidget.registry.UnitradeSellerReportModal = publicWidget.Widget.extend({
     events: {
         "click .ut-seller-report-trigger": "_openReportModal",
         "click [data-report-close]": "_closeReportModal",
+        "change .ut-seller-report-media-input": "_onReportMediaChange",
+        "submit .ut-seller-report-form": "_onReportSubmit",
     },
 
     start() {
@@ -354,6 +356,48 @@ publicWidget.registry.UnitradeSellerReportModal = publicWidget.Widget.extend({
         }
         if (trigger) {
             trigger.focus();
+        }
+    },
+
+    _onReportMediaChange(ev) {
+        const input = ev.currentTarget;
+        const status = this.el.querySelector(".ut-seller-report-media-status");
+        const files = Array.from(input.files || []);
+        if (files.length > 3) {
+            input.value = "";
+            if (status) {
+                status.textContent = "Maksimal 3 gambar. Pilih ulang media pendukung.";
+                status.classList.add("ut-is-error");
+            }
+            return;
+        }
+        const invalidFile = files.find((file) => !file.type || !file.type.startsWith("image/"));
+        if (invalidFile) {
+            input.value = "";
+            if (status) {
+                status.textContent = "File harus berupa gambar.";
+                status.classList.add("ut-is-error");
+            }
+            return;
+        }
+        if (status) {
+            status.classList.remove("ut-is-error");
+            status.textContent = files.length
+                ? `${files.length} gambar dipilih.`
+                : "Belum ada gambar dipilih.";
+        }
+    },
+
+    _onReportSubmit(ev) {
+        const input = this.el.querySelector(".ut-seller-report-media-input");
+        const status = this.el.querySelector(".ut-seller-report-media-status");
+        const files = input ? Array.from(input.files || []) : [];
+        if (files.length > 3) {
+            ev.preventDefault();
+            if (status) {
+                status.textContent = "Maksimal 3 gambar. Hapus beberapa gambar terlebih dahulu.";
+                status.classList.add("ut-is-error");
+            }
         }
     },
 });

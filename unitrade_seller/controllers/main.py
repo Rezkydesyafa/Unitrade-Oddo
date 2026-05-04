@@ -1,6 +1,6 @@
 from odoo import http
 from odoo.http import request
-from markupsafe import escape
+from markupsafe import Markup, escape
 from werkzeug.urls import url_encode
 import logging
 
@@ -333,9 +333,30 @@ class UnitradeSellerController(http.Controller):
             return request.not_found()
 
         reason = (kwargs.get('reason') or 'Report dari halaman profil penjual').strip()[:500]
-        body = 'Seller dilaporkan oleh %s: %s' % (request.env.user.name, escape(reason))
-        seller.message_post(body=body, subtype_xmlid='mail.mt_note')
-        _logger.info('Seller %s reported by user %s', seller.id, request.env.uid)
+        media_files = request.httprequest.files.getlist('media')
+        if len(media_files) > 3:
+            return request.redirect('/seller-profile/%s?report_error=media_limit' % self._seller_public_ref(seller))
+
+        attachments = []
+        for index, media in enumerate(media_files[:3], start=1):
+            if not media or not media.filename:
+                continue
+            mimetype = media.mimetype or ''
+            if not mimetype.startswith('image/'):
+                continue
+            filename = media.filename.rsplit('\\', 1)[-1].rsplit('/', 1)[-1] or 'seller-report-%s.jpg' % index
+            attachments.append((filename, media.read()))
+
+        body = Markup('Seller dilaporkan oleh %s: %s') % (escape(request.env.user.name), escape(reason))
+        if attachments:
+            body += Markup('<br/>Media pendukung: %s gambar.') % len(attachments)
+        seller.message_post(body=body, subtype_xmlid='mail.mt_note', attachments=attachments, body_is_html=True)
+        _logger.info(
+            'Seller %s reported by user %s with %s media attachment(s)',
+            seller.id,
+            request.env.uid,
+            len(attachments),
+        )
         return request.redirect('/seller-profile/%s?reported=1' % self._seller_public_ref(seller))
 
     @http.route(['/unitrade/seller/register', '/seller/register'], type='http', auth='user', website=True)

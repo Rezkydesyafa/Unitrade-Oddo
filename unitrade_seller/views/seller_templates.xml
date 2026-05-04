@@ -79,6 +79,9 @@
                     <div t-if="request.params.get('reported')" class="tw-mb-5 tw-rounded-[18px] tw-border tw-border-emerald-200 tw-bg-emerald-50 tw-px-5 tw-py-3 tw-text-sm tw-text-emerald-700">
                         Laporan diterima dan akan ditinjau admin UniTrade.
                     </div>
+                    <div t-if="request.params.get('report_error') == 'media_limit'" class="tw-mb-5 tw-rounded-[18px] tw-border tw-border-red-200 tw-bg-red-50 tw-px-5 tw-py-3 tw-text-sm tw-text-red-700">
+                        Maksimal 3 gambar dapat disertakan pada laporan.
+                    </div>
                     <div t-if="request.params.get('chat')" class="tw-mb-5 tw-rounded-[18px] tw-border tw-border-amber-200 tw-bg-amber-50 tw-px-5 tw-py-3 tw-text-sm tw-text-amber-700">
                         Penjual belum menambahkan nomor WhatsApp.
                     </div>
@@ -154,10 +157,22 @@
                                         <p class="ut-seller-report-copy">
                                             Jelaskan masalah pada toko ini agar admin UniTrade bisa meninjau laporan dengan tepat.
                                         </p>
-                                        <form t-attf-action="/seller-profile/#{seller_public_ref}/report" method="post" class="ut-seller-report-form">
+                                        <form t-attf-action="/seller-profile/#{seller_public_ref}/report" method="post" enctype="multipart/form-data" class="ut-seller-report-form">
                                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                             <label for="ut-seller-report-reason" class="ut-seller-report-label">Alasan laporan</label>
                                             <textarea id="ut-seller-report-reason" name="reason" required="required" maxlength="500" class="ut-seller-report-textarea" placeholder="Contoh: Produk mencurigakan, penjual tidak sesuai identitas, atau aktivitas lain yang perlu ditinjau."></textarea>
+                                            <label for="ut-seller-report-media" class="ut-seller-report-label tw-mt-4">Media pendukung <span class="ut-seller-report-optional">opsional</span></label>
+                                            <label for="ut-seller-report-media" class="ut-seller-report-media-drop">
+                                                <span class="ut-seller-report-media-icon">
+                                                    <i class="fa fa-image"></i>
+                                                </span>
+                                                <span>
+                                                    <strong>Sertakan gambar</strong>
+                                                    <small>Maksimal 3 file JPG, PNG, atau WebP.</small>
+                                                </span>
+                                            </label>
+                                            <input id="ut-seller-report-media" type="file" name="media" accept="image/jpeg,image/png,image/webp,image/gif" multiple="multiple" class="ut-seller-report-media-input"/>
+                                            <p class="ut-seller-report-media-status">Belum ada gambar dipilih.</p>
                                             <div class="ut-seller-report-actions">
                                                 <button type="button" class="ut-seller-report-cancel" data-report-close="1">Batal</button>
                                                 <button type="submit" class="ut-seller-report-submit">Kirim laporan</button>
