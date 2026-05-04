@@ -10,6 +10,11 @@ class ResUsers(models.Model):
     _inherit = 'res.users'
 
     is_otp_verified = fields.Boolean(string='Is OTP Verified', default=False)
+    x_gender = fields.Selection([
+        ('male', 'Laki-laki'),
+        ('female', 'Perempuan'),
+    ], string='Jenis Kelamin')
+    x_birth_date = fields.Date(string='Tanggal Lahir')
 
     @api.model
     def _auth_oauth_signin(self, provider, validation, params):

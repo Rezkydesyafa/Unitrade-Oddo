@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="unitrade_portal_my_details" inherit_id="portal.portal_my_details" name="UniTrade User Profile">
+        <xpath expr="//t[@t-call='portal.portal_layout']" position="replace">
+            <t t-call="website.layout">
+                <t t-set="page_title">Profile - UniTrade</t>
+                <section class="ut-user-profile-page tw-min-h-screen tw-bg-[#f5f5f7] tw-px-6 tw-py-10 lg:tw-px-12" style="font-family: Urbanist, Inter, sans-serif;">
+                    <div class="ut-user-profile-shell tw-mx-auto tw-mt-[96px] tw-grid tw-max-w-[1460px] tw-grid-cols-[269px_minmax(0,1fr)] tw-gap-11">
+                        <aside class="ut-user-profile-sidebar tw-flex tw-min-h-[582px] tw-flex-col tw-rounded-[36px] tw-bg-white tw-px-5 tw-py-9">
+                            <a href="/my/account" class="ut-user-profile-menu is-active tw-flex tw-h-16 tw-items-center tw-gap-5 tw-rounded-[32px] tw-bg-[#f5f5f7] tw-px-3 tw-text-[#212529] tw-no-underline">
+                                <span class="ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-[#050505] tw-text-white">
+                                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                </span>
+                                <span class="tw-text-[20px] tw-text-black">Profile</span>
+                            </a>
+                            <a href="/my/wishlist" class="ut-user-profile-menu tw-mt-5 tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-[#939393] tw-no-underline">
+                                <span class="ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-[#f5f5f7]">
+                                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+                                    </svg>
+                                </span>
+                                <span class="tw-text-[20px]">Wishlist</span>
+                            </a>
+                            <a href="/my/orders" class="ut-user-profile-menu tw-mt-5 tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-[#939393] tw-no-underline">
+                                <span class="ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-[#f5f5f7]">
+                                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/>
+                                        <path d="m3.3 7 8.7 5 8.7-5"/>
+                                        <path d="M12 22V12"/>
+                                    </svg>
+                                </span>
+                                <span class="tw-text-[20px]">Pesanan saya</span>
+                            </a>
+                            <a href="/my/security" class="ut-user-profile-menu tw-mt-5 tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-[#939393] tw-no-underline">
+                                <span class="ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-[#f5f5f7]">
+                                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="3"/>
+                                        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1h.1a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>
+                                    </svg>
+                                </span>
+                                <span class="tw-text-[20px]">Pengaturan</span>
+                            </a>
+                            <div class="tw-flex-1"></div>
+                            <a href="/web/session/logout?redirect=/" class="ut-user-profile-logout tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-red-600 tw-no-underline">
+                                <span class="tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-red-600 tw-text-white">
+                                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                        <path d="m16 17 5-5-5-5"/>
+                                        <path d="M21 12H9"/>
+                                    </svg>
+                                </span>
+                                <span class="tw-text-[20px]">Keluar</span>
+                            </a>
+                        </aside>
+
+                        <main class="ut-user-profile-card tw-rounded-[36px] tw-bg-white tw-px-16 tw-py-12">
+                            <t t-if="profile_saved">
+                                <div class="tw-mb-6 tw-rounded-2xl tw-border tw-border-green-200 tw-bg-green-50 tw-px-5 tw-py-3 tw-text-[14px] tw-font-medium tw-text-green-700">
+                                    Profil berhasil diperbarui.
+                                </div>
+                            </t>
+                            <t t-if="error_message">
+                                <div class="tw-mb-6 tw-rounded-2xl tw-border tw-border-red-200 tw-bg-red-50 tw-px-5 tw-py-3 tw-text-[14px] tw-font-medium tw-text-red-700">
+                                    <t t-foreach="error_message" t-as="message">
+                                        <div t-esc="message"/>
+                                    </t>
+                                </div>
+                            </t>
+
+                            <form action="/my/account" method="post" enctype="multipart/form-data"
+                                t-att-data-editing="'1' if error_message else '0'"
+                                t-att-class="'ut-user-profile-form tw-grid tw-grid-cols-[minmax(0,582px)_minmax(260px,394px)] tw-gap-20 is-editing' if error_message else 'ut-user-profile-form tw-grid tw-grid-cols-[minmax(0,582px)_minmax(260px,394px)] tw-gap-20 is-readonly'">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <input type="hidden" name="redirect" t-att-value="redirect"/>
+
+                                <div>
+                                    <div class="ut-user-profile-title-row tw-flex tw-items-center">
+                                        <h1 class="tw-m-0 tw-text-[40px] tw-font-semibold tw-leading-none tw-text-[#525252]">Profile</h1>
+                                        <button type="button" class="ut-user-profile-edit tw-h-[45px] tw-rounded-[22.5px] tw-border tw-border-[#525252] tw-bg-transparent tw-px-5 tw-text-[16px] tw-text-[#525252]" data-profile-edit="1">Ubah profile</button>
+                                    </div>
+
+                                    <label class="ut-user-profile-field">
+                                        <span>Nama Pengguna</span>
+                                        <input type="text" name="name" t-att-value="form_values.get('name') or partner.name" class="ut-user-profile-input" required="required" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                    </label>
+
+                                    <div class="ut-user-profile-field">
+                                        <span>Jenis Kelamin</span>
+                                        <div class="ut-user-profile-radio-row">
+                                            <label>
+                                                <input type="radio" name="x_gender" value="male" t-att-checked="'checked' if user_profile.x_gender == 'male' else None" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                                <span>Pria</span>
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="x_gender" value="female" t-att-checked="'checked' if user_profile.x_gender == 'female' else None" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                                <span>Wanita</span>
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="x_gender" value="" t-att-checked="'checked' if not user_profile.x_gender else None" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                                <span>Tidak ada</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <label class="ut-user-profile-field">
+                                        <span>Tanggal Lahir</span>
+                                        <input type="date" name="x_birth_date" t-att-value="form_values.get('x_birth_date') or user_profile.x_birth_date" class="ut-user-profile-input" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                    </label>
+
+                                    <label class="ut-user-profile-field">
+                                        <span>Email</span>
+                                        <input type="email" name="email" t-att-value="form_values.get('email') or partner.email or user_profile.login" class="ut-user-profile-input" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                    </label>
+
+                                    <label class="ut-user-profile-field">
+                                        <span>Nomor Telpon</span>
+                                        <input type="tel" name="phone" t-att-value="form_values.get('phone') or partner.phone or ''" class="ut-user-profile-input" placeholder="08xxxxxxxxxx" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                    </label>
+
+                                    <div class="ut-user-profile-address">
+                                        <div class="ut-user-profile-address-main">
+                                            <label class="ut-user-profile-field tw-m-0">
+                                                <span>Alamat</span>
+                                                <small>Provinsi, Kota, Kecamatan</small>
+                                                <textarea name="street" class="ut-user-profile-textarea" t-esc="form_values.get('street') or partner.street or ''" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"></textarea>
+                                            </label>
+                                        </div>
+                                        <label class="ut-user-profile-field tw-m-0">
+                                            <span class="tw-opacity-0">Kode Pos</span>
+                                            <small>Kode Pos</small>
+                                            <input type="text" name="zipcode" t-att-value="form_values.get('zipcode') or partner.zip" class="ut-user-profile-input" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                        </label>
+                                    </div>
+
+                                    <div class="ut-user-profile-actions tw-mt-[30px] tw-flex tw-gap-5">
+                                        <button type="submit" class="tw-h-12 tw-w-32 tw-rounded-3xl tw-border-0 tw-bg-[#212529] tw-text-[16px] tw-text-[#f5f5f7]">Simpan</button>
+                                        <a href="/my/account" class="tw-flex tw-h-12 tw-w-32 tw-items-center tw-justify-center tw-rounded-3xl tw-border tw-border-[#525252] tw-text-[16px] tw-text-[#525252] tw-no-underline">Batal</a>
+                                    </div>
+                                </div>
+
+                                <div class="ut-user-profile-avatar-panel tw-flex tw-justify-center tw-pt-14">
+                                    <label class="ut-user-profile-avatar-picker">
+                                        <span class="ut-user-profile-avatar-frame">
+                                            <img t-attf-src="/web/image/res.users/#{user_id.id}/image_1920?unique=#{user_id.write_date}" alt="Foto profil" class="ut-user-profile-avatar-img"/>
+                                            <span class="ut-user-profile-avatar-action">
+                                                <span>Ubah</span>
+                                                <svg class="tw-h-6 tw-w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M12 20h9"/>
+                                                    <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                                                </svg>
+                                            </span>
+                                        </span>
+                                        <input type="file" name="avatar_upload" accept="image/*" class="tw-sr-only" data-profile-control="1" data-profile-avatar-input="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                    </label>
+                                </div>
+                            </form>
+                        </main>
+                    </div>
+                </section>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="unitrade_portal_my_orders" name="UniTrade My Orders">
+        <t t-call="website.layout">
+            <t t-set="page_title">Pesanan Saya - UniTrade</t>
+            <section class="ut-user-profile-page ut-user-orders-page tw-min-h-screen tw-bg-[#f5f5f7] tw-px-6 tw-py-10 lg:tw-px-12" style="font-family: Urbanist, Inter, sans-serif;">
+                <div class="ut-user-profile-shell tw-mx-auto tw-grid tw-max-w-[1460px] tw-grid-cols-[269px_minmax(0,1fr)] tw-gap-11">
+                    <aside class="ut-user-profile-sidebar tw-flex tw-min-h-[582px] tw-flex-col tw-rounded-[36px] tw-bg-white tw-px-5 tw-py-9">
+                        <a href="/my/account" class="ut-user-profile-menu tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-[#939393] tw-no-underline">
+                            <span class="ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-[#f5f5f7]">
+                                <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                            </span>
+                            <span class="tw-text-[20px]">Profile</span>
+                        </a>
+                        <a href="/my/wishlist" class="ut-user-profile-menu tw-mt-5 tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-[#939393] tw-no-underline">
+                            <span class="ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-[#f5f5f7]">
+                                <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+                                </svg>
+                            </span>
+                            <span class="tw-text-[20px]">Wishlist</span>
+                        </a>
+                        <a href="/my/orders" class="ut-user-profile-menu is-active tw-mt-5 tw-flex tw-h-16 tw-items-center tw-gap-5 tw-rounded-[32px] tw-bg-[#f5f5f7] tw-px-3 tw-text-[#212529] tw-no-underline">
+                            <span class="ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-[#050505] tw-text-white">
+                                <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/>
+                                    <path d="m3.3 7 8.7 5 8.7-5"/>
+                                    <path d="M12 22V12"/>
+                                </svg>
+                            </span>
+                            <span class="tw-text-[20px] tw-text-black">Pesanan saya</span>
+                        </a>
+                        <a href="/my/security" class="ut-user-profile-menu tw-mt-5 tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-[#939393] tw-no-underline">
+                            <span class="ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-[#f5f5f7]">
+                                <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"/>
+                                    <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1h.1a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>
+                                </svg>
+                            </span>
+                            <span class="tw-text-[20px]">Pengaturan</span>
+                        </a>
+                        <div class="tw-flex-1"></div>
+                        <a href="/web/session/logout?redirect=/" class="ut-user-profile-logout tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-red-600 tw-no-underline">
+                            <span class="tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-red-600 tw-text-white">
+                                <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                    <path d="m16 17 5-5-5-5"/>
+                                    <path d="M21 12H9"/>
+                                </svg>
+                            </span>
+                            <span class="tw-text-[20px]">Keluar</span>
+                        </a>
+                    </aside>
+
+                    <main class="ut-user-orders-main">
+                        <h1 class="ut-user-orders-title">Pesanan saya</h1>
+                        <div id="ut-user-orders-tabs"
+                            t-att-data-active-status="active_order_status"
+                            t-att-data-counts="order_status_counts_json">
+                        </div>
+
+                        <div class="ut-user-orders-list" data-orders-list="1">
+                            <t t-if="order_items">
+                                <t t-foreach="order_items" t-as="item">
+                                    <article t-att-data-order-status="item.get('status')"
+                                        t-att-class="'ut-user-order-card %s' % ('ut-is-hidden' if active_order_status != 'all' and item.get('status') != active_order_status else '')">
+                                        <header class="ut-user-order-seller">
+                                            <a t-att-href="item.get('seller_url')" class="ut-user-order-seller-link">
+                                                <img t-att-src="item.get('seller_avatar_url')" alt="Avatar penjual" class="ut-user-order-seller-avatar"/>
+                                                <span t-esc="item.get('seller_name')"/>
+                                            </a>
+                                            <span t-att-class="'ut-user-order-status ut-status-%s' % item.get('status')">
+                                                <t t-if="item.get('status') == 'unpaid'">Belum di bayar</t>
+                                                <t t-elif="item.get('status') == 'cancel'">Dibatalkan</t>
+                                                <t t-else="">Selesai</t>
+                                            </span>
+                                        </header>
+                                        <div class="ut-user-order-body">
+                                            <a t-att-href="item.get('product_url')" class="ut-user-order-image-wrap">
+                                                <img t-att-src="item.get('image_url')" alt="Produk pesanan" class="ut-user-order-image"/>
+                                            </a>
+                                            <div class="ut-user-order-info">
+                                                <a t-att-href="item.get('product_url')" class="ut-user-order-product-name" t-esc="item.get('product').name"/>
+                                                <p>Kategori : <t t-esc="item.get('category')"/></p>
+                                                <p>Jumlah : <t t-esc="item.get('quantity')"/></p>
+                                                <div class="ut-user-order-rating">
+                                                    <i class="fa fa-star"></i>
+                                                    <span t-esc="item.get('rating')"/>
+                                                </div>
+                                            </div>
+                                            <div class="ut-user-order-price" t-esc="item.get('price')"/>
+                                        </div>
+                                        <footer class="ut-user-order-actions">
+                                            <a t-if="item.get('can_review')" t-att-href="item.get('review_url')" class="ut-user-order-btn ut-user-order-btn-primary">Beri Ulasan</a>
+                                            <span t-elif="item.get('review_exists')" class="ut-user-order-btn ut-user-order-btn-muted">Sudah Ulasan</span>
+                                            <span t-else="" class="ut-user-order-btn ut-user-order-btn-muted">Beri Ulasan</span>
+                                            <a t-att-href="item.get('seller_chat_url')" class="ut-user-order-btn ut-user-order-btn-outline">Chat Penjual</a>
+                                            <a t-if="item.get('can_buy_again')" t-att-href="item.get('buy_again_url')" class="ut-user-order-btn ut-user-order-btn-outline">Beli Lagi</a>
+                                            <span t-else="" class="ut-user-order-btn ut-user-order-btn-disabled" title="Produk tidak tersedia">Beli Lagi</span>
+                                        </footer>
+                                    </article>
+                                </t>
+                            </t>
+                            <div t-else="" class="ut-user-orders-empty">
+                                Belum ada pesanan.
+                            </div>
+                            <div class="ut-user-orders-empty ut-user-orders-filter-empty">
+                                Tidak ada pesanan pada status ini.
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            </section>
+        </t>
+    </template>
+</odoo>

@@ -2,9 +2,102 @@
 <odoo>
     <template id="unitrade_product_detail" inherit_id="website_sale.product" name="UniTrade Product Detail Override">
         <xpath expr="//section[@id='product_detail']" position="replace">
-            <section id="product_detail" class="tw-bg-[var(--ut-color-bg-page)] tw-w-full tw-min-h-screen tw-pb-16" style="font-family: 'Urbanist', 'Inter', sans-serif;">
+            <section id="product_detail" class="ut-product-detail-hydrating tw-bg-[var(--ut-color-bg-page)] tw-w-full tw-min-h-screen tw-pb-16" style="font-family: 'Urbanist', 'Inter', sans-serif;">
                 <div class="unitrade-detail-scope">
-                <div class="tw-max-w-[1300px] tw-mx-auto tw-px-6 tw-pt-6">
+                <div class="ut-product-detail-skeleton tw-max-w-[1300px] tw-mx-auto tw-px-6 tw-pt-6" aria-hidden="true">
+                    <div class="ut-pd-sk-navbar">
+                        <div class="ut-pd-sk-logo ut-pd-sk-block"></div>
+                        <div class="ut-pd-sk-search ut-pd-sk-block"></div>
+                        <div class="ut-pd-sk-action ut-pd-sk-block"></div>
+                        <div class="ut-pd-sk-action ut-pd-sk-block"></div>
+                        <div class="ut-pd-sk-user ut-pd-sk-block"></div>
+                    </div>
+
+                    <div class="ut-pd-sk-card">
+                        <div class="ut-pd-sk-breadcrumb">
+                            <span class="ut-pd-sk-block"></span>
+                            <span class="ut-pd-sk-block"></span>
+                            <span class="ut-pd-sk-block"></span>
+                        </div>
+
+                        <div class="ut-pd-sk-main">
+                            <div class="ut-pd-sk-gallery">
+                                <div class="ut-pd-sk-image ut-pd-sk-block"></div>
+                                <div class="ut-pd-sk-thumbs">
+                                    <span class="ut-pd-sk-block"></span>
+                                    <span class="ut-pd-sk-block"></span>
+                                    <span class="ut-pd-sk-block"></span>
+                                    <span class="ut-pd-sk-block"></span>
+                                </div>
+                            </div>
+
+                            <div class="ut-pd-sk-info">
+                                <div class="ut-pd-sk-title ut-pd-sk-block"></div>
+                                <div class="ut-pd-sk-rating ut-pd-sk-block"></div>
+                                <div class="ut-pd-sk-chip-row">
+                                    <span class="ut-pd-sk-chip ut-pd-sk-block"></span>
+                                    <span class="ut-pd-sk-chip ut-pd-sk-block"></span>
+                                </div>
+                                <div class="ut-pd-sk-price ut-pd-sk-block"></div>
+                                <div class="ut-pd-sk-stock ut-pd-sk-block"></div>
+                                <div class="ut-pd-sk-qty">
+                                    <span class="ut-pd-sk-circle ut-pd-sk-block"></span>
+                                    <span class="ut-pd-sk-pill ut-pd-sk-block"></span>
+                                    <span class="ut-pd-sk-circle ut-pd-sk-block"></span>
+                                </div>
+                                <div class="ut-pd-sk-buttons">
+                                    <span class="ut-pd-sk-button ut-pd-sk-block"></span>
+                                    <span class="ut-pd-sk-circle-lg ut-pd-sk-block"></span>
+                                    <span class="ut-pd-sk-circle-lg ut-pd-sk-block"></span>
+                                </div>
+                                <div class="ut-pd-sk-seller">
+                                    <span class="ut-pd-sk-avatar ut-pd-sk-block"></span>
+                                    <div>
+                                        <span class="ut-pd-sk-seller-name ut-pd-sk-block"></span>
+                                        <span class="ut-pd-sk-seller-status ut-pd-sk-block"></span>
+                                    </div>
+                                </div>
+                                <div class="ut-pd-sk-seller-buttons">
+                                    <span class="ut-pd-sk-seller-btn ut-pd-sk-block"></span>
+                                    <span class="ut-pd-sk-seller-btn-lg ut-pd-sk-block"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ut-pd-sk-map ut-pd-sk-block"></div>
+                    </div>
+
+                    <div class="ut-pd-sk-tabs">
+                        <span class="ut-pd-sk-tab-label ut-pd-sk-block"></span>
+                        <span class="ut-pd-sk-tab ut-pd-sk-block"></span>
+                        <span class="ut-pd-sk-tab ut-pd-sk-block"></span>
+                    </div>
+
+                    <div class="ut-pd-sk-description">
+                        <div class="ut-pd-sk-desc-line ut-pd-sk-block"></div>
+                        <div class="ut-pd-sk-desc-line ut-pd-sk-block"></div>
+                        <div class="ut-pd-sk-desc-line ut-pd-sk-block"></div>
+                        <div class="ut-pd-sk-desc-line short ut-pd-sk-block"></div>
+                    </div>
+
+                    <div class="ut-pd-sk-recommendation">
+                        <div class="ut-pd-sk-section-title ut-pd-sk-block"></div>
+                        <div class="ut-pd-sk-product-row">
+                            <t t-foreach="[1, 2, 3, 4, 5]" t-as="item">
+                                <div class="ut-pd-sk-product-card">
+                                    <div class="ut-pd-sk-product-image ut-pd-sk-block"></div>
+                                    <div class="ut-pd-sk-product-name ut-pd-sk-block"></div>
+                                    <div class="ut-pd-sk-product-meta ut-pd-sk-block"></div>
+                                    <div class="ut-pd-sk-product-bottom">
+                                        <span class="ut-pd-sk-product-price ut-pd-sk-block"></span>
+                                        <span class="ut-pd-sk-product-rating ut-pd-sk-block"></span>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+                <div class="ut-product-detail-content tw-max-w-[1300px] tw-mx-auto tw-px-6 tw-pt-6">
 
                     <div id="ut-product-main-card" class="tw-relative tw-bg-bg-surface tw-rounded-[24px] tw-p-4 md:tw-p-6 tw-shadow-sm tw-mb-10">
                     <!-- Breadcrumbs -->

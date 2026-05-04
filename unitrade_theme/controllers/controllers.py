@@ -1,13 +1,16 @@
 import logging
 import re
 import werkzeug
+import base64
+import json
 
-from odoo import http, _, SUPERUSER_ID
+from odoo import http, _, SUPERUSER_ID, fields, tools
 from odoo.http import request
 from odoo.exceptions import UserError, AccessDenied
 from odoo.service import security
 from odoo.addons.auth_signup.models.res_users import SignupError
 from odoo.addons.auth_oauth.controllers.main import OAuthLogin, OAuthController
+from odoo.addons.sale.controllers.portal import CustomerPortal
 from odoo.addons.website.controllers.main import Website
 
 _logger = logging.getLogger(__name__)
@@ -476,6 +479,238 @@ class UnitradeOTPController(http.Controller):
                 return '*@' + domain
             return local[0] + '***@' + domain
         return '****'
+
+
+class UnitradePortalProfile(CustomerPortal):
+    """Render and update the UniTrade user profile page."""
+
+    _MAX_AVATAR_BYTES = 2 * 1024 * 1024
+    _ORDER_STATUSES = ('all', 'unpaid', 'done', 'cancel')
+
+    @http.route(['/my/account'], type='http', auth='user', website=True)
+    def account(self, redirect=None, **post):
+        values = self._prepare_portal_layout_values()
+        partner = request.env.user.partner_id
+        user = request.env.user
+        error = {}
+        error_message = []
+
+        if post and request.httprequest.method == 'POST':
+            error, error_message, partner_vals, user_vals = self._prepare_unitrade_profile_values(post)
+            values.update(post)
+
+            if not error:
+                if partner_vals:
+                    partner.sudo().write(partner_vals)
+                if user_vals:
+                    user.sudo().write(user_vals)
+                return request.redirect(redirect or '/my/account?profile_saved=1')
+
+        values.update({
+            'partner': partner,
+            'user_profile': user,
+            'form_values': dict(post or {}),
+            'error': error,
+            'error_message': error_message,
+            'redirect': redirect,
+            'page_name': 'my_details',
+            'profile_saved': request.params.get('profile_saved') == '1',
+        })
+
+        response = request.render('portal.portal_my_details', values)
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
+        return response
+
+    def _prepare_unitrade_profile_values(self, post):
+        error = {}
+        error_message = []
+        partner_vals = {}
+        user_vals = {}
+
+        name = (post.get('name') or '').strip()
+        email = (post.get('email') or '').strip()
+        gender = (post.get('x_gender') or '').strip()
+        birth_date = (post.get('x_birth_date') or '').strip()
+        phone = (post.get('phone') or '').strip()
+        street = (post.get('street') or '').strip()
+        zipcode = (post.get('zipcode') or '').strip()
+
+        if not name:
+            error['name'] = 'missing'
+            error_message.append(_('Nama pengguna wajib diisi.'))
+
+        if email and not tools.single_email_re.match(email):
+            error['email'] = 'error'
+            error_message.append(_('Masukkan email yang valid.'))
+
+        if birth_date:
+            try:
+                user_vals['x_birth_date'] = fields.Date.to_date(birth_date)
+            except ValueError:
+                error['x_birth_date'] = 'error'
+                error_message.append(_('Format tanggal lahir tidak valid.'))
+        else:
+            user_vals['x_birth_date'] = False
+
+        if gender in ('male', 'female'):
+            user_vals['x_gender'] = gender
+        else:
+            user_vals['x_gender'] = False
+
+        avatar_file = post.get('avatar_upload')
+        if avatar_file and getattr(avatar_file, 'filename', ''):
+            avatar_content = avatar_file.read()
+            content_type = (getattr(avatar_file, 'content_type', '') or '').lower()
+            if len(avatar_content) > self._MAX_AVATAR_BYTES:
+                error['avatar_upload'] = 'too_large'
+                error_message.append(_('Ukuran foto profil maksimal 2MB.'))
+            elif content_type and not content_type.startswith('image/'):
+                error['avatar_upload'] = 'invalid'
+                error_message.append(_('Foto profil harus berupa file gambar.'))
+            else:
+                user_vals['image_1920'] = base64.b64encode(avatar_content)
+
+        partner_vals.update({
+            'name': name,
+            'email': email,
+            'phone': phone,
+            'street': street,
+            'zip': zipcode,
+        })
+
+        return error, error_message, partner_vals, user_vals
+
+    @http.route([
+        '/my/orders',
+        '/my/orders/page/<int:page>',
+        '/my/account/orders',
+    ], type='http', auth='user', website=True)
+    def portal_my_orders(self, page=1, status='all', **kwargs):
+        """Render the UniTrade customer orders page with dynamic sale.order data."""
+        values = self._prepare_portal_layout_values()
+        active_status = status if status in self._ORDER_STATUSES else 'all'
+        order_items = self._unitrade_customer_order_items()
+        request.session['my_orders_history'] = list({
+            item['order'].id for item in order_items
+        })[:100]
+        status_counts = {
+            'all': len(order_items),
+            'unpaid': len([item for item in order_items if item['status'] == 'unpaid']),
+            'done': len([item for item in order_items if item['status'] == 'done']),
+            'cancel': len([item for item in order_items if item['status'] == 'cancel']),
+        }
+
+        values.update({
+            'page_name': 'my_orders',
+            'order_items': order_items,
+            'order_status_counts': status_counts,
+            'order_status_counts_json': json.dumps(status_counts),
+            'active_order_status': active_status,
+        })
+        response = request.render('unitrade_theme.unitrade_portal_my_orders', values)
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
+        return response
+
+    def _unitrade_customer_order_items(self):
+        partner = request.env.user.partner_id.commercial_partner_id
+        partners = request.env['res.partner'].sudo().search([('commercial_partner_id', '=', partner.id)])
+        orders = request.env['sale.order'].sudo().search([
+            ('partner_id', 'in', partners.ids),
+            ('state', 'in', ['sent', 'sale', 'done', 'cancel']),
+        ], order='date_order desc', limit=80)
+
+        Review = request.env['unitrade.review'].sudo() if 'unitrade.review' in request.env.registry else False
+        items = []
+        for order in orders:
+            status_key = self._unitrade_order_status_key(order)
+            order_lines = order.order_line.filtered(lambda line: not line.display_type and line.product_id)
+            for line in order_lines:
+                product = line.product_id.product_tmpl_id
+                seller = product.x_seller_id if 'x_seller_id' in product._fields and product.x_seller_id else False
+                seller_ref = seller.x_profile_uuid or seller.id if seller else ''
+                review_exists = False
+                if Review and status_key == 'done':
+                    review_exists = bool(Review.search_count([
+                        ('order_id', '=', order.id),
+                        ('product_id', '=', product.id),
+                        ('user_id', '=', request.env.uid),
+                    ]))
+
+                can_buy_again = self._unitrade_can_buy_again(product, line.product_id)
+                items.append({
+                    'id': '%s-%s' % (order.id, line.id),
+                    'status': status_key,
+                    'order': order,
+                    'line': line,
+                    'product': product,
+                    'seller': seller,
+                    'seller_name': seller.name if seller else (order.user_id.name or 'Penjual UniTrade'),
+                    'seller_avatar_url': self._unitrade_seller_avatar_url(seller),
+                    'seller_url': '/seller-profile/%s' % seller_ref if seller_ref else '#',
+                    'seller_chat_url': '/seller-profile/%s/chat' % seller_ref if seller_ref else '#',
+                    'product_url': product.website_url or '/shop/product/%s' % product.id,
+                    'review_url': (product.website_url or '/shop/product/%s' % product.id) + '#tab-ulasan',
+                    'buy_again_url': product.website_url or '/shop/product/%s' % product.id,
+                    'can_buy_again': can_buy_again,
+                    'image_url': '/web/image/product.template/%s/image_512' % product.id,
+                    'category': product.categ_id.name if product.categ_id else '-',
+                    'quantity': self._unitrade_quantity_label(line.product_uom_qty),
+                    'rating': self._unitrade_rating_label(product),
+                    'price': self._unitrade_format_money(line.price_total, order.currency_id),
+                    'can_review': status_key == 'done' and not review_exists,
+                    'review_exists': review_exists,
+                })
+        return items
+
+    @staticmethod
+    def _unitrade_can_buy_again(product, variant):
+        if not product or not product.exists():
+            return False
+        if not product.sale_ok or not product.website_published:
+            return False
+        if 'qty_available' in variant._fields:
+            return variant.qty_available > 0
+        if 'qty_available' in product._fields:
+            return product.qty_available > 0
+        return True
+
+    @staticmethod
+    def _unitrade_order_status_key(order):
+        if order.state == 'cancel':
+            return 'cancel'
+        if order.state in ('sale', 'done'):
+            return 'done'
+        return 'unpaid'
+
+    @staticmethod
+    def _unitrade_quantity_label(quantity):
+        if float(quantity or 0).is_integer():
+            return str(int(quantity))
+        return ('%.2f' % quantity).rstrip('0').rstrip('.')
+
+    @staticmethod
+    def _unitrade_rating_label(product):
+        rating = product.x_average_rating if 'x_average_rating' in product._fields else 0.0
+        return '%.1f' % (rating or 0.0)
+
+    @staticmethod
+    def _unitrade_format_money(amount, currency):
+        symbol = currency.symbol or 'Rp'
+        formatted = ('{:,.0f}'.format(amount or 0.0)).replace(',', '.')
+        if currency.position == 'after':
+            return '%s %s' % (formatted, symbol)
+        return '%s %s' % (symbol, formatted)
+
+    @staticmethod
+    def _unitrade_seller_avatar_url(seller):
+        if seller and seller.user_id:
+            return '/web/image/res.users/%s/image_128?unique=%s' % (
+                seller.user_id.id,
+                seller.user_id.write_date or '',
+            )
+        return '/web/static/img/user_menu_avatar.png'
 
 
 class UnitradeOAuthController(OAuthController):

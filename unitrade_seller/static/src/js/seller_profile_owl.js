@@ -16,6 +16,17 @@ function normalizeRating(value) {
     return Number.isFinite(parsed) && parsed >= 1 && parsed <= 5 ? parsed : 0;
 }
 
+function escapeHtml(value) {
+    const map = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+    };
+    return String(value || "").replace(/[&<>"']/g, (char) => map[char]);
+}
+
 export class SellerProfileTabs extends Component {
     static template = "unitrade_seller.SellerProfileTabs";
     static props = {
@@ -313,6 +324,8 @@ publicWidget.registry.UnitradeSellerReportModal = publicWidget.Widget.extend({
 
     start() {
         const superPromise = this._super ? this._super.apply(this, arguments) : Promise.resolve();
+        this.reportFiles = [];
+        this.reportPreviewUrls = [];
         this._onKeydown = (ev) => {
             if (ev.key === "Escape" && this.el.classList.contains("ut-is-open")) {
                 this._closeReportModal(ev);
@@ -326,6 +339,7 @@ publicWidget.registry.UnitradeSellerReportModal = publicWidget.Widget.extend({
         if (this._onKeydown) {
             document.removeEventListener("keydown", this._onKeydown);
         }
+        this._revokeReportPreviewUrls();
         if (this._super) {
             this._super.apply(this, arguments);
         }
@@ -362,8 +376,8 @@ publicWidget.registry.UnitradeSellerReportModal = publicWidget.Widget.extend({
     _onReportMediaChange(ev) {
         const input = ev.currentTarget;
         const status = this.el.querySelector(".ut-seller-report-media-status");
-        const files = Array.from(input.files || []);
-        if (files.length > 3) {
+        const incomingFiles = Array.from(input.files || []);
+        if (this.reportFiles.length + incomingFiles.length > 3) {
             input.value = "";
             if (status) {
                 status.textContent = "Maksimal 3 gambar. Pilih ulang media pendukung.";
@@ -371,7 +385,7 @@ publicWidget.registry.UnitradeSellerReportModal = publicWidget.Widget.extend({
             }
             return;
         }
-        const invalidFile = files.find((file) => !file.type || !file.type.startsWith("image/"));
+        const invalidFile = incomingFiles.find((file) => !file.type || !file.type.startsWith("image/"));
         if (invalidFile) {
             input.value = "";
             if (status) {
@@ -380,12 +394,20 @@ publicWidget.registry.UnitradeSellerReportModal = publicWidget.Widget.extend({
             }
             return;
         }
-        if (status) {
-            status.classList.remove("ut-is-error");
-            status.textContent = files.length
-                ? `${files.length} gambar dipilih.`
-                : "Belum ada gambar dipilih.";
+        this.reportFiles = this.reportFiles.concat(incomingFiles);
+        this._syncReportMediaInput();
+        this._renderReportMediaPreview();
+    },
+
+    _onReportMediaRemove(ev) {
+        ev.preventDefault();
+        const index = parseInt(ev.currentTarget.dataset.index, 10);
+        if (!Number.isFinite(index)) {
+            return;
         }
+        this.reportFiles.splice(index, 1);
+        this._syncReportMediaInput();
+        this._renderReportMediaPreview();
     },
 
     _onReportSubmit(ev) {
@@ -399,5 +421,60 @@ publicWidget.registry.UnitradeSellerReportModal = publicWidget.Widget.extend({
                 status.classList.add("ut-is-error");
             }
         }
+    },
+
+    _syncReportMediaInput() {
+        const input = this.el.querySelector(".ut-seller-report-media-input");
+        if (!input || !window.DataTransfer) {
+            return;
+        }
+        const dataTransfer = new DataTransfer();
+        this.reportFiles.forEach((file) => dataTransfer.items.add(file));
+        input.files = dataTransfer.files;
+    },
+
+    _renderReportMediaPreview() {
+        const preview = this.el.querySelector(".ut-seller-report-media-preview");
+        const status = this.el.querySelector(".ut-seller-report-media-status");
+        const dropzone = this.el.querySelector(".ut-seller-report-media-drop");
+        this._revokeReportPreviewUrls();
+
+        if (status) {
+            status.classList.remove("ut-is-error");
+            status.textContent = this.reportFiles.length
+                ? `${this.reportFiles.length} gambar dipilih.`
+                : "Hingga 3 file JPG, PNG, atau WebP.";
+        }
+        if (dropzone) {
+            dropzone.classList.toggle("ut-is-limit", this.reportFiles.length >= 3);
+        }
+        if (!preview) {
+            return;
+        }
+        preview.innerHTML = "";
+        this.reportFiles.forEach((file, index) => {
+            const url = URL.createObjectURL(file);
+            this.reportPreviewUrls.push(url);
+            preview.insertAdjacentHTML(
+                "beforeend",
+                `
+                <div class="ut-seller-report-media-item">
+                    <img src="${url}" alt="" class="ut-seller-report-media-thumb"/>
+                    <span class="ut-seller-report-media-name">${escapeHtml(file.name)}</span>
+                    <button type="button" class="ut-seller-report-media-remove" data-index="${index}" aria-label="Hapus gambar">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                `
+            );
+        });
+        preview.querySelectorAll(".ut-seller-report-media-remove").forEach((button) => {
+            button.addEventListener("click", (ev) => this._onReportMediaRemove(ev));
+        });
+    },
+
+    _revokeReportPreviewUrls() {
+        (this.reportPreviewUrls || []).forEach((url) => URL.revokeObjectURL(url));
+        this.reportPreviewUrls = [];
     },
 });
