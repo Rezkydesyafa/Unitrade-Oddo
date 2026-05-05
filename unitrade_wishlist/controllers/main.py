@@ -63,6 +63,27 @@ class UnitradeWishlistController(http.Controller):
             'count': Wishlist.search_count([('user_id', '=', request.env.uid)]),
         }
 
+    @http.route('/unitrade/wishlist/status', type='json', auth='public', methods=['POST'])
+    def wishlist_status(self, **kwargs):
+        product_id = kwargs.get('product_id')
+        try:
+            product_id = int(product_id)
+        except (TypeError, ValueError):
+            return {'success': False, 'active': False, 'message': 'Produk tidak valid'}
+
+        if request.env.user._is_public():
+            return {'success': True, 'active': False}
+
+        product = request.env['product.template'].sudo().browse(product_id).exists()
+        if not product:
+            return {'success': False, 'active': False, 'message': 'Produk tidak ditemukan'}
+
+        active = bool(request.env['unitrade.wishlist'].sudo().search_count([
+            ('user_id', '=', request.env.uid),
+            ('product_id', '=', product.id),
+        ]))
+        return {'success': True, 'active': active}
+
     @http.route('/unitrade/wishlist/remove', type='json', auth='user', methods=['POST'])
     def wishlist_remove(self, **kwargs):
         wishlist_id = kwargs.get('wishlist_id')

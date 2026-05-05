@@ -198,6 +198,19 @@
                         let totalSeconds = 5 * 60;
                         const timerEl = document.getElementById('otpTimer');
                         const resendBtn = document.getElementById('resendBtn');
+                        const otpForm = document.getElementById('otpForm');
+                        const verifyBtn = document.getElementById('verifyBtn');
+
+                        if (otpForm &amp;&amp; verifyBtn) {
+                            otpForm.addEventListener('submit', function(e) {
+                                if (verifyBtn.disabled) {
+                                    e.preventDefault();
+                                    return;
+                                }
+                                verifyBtn.disabled = true;
+                                verifyBtn.textContent = 'Memproses...';
+                            });
+                        }
 
                         function updateTimer() {
                             const min = Math.floor(totalSeconds / 60).toString().padStart(2, '0');

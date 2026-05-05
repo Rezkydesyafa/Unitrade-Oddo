@@ -438,9 +438,9 @@ class UnitradeOTPController(http.Controller):
                     request.env['res.users'].sudo().reset_password(user.login)
                     request.session['unitrade_password_reset_link_sent'] = True
                     _logger.info("Password reset email sent after OTP verification for user %s", user.login)
-                except Exception as e:
-                    _logger.error("Failed to send password reset email after OTP: %s", str(e))
-                    return request.redirect('/web/verify-otp?error=Gagal mengirim link reset password. Coba lagi nanti.')
+                except UserError as e:
+                    _logger.warning("Password reset email rejected after OTP for user %s: %s", user.login, str(e))
+                    return request.redirect('/web/verify-otp?error=%s' % urls.url_quote(str(e)))
 
                 for key in ('otp_user_id', 'otp_email', 'otp_code_dev', 'otp_sent_via', 'otp_purpose'):
                     request.session.pop(key, None)
@@ -626,8 +626,8 @@ class UnitradePortalProfile(CustomerPortal):
             return request.redirect('/my/settings')
 
         if sid == request.session.sid:
-            request.session.logout()
-            return request.redirect('/web/login?redirect=/')
+            request.session.logout(keep_db=True)
+            return request.redirect('/', 303)
 
         session_store = http.root.session_store
         if session_store.is_valid_key(sid):
@@ -643,7 +643,8 @@ class UnitradePortalProfile(CustomerPortal):
         for sid, session in self._iter_unitrade_user_sessions():
             if sid != request.session.sid:
                 session_store.delete(session)
-        return request.redirect('/my/settings?sessions_revoked=1')
+        request.session.logout(keep_db=True)
+        return request.redirect('/', 303)
 
     @http.route('/my/deactivate_account', type='http', auth='user', website=True, methods=['POST'])
     def deactivate_account(self, validation=None, password=None, confirm_deactivate=None, **post):

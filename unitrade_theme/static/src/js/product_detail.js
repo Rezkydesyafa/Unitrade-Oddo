@@ -84,6 +84,35 @@ publicWidget.registry.UnitradeProductWishlistDirect = publicWidget.Widget.extend
         "click .ut-product-wishlist-direct": "_onWishlistClick",
     },
 
+    start() {
+        this._hydrateWishlistState();
+        return this._super(...arguments);
+    },
+
+    async _hydrateWishlistState() {
+        const button = this.el.querySelector(".ut-product-wishlist-direct");
+        if (!button) {
+            return;
+        }
+
+        const productId = parseInt(button.dataset.productId, 10);
+        if (!productId) {
+            return;
+        }
+
+        try {
+            const result = await jsonrpc("/unitrade/wishlist/status", {
+                product_id: productId,
+            });
+            if (!result || result.success === false) {
+                return;
+            }
+            this._setWishlistButtonState(button, Boolean(result.active));
+        } catch (error) {
+            console.debug("[UniTrade] Wishlist status:", error);
+        }
+    },
+
     async _onWishlistClick(ev) {
         ev.preventDefault();
         ev.stopPropagation();
@@ -107,9 +136,7 @@ publicWidget.registry.UnitradeProductWishlistDirect = publicWidget.Widget.extend
             }
 
             const isActive = Boolean(result.added);
-            button.dataset.active = isActive ? "1" : "0";
-            button.classList.toggle("is-active", isActive);
-            button.setAttribute("title", isActive ? "Lihat wishlist" : "Tambahkan ke wishlist");
+            this._setWishlistButtonState(button, isActive);
             this._showWishlistFeedback(button, isActive ? "Ditambahkan ke wishlist" : "Dihapus dari wishlist", isActive);
         } catch (error) {
             if (error && (error.message || "").includes("Session expired")) {
@@ -122,6 +149,13 @@ publicWidget.registry.UnitradeProductWishlistDirect = publicWidget.Widget.extend
             button.disabled = false;
             button.classList.remove("is-loading");
         }
+    },
+
+    _setWishlistButtonState(button, isActive) {
+        button.dataset.active = isActive ? "1" : "0";
+        button.classList.toggle("is-active", isActive);
+        button.setAttribute("title", isActive ? "Lihat wishlist" : "Tambahkan ke wishlist");
+        button.setAttribute("aria-pressed", isActive ? "true" : "false");
     },
 
     _showWishlistFeedback(button, message, showLink) {

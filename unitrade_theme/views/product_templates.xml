@@ -284,6 +284,7 @@
                                                 t-att-data-product-id="product.id"
                                                 t-att-data-active="'1' if ut_is_in_wishlist else '0'"
                                                 t-att-title="'Lihat wishlist' if ut_is_in_wishlist else 'Tambahkan ke wishlist'"
+                                                t-att-aria-pressed="'true' if ut_is_in_wishlist else 'false'"
                                                 aria-label="Wishlist">
                                                 <i class="fa fa-heart"></i>
                                             </button>

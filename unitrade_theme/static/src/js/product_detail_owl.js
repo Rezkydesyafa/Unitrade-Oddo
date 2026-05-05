@@ -27,9 +27,9 @@ export class ProductWishlistButton extends Component {
     get buttonClass() {
         const base = "tw-w-12 tw-h-12 tw-rounded-full tw-text-white tw-border-0 tw-flex tw-items-center tw-justify-center tw-shrink-0 tw-cursor-pointer tw-transition-all";
         if (this.state.active) {
-            return `${base} tw-bg-[var(--ut-color-danger)] hover:tw-bg-[var(--ut-color-danger-hover)]`;
+            return `${base} tw-bg-[#991b1b] hover:tw-bg-[#7f1d1d]`;
         }
-        return `${base} tw-bg-[var(--ut-color-danger)] hover:tw-bg-[var(--ut-color-danger-hover)]`;
+        return `${base} tw-bg-[#dc2626] hover:tw-bg-[#b91c1c]`;
     }
 
     async toggle() {

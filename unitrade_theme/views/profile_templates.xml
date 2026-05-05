@@ -193,7 +193,7 @@
                                     </div>
                                 </div>
 
-                                <div class="ut-user-profile-avatar-panel tw-flex tw-justify-center tw-pt-14">
+                                <div class="ut-user-profile-avatar-panel tw-flex tw-flex-col tw-items-center tw-justify-start tw-pt-14">
                                     <label class="ut-user-profile-avatar-picker">
                                         <span class="ut-user-profile-avatar-frame">
                                             <img t-attf-src="/web/image/res.users/#{user_id.id}/image_1920?unique=#{user_id.write_date}" alt="Foto profil" class="ut-user-profile-avatar-img"/>
@@ -207,7 +207,7 @@
                                         </span>
                                         <input type="file" name="avatar_upload" accept="image/jpeg,image/png,image/webp" class="tw-sr-only" data-profile-control="1" data-profile-avatar-input="1" t-att-disabled="None if error_message else 'disabled'"/>
                                     </label>
-                                    <p class="tw-mt-3 tw-max-w-[220px] tw-text-center tw-font-['Urbanist'] tw-text-[12px] tw-leading-[16px] tw-text-[#777]">
+                                    <p class="ut-user-profile-avatar-hint tw-mt-3 tw-max-w-[220px] tw-text-center tw-font-['Urbanist'] tw-text-[12px] tw-leading-[16px] tw-text-[#777]">
                                         Foto profil maksimal 2 MB. Gunakan JPG, PNG, atau WEBP.
                                     </p>
                                 </div>

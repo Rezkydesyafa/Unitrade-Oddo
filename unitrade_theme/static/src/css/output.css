@@ -1952,6 +1952,11 @@
   background-color: rgb(42 42 42 / 0.5);
 }
 
+.tw-bg-\[\#991b1b\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(153 27 27 / var(--tw-bg-opacity, 1));
+}
+
 .tw-bg-\[\#b3b3b3\] {
   --tw-bg-opacity: 1;
   background-color: rgb(179 179 179 / var(--tw-bg-opacity, 1));
@@ -1960,6 +1965,11 @@
 .tw-bg-\[\#d9d9d9\] {
   --tw-bg-opacity: 1;
   background-color: rgb(217 217 217 / var(--tw-bg-opacity, 1));
+}
+
+.tw-bg-\[\#dc2626\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(220 38 38 / var(--tw-bg-opacity, 1));
 }
 
 .tw-bg-\[\#eef1ef\] {
@@ -2025,10 +2035,6 @@
 
 .tw-bg-\[var\(--ut-color-bg-page\)\] {
   background-color: var(--ut-color-bg-page);
-}
-
-.tw-bg-\[var\(--ut-color-danger\)\] {
-  background-color: var(--ut-color-danger);
 }
 
 .tw-bg-amber-50 {
@@ -3442,20 +3448,27 @@
   flex: 0 0 48px;
   border: 0;
   border-radius: 999px;
-  background: var(--ut-color-button-bg);
-  color: var(--ut-color-button-text);
+  background: #dc2626;
+  color: #ffffff;
   cursor: pointer;
-  transition: transform 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
+  box-shadow: 0 10px 22px rgba(220, 38, 38, 0.2);
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
 
 .unitrade-detail-scope .ut-product-wishlist-direct.is-active {
-  background: var(--ut-color-danger);
+  background: #991b1b;
+  box-shadow: 0 10px 24px rgba(153, 27, 27, 0.28);
 }
 
 .unitrade-detail-scope .ut-product-wishlist-direct:hover {
   transform: translateY(-2px);
-  background: var(--ut-color-danger);
-  box-shadow: 0 4px 15px var(--ut-shadow-danger);
+  background: #b91c1c;
+  box-shadow: 0 12px 26px rgba(185, 28, 28, 0.28);
+}
+
+.unitrade-detail-scope .ut-product-wishlist-direct.is-active:hover {
+  background: #7f1d1d;
+  box-shadow: 0 12px 28px rgba(127, 29, 29, 0.32);
 }
 
 .unitrade-detail-scope .ut-product-wishlist-direct:disabled,
@@ -4702,6 +4715,13 @@ body:has(.ut-user-profile-page) .ut-user-profile-form {
 .ut-user-profile-avatar-picker:hover .ut-user-profile-avatar-action {
   background: #111315;
   height: 62px;
+}
+
+.ut-user-profile-avatar-hint {
+  display: block;
+  width: 220px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 @media (max-width: 1280px) {
@@ -6815,36 +6835,36 @@ body:has(.ut-seller-profile-page) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 32px;
-  width: min(100%, 1186px);
-  min-height: 144px;
-  margin: 0 auto 64px;
-  padding: 26px 52px;
+  gap: 28px;
+  width: min(100%, 1130px);
+  min-height: 126px;
+  margin: 0 auto 56px;
+  padding: 22px 44px;
   background: var(--ut-color-bg-surface);
   border: 1px solid var(--ut-color-border);
-  border-radius: 32px;
+  border-radius: 28px;
 }
 
 .ut-review-filter-row {
   display: flex;
   flex: 1 1 auto;
   flex-wrap: wrap;
-  gap: 12px 36px;
+  gap: 10px 28px;
   align-items: center;
 }
 
 .ut-review-chip {
-  min-width: 120px;
-  height: 44px;
-  padding: 0 22px;
+  min-width: 108px;
+  height: 38px;
+  padding: 0 18px;
   border: 1px solid var(--ut-color-button-outline-border);
-  border-radius: 22px;
+  border-radius: 20px;
   background: transparent;
   color: var(--ut-color-button-outline-text);
   font-family: Urbanist, Inter, sans-serif;
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 500;
-  line-height: 24px;
+  line-height: 22px;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -6862,7 +6882,7 @@ body:has(.ut-seller-profile-page) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 168px;
+  min-width: 156px;
 }
 
 .ut-review-score-line {
@@ -6875,22 +6895,22 @@ body:has(.ut-seller-profile-page) {
 .ut-review-score-value,
 .ut-review-score-max {
   font-family: Urbanist, Inter, sans-serif;
-  font-size: 40px;
+  font-size: 34px;
   font-weight: 600;
-  line-height: 46px;
+  line-height: 40px;
 }
 
 .ut-review-score-label {
   font-family: Urbanist, Inter, sans-serif;
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 600;
-  line-height: 24px;
+  line-height: 22px;
 }
 
 .ut-review-score-stars {
   display: flex;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 .ut-review-list {
@@ -7739,6 +7759,16 @@ body:has(.ut-seller-profile-page) {
   background-color: rgb(51 51 51 / var(--tw-bg-opacity, 1));
 }
 
+.hover\:tw-bg-\[\#7f1d1d\]:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(127 29 29 / var(--tw-bg-opacity, 1));
+}
+
+.hover\:tw-bg-\[\#b91c1c\]:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(185 28 28 / var(--tw-bg-opacity, 1));
+}
+
 .hover\:tw-bg-\[\#f5f5f7\]:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(245 245 247 / var(--tw-bg-opacity, 1));
@@ -7751,10 +7781,6 @@ body:has(.ut-seller-profile-page) {
 
 .hover\:tw-bg-\[rgba\(0\2c 0\2c 0\2c 0\.04\)\]:hover {
   background-color: rgba(0,0,0,0.04);
-}
-
-.hover\:tw-bg-\[var\(--ut-color-danger-hover\)\]:hover {
-  background-color: var(--ut-color-danger-hover);
 }
 
 .hover\:tw-bg-bg-surface:hover {
