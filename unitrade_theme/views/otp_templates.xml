@@ -25,13 +25,14 @@
 
                     <!-- Title -->
                     <h2 class="tw-font-['Inter'] tw-font-normal tw-text-[24px] tw-leading-[32px] tw-text-[#171717] tw-text-center tw-mb-[8px]">
-                        Verifikasi Akun
+                        <t t-esc="otp_title or 'Verifikasi Akun'"/>
                     </h2>
 
                     <!-- Subtitle: depends on email or phone -->
                     <t t-if="is_email">
                         <p class="tw-font-['Inter'] tw-font-normal tw-text-[14px] tw-leading-[20px] tw-text-[#525252] tw-text-center tw-mb-[24px]">
-                            Kami telah mengirimkan kode verifikasi 6 digit ke email Anda
+                            <t t-esc="otp_email_message or 'Kami telah mengirimkan kode verifikasi 6 digit ke email Anda'"/>
+                            <br/>
                             <strong><t t-esc="masked_email"/></strong>
                         </p>
                     </t>
@@ -135,7 +136,7 @@
                         <!-- Verify Button -->
                         <button type="submit" id="verifyBtn"
                                 class="tw-w-full tw-h-[48px] tw-bg-[#171717] tw-rounded-[8px] tw-text-white tw-font-['Inter'] tw-font-normal tw-text-[16px] tw-text-center tw-cursor-pointer tw-border-none hover:tw-bg-[#2d2d2d] tw-transition-colors">
-                            Verifikasi akun
+                            <t t-esc="otp_submit_label or 'Verifikasi akun'"/>
                         </button>
                     </form>
 
@@ -154,11 +155,11 @@
 
                 <!-- Back to Login -->
                 <div class="tw-mt-[24px]">
-                    <a href="/web/login" class="tw-flex tw-items-center tw-gap-[8px] tw-font-['Inter'] tw-font-normal tw-text-[14px] tw-text-[#525252] tw-no-underline hover:tw-text-[#171717] tw-transition-colors">
+                    <a t-att-href="otp_back_url or '/web/login'" class="tw-flex tw-items-center tw-gap-[8px] tw-font-['Inter'] tw-font-normal tw-text-[14px] tw-text-[#525252] tw-no-underline hover:tw-text-[#171717] tw-transition-colors">
                         <svg width="10" height="12" viewBox="0 0 10 12" fill="none">
                             <path d="M9 1L1 6L9 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        Back to login
+                        <t t-esc="otp_back_label or 'Back to login'"/>
                     </a>
                 </div>
 
@@ -194,9 +195,22 @@
                         });
 
                         // ---- Countdown Timer ----
-                        let totalSeconds = 4 * 60 + 32;
+                        let totalSeconds = 5 * 60;
                         const timerEl = document.getElementById('otpTimer');
                         const resendBtn = document.getElementById('resendBtn');
+                        const otpForm = document.getElementById('otpForm');
+                        const verifyBtn = document.getElementById('verifyBtn');
+
+                        if (otpForm &amp;&amp; verifyBtn) {
+                            otpForm.addEventListener('submit', function(e) {
+                                if (verifyBtn.disabled) {
+                                    e.preventDefault();
+                                    return;
+                                }
+                                verifyBtn.disabled = true;
+                                verifyBtn.textContent = 'Memproses...';
+                            });
+                        }
 
                         function updateTimer() {
                             const min = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
@@ -224,7 +238,7 @@
                                 .then(r => r.json())
                                 .then(data => {
                                     if (data.result &amp;&amp; data.result.success) {
-                                        totalSeconds = 4 * 60 + 32;
+                                        totalSeconds = 5 * 60;
                                         inputs.forEach(i => i.value = '');
                                         inputs[0].focus();
                                         // Update dev code if shown
@@ -273,7 +287,7 @@
                                             emailStatus.textContent = '✅ ' + data.result.message;
                                             emailStatus.className = 'tw-font-[\"Inter\"] tw-text-[12px] tw-mt-[8px] tw-m-0 tw-text-green-600';
                                         }
-                                        totalSeconds = 4 * 60 + 32;
+                                        totalSeconds = 5 * 60;
                                         inputs.forEach(i => i.value = '');
                                         inputs[0].focus();
                                     } else {

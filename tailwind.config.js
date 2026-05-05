@@ -11,12 +11,17 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'primary': '#6366F1',
-        'secondary': '#EC4899',
-        'accent': '#F59E0B',
-        'text-main': '#1F2937',
-        'text-muted': '#6B7280',
-        'bg-main': '#F9FAFB',
+        'primary': 'var(--ut-color-primary)',
+        'secondary': 'var(--ut-color-secondary)',
+        'accent': 'var(--ut-color-accent)',
+        'text-main': 'var(--ut-color-text-main)',
+        'text-muted': 'var(--ut-color-text-muted)',
+        'bg-main': 'var(--ut-color-bg-main)',
+        'bg-surface': 'var(--ut-color-bg-surface)',
+        'border': 'var(--ut-color-border)',
+        'heading': 'var(--ut-color-heading)',
+        'button': 'var(--ut-color-button-bg)',
+        'button-text': 'var(--ut-color-button-text)',
       },
       fontFamily: {
         'sans': ['Inter', 'system-ui', 'sans-serif'],

@@ -1,6 +1,6 @@
-import psycopg2
+from db_connection import connect
 
-conn = psycopg2.connect(dbname='unitrade_db', user='openpg', password='admin', host='localhost', port=5432)
+conn = connect()
 cur = conn.cursor()
 
 cur.execute("SELECT id, name, client_id, enabled, auth_endpoint FROM auth_oauth_provider WHERE enabled = true")

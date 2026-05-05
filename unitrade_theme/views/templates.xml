@@ -76,9 +76,9 @@
                             <!-- Logged In State: Avatar Dropdown -->
                             <div class="tw-relative tw-group">
                                 <!-- Trigger -->
-                                <div class="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer tw-h-full tw-py-2">
-                                    <div class="tw-flex tw-items-center tw-justify-center tw-w-[42px] tw-h-[42px] tw-rounded-full tw-bg-gray-800 tw-overflow-hidden tw-border tw-border-white/20">
-                                        <img t-attf-src="/web/image?model=res.users&amp;field=avatar_128&amp;id={{user_id.id}}" alt="Avatar" class="tw-w-full tw-h-full tw-object-cover" onerror="this.src='/web/static/img/user_menu_avatar.png'"/>
+                                <div class="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer tw-h-full tw-py-1">
+                                    <div class="tw-flex tw-items-center tw-justify-center tw-w-9 tw-h-9 tw-rounded-full tw-bg-gray-800 tw-overflow-hidden tw-border tw-border-white/20">
+                                        <img t-attf-src="/web/image/res.users/#{user_id.id}/image_128?unique=#{user_id.write_date}" alt="Avatar" class="tw-w-full tw-h-full tw-object-cover" onerror="this.src='/web/static/img/user_menu_avatar.png'"/>
                                     </div>
                                     <span class="tw-font-['Urbanist'] tw-font-semibold tw-text-[15px] tw-text-[#fffffc] tw-capitalize" t-esc="user_id.name.split(' ')[0]"/>
                                     <!-- Arrow down -->
@@ -155,6 +155,7 @@
         </xpath>
     </template>
 
+   
     <!-- Footer -->
     <template id="unitrade_footer" inherit_id="website.layout" name="UniTrade Footer Override" active="True">
         <xpath expr="//footer" position="replace">

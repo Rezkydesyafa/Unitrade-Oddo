@@ -1,14 +1,21 @@
 import logging
 import re
 import werkzeug
+import base64
+import json
+import glob
+import os
 
-from odoo import http, _, SUPERUSER_ID
+from odoo import http, _, SUPERUSER_ID, fields, tools
 from odoo.http import request
 from odoo.exceptions import UserError, AccessDenied
 from odoo.service import security
 from odoo.addons.auth_signup.models.res_users import SignupError
 from odoo.addons.auth_oauth.controllers.main import OAuthLogin, OAuthController
+from odoo.addons.portal.controllers.portal import get_error
+from odoo.addons.sale.controllers.portal import CustomerPortal
 from odoo.addons.website.controllers.main import Website
+from werkzeug import urls
 
 _logger = logging.getLogger(__name__)
 
@@ -131,6 +138,9 @@ class UnitradeAuthSignup(OAuthLogin):
     def web_auth_reset_password(self, *args, **kw):
         """Override reset password to show success message instead of auto-login after password change."""
         qcontext = self.get_auth_signup_qcontext()
+        if request.session.pop('unitrade_password_reset_link_sent', False):
+            qcontext['reset_password_enabled'] = True
+            qcontext['message'] = _("Password reset instructions sent to your email")
 
         if not qcontext.get('token') and not qcontext.get('reset_password_enabled'):
             raise werkzeug.exceptions.NotFound()
@@ -173,7 +183,7 @@ class UnitradeAuthSignup(OAuthLogin):
         response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
         return response
 
-    def _generate_and_redirect_otp(self, user_sudo, login_value):
+    def _generate_and_redirect_otp(self, user_sudo, login_value, purpose='account_verification'):
         """Generate OTP, send it, store session, and redirect to verify page."""
         try:
             otp_model = request.env['unitrade.otp'].sudo()
@@ -202,6 +212,7 @@ class UnitradeAuthSignup(OAuthLogin):
             request.session['otp_verified'] = False
             request.session['otp_sent_via'] = sent_via
             request.session['otp_code_dev'] = otp_code  # Dev only — remove in production!
+            request.session['otp_purpose'] = purpose
 
             _logger.info("OTP generated for %s via %s, redirecting to verify", login_value, sent_via)
             return request.redirect('/web/verify-otp')
@@ -374,6 +385,7 @@ class UnitradeOTPController(http.Controller):
         email = request.session.get('otp_email', '')
         sent_via = request.session.get('otp_sent_via', 'email')
         otp_code_dev = request.session.get('otp_code_dev', '')
+        purpose = request.session.get('otp_purpose', 'account_verification')
 
         if not user_id:
             return request.redirect('/web/login')
@@ -387,6 +399,11 @@ class UnitradeOTPController(http.Controller):
             'is_phone': _is_phone(email),
             'is_email': _is_email(email),
             'otp_code_dev': otp_code_dev,  # Dev only
+            'otp_title': _('Verifikasi Password') if purpose == 'settings_password_reset' else _('Verifikasi Akun'),
+            'otp_submit_label': _('Lanjutkan') if purpose == 'settings_password_reset' else _('Verifikasi akun'),
+            'otp_email_message': _('Kami telah mengirimkan kode OTP 6 digit ke email Anda untuk memverifikasi permintaan ubah password.') if purpose == 'settings_password_reset' else _('Kami telah mengirimkan kode verifikasi 6 digit ke email Anda'),
+            'otp_back_url': '/my/settings' if purpose == 'settings_password_reset' else '/web/login',
+            'otp_back_label': _('Kembali ke pengaturan') if purpose == 'settings_password_reset' else _('Back to login'),
             'error': kw.get('error', ''),
         }
         return request.render('unitrade_theme.verify_otp_page', values)
@@ -411,6 +428,24 @@ class UnitradeOTPController(http.Controller):
         is_valid = otp_model.verify_otp(user_id, code)
 
         if is_valid:
+            purpose = request.session.get('otp_purpose', 'account_verification')
+            if purpose == 'settings_password_reset':
+                user = request.env['res.users'].sudo().browse(user_id)
+                try:
+                    reset_email = (user.email or user.partner_id.email or request.session.get('otp_email') or '').strip()
+                    if reset_email and not user.email:
+                        user.partner_id.sudo().write({'email': reset_email})
+                    request.env['res.users'].sudo().reset_password(user.login)
+                    request.session['unitrade_password_reset_link_sent'] = True
+                    _logger.info("Password reset email sent after OTP verification for user %s", user.login)
+                except UserError as e:
+                    _logger.warning("Password reset email rejected after OTP for user %s: %s", user.login, str(e))
+                    return request.redirect('/web/verify-otp?error=%s' % urls.url_quote(str(e)))
+
+                for key in ('otp_user_id', 'otp_email', 'otp_code_dev', 'otp_sent_via', 'otp_purpose'):
+                    request.session.pop(key, None)
+                return request.redirect('/web/reset_password')
+
             # Mark user as verified
             try:
                 user = request.env['res.users'].sudo().browse(user_id)
@@ -429,7 +464,7 @@ class UnitradeOTPController(http.Controller):
             _logger.info("User %s authenticated after OTP verification", user.login)
 
             request.session['otp_verified'] = True
-            for key in ('otp_user_id', 'otp_email', 'otp_code_dev', 'otp_sent_via'):
+            for key in ('otp_user_id', 'otp_email', 'otp_code_dev', 'otp_sent_via', 'otp_purpose'):
                 request.session.pop(key, None)
             return request.redirect('/')
         else:
@@ -476,6 +511,474 @@ class UnitradeOTPController(http.Controller):
                 return '*@' + domain
             return local[0] + '***@' + domain
         return '****'
+
+
+class UnitradePortalProfile(CustomerPortal):
+    """Render and update the UniTrade user profile page."""
+
+    _MAX_AVATAR_BYTES = 2 * 1024 * 1024
+    _ORDER_STATUSES = ('all', 'unpaid', 'done', 'cancel')
+
+    @http.route(['/my/account'], type='http', auth='user', website=True)
+    def account(self, redirect=None, **post):
+        values = self._prepare_portal_layout_values()
+        partner = request.env.user.partner_id
+        user = request.env.user
+        error = {}
+        error_message = []
+
+        if post and request.httprequest.method == 'POST':
+            error, error_message, partner_vals, user_vals = self._prepare_unitrade_profile_values(post)
+            values.update(post)
+
+            if not error:
+                if partner_vals:
+                    partner.sudo().write(partner_vals)
+                if user_vals:
+                    user.sudo().write(user_vals)
+                return request.redirect(redirect or '/my/account?profile_saved=1')
+
+        values.update({
+            'partner': partner,
+            'user_profile': user,
+            'form_values': dict(post or {}),
+            'error': error,
+            'error_message': error_message,
+            'redirect': redirect,
+            'page_name': 'my_details',
+            'profile_saved': request.params.get('profile_saved') == '1',
+        })
+
+        response = request.render('portal.portal_my_details', values)
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
+        return response
+
+    @http.route('/my/security', type='http', auth='user', website=True, methods=['GET', 'POST'])
+    def security(self, **post):
+        """Keep old Odoo portal URL as a redirect to the UniTrade settings URL."""
+        return request.redirect('/my/settings')
+
+    @http.route('/my/settings', type='http', auth='user', website=True, methods=['GET', 'POST'])
+    def settings(self, **post):
+        """Render and process the UniTrade settings page."""
+        values = self._prepare_unitrade_settings_values()
+
+        response = request.render('portal.portal_my_security', values)
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
+        return response
+
+    @http.route('/my/settings/password/request', type='http', auth='user', website=True, methods=['POST'])
+    def request_settings_password_reset(self, **post):
+        """Start OTP verification before sending the reset-password email link."""
+        user = request.env.user.sudo()
+        email = (user.email or user.partner_id.email or '').strip()
+        if not email and _is_email(user.login):
+            email = user.login
+
+        if not _is_email(email):
+            return request.redirect('/my/settings?password_otp_error=email')
+
+        return UnitradeAuthSignup()._generate_and_redirect_otp(
+            user,
+            email,
+            purpose='settings_password_reset',
+        )
+
+    @http.route('/my/settings/notifications', type='json', auth='user', website=True, methods=['POST'])
+    def update_settings_notifications(self, field=None, value=None, **kwargs):
+        """Persist notification switches from the settings page."""
+        field_name = field if field in {
+            'x_notify_all',
+            'x_notify_transaction',
+            'x_notify_promo',
+        } else None
+        if not field_name:
+            return {'success': False, 'message': _('Pengaturan notifikasi tidak valid.')}
+
+        enabled = bool(value)
+        user = request.env.user.sudo()
+        vals = {field_name: enabled}
+        if field_name == 'x_notify_all':
+            vals.update({
+                'x_notify_transaction': enabled,
+                'x_notify_promo': enabled,
+            })
+        else:
+            transaction = enabled if field_name == 'x_notify_transaction' else user.x_notify_transaction
+            promo = enabled if field_name == 'x_notify_promo' else user.x_notify_promo
+            vals['x_notify_all'] = bool(transaction and promo)
+        user.write(vals)
+        return {
+            'success': True,
+            'values': {
+                'x_notify_all': user.x_notify_all,
+                'x_notify_transaction': user.x_notify_transaction,
+                'x_notify_promo': user.x_notify_promo,
+            },
+        }
+
+    @http.route('/my/settings/session/revoke', type='http', auth='user', website=True, methods=['POST'])
+    def revoke_settings_session(self, sid=None, **post):
+        """Revoke one session owned by the current user."""
+        if not sid:
+            return request.redirect('/my/settings')
+
+        if sid == request.session.sid:
+            request.session.logout(keep_db=True)
+            return request.redirect('/', 303)
+
+        session_store = http.root.session_store
+        if session_store.is_valid_key(sid):
+            session = session_store.get(sid)
+            if session.get('uid') == request.env.uid:
+                session_store.delete(session)
+        return request.redirect('/my/settings')
+
+    @http.route('/my/settings/session/revoke_all', type='http', auth='user', website=True, methods=['POST'])
+    def revoke_all_settings_sessions(self, **post):
+        """Revoke every session owned by the current user except the active one."""
+        session_store = http.root.session_store
+        for sid, session in self._iter_unitrade_user_sessions():
+            if sid != request.session.sid:
+                session_store.delete(session)
+        request.session.logout(keep_db=True)
+        return request.redirect('/', 303)
+
+    @http.route('/my/deactivate_account', type='http', auth='user', website=True, methods=['POST'])
+    def deactivate_account(self, validation=None, password=None, confirm_deactivate=None, **post):
+        """Render UniTrade settings again when account deactivation validation fails."""
+        values = self._prepare_unitrade_settings_values()
+        values['open_deactivate_modal'] = True
+
+        if confirm_deactivate != '1':
+            values['errors'] = {'deactivate': 'confirm'}
+        elif validation != request.env.user.login:
+            values['errors'] = {'deactivate': 'validation'}
+        else:
+            try:
+                request.env['res.users']._check_credentials(password, {'interactive': True})
+                request.env.user.sudo()._deactivate_portal_user(**post)
+                request.session.logout()
+                return request.redirect('/web/login?message=%s' % urls.url_quote(_('Account deleted!')))
+            except AccessDenied:
+                values['errors'] = {'deactivate': 'password'}
+            except UserError as e:
+                values['errors'] = {'deactivate': {'other': str(e)}}
+
+        response = request.render('portal.portal_my_security', values)
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
+        return response
+
+    def _prepare_unitrade_settings_values(self):
+        self._touch_unitrade_session_activity()
+        user = request.env.user.sudo()
+        values = self._prepare_portal_layout_values()
+        values.update({
+            'get_error': get_error,
+            'errors': {},
+            'success': {},
+            'allow_api_keys': bool(request.env['ir.config_parameter'].sudo().get_param('portal.allow_api_keys')),
+            'open_deactivate_modal': False,
+            'page_name': 'my_settings',
+            'notify_all': user.x_notify_all,
+            'notify_transaction': user.x_notify_transaction,
+            'notify_promo': user.x_notify_promo,
+            'session_activity': self._unitrade_session_activity(),
+            'password_otp_error': request.params.get('password_otp_error'),
+            'sessions_revoked': request.params.get('sessions_revoked') == '1',
+        })
+        return values
+
+    def _touch_unitrade_session_activity(self):
+        session = request.session
+        session['unitrade_user_agent'] = request.httprequest.headers.get('User-Agent', '')
+        session['unitrade_remote_addr'] = request.httprequest.remote_addr or ''
+        session['unitrade_last_seen'] = fields.Datetime.to_string(fields.Datetime.now())
+
+    def _unitrade_session_activity(self):
+        rows = []
+        for sid, session in self._iter_unitrade_user_sessions():
+            rows.append({
+                'sid': sid,
+                'is_current': sid == request.session.sid,
+                'device_name': self._unitrade_device_name(session.get('unitrade_user_agent') or ''),
+                'ip_label': session.get('unitrade_remote_addr') or '-',
+                'last_seen': self._unitrade_session_last_seen(session.get('unitrade_last_seen')),
+            })
+
+        rows.sort(key=lambda row: (not row['is_current'], row['device_name']))
+        if not rows:
+            rows.append({
+                'sid': request.session.sid,
+                'is_current': True,
+                'device_name': self._unitrade_device_name(request.httprequest.headers.get('User-Agent', '')),
+                'ip_label': request.httprequest.remote_addr or '-',
+                'last_seen': _('Sedang aktif'),
+            })
+        return rows[:4]
+
+    def _iter_unitrade_user_sessions(self):
+        session_store = http.root.session_store
+        path = getattr(session_store, 'path', '')
+        pattern = os.path.join(path, '*', '*')
+        for filename in glob.iglob(pattern):
+            sid = os.path.basename(filename)
+            if sid.endswith('.__wz_sess') or not session_store.is_valid_key(sid):
+                continue
+            try:
+                session = session_store.get(sid)
+            except Exception:
+                _logger.debug("Unable to read portal session %s", sid, exc_info=True)
+                continue
+            if session.get('uid') == request.env.uid:
+                yield sid, session
+
+    @staticmethod
+    def _unitrade_device_name(user_agent):
+        user_agent_l = (user_agent or '').lower()
+        if 'android' in user_agent_l:
+            return 'Android'
+        if 'iphone' in user_agent_l or 'ipad' in user_agent_l:
+            return 'iOS'
+        if 'windows' in user_agent_l:
+            if 'chrome' in user_agent_l:
+                return 'Chrome di windows 11'
+            return 'Windows'
+        if 'mac os' in user_agent_l:
+            return 'MacOS'
+        return 'Browser'
+
+    @staticmethod
+    def _unitrade_session_last_seen(value):
+        if not value:
+            return _('Sedang aktif')
+        try:
+            dt_value = fields.Datetime.from_string(value)
+            return 'Aktif %s' % fields.Datetime.context_timestamp(request.env.user, dt_value).strftime('%d %B %Y, %H:%M')
+        except Exception:
+            return _('Sedang aktif')
+
+    def _prepare_unitrade_profile_values(self, post):
+        error = {}
+        error_message = []
+        partner_vals = {}
+        user_vals = {}
+
+        name = (post.get('name') or '').strip()
+        email = (post.get('email') or '').strip()
+        gender = (post.get('x_gender') or '').strip()
+        birth_date = (post.get('x_birth_date') or '').strip()
+        phone = re.sub(r'[\s-]+', '', (post.get('phone') or '').strip())
+        street = (post.get('street') or '').strip()
+        zipcode = (post.get('zipcode') or '').strip()
+
+        if not name:
+            error['name'] = 'missing'
+            error_message.append(_('Nama pengguna wajib diisi.'))
+
+        if email and not tools.single_email_re.match(email):
+            error['email'] = 'error'
+            error_message.append(_('Masukkan email yang valid.'))
+
+        if birth_date:
+            try:
+                parsed_birth_date = fields.Date.to_date(birth_date)
+                if parsed_birth_date > fields.Date.today():
+                    error['x_birth_date'] = 'future'
+                    error_message.append(_('Tanggal lahir tidak boleh di masa depan.'))
+                else:
+                    user_vals['x_birth_date'] = parsed_birth_date
+            except ValueError:
+                error['x_birth_date'] = 'error'
+                error_message.append(_('Format tanggal lahir tidak valid.'))
+        else:
+            user_vals['x_birth_date'] = False
+
+        if phone and not _is_phone(phone):
+            error['phone'] = 'error'
+            error_message.append(_('Nomor telepon harus diawali 08, 62, atau +62 dan berisi 10-15 digit.'))
+
+        if zipcode and (not zipcode.isdigit() or len(zipcode) < 4 or len(zipcode) > 10):
+            error['zipcode'] = 'error'
+            error_message.append(_('Kode pos harus berupa angka 4 sampai 10 digit.'))
+
+        if street and len(street) > 255:
+            error['street'] = 'error'
+            error_message.append(_('Alamat maksimal 255 karakter.'))
+
+        if gender in ('male', 'female'):
+            user_vals['x_gender'] = gender
+        else:
+            user_vals['x_gender'] = False
+
+        avatar_file = post.get('avatar_upload')
+        if avatar_file and getattr(avatar_file, 'filename', ''):
+            avatar_content = avatar_file.read()
+            content_type = (getattr(avatar_file, 'content_type', '') or '').lower()
+            allowed_avatar_types = {'image/jpeg', 'image/jpg', 'image/png', 'image/webp'}
+            if len(avatar_content) > self._MAX_AVATAR_BYTES:
+                error['avatar_upload'] = 'too_large'
+                error_message.append(_('Ukuran foto profil maksimal 2MB.'))
+            elif content_type and content_type not in allowed_avatar_types:
+                error['avatar_upload'] = 'invalid'
+                error_message.append(_('Foto profil harus berupa JPG, PNG, atau WEBP.'))
+            else:
+                try:
+                    user_vals['image_1920'] = base64.b64encode(tools.image_process(
+                        avatar_content,
+                        size=(512, 512),
+                        crop='center',
+                        quality=85,
+                        verify_resolution=True,
+                        output_format='JPEG',
+                    ))
+                except Exception:
+                    error['avatar_upload'] = 'invalid'
+                    error_message.append(_('Foto profil tidak dapat diproses. Gunakan JPG, PNG, atau WEBP yang valid.'))
+
+        partner_vals.update({
+            'name': name,
+            'email': email,
+            'phone': phone,
+            'street': street,
+            'zip': zipcode,
+        })
+
+        return error, error_message, partner_vals, user_vals
+
+    @http.route([
+        '/my/orders',
+        '/my/orders/page/<int:page>',
+        '/my/account/orders',
+    ], type='http', auth='user', website=True)
+    def portal_my_orders(self, page=1, status='all', **kwargs):
+        """Render the UniTrade customer orders page with dynamic sale.order data."""
+        values = self._prepare_portal_layout_values()
+        active_status = status if status in self._ORDER_STATUSES else 'all'
+        order_items = self._unitrade_customer_order_items()
+        request.session['my_orders_history'] = list({
+            item['order'].id for item in order_items
+        })[:100]
+        status_counts = {
+            'all': len(order_items),
+            'unpaid': len([item for item in order_items if item['status'] == 'unpaid']),
+            'done': len([item for item in order_items if item['status'] == 'done']),
+            'cancel': len([item for item in order_items if item['status'] == 'cancel']),
+        }
+
+        values.update({
+            'page_name': 'my_orders',
+            'order_items': order_items,
+            'order_status_counts': status_counts,
+            'order_status_counts_json': json.dumps(status_counts),
+            'active_order_status': active_status,
+        })
+        response = request.render('unitrade_theme.unitrade_portal_my_orders', values)
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
+        return response
+
+    def _unitrade_customer_order_items(self):
+        partner = request.env.user.partner_id.commercial_partner_id
+        partners = request.env['res.partner'].sudo().search([('commercial_partner_id', '=', partner.id)])
+        orders = request.env['sale.order'].sudo().search([
+            ('partner_id', 'in', partners.ids),
+            ('state', 'in', ['sent', 'sale', 'done', 'cancel']),
+        ], order='date_order desc', limit=80)
+
+        Review = request.env['unitrade.review'].sudo() if 'unitrade.review' in request.env.registry else False
+        items = []
+        for order in orders:
+            status_key = self._unitrade_order_status_key(order)
+            order_lines = order.order_line.filtered(lambda line: not line.display_type and line.product_id)
+            for line in order_lines:
+                product = line.product_id.product_tmpl_id
+                seller = product.x_seller_id if 'x_seller_id' in product._fields and product.x_seller_id else False
+                seller_ref = seller.x_profile_uuid or seller.id if seller else ''
+                review_exists = False
+                if Review and status_key == 'done':
+                    review_exists = bool(Review.search_count([
+                        ('order_id', '=', order.id),
+                        ('product_id', '=', product.id),
+                        ('user_id', '=', request.env.uid),
+                    ]))
+
+                can_buy_again = self._unitrade_can_buy_again(product, line.product_id)
+                items.append({
+                    'id': '%s-%s' % (order.id, line.id),
+                    'status': status_key,
+                    'order': order,
+                    'line': line,
+                    'product': product,
+                    'seller': seller,
+                    'seller_name': seller.name if seller else (order.user_id.name or 'Penjual UniTrade'),
+                    'seller_avatar_url': self._unitrade_seller_avatar_url(seller),
+                    'seller_url': '/seller-profile/%s' % seller_ref if seller_ref else '#',
+                    'seller_chat_url': '/seller-profile/%s/chat' % seller_ref if seller_ref else '#',
+                    'product_url': product.website_url or '/shop/product/%s' % product.id,
+                    'review_url': (product.website_url or '/shop/product/%s' % product.id) + '#tab-ulasan',
+                    'buy_again_url': product.website_url or '/shop/product/%s' % product.id,
+                    'can_buy_again': can_buy_again,
+                    'image_url': '/web/image/product.template/%s/image_512' % product.id,
+                    'category': product.categ_id.name if product.categ_id else '-',
+                    'quantity': self._unitrade_quantity_label(line.product_uom_qty),
+                    'rating': self._unitrade_rating_label(product),
+                    'price': self._unitrade_format_money(line.price_total, order.currency_id),
+                    'can_review': status_key == 'done' and not review_exists,
+                    'review_exists': review_exists,
+                })
+        return items
+
+    @staticmethod
+    def _unitrade_can_buy_again(product, variant):
+        if not product or not product.exists():
+            return False
+        if not product.sale_ok or not product.website_published:
+            return False
+        if 'qty_available' in variant._fields:
+            return variant.qty_available > 0
+        if 'qty_available' in product._fields:
+            return product.qty_available > 0
+        return True
+
+    @staticmethod
+    def _unitrade_order_status_key(order):
+        if order.state == 'cancel':
+            return 'cancel'
+        if order.state in ('sale', 'done'):
+            return 'done'
+        return 'unpaid'
+
+    @staticmethod
+    def _unitrade_quantity_label(quantity):
+        if float(quantity or 0).is_integer():
+            return str(int(quantity))
+        return ('%.2f' % quantity).rstrip('0').rstrip('.')
+
+    @staticmethod
+    def _unitrade_rating_label(product):
+        rating = product.x_average_rating if 'x_average_rating' in product._fields else 0.0
+        return '%.1f' % (rating or 0.0)
+
+    @staticmethod
+    def _unitrade_format_money(amount, currency):
+        symbol = currency.symbol or 'Rp'
+        formatted = ('{:,.0f}'.format(amount or 0.0)).replace(',', '.')
+        if currency.position == 'after':
+            return '%s %s' % (formatted, symbol)
+        return '%s %s' % (symbol, formatted)
+
+    @staticmethod
+    def _unitrade_seller_avatar_url(seller):
+        if seller and seller.user_id:
+            return '/web/image/res.users/%s/image_128?unique=%s' % (
+                seller.user_id.id,
+                seller.user_id.write_date or '',
+            )
+        return '/web/static/img/user_menu_avatar.png'
 
 
 class UnitradeOAuthController(OAuthController):

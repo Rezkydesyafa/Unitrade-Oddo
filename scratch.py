@@ -1,5 +1,6 @@
-import psycopg2
-conn = psycopg2.connect(dbname='unitrade_db', user='openpg', password='admin')
+from db_connection import connect
+
+conn = connect()
 cur = conn.cursor()
 cur.execute("SELECT id, name, key FROM ir_ui_view WHERE key LIKE '%unitrade_product%' OR name LIKE '%UniTrade Product Detail%';")
 res = cur.fetchall()

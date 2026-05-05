@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="unitrade_seller.SellerProfileTabs">
+        <div t-ref="root" class="ut-seller-profile-tabs">
+            <div class="tw-mb-8 tw-rounded-[26.5px] tw-border tw-border-[#d2d2d7] tw-bg-white tw-p-[6px] tw-shadow-[0_8px_30px_rgba(33,37,41,0.04)]">
+                <div class="tw-flex tw-min-h-[42px] tw-items-center tw-gap-3 tw-overflow-x-auto tw-px-2 md:tw-gap-4 md:tw-px-4">
+                    <t t-foreach="tabs" t-as="tab" t-key="tab.key">
+                        <button type="button"
+                            t-att-class="tabClass(tab.key)"
+                            t-att-disabled="state.loading"
+                            t-on-click="() => this.selectTab(tab.key)">
+                            <t t-esc="tab.label"/>
+                        </button>
+                    </t>
+                </div>
+            </div>
+
+            <div t-if="state.loading &amp;&amp; state.tab !== 'reviews'" class="ut-seller-product-skeleton tw-grid tw-grid-cols-2 tw-gap-5 sm:tw-grid-cols-3 xl:tw-grid-cols-5">
+                <t t-foreach="[1, 2, 3, 4, 5]" t-as="item" t-key="item">
+                    <div class="ut-seller-skeleton-card">
+                        <div class="ut-seller-skeleton-image"></div>
+                        <div class="ut-seller-skeleton-line ut-seller-skeleton-name"></div>
+                        <div class="ut-seller-skeleton-line ut-seller-skeleton-location"></div>
+                        <div class="ut-seller-skeleton-row">
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
+            <div t-if="state.loading &amp;&amp; state.tab === 'reviews'" class="ut-review-loading">
+                <div class="ut-review-skeleton-avatar"></div>
+                <div class="ut-review-skeleton-body">
+                    <div class="ut-review-skeleton-line ut-review-skeleton-name"></div>
+                    <div class="ut-review-skeleton-line ut-review-skeleton-date"></div>
+                    <div class="ut-review-skeleton-line ut-review-skeleton-text"></div>
+                    <div class="ut-review-skeleton-line ut-review-skeleton-text ut-review-skeleton-text-short"></div>
+                    <div class="ut-review-skeleton-actions">
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div t-ref="results" t-on-click="onResultsClick" t-att-class="state.loading ? 'tw-hidden' : 'tw-transition-opacity'"></div>
+        </div>
+    </t>
+</templates>

@@ -8,9 +8,6 @@ Python site-packages but not visible to the Odoo Windows Service process.
 """
 import re
 import logging
-import os
-import sys
-import json
 import base64
 import requests
 
@@ -24,19 +21,7 @@ KTM_KEYWORDS = [
     'AISYIYAH', 'YOGYAKARTA', 'TEKNOLOGI', 'INFORMASI',
 ]
 NAME_PATTERN = re.compile(r'[A-Za-z]{2,}(?:\s+[A-Za-z]{2,})+')
-
-# Load environment variables from .env file at the root of the project manually
-# to avoid 'dotenv' module missing errors in Odoo Windows Service
-env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env')
-if os.path.exists(env_path):
-    with open(env_path, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if line and not line.startswith('#') and '=' in line:
-                key, value = line.split('=', 1)
-                os.environ[key.strip()] = value.strip()
-
-GOOGLE_VISION_API_KEY = os.environ.get('GOOGLE_VISION_API_KEY', '')
+GOOGLE_VISION_API_KEY_PARAM = 'unitrade.google_vision.api_key'
 
 
 class KTMOCRService:
@@ -47,15 +32,18 @@ class KTMOCRService:
     # ─────────────── Google Cloud Vision API ───────────────
 
     @staticmethod
-    def call_google_vision_api(image_bytes):
+    def call_google_vision_api(env, image_bytes):
         """
         Send image to Google Cloud Vision API for TEXT_DETECTION.
         Returns the full concatenated text.
         """
-        if not GOOGLE_VISION_API_KEY or GOOGLE_VISION_API_KEY == 'INSERT_YOUR_API_KEY_HERE':
+        api_key = env['ir.config_parameter'].sudo().get_param(
+            GOOGLE_VISION_API_KEY_PARAM, ''
+        )
+        if not api_key or api_key == 'INSERT_YOUR_API_KEY_HERE':
             raise RuntimeError("Google Vision API Key is not configured.")
 
-        url = f"https://vision.googleapis.com/v1/images:annotate?key={GOOGLE_VISION_API_KEY}"
+        url = f"https://vision.googleapis.com/v1/images:annotate?key={api_key}"
         
         # Encode image to base64
         encoded_image = base64.b64encode(image_bytes).decode('utf-8')
@@ -416,7 +404,7 @@ class KTMOCRService:
 
             # Step 1: Run OCR via Google Vision API
             try:
-                raw_text = cls.call_google_vision_api(image_bytes)
+                raw_text = cls.call_google_vision_api(env, image_bytes)
             except Exception as e:
                 _logger.exception('[PIPELINE] Google Vision API failed: %s', e)
                 result['reason'] = f'vision_api_failed: {str(e)}'

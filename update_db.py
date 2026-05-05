@@ -1,8 +1,8 @@
-import psycopg2
 import json
+from db_connection import connect
 
 def update_view():
-    conn = psycopg2.connect(dbname='unitrade_db', user='openpg', password='admin')
+    conn = connect()
     cur = conn.cursor()
 
     cur.execute("SELECT arch_db FROM ir_ui_view WHERE key='unitrade_product_ext.unitrade_product_detail_override'")

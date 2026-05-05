@@ -10,6 +10,11 @@
         'views/product_views.xml',
         'views/product_templates.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'unitrade_product_ext/static/src/css/product_backend.css',
+        ],
+    },
     'installable': True,
     'license': 'LGPL-3',
 }

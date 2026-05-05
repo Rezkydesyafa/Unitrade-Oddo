@@ -10,11 +10,250 @@
                     <field name="x_is_marketplace"/>
                     <field name="x_condition"/>
                     <field name="x_seller_id"/>
+                    <field name="x_seller_name" readonly="1"/>
                     <field name="x_seller_location"/>
                     <field name="x_seller_latitude"/>
                     <field name="x_seller_longitude"/>
+                    <field name="x_item_province"/>
+                    <field name="x_item_district"/>
+                    <field name="x_item_latitude"/>
+                    <field name="x_item_longitude"/>
+                    <field name="x_brand"/>
+                    <field name="x_weight_product"/>
+                    <field name="x_free_shipping"/>
+                    <field name="x_discount_percent"/>
                 </group>
             </xpath>
         </field>
     </record>
+
+    <record id="unitrade_product_tree" model="ir.ui.view">
+        <field name="name">unitrade.product.template.tree</field>
+        <field name="model">product.template</field>
+        <field name="arch" type="xml">
+            <tree string="Produk UniTrade" decoration-muted="not website_published" decoration-success="website_published">
+                <field name="image_128" widget="image" optional="show"/>
+                <field name="name"/>
+                <field name="x_condition" widget="badge" decoration-success="x_condition == 'new'" decoration-info="x_condition == 'used'"/>
+                <field name="x_seller_id"/>
+                <field name="categ_id"/>
+                <field name="list_price"/>
+                <field name="x_seller_location"/>
+                <field name="x_discount_percent" optional="hide"/>
+                <field name="website_published" widget="boolean_toggle"/>
+                <field name="sale_ok" widget="boolean_toggle" optional="hide"/>
+                <field name="create_date" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="unitrade_product_form" model="ir.ui.view">
+        <field name="name">unitrade.product.template.form</field>
+        <field name="model">product.template</field>
+        <field name="arch" type="xml">
+            <form string="Produk UniTrade" class="ut_product_admin_form">
+                <header>
+                    <button name="action_unitrade_publish"
+                        type="object"
+                        string="Publish"
+                        class="oe_highlight"
+                        invisible="website_published"/>
+                    <button name="action_unitrade_unpublish"
+                        type="object"
+                        string="Unpublish"
+                        invisible="not website_published"/>
+                </header>
+                <sheet class="ut_product_admin_sheet">
+                    <div class="ut_product_admin_hero">
+                        <div class="ut_product_admin_title">
+                            <span class="ut_product_admin_eyebrow">Produk Marketplace</span>
+                            <label for="name"/>
+                            <h1>
+                                <field name="name" placeholder="Contoh: Laptop ASUS VivoBook"/>
+                            </h1>
+                            <p class="ut_product_admin_hint">
+                                Data di form ini dipakai oleh halaman detail produk, katalog, galeri gambar, filter, dan map. Field lokasi dan deskripsi wajib diisi.
+                            </p>
+                        </div>
+                        <div class="ut_product_admin_image">
+                            <field name="image_1920" widget="image" required="1" options="{'preview_image': 'image_128'}"/>
+                            <span>Gambar Utama Wajib</span>
+                        </div>
+                    </div>
+
+                    <group class="ut_product_admin_group_grid">
+                        <group string="Informasi Frontend" class="ut_product_admin_panel">
+                            <field name="x_is_marketplace"/>
+                            <field name="website_published"/>
+                            <field name="sale_ok"/>
+                            <field name="x_condition" required="1"/>
+                            <field name="categ_id" required="1"/>
+                            <field name="public_categ_ids" widget="many2many_tags"/>
+                        </group>
+                        <group string="Harga dan Status" class="ut_product_admin_panel">
+                            <field name="list_price" required="1"/>
+                            <field name="standard_price" groups="base.group_system"/>
+                            <field name="x_discount_percent"/>
+                            <field name="x_free_shipping"/>
+                            <field name="x_brand"/>
+                            <field name="x_weight_product"/>
+                        </group>
+                    </group>
+
+                    <group class="ut_product_admin_group_grid">
+                        <group string="Penjual" class="ut_product_admin_panel">
+                            <field name="x_seller_id" required="1" domain="[('status', '=', 'verified')]"/>
+                            <field name="x_seller_name" readonly="1"/>
+                            <field name="x_seller_location" required="1" placeholder="Contoh: Yogyakarta"/>
+                        </group>
+                        <group string="Lokasi Produk / Map" class="ut_product_admin_panel">
+                            <field name="x_item_province" required="1"/>
+                            <field name="x_item_district" required="1"/>
+                            <field name="x_item_latitude" placeholder="Otomatis dari kabupaten jika kosong"/>
+                            <field name="x_item_longitude" placeholder="Otomatis dari kabupaten jika kosong"/>
+                            <field name="x_seller_latitude"/>
+                            <field name="x_seller_longitude"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Deskripsi" name="unitrade_description">
+                            <div class="ut_product_admin_page_intro">
+                                <h3>Deskripsi Produk</h3>
+                                <p>Tulis deskripsi yang nyaman dibaca di halaman detail produk. Field ini dibuat full-width agar teks panjang tidak rusak.</p>
+                            </div>
+                            <div class="ut_product_admin_text_card">
+                                <field name="description_sale"
+                                    nolabel="1"
+                                    required="1"
+                                    class="ut_product_admin_description"
+                                    placeholder="Contoh: Laptop ringan untuk kerja dan kuliah dengan layar jernih, performa responsif, dan desain tipis."/>
+                            </div>
+                            <div class="ut_product_admin_page_intro ut_product_admin_page_intro_secondary">
+                                <h3>Spesifikasi Tambahan</h3>
+                                <p>Gunakan bagian ini untuk detail teknis seperti prosesor, RAM, penyimpanan, ukuran, atau kelengkapan.</p>
+                            </div>
+                            <div class="ut_product_admin_text_card">
+                                <field name="x_specification" nolabel="1" widget="html" class="ut_product_admin_specification"/>
+                            </div>
+                        </page>
+                        <page string="Gambar Tambahan" name="unitrade_images">
+                            <div class="ut_product_admin_page_intro">
+                                <h3>Galeri Produk</h3>
+                                <p>Total gambar produk wajib 2 sampai 6 gambar, termasuk gambar utama. Artinya tambahkan minimal 1 dan maksimal 5 gambar tambahan.</p>
+                            </div>
+                            <field name="product_template_image_ids"
+                                nolabel="1"
+                                mode="kanban,tree,form"
+                                class="ut_product_admin_images">
+                                <kanban class="ut_product_image_kanban" create="true" quick_create="false">
+                                    <field name="id"/>
+                                    <field name="name"/>
+                                    <field name="image_128"/>
+                                    <templates>
+                                        <t t-name="kanban-box">
+                                            <div class="oe_kanban_global_click ut_product_image_card">
+                                                <div class="ut_product_image_thumb">
+                                                    <img t-if="record.id.raw_value"
+                                                        t-att-src="kanban_image('product.image', 'image_128', record.id.raw_value)"
+                                                        alt="Gambar produk"/>
+                                                    <div t-else="" class="ut_product_image_empty">
+                                                        <i class="fa fa-image" title="Belum ada gambar"/>
+                                                    </div>
+                                                </div>
+                                                <div class="ut_product_image_meta">
+                                                    <strong>
+                                                        <field name="name"/>
+                                                    </strong>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </templates>
+                                </kanban>
+                                <tree>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="image_128" widget="image" readonly="1" class="ut_product_image_list_thumb"/>
+                                    <field name="name"/>
+                                </tree>
+                                <form string="Gambar Produk">
+                                    <sheet>
+                                        <group class="ut_product_admin_image_form">
+                                            <group>
+                                                <field name="name"/>
+                                                <field name="sequence"/>
+                                            </group>
+                                            <group>
+                                                <field name="image_1920" widget="image" options="{'preview_image': 'image_128'}"/>
+                                            </group>
+                                        </group>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Review" name="unitrade_review_stats">
+                            <div class="ut_product_review_stats">
+                                <div class="ut_product_review_stat">
+                                    <span>Rata-rata Rating</span>
+                                    <strong><field name="x_average_rating" readonly="1" nolabel="1"/></strong>
+                                </div>
+                                <div class="ut_product_review_stat">
+                                    <span>Jumlah Review</span>
+                                    <strong><field name="x_review_count" readonly="1" nolabel="1"/></strong>
+                                </div>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="unitrade_product_search" model="ir.ui.view">
+        <field name="name">unitrade.product.template.search</field>
+        <field name="model">product.template</field>
+        <field name="arch" type="xml">
+            <search string="Cari Produk UniTrade">
+                <field name="name"/>
+                <field name="x_seller_id"/>
+                <field name="categ_id"/>
+                <field name="x_seller_location"/>
+                <filter name="filter_published" string="Published" domain="[('website_published', '=', True)]"/>
+                <filter name="filter_unpublished" string="Unpublished" domain="[('website_published', '=', False)]"/>
+                <filter name="filter_new" string="Baru" domain="[('x_condition', '=', 'new')]"/>
+                <filter name="filter_used" string="Bekas" domain="[('x_condition', '=', 'used')]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter name="group_seller" string="Penjual" context="{'group_by': 'x_seller_id'}"/>
+                    <filter name="group_category" string="Kategori" context="{'group_by': 'categ_id'}"/>
+                    <filter name="group_condition" string="Kondisi" context="{'group_by': 'x_condition'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_unitrade_products" model="ir.actions.act_window">
+        <field name="name">Produk Marketplace</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('x_is_marketplace', '=', True)]</field>
+        <field name="context">{
+            'default_x_is_marketplace': True,
+            'default_sale_ok': True,
+            'default_website_published': True,
+            'default_detailed_type': 'consu',
+            'default_x_condition': 'used',
+            'default_x_item_province': 'diy'
+        }</field>
+        <field name="search_view_id" ref="unitrade_product_search"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('unitrade_product_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('unitrade_product_form')})]"/>
+    </record>
+
+    <menuitem id="menu_unitrade_products"
+        name="Produk"
+        parent="unitrade_seller.menu_unitrade_root"
+        action="action_unitrade_products"
+        sequence="15"
+        groups="base.group_user"/>
 </odoo>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="unitrade_theme.UserOrdersTabs">
+        <div class="ut-user-orders-filter-card" role="tablist" aria-label="Filter pesanan">
+            <t t-foreach="tabs" t-as="tab" t-key="tab.key">
+                <button type="button"
+                    role="tab"
+                    t-on-click="() => this.setStatus(tab.key)"
+                    t-att-aria-selected="state.active === tab.key ? 'true' : 'false'"
+                    t-att-class="tabClass(tab.key)">
+                    <t t-esc="tab.label"/>
+                    <t t-if="tab.key === 'all'"> (<t t-esc="count(tab.key)"/>)</t>
+                </button>
+            </t>
+        </div>
+    </t>
+</templates>

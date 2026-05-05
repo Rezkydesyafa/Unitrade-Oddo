@@ -29,6 +29,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Wishlist toggle (heart icon)
     // =============================================
     document.querySelectorAll('.unitrade-wishlist-btn').forEach((btn) => {
+        if (btn.closest('#ut-shop-owl-mount')) {
+            return;
+        }
         btn.addEventListener('click', async function (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -42,9 +45,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ product_id: parseInt(productId) }),
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'call',
+                        params: { product_id: parseInt(productId) },
+                    }),
                 });
-                const result = await response.json();
+                const payload = await response.json();
+                const result = payload.result || payload;
 
                 if (result.added) {
                     this.classList.add('tw-text-red-500');
@@ -121,4 +129,78 @@ document.addEventListener('DOMContentLoaded', function () {
             showImage(0);
         }
     });
+
+    // =============================================
+    // PDP: Thumbnail Gallery Switching
+    // =============================================
+    const mainImage = document.getElementById('ut-main-image');
+    const thumbnailContainer = document.querySelector('.ut-thumbnail-container');
+
+    if (mainImage && thumbnailContainer && thumbnailContainer.dataset.utGalleryBound !== '1') {
+        thumbnailContainer.dataset.utGalleryBound = '1';
+        mainImage.style.transition = 'opacity 180ms ease';
+
+        thumbnailContainer.addEventListener('click', event => {
+            const thumb = event.target.closest('.ut-thumb');
+            if (!thumb || !thumbnailContainer.contains(thumb)) return;
+
+            const imgSrc = thumb.getAttribute('data-src');
+            if (!imgSrc || mainImage.getAttribute('src') === imgSrc) return;
+
+            mainImage.style.opacity = '0.45';
+
+            const nextImage = new Image();
+            nextImage.onload = () => {
+                mainImage.setAttribute('src', imgSrc);
+                mainImage.style.opacity = '1';
+            };
+            nextImage.onerror = () => {
+                mainImage.setAttribute('src', imgSrc);
+                mainImage.style.opacity = '1';
+            };
+            nextImage.src = imgSrc;
+
+            thumbnailContainer.querySelectorAll('.ut-thumb').forEach(item => {
+                item.style.borderColor = 'transparent';
+            });
+            thumb.style.borderColor = 'var(--ut-color-border-strong)';
+        });
+    }
+
+    // =============================================
+    // PDP: Tabs Switching
+    // =============================================
+    const tabBtns = document.querySelectorAll('.ut-tab-btn');
+    const tabContents = document.querySelectorAll('.ut-tab-content');
+    
+    if (tabBtns.length > 0 && tabContents.length > 0) {
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const target = this.getAttribute('data-target');
+                
+                // Reset buttons
+                tabBtns.forEach(b => {
+                    b.classList.remove('tw-text-black', 'tw-border-b-2', 'tw-border-black', 'tw-font-bold');
+                    b.classList.add('tw-text-gray-500', 'tw-font-medium');
+                });
+                
+                // Activate clicked button
+                this.classList.remove('tw-text-gray-500', 'tw-font-medium');
+                this.classList.add('tw-text-black', 'tw-border-b-2', 'tw-border-black', 'tw-font-bold');
+                
+                // Hide all contents
+                tabContents.forEach(content => {
+                    content.classList.remove('tw-block');
+                    content.classList.add('tw-hidden');
+                });
+                
+                // Show target content
+                const targetContent = document.getElementById('tab-' + target);
+                if (targetContent) {
+                    targetContent.classList.remove('tw-hidden');
+                    targetContent.classList.add('tw-block');
+                }
+            });
+        });
+    }
 });

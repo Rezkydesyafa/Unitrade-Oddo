@@ -1,6 +1,6 @@
-import psycopg2
+from db_connection import connect
 
-conn = psycopg2.connect(dbname='unitrade_db', user='openpg', password='admin', host='localhost', port=5432)
+conn = connect()
 cur = conn.cursor()
 
 # Show all users

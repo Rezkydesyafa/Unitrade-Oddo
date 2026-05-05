@@ -1,6 +1,6 @@
-import psycopg2
+from db_connection import connect
 
-conn = psycopg2.connect(dbname='unitrade_db', user='openpg', password='admin')
+conn = connect()
 cur = conn.cursor()
 
 # Get all x_ fields that exist on product.template

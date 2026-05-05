@@ -1,10 +1,13 @@
 # UniTrade Marketplace — Cursor/AI Coding Rules
+
 # Gunakan file ini sebagai context untuk Cursor AI, GitHub Copilot, atau AI coding tool lainnya
 
 ## PROJECT OVERVIEW
+
 Kamu adalah developer untuk project UniTrade Marketplace, sebuah platform C2C marketplace berbasis web khusus mahasiswa UNISA Yogyakarta. Project ini dibangun di atas Odoo 17 Community dengan custom modules Python, QWeb templates, dan Tailwind CSS untuk styling.
 
 ## TECH STACK
+
 - Platform: Odoo 17.0 (Windows installer, path: C:\Program Files\Odoo 17.0.20260217)
 - Backend: Python 3.10+ menggunakan Odoo ORM dan MVC pattern
 - Database: PostgreSQL 14 (dimanage Odoo)
@@ -17,19 +20,22 @@ Kamu adalah developer untuk project UniTrade Marketplace, sebuah platform C2C ma
 - Custom addons path: D:\UniTrade\custom-addons\
 
 ## STRUKTUR CUSTOM MODULES
+
 Semua custom module ada di D:\UniTrade\custom-addons\ dengan nama:
-- unitrade_theme       → Tailwind CSS theme
-- unitrade_seller      → Verifikasi KTM penjual
+
+- unitrade_theme → Tailwind CSS theme
+- unitrade_seller → Verifikasi KTM penjual
 - unitrade_product_ext → Extend product.template
-- unitrade_review      → Rating & ulasan
-- unitrade_wishlist    → Wishlist M2M
-- unitrade_payment     → Webhook Midtrans
-- unitrade_delivery    → GoSend integration
+- unitrade_review → Rating & ulasan
+- unitrade_wishlist → Wishlist M2M
+- unitrade_payment → Webhook Midtrans
+- unitrade_delivery → GoSend integration
 - unitrade_notification → Notifikasi sistem
 
 ## CODING CONVENTIONS
 
 ### Python / Odoo Models
+
 - Semua model custom menggunakan prefix `unitrade.` (contoh: `unitrade.seller`)
 - Selalu gunakan `_name`, `_description`, `_inherit` yang benar
 - Computed fields wajib gunakan `@api.depends` dan `store=True` jika perlu diquery
@@ -38,12 +44,13 @@ Semua custom module ada di D:\UniTrade\custom-addons\ dengan nama:
 - Log error dengan `_logger = logging.getLogger(__name__)`
 
 ### QWeb Templates
+
 - Semua template custom punya prefix `unitrade_` pada id-nya
 - Gunakan `t-call="website.layout"` untuk semua halaman frontend
 - Gunakan `t-if`, `t-foreach`, `t-field` sesuai QWeb syntax Odoo 17
 - JANGAN gunakan jQuery langsung — gunakan OWL atau vanilla JS
 
-### Tailwind CSS
+<!-- ### Tailwind CSS
 - WAJIB pakai prefix `tw-` untuk semua class Tailwind (contoh: `tw-flex`, `tw-bg-primary`)
 - `preflight: false` — jangan pakai @tailwind base
 - Komponen reusable definisikan di `@layer components` dalam input.css
@@ -58,20 +65,23 @@ Semua custom module ada di D:\UniTrade\custom-addons\ dengan nama:
   - surface: #FFFFFF
   - surface-2: #F8FAFC
   - border: #E2E8F0
-- Font: Plus Jakarta Sans (Google Fonts)
+- Font: Plus Jakarta Sans (Google Fonts) -->
 
 ### Controller Routes
+
 - Frontend public: `auth='public'`, `website=True`
 - API webhook: `auth='none'`, `csrf=False`, `type='json'`
 - Portal user: `auth='user'`
 - Format route: `/unitrade/{module}/{action}`
 
 ### Security
+
 - Semua model custom wajib punya entry di `security/ir.model.access.csv`
 - Gunakan `res.groups` untuk role-based access: group_unitrade_buyer, group_unitrade_seller
 - Jangan simpan API key hardcoded — gunakan `ir.config_parameter`
 
 ## DATABASE MODELS UTAMA
+
 - `res.users` — user akun, extend dengan: otp_code, otp_expiry, otp_attempt, reset_token
 - `res.partner` — profil, extend dengan: username, gender, birth_date
 - `unitrade.seller` — data penjual: user_id, nim, ktm_image, status, ocr_result
@@ -83,32 +93,38 @@ Semua custom module ada di D:\UniTrade\custom-addons\ dengan nama:
 - `unitrade.notification` — id, user_id, notif_type, title, body, is_read
 
 ## ORDER STATUS FLOW
+
 draft → confirmed → shipped → done → cancelled
 (Belum Bayar → Sedang Dikemas → Dikirim → Selesai → Dibatalkan)
 
 ## SELLER VERIFICATION FLOW
+
 draft → pending → verified / rejected
 (Input data → Menunggu admin → Disetujui / Ditolak)
 
 ## API INTEGRATIONS
 
 ### Midtrans
+
 - Endpoint: https://app.sandbox.midtrans.com/snap/v1/transactions (sandbox)
 - Auth: Basic base64(SERVER_KEY + ":")
 - Webhook: POST /unitrade/payment/webhook
 - Validasi signature: SHA512(order_id + status_code + gross_amount + SERVER_KEY)
 
 ### GoSend
+
 - Create order: POST https://api.gojek.com/gojek/v3/send
 - Webhook status: POST /unitrade/delivery/webhook
 - Gunakan koordinat dari Google Places API untuk origin & destination
 
 ### PaddleOCR
+
 - Input: gambar KTM base64 → decode → save temp → OCR → extract NIM & nama
 - Confidence threshold: 0.7
 - NIM regex UNISA: r'\b\d{10,12}\b' (sesuaikan dengan format aktual UNISA)
 
 ## COMMAND HARIAN
+
 - Restart Odoo service: net stop odoo-server-17.0 && net start odoo-server-17.0
 - Upgrade module: python odoo-bin -c odoo.conf -d unitrade_db -u [module_name] --stop-after-init
 - Build Tailwind: cd custom-addons/unitrade_theme/tailwind && npm run build
@@ -116,6 +132,7 @@ draft → pending → verified / rejected
 - Clear asset cache: buka http://localhost:8069/web?debug=assets
 
 ## DONT'S — JANGAN LAKUKAN INI
+
 - Jangan edit file di dalam C:\Program Files\Odoo 17.0.20260217\server\odoo\ (akan hilang saat update)
 - Jangan pakai @tailwind base (konflik Bootstrap)
 - Jangan hardcode API key di Python file

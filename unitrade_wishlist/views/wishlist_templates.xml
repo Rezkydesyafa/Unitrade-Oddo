@@ -2,32 +2,134 @@
 <odoo>
     <template id="wishlist_page_template" name="Wishlist Page">
         <t t-call="website.layout">
-            <t t-set="title">Wishlist</t>
-            <div class="tw-max-w-7xl tw-mx-auto tw-px-4 tw-py-8">
-                <h1 class="unitrade-section-title tw-mb-8">❤️ Wishlist Saya</h1>
-                <t t-if="wishlist_items">
-                    <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-4 tw-gap-6">
-                        <t t-foreach="wishlist_items" t-as="item">
-                            <div class="unitrade-card">
-                                <div class="tw-aspect-square tw-bg-gray-100">
-                                    <img t-att-src="'/web/image/product.template/%s/image_1920' % item.product_id.id" class="tw-w-full tw-h-full tw-object-cover"/>
-                                </div>
-                                <div class="tw-p-4">
-                                    <h3 class="tw-font-semibold tw-text-sm"><t t-esc="item.product_id.name"/></h3>
-                                    <p class="tw-text-indigo-600 tw-font-bold">Rp <t t-esc="'{:,.0f}'.format(item.product_id.list_price)"/></p>
-                                </div>
+            <t t-set="page_title">Wishlist - UniTrade</t>
+            <t t-set="no_header" t-value="True"/>
+            <t t-set="no_footer" t-value="True"/>
+            <t t-set="no_breadcrumbs" t-value="1"/>
+            <section class="ut-user-profile-page ut-user-wishlist-page tw-min-h-screen tw-bg-[#f5f5f7]" style="font-family: Urbanist, Inter, sans-serif;" data-unitrade-wishlist-page="1">
+                <div class="ut-wishlist-layout">
+                    <aside class="ut-wishlist-sidebar">
+                        <a href="/my/account" class="ut-wishlist-menu">
+                            <span class="ut-wishlist-menu-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                            </span>
+                            <span>Profile</span>
+                        </a>
+                        <a href="/my/wishlist" class="ut-wishlist-menu is-active">
+                            <span class="ut-wishlist-menu-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="9" cy="21" r="1"/>
+                                    <circle cx="20" cy="21" r="1"/>
+                                    <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 2-1.6L22 6H6"/>
+                                </svg>
+                            </span>
+                            <span>Wishlist</span>
+                        </a>
+                        <a href="/my/orders" class="ut-wishlist-menu">
+                            <span class="ut-wishlist-menu-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/>
+                                    <path d="m3.3 7 8.7 5 8.7-5"/>
+                                    <path d="M12 22V12"/>
+                                </svg>
+                            </span>
+                            <span>Pesanan saya</span>
+                        </a>
+                        <a href="/my/settings" class="ut-wishlist-menu">
+                            <span class="ut-wishlist-menu-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"/>
+                                    <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1h.1a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>
+                                </svg>
+                            </span>
+                            <span>Pengaturan</span>
+                        </a>
+                        <div class="ut-wishlist-sidebar-spacer"></div>
+                        <a href="/web/session/logout?redirect=/" class="ut-wishlist-logout">
+                            <span class="ut-wishlist-logout-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                    <path d="m16 17 5-5-5-5"/>
+                                    <path d="M21 12H9"/>
+                                </svg>
+                            </span>
+                            <span>Keluar</span>
+                        </a>
+                    </aside>
+
+                    <main class="ut-wishlist-main">
+                        <h1 class="ut-wishlist-title">Whitelist</h1>
+                        <div class="ut-wishlist-list">
+                            <t t-if="wishlist_groups">
+                                <t t-foreach="wishlist_groups" t-as="group">
+                                    <article class="ut-wishlist-card" data-wishlist-seller-card="1">
+                                        <header class="ut-wishlist-seller">
+                                            <a t-att-href="group.get('seller_url')" class="ut-wishlist-seller-link">
+                                                <img t-att-src="group.get('seller_avatar_url')" alt="Avatar penjual"/>
+                                                <span t-esc="group.get('seller_name')"/>
+                                            </a>
+                                            <button type="button" class="ut-wishlist-heart" aria-label="Hapus produk teratas dari wishlist"
+                                                t-att-data-wishlist-id="group.get('items')[0].get('wishlist_id') if group.get('items') else ''"
+                                                t-att-data-product-id="group.get('items')[0].get('product_id') if group.get('items') else ''"
+                                                data-wishlist-remove="1">
+                                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M12 21.35 10.55 20.03C5.4 15.36 2 12.27 2 8.5 2 5.41 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.41 22 8.5c0 3.77-3.4 6.86-8.55 11.54L12 21.35Z"/>
+                                                </svg>
+                                            </button>
+                                        </header>
+                                        <div class="ut-wishlist-products">
+                                            <t t-foreach="group.get('items')" t-as="item">
+                                                <div class="ut-wishlist-product" data-wishlist-item="1"
+                                                    t-att-data-wishlist-id="item.get('wishlist_id')"
+                                                    t-att-data-product-id="item.get('product_id')">
+                                                    <a t-att-href="item.get('product_url')" class="ut-wishlist-image">
+                                                        <img t-att-src="item.get('image_url')" t-att-alt="item.get('name')"/>
+                                                    </a>
+                                                    <div class="ut-wishlist-info">
+                                                        <a t-att-href="item.get('product_url')" class="ut-wishlist-product-name" t-esc="item.get('name')"/>
+                                                        <p>Kategori : <t t-esc="item.get('category')"/></p>
+                                                        <p>Jumlah : <t t-esc="item.get('quantity')"/></p>
+                                                        <div class="ut-wishlist-rating">
+                                                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                                                <path d="m12 2 3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2Z"/>
+                                                            </svg>
+                                                            <span t-esc="item.get('rating')"/>
+                                                        </div>
+                                                    </div>
+                                                    <div class="ut-wishlist-price-actions">
+                                                        <strong t-esc="item.get('price')"/>
+                                                        <div class="ut-wishlist-actions">
+                                                            <a t-att-href="item.get('chat_url')" class="ut-wishlist-chat">Chat Penjual</a>
+                                                            <a t-if="item.get('can_order')" t-att-href="item.get('cart_url')" class="ut-wishlist-order">Pesan</a>
+                                                            <span t-else="" class="ut-wishlist-order is-disabled">Pesan</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </t>
+                                        </div>
+                                    </article>
+                                </t>
+                            </t>
+                            <div t-att-class="'ut-wishlist-empty %s' % ('' if not wishlist_groups else 'tw-hidden')" data-wishlist-empty="1">
+                                <h2>Wishlist kosong</h2>
+                                <p>Produk yang Anda sukai dari halaman detail produk akan muncul di sini.</p>
+                                <a href="/shop">Belanja sekarang</a>
                             </div>
-                        </t>
-                    </div>
-                </t>
-                <t t-else="">
-                    <div class="tw-text-center tw-py-20">
-                        <div class="tw-text-5xl tw-mb-4">💔</div>
-                        <p class="tw-text-gray-500">Wishlist kosong. Mulai tambahkan produk favorit!</p>
-                        <a href="/shop" class="unitrade-btn-primary tw-mt-4 tw-inline-block">Belanja Sekarang</a>
-                    </div>
-                </t>
-            </div>
+                        </div>
+                    </main>
+                </div>
+            </section>
         </t>
+    </template>
+
+    <template id="wishlist_page_sidebar_component" inherit_id="unitrade_wishlist.wishlist_page_template" name="UniTrade Wishlist Sidebar Component">
+        <xpath expr="//aside[hasclass('ut-wishlist-sidebar')]" position="replace">
+            <t t-call="unitrade_theme.unitrade_account_sidebar">
+                <t t-set="active_account_page" t-value="'wishlist'"/>
+            </t>
+        </xpath>
     </template>
 </odoo>

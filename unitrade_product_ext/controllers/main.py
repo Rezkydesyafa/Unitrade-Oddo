@@ -1,10 +1,19 @@
 from odoo import http
 from odoo.http import request
 from odoo.addons.website_sale.controllers.main import WebsiteSale
+from odoo.osv import expression
 import logging
 import math
 
 _logger = logging.getLogger(__name__)
+
+DIY_DISTRICTS = {
+    'yogyakarta': 'Kota Yogyakarta',
+    'sleman': 'Sleman',
+    'bantul': 'Bantul',
+    'kulon_progo': 'Kulon Progo',
+    'gunungkidul': 'Gunungkidul',
+}
 
 
 def _safe_get(record, field_name, default=False):
@@ -73,10 +82,6 @@ class UnitradeWebsiteSale(WebsiteSale):
 
     def _prepare_unitrade_product_values(self, product):
         """Compute all custom field values safely for the product detail template."""
-        rating = _safe_get(product, 'x_average_rating', 0) or 0.0
-        full_stars = int(rating)
-        has_half = (rating - full_stars) >= 0.5
-        review_count = _safe_get(product, 'x_review_count', 0) or 0
         weight = _safe_get(product, 'x_weight_product', 0) or 0
         condition = _safe_get(product, 'x_condition', '')
         brand = _safe_get(product, 'x_brand', '')
@@ -84,7 +89,19 @@ class UnitradeWebsiteSale(WebsiteSale):
         seller_location = _safe_get(product, 'x_seller_location', '')
         seller_lat = _safe_get(product, 'x_seller_latitude', 0)
         seller_lng = _safe_get(product, 'x_seller_longitude', 0)
+        item_lat = _safe_get(product, 'x_item_latitude', 0)
+        item_lng = _safe_get(product, 'x_item_longitude', 0)
+        map_lat = item_lat or seller_lat
+        map_lng = item_lng or seller_lng
         seller = _safe_get(product, 'x_seller_id', False)
+        discount_percent = max(_safe_get(product, 'x_discount_percent', 0) or 0, 0)
+        original_price = product.list_price or 0.0
+        has_discount = bool(discount_percent and original_price > 0)
+        discounted_price = (
+            original_price * (100 - min(discount_percent, 100)) / 100
+            if has_discount
+            else original_price
+        )
 
         # Reviews
         reviews = []
@@ -97,50 +114,74 @@ class UnitradeWebsiteSale(WebsiteSale):
         except Exception:
             pass
 
-        # Seller products
-        seller_products = []
-        if seller:
+        all_reviews = reviews
+        if len(reviews) == 20:
             try:
-                seller_products = request.env['product.template'].sudo().search([
-                    ('x_seller_id', '=', seller.id),
-                    ('id', '!=', product.id),
-                    ('website_published', '=', True),
-                ], limit=8)
+                all_reviews = request.env['unitrade.review'].sudo().search([
+                    ('product_id', '=', product.id),
+                    ('is_visible', '=', True),
+                ])
             except Exception:
-                pass
+                all_reviews = reviews
 
-        # Build related product data as plain dicts (no field access needed in template)
-        seller_products_data = []
-        for rp in seller_products:
-            seller_products_data.append({
-                'id': rp.id,
-                'name': rp.name,
-                'list_price': rp.list_price,
-                'price_formatted': '{:,.0f}'.format(rp.list_price).replace(',', '.'),
-                'location': _safe_get(rp, 'x_seller_location', '') or 'Yogyakarta',
-                'rating': _safe_get(rp, 'x_average_rating', 0) or 0.0,
-                'website_url': rp.website_url,
-            })
+        review_count = len(all_reviews)
+        rating = round(sum(all_reviews.mapped('rating')) / review_count, 1) if review_count else 0.0
+        full_stars = int(rating)
+        has_half = (rating - full_stars) >= 0.5
+
+        # Marketplace recommendations
+        recommended_products = request.env['product.template']
+        try:
+            Product = request.env['product.template'].sudo()
+            base_domain = [
+                ('id', '!=', product.id),
+                ('x_is_marketplace', '=', True),
+                ('sale_ok', '=', True),
+                ('website_published', '=', True),
+            ]
+            if product.categ_id:
+                recommended_products = Product.search(
+                    base_domain + [('categ_id', '=', product.categ_id.id)],
+                    order='create_date desc',
+                    limit=8,
+                )
+            if len(recommended_products) < 8:
+                extra_products = Product.search(
+                    base_domain + [('id', 'not in', recommended_products.ids)],
+                    order='create_date desc',
+                    limit=8 - len(recommended_products),
+                )
+                recommended_products |= extra_products
+        except Exception:
+            _logger.exception('Failed to load UniTrade product recommendations for product %s', product.id)
 
         # Check wishlist
         is_in_wishlist = False
         is_public_user = request.env.user._is_public()
         if not is_public_user:
             try:
-                wish = request.env['product.wishlist'].sudo().search([
-                    ('partner_id', '=', request.env.user.partner_id.id),
-                    ('product_id.product_tmpl_id', '=', product.id),
+                wish = request.env['unitrade.wishlist'].sudo().search([
+                    ('user_id', '=', request.env.uid),
+                    ('product_id', '=', product.id),
                 ], limit=1)
                 is_in_wishlist = bool(wish)
             except Exception:
-                pass
+                _logger.exception('Failed to check UniTrade wishlist for product %s', product.id)
 
         # Stock text
         try:
-            qty = sum(product.product_variant_ids.mapped('qty_available'))
+            qty = (
+                sum(product.product_variant_ids.mapped('qty_available'))
+                if 'qty_available' in product.product_variant_ids._fields
+                else None
+            )
         except Exception:
-            qty = 0
-        stock_text = f'Stok: {int(qty)} tersedia' if qty > 0 else 'Stok habis'
+            qty = None
+        stock_text = (
+            f'Stok: {int(qty)} tersedia'
+            if qty and qty > 0
+            else 'Stok habis' if qty == 0 else 'Tersedia'
+        )
 
         return {
             'ut_rating': rating,
@@ -152,12 +193,18 @@ class UnitradeWebsiteSale(WebsiteSale):
             'ut_condition': condition,
             'ut_brand': brand,
             'ut_specification': specification,
+            'ut_has_discount': has_discount,
+            'ut_discount_percent': discount_percent,
+            'ut_original_price': original_price,
+            'ut_discounted_price': discounted_price,
             'ut_seller_location': seller_location,
             'ut_seller_lat': seller_lat,
             'ut_seller_lng': seller_lng,
+            'ut_map_lat': map_lat,
+            'ut_map_lng': map_lng,
             'ut_seller': seller,
             'ut_reviews': reviews,
-            'ut_seller_products': seller_products_data,
+            'ut_recommended_products': recommended_products,
             'ut_is_in_wishlist': is_in_wishlist,
             'ut_is_public_user': is_public_user,
             'ut_stock_text': stock_text,
@@ -176,6 +223,13 @@ class UnitradeWebsiteSale(WebsiteSale):
              math.sin(dlon / 2) ** 2)
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
         return R * c
+
+    @staticmethod
+    def _product_coordinates(product):
+        """Return item coordinates, falling back to seller coordinates for existing data."""
+        lat = _safe_get(product, 'x_item_latitude', 0) or _safe_get(product, 'x_seller_latitude', 0)
+        lon = _safe_get(product, 'x_item_longitude', 0) or _safe_get(product, 'x_seller_longitude', 0)
+        return lat, lon
 
     @http.route()
     def shop(self, page=0, category=None, search='', min_price=0.0, max_price=0.0, ppg=False, **post):
@@ -220,19 +274,37 @@ class UnitradeWebsiteSale(WebsiteSale):
             extra_domain.append(('list_price', '<=', ut_max_price))
 
         # Location filters
-        DIY_KEYWORDS = ['Yogyakarta', 'Sleman', 'Bantul', 'Kulon Progo', 'Gunungkidul']
         if ut_lokasi == 'kabupaten':
-            extra_domain.append(('x_seller_location', 'ilike', 'Sleman'))
-        elif ut_lokasi == 'diy':
-            diy_domain = ['|'] * (len(DIY_KEYWORDS) - 1)
-            for kw in DIY_KEYWORDS:
-                diy_domain.append(('x_seller_location', 'ilike', kw))
-            extra_domain += diy_domain
-        elif ut_lokasi == 'terdekat':
-            extra_domain += [
-                ('x_seller_latitude', '!=', 0),
-                ('x_seller_longitude', '!=', 0),
+            seller_location_domains = [
+                [('x_seller_location', 'ilike', label)]
+                for label in DIY_DISTRICTS.values()
             ]
+            extra_domain = expression.AND([
+                extra_domain,
+                expression.OR([
+                    [('x_item_district', 'in', list(DIY_DISTRICTS.keys()))],
+                ] + seller_location_domains),
+            ])
+        elif ut_lokasi == 'diy':
+            seller_location_domains = [
+                [('x_seller_location', 'ilike', label)]
+                for label in DIY_DISTRICTS.values()
+            ]
+            extra_domain = expression.AND([
+                extra_domain,
+                expression.OR([
+                    [('x_item_province', '=', 'diy')],
+                    [('x_item_district', 'in', list(DIY_DISTRICTS.keys()))],
+                ] + seller_location_domains),
+            ])
+        elif ut_lokasi == 'terdekat':
+            extra_domain = expression.AND([
+                extra_domain,
+                expression.OR([
+                    [('x_item_latitude', '!=', 0), ('x_item_longitude', '!=', 0)],
+                    [('x_seller_latitude', '!=', 0), ('x_seller_longitude', '!=', 0)],
+                ]),
+            ])
 
         # --- Determine sort order ---
         sort_map = {
@@ -259,27 +331,31 @@ class UnitradeWebsiteSale(WebsiteSale):
 
             full_domain = base_domain + extra_domain
             ppg_val = response.qcontext.get('ppg', 20)
+            url_args = {
+                'search': search,
+                'lokasi': ut_lokasi,
+                'kondisi': ut_kondisi,
+                'sort': ut_sort,
+                'ut_min_price': str(ut_min_price) if ut_min_price else '',
+                'ut_max_price': str(ut_max_price) if ut_max_price else '',
+            }
 
             # Special handling for "terdekat" — sort by Haversine distance
             if ut_lokasi == 'terdekat' and ut_lat and ut_lon:
                 all_products = Product.search(full_domain)
                 product_with_dist = []
                 for p in all_products:
-                    dist = self._haversine(ut_lat, ut_lon, p.x_seller_latitude, p.x_seller_longitude)
+                    product_lat, product_lon = self._product_coordinates(p)
+                    dist = self._haversine(ut_lat, ut_lon, product_lat, product_lon)
                     product_with_dist.append((p, dist))
                 product_with_dist.sort(key=lambda x: x[1])
 
                 product_count = len(product_with_dist)
                 offset = int(page) * ppg_val if page else 0
+                url_args.update({'lat': str(ut_lat), 'lon': str(ut_lon)})
                 pager = request.website.pager(
                     url='/shop', total=product_count, page=page, step=ppg_val,
-                    url_args={
-                        'search': search, 'lokasi': ut_lokasi, 'kondisi': ut_kondisi,
-                        'sort': ut_sort,
-                        'ut_min_price': str(ut_min_price) if ut_min_price else '',
-                        'ut_max_price': str(ut_max_price) if ut_max_price else '',
-                        'lat': str(ut_lat), 'lon': str(ut_lon),
-                    }
+                    url_args=url_args
                 )
                 page_products = [pd[0] for pd in product_with_dist[offset:offset + ppg_val]]
                 products = Product.browse([p.id for p in page_products]) if page_products else Product.browse([])
@@ -290,12 +366,7 @@ class UnitradeWebsiteSale(WebsiteSale):
                 product_count = Product.search_count(full_domain)
                 pager = request.website.pager(
                     url='/shop', total=product_count, page=page, step=ppg_val,
-                    url_args={
-                        'search': search, 'lokasi': ut_lokasi, 'kondisi': ut_kondisi,
-                        'sort': ut_sort,
-                        'ut_min_price': str(ut_min_price) if ut_min_price else '',
-                        'ut_max_price': str(ut_max_price) if ut_max_price else '',
-                    }
+                    url_args=url_args
                 )
                 products = Product.search(
                     full_domain, order=order,
@@ -313,6 +384,55 @@ class UnitradeWebsiteSale(WebsiteSale):
         response.qcontext['ut_max_price'] = ut_max_price
 
         return response
+
+    @http.route('/unitrade/shop/filter', type='json', auth='public', website=True, csrf=False)
+    def unitrade_shop_filter(self, **post):
+        """Return the UniTrade shop product grid for OWL filter updates."""
+        payload = dict(post)
+
+        try:
+            page = int(payload.pop('page', 0) or 0)
+        except (ValueError, TypeError):
+            page = 0
+
+        search = payload.pop('search', '') or ''
+        category_id = payload.pop('category_id', '') or payload.pop('category', '') or None
+        ppg = payload.pop('ppg', False) or False
+
+        try:
+            category = int(category_id) if category_id else None
+        except (ValueError, TypeError):
+            category = None
+
+        try:
+            response = self.shop(
+                page=page,
+                category=category,
+                search=search,
+                min_price=0.0,
+                max_price=0.0,
+                ppg=ppg,
+                **payload
+            )
+            if not hasattr(response, 'qcontext'):
+                return {'html': '', 'search_count': 0}
+
+            qcontext = response.qcontext
+            html = request.env['ir.ui.view']._render_template(
+                'unitrade_theme.unitrade_shop_results_fragment',
+                qcontext
+            )
+            return {
+                'html': str(html),
+                'search_count': qcontext.get('search_count', 0),
+            }
+        except Exception:
+            _logger.exception('Failed to render UniTrade OWL shop filter response')
+            return {
+                'html': '',
+                'search_count': 0,
+                'error': 'filter_render_failed',
+            }
 
     @http.route()
     def product(self, product, category='', search='', **kwargs):

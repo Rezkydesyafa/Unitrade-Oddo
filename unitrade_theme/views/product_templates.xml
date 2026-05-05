@@ -1,0 +1,667 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="unitrade_product_detail" inherit_id="website_sale.product" name="UniTrade Product Detail Override">
+        <xpath expr="//section[@id='product_detail']" position="replace">
+            <section id="product_detail" class="ut-product-detail-hydrating tw-bg-[var(--ut-color-bg-page)] tw-w-full tw-min-h-screen tw-pb-16" style="font-family: 'Urbanist', 'Inter', sans-serif;">
+                <div class="unitrade-detail-scope">
+                <div class="ut-product-detail-skeleton tw-max-w-[1300px] tw-mx-auto tw-px-6 tw-pt-6" aria-hidden="true">
+                    <div class="ut-pd-sk-navbar">
+                        <div class="ut-pd-sk-logo ut-pd-sk-block"></div>
+                        <div class="ut-pd-sk-search ut-pd-sk-block"></div>
+                        <div class="ut-pd-sk-action ut-pd-sk-block"></div>
+                        <div class="ut-pd-sk-action ut-pd-sk-block"></div>
+                        <div class="ut-pd-sk-user ut-pd-sk-block"></div>
+                    </div>
+
+                    <div class="ut-pd-sk-card">
+                        <div class="ut-pd-sk-breadcrumb">
+                            <span class="ut-pd-sk-block"></span>
+                            <span class="ut-pd-sk-block"></span>
+                            <span class="ut-pd-sk-block"></span>
+                        </div>
+
+                        <div class="ut-pd-sk-main">
+                            <div class="ut-pd-sk-gallery">
+                                <div class="ut-pd-sk-image ut-pd-sk-block"></div>
+                                <div class="ut-pd-sk-thumbs">
+                                    <span class="ut-pd-sk-block"></span>
+                                    <span class="ut-pd-sk-block"></span>
+                                    <span class="ut-pd-sk-block"></span>
+                                    <span class="ut-pd-sk-block"></span>
+                                </div>
+                            </div>
+
+                            <div class="ut-pd-sk-info">
+                                <div class="ut-pd-sk-title ut-pd-sk-block"></div>
+                                <div class="ut-pd-sk-rating ut-pd-sk-block"></div>
+                                <div class="ut-pd-sk-chip-row">
+                                    <span class="ut-pd-sk-chip ut-pd-sk-block"></span>
+                                    <span class="ut-pd-sk-chip ut-pd-sk-block"></span>
+                                </div>
+                                <div class="ut-pd-sk-price ut-pd-sk-block"></div>
+                                <div class="ut-pd-sk-stock ut-pd-sk-block"></div>
+                                <div class="ut-pd-sk-qty">
+                                    <span class="ut-pd-sk-circle ut-pd-sk-block"></span>
+                                    <span class="ut-pd-sk-pill ut-pd-sk-block"></span>
+                                    <span class="ut-pd-sk-circle ut-pd-sk-block"></span>
+                                </div>
+                                <div class="ut-pd-sk-buttons">
+                                    <span class="ut-pd-sk-button ut-pd-sk-block"></span>
+                                    <span class="ut-pd-sk-circle-lg ut-pd-sk-block"></span>
+                                    <span class="ut-pd-sk-circle-lg ut-pd-sk-block"></span>
+                                </div>
+                                <div class="ut-pd-sk-seller">
+                                    <span class="ut-pd-sk-avatar ut-pd-sk-block"></span>
+                                    <div>
+                                        <span class="ut-pd-sk-seller-name ut-pd-sk-block"></span>
+                                        <span class="ut-pd-sk-seller-status ut-pd-sk-block"></span>
+                                    </div>
+                                </div>
+                                <div class="ut-pd-sk-seller-buttons">
+                                    <span class="ut-pd-sk-seller-btn ut-pd-sk-block"></span>
+                                    <span class="ut-pd-sk-seller-btn-lg ut-pd-sk-block"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ut-pd-sk-map ut-pd-sk-block"></div>
+                    </div>
+
+                    <div class="ut-pd-sk-tabs">
+                        <span class="ut-pd-sk-tab-label ut-pd-sk-block"></span>
+                        <span class="ut-pd-sk-tab ut-pd-sk-block"></span>
+                        <span class="ut-pd-sk-tab ut-pd-sk-block"></span>
+                    </div>
+
+                    <div class="ut-pd-sk-description">
+                        <div class="ut-pd-sk-desc-line ut-pd-sk-block"></div>
+                        <div class="ut-pd-sk-desc-line ut-pd-sk-block"></div>
+                        <div class="ut-pd-sk-desc-line ut-pd-sk-block"></div>
+                        <div class="ut-pd-sk-desc-line short ut-pd-sk-block"></div>
+                    </div>
+
+                    <div class="ut-pd-sk-recommendation">
+                        <div class="ut-pd-sk-section-title ut-pd-sk-block"></div>
+                        <div class="ut-pd-sk-product-row">
+                            <t t-foreach="[1, 2, 3, 4, 5]" t-as="item">
+                                <div class="ut-pd-sk-product-card">
+                                    <div class="ut-pd-sk-product-image ut-pd-sk-block"></div>
+                                    <div class="ut-pd-sk-product-name ut-pd-sk-block"></div>
+                                    <div class="ut-pd-sk-product-meta ut-pd-sk-block"></div>
+                                    <div class="ut-pd-sk-product-bottom">
+                                        <span class="ut-pd-sk-product-price ut-pd-sk-block"></span>
+                                        <span class="ut-pd-sk-product-rating ut-pd-sk-block"></span>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+                <div class="ut-product-detail-content tw-max-w-[1300px] tw-mx-auto tw-px-6 tw-pt-6">
+
+                    <div id="ut-product-main-card" class="tw-relative tw-bg-bg-surface tw-rounded-[24px] tw-p-4 md:tw-p-6 tw-shadow-sm tw-mb-10">
+                    <!-- Breadcrumbs -->
+                    <div class="tw-w-full tw-mb-6 tw-flex tw-justify-start">
+                        <div class="tw-bg-bg-surface tw-rounded-[12px] tw-px-5 tw-py-2.5 tw-flex tw-items-center tw-gap-3 tw-w-max">
+                            <a href="/" class="tw-flex tw-items-center tw-gap-2 tw-text-text-muted hover:tw-text-heading tw-no-underline tw-transition-colors">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <path d="M12 16v-4"></path>
+                                    <circle cx="12" cy="16" r="0.5" fill="currentColor"></circle>
+                                </svg>
+                                <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[14px]">Home</span>
+                            </a>
+                            <span class="tw-text-gray-300">/</span>
+                            <a href="/shop" class="tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-text-muted hover:tw-text-heading tw-no-underline">Produk</a>
+                            <span class="tw-text-gray-300">/</span>
+                            <span class="tw-font-['Urbanist'] tw-font-semibold tw-text-[14px] tw-text-heading">
+                                <t t-esc="product.name"/>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Top Section: Image Left + Info Right -->
+                    <div class="tw-grid tw-grid-cols-1 lg:tw-grid-cols-2 tw-gap-10 tw-mb-10">
+
+                        <!-- LEFT: Image gallery -->
+                        <div class="tw-bg-[var(--ut-color-bg-muted)] tw-rounded-[20px] tw-p-3">
+                            <!-- Main image container -->
+                            <div class="tw-bg-bg-surface tw-rounded-[16px] tw-p-4 tw-mb-4">
+                                <div class="tw-w-full tw-aspect-[560/384] tw-rounded-[8px] tw-overflow-hidden tw-bg-white">
+                                    <img id="ut-main-image"
+                                        t-attf-src="/web/image/product.template/#{product.id}/image_1920"
+                                        t-att-alt="product.name"
+                                        class="tw-w-full tw-h-full tw-object-contain"/>
+                                </div>
+                            </div>
+                            <!-- Thumbnails -->
+                            <div class="tw-flex tw-gap-3 tw-overflow-x-auto ut-thumbnail-container tw-pb-2">
+                            <div class="tw-flex tw-gap-3 tw-mt-4">
+                                <!-- Main Image as First Thumbnail -->
+                                <div class="ut-thumb tw-w-20 tw-h-16 tw-rounded-[8px] tw-border-2 tw-border-[var(--ut-color-border-strong)] tw-overflow-hidden tw-cursor-pointer tw-bg-bg-surface"
+                                    t-attf-data-src="/web/image/product.template/#{product.id}/image_1920">
+                                    <img t-attf-src="/web/image/product.template/#{product.id}/image_128"
+                                        class="tw-w-full tw-h-full tw-object-contain ut-thumb-img"/>
+                                </div>
+                                <!-- Additional Images -->
+                                <t t-foreach="product.product_template_image_ids" t-as="img">
+                                    <div class="ut-thumb tw-w-20 tw-h-16 tw-rounded-[8px] tw-border-2 tw-border-transparent tw-overflow-hidden tw-cursor-pointer tw-bg-bg-surface"
+                                        t-attf-data-src="/web/image/product.image/#{img.id}/image_1920">
+                                        <img t-attf-src="/web/image/product.image/#{img.id}/image_128"
+                                            class="tw-w-full tw-h-full tw-object-contain ut-thumb-img"/>
+                                    </div>
+                                </t>
+                            </div>
+                            </div>
+
+                        </div>
+
+                        <!-- RIGHT: Product info -->
+                        <div class="tw-flex tw-flex-col tw-gap-5 tw-p-2 lg:tw-p-4 tw-self-start tw-min-w-0">
+
+                            <!-- Product name -->
+                            <h1 class="ut-product-detail-title tw-text-[30px] tw-leading-[36px] tw-font-semibold tw-text-heading tw-m-0"
+                                t-att-title="product.name"
+                                t-field="product.name"></h1>
+
+                            <!-- Rating row -->
+                            <div class="tw-flex tw-items-center tw-gap-2">
+                                <div class="tw-flex tw-items-center tw-gap-[2px] tw-text-accent">
+                                    <t t-foreach="ut_star_range" t-as="star">
+                                        <i t-if="star &lt;= ut_full_stars" class="fa fa-star" style="font-size:14px;"></i>
+                                        <i t-elif="ut_has_half_star and star == ut_full_stars + 1" class="fa fa-star-half-o" style="font-size:14px;"></i>
+                                        <i t-else="" class="fa fa-star-o" style="font-size:14px;"></i>
+                                    </t>
+                                </div>
+                                <span class="tw-text-[var(--ut-color-text-body)]" style="font-size:16px;">
+                                    (<t t-esc="'%.1f' % ut_rating"/>) • <t t-esc="ut_review_count"/> reviews
+                                </span>
+                            </div>
+
+                            <!-- Condition badge -->
+                            <div>
+                                <t t-set="condition_label" t-value="'Baru' if product.x_condition == 'new' else 'Bekas' if product.x_condition == 'used' else '-'"/>
+                                <div class="tw-flex tw-flex-wrap tw-items-center tw-gap-2">
+                                    <span class="tw-inline-flex tw-items-center tw-justify-center tw-px-4 tw-py-0"
+                                        style="border: 1px solid var(--ut-color-heading); border-radius: 32px; height: 24px; font-size: 16px; color: var(--ut-color-heading-strong); line-height: 24px;">
+                                        <t t-esc="condition_label"/>
+                                    </span>
+                                    <span t-if="product.categ_id" class="tw-inline-flex tw-items-center tw-justify-center tw-px-4 tw-py-0"
+                                        style="border: 1px solid var(--ut-color-border-strong); border-radius: 32px; height: 24px; font-size: 16px; color: var(--ut-color-text-body); line-height: 24px;">
+                                        <t t-esc="product.categ_id.name"/>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Price -->
+                            <div>
+                                <t t-if="ut_has_discount">
+                                    <div style="display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 12px;">
+                                        <span style="font-size:30px; line-height:36px; color:#121212; font-weight:600;">
+                                            <span t-esc="ut_discounted_price"
+                                                t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                                        </span>
+                                        <span style="font-size:18px; line-height:24px; color:var(--ut-color-text-subtle); text-decoration:line-through; font-weight:500;">
+                                            <span t-esc="ut_original_price"
+                                                t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                                        </span>
+                                        <span style="display:inline-flex; align-items:center; height:24px; padding:0 8px; border-radius:4px; background:#fff1f0; color:#f04438; font-size:13px; font-weight:700;">
+                                            -<t t-esc="'{:,.0f}'.format(ut_discount_percent)"/>%
+                                        </span>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div style="font-size:30px; line-height:36px; color:#121212; font-weight:400;">
+                                        <span t-field="product.list_price"
+                                            t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <!-- Stock info -->
+                            <p style="font-size: 16px; color: var(--ut-color-text-body); margin: 0; font-weight: 500;">
+                                <t t-esc="ut_stock_text"/>
+                                <t t-if="product.x_free_shipping"> • Gratis Ongkir</t>
+                            </p>
+
+                            <!-- Add to cart form -->
+                            <form t-if="product._is_add_to_cart_possible()" action="/shop/cart/update" method="POST" class="tw-my-2">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" t-nocache="csrf"/>
+                                <div class="js_product js_main_product">
+                                    <t t-set="product_variant" t-value="product._get_first_possible_variant_id()"/>
+                                    <input type="hidden" class="product_id" name="product_id" t-att-value="product_variant"/>
+                                    <input type="hidden" class="product_template_id" name="product_template_id" t-att-value="product.id"/>
+
+                                    <!-- Subtotal label + Qty -->
+                                    <div class="tw-flex tw-flex-col tw-gap-2 tw-mb-4">
+                                        <p style="font-size:16px; color:var(--ut-color-text-body); font-weight:500; margin:0;">Subtotal</p>
+
+                                        <!-- Quantity Selector: identik dengan pola cart Odoo native -->
+                                        <div class="css_quantity input-group tw-flex tw-items-center tw-gap-3" style="width:max-content;">
+                                            <a href="#" class="btn btn-link"
+                                                onclick="utChangeQty(-1); return false;"
+                                                aria-label="Remove one"
+                                                style="width:40px; height:40px; border:2px solid var(--ut-color-border-strong); border-radius:50%; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; text-decoration:none; flex-shrink:0; padding:0;">
+                                                <i class="fa fa-minus" style="color:var(--ut-color-text-body); font-size:12px;"></i>
+                                            </a>
+
+                                            <input type="text"
+                                                class="js_quantity quantity form-control"
+                                                name="add_qty"
+                                                t-att-value="add_qty or 1"
+                                                data-min="1"
+                                                style="width:64px !important; height:40px !important; border:2px solid var(--ut-color-border-strong) !important; border-radius:26px !important; background:transparent !important; text-align:center !important; padding:0 !important; margin:0 !important; font-size:16px !important; color:var(--ut-color-text-body) !important; outline:none !important; box-shadow:none !important; flex:none !important;"/>
+
+                                            <a href="#" class="btn btn-link float_left"
+                                                onclick="utChangeQty(1); return false;"
+                                                aria-label="Add one"
+                                                style="width:40px; height:40px; border:2px solid var(--ut-color-border-strong); border-radius:50%; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; text-decoration:none; flex-shrink:0; padding:0;">
+                                                <i class="fa fa-plus" style="color:var(--ut-color-text-body); font-size:12px;"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <!-- CTA Row -->
+                                    <div class="ut-product-cta-row tw-flex tw-items-center tw-gap-3">
+                                        <!-- Belanja / Login button -->
+                                        <t t-if="user_id._is_public()">
+                                            <a href="/web/login"
+                                                class="tw-flex-1 tw-flex tw-items-center tw-justify-center tw-gap-2 ut-btn-dark"
+                                                style="background:var(--ut-color-button-bg); color:var(--ut-color-button-text); height:48px; border-radius:24px; border:none; font-size:16px; cursor:pointer; width:100%; text-decoration:none;">
+                                                <i class="fa fa-sign-in"></i>
+                                                Perlu masuk terlebih dahulu
+                                            </a>
+                                        </t>
+                                        <t t-else="">
+                                            <button id="add_to_cart" type="submit"
+                                                class="tw-flex-1 tw-flex tw-items-center tw-justify-center tw-gap-2"
+                                                style="background:var(--ut-color-button-bg); color:var(--ut-color-button-text); height:48px; border-radius:24px; border:none; font-size:16px; cursor:pointer; width:100%;">
+                                                <i class="fa fa-shopping-cart"></i>
+                                                Belanja
+                                            </button>
+                                            <button type="button"
+                                                t-att-class="'ut-product-wishlist-direct is-active' if ut_is_in_wishlist else 'ut-product-wishlist-direct'"
+                                                t-att-data-product-id="product.id"
+                                                t-att-data-active="'1' if ut_is_in_wishlist else '0'"
+                                                t-att-title="'Lihat wishlist' if ut_is_in_wishlist else 'Tambahkan ke wishlist'"
+                                                t-att-aria-pressed="'true' if ut_is_in_wishlist else 'false'"
+                                                aria-label="Wishlist">
+                                                <i class="fa fa-heart"></i>
+                                            </button>
+                                        </t>
+                                        <!-- Share (dark circle) -->
+                                        <a href="#" title="Bagikan"
+                                            class="ut-btn-dark"
+                                            onclick="utToggleSharePopover(this); return false;"
+                                            style="width:48px; height:48px; border-radius:50%; background:var(--ut-color-button-bg); color:var(--ut-color-button-text); display:flex; align-items:center; justify-content:center; flex-shrink:0; text-decoration:none;">
+                                            <i class="fa fa-share" style="font-size:16px;"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <!-- Seller Info -->
+                            <div class="tw-flex tw-flex-col tw-gap-4 tw-mt-3">
+                                <!-- Avatar + Name + Status -->
+                                <div class="tw-flex tw-items-center tw-gap-3">
+                                    <t t-if="product.x_seller_id">
+                                        <img t-att-src="image_data_uri(product.x_seller_id.x_avatar_128) if product.x_seller_id.x_avatar_128 else '/web/static/img/user_menu_avatar.png'"
+                                            style="width:51px; height:51px; border-radius:50%; object-fit:cover; flex-shrink:0;"
+                                            alt="Seller"/>
+                                    </t>
+                                    <img t-else=""
+                                        src="/web/static/img/user_menu_avatar.png"
+                                        style="width:51px; height:51px; border-radius:50%; object-fit:cover; flex-shrink:0;"/>
+                                    <div>
+                                        <p style="font-size:20px; font-weight:500; color:var(--ut-color-heading-strong); margin:0; line-height:24px;">
+                                            <t t-esc="product.x_seller_id.sudo().name if product.x_seller_id else 'Dero sala'"/>
+                                        </p>
+                                        <p style="font-size:16px; color:var(--ut-color-text-body); margin:0; line-height:24px; display:flex; align-items:center; gap:4px;">
+                                            Aktif
+                                            <span style="width:7px; height:7px; background:var(--ut-color-success); border-radius:50%; display:inline-block;"></span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <!-- Action buttons -->
+                                <div class="tw-flex tw-gap-4">
+                                    <a t-if="product.x_seller_id"
+                                        t-attf-href="/seller-profile/#{product.x_seller_id.x_profile_uuid or product.x_seller_id.id}"
+                                        class="ut-btn-outline"
+                                        style="width:163px; height:48px; border:2px solid var(--ut-color-heading); border-radius:24px; color:var(--ut-color-heading); font-size:16px; display:flex; align-items:center; justify-content:center; text-decoration:none; background:transparent; box-sizing:border-box;">
+                                        Kunjungi profile
+                                    </a>
+                                    <a t-else=""
+                                        href="/shop"
+                                        class="ut-btn-outline"
+                                        style="width:163px; height:48px; border:2px solid var(--ut-color-heading); border-radius:24px; color:var(--ut-color-heading); font-size:16px; display:flex; align-items:center; justify-content:center; text-decoration:none; background:transparent; box-sizing:border-box;">
+                                        Kunjungi profile
+                                    </a>
+                                    <a t-if="product.x_seller_id"
+                                        t-attf-href="/seller-profile/#{product.x_seller_id.x_profile_uuid or product.x_seller_id.id}/chat"
+                                        class="ut-btn-dark"
+                                        style="width:217px; height:48px; border:1px solid var(--ut-color-border-strong); border-radius:24px; background:var(--ut-color-button-bg); color:var(--ut-color-button-text); font-size:16px; display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; box-sizing:border-box;">
+                                        <i class="fa fa-commenting-o"></i> Chat penjual
+                                    </a>
+                                    <a t-else=""
+                                        href="/seller-verification"
+                                        class="ut-btn-dark"
+                                        style="width:217px; height:48px; border:1px solid var(--ut-color-border-strong); border-radius:24px; background:var(--ut-color-button-bg); color:var(--ut-color-button-text); font-size:16px; display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; box-sizing:border-box;">
+                                        <i class="fa fa-commenting-o"></i> Chat penjual
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Map Section -->
+                    <div class="tw-mt-2">
+                        <div style="width:100%; height:229px; background:var(--ut-color-bg-muted); border-radius:16px; overflow:hidden; position:relative;">
+                            <t t-if="ut_map_lat and ut_map_lng">
+                                <iframe style="width:100%; height:465px; position:absolute; top:-118px; left:0; border:none;"
+                                    t-attf-src="https://maps.google.com/maps?q=#{ut_map_lat},#{ut_map_lng}&amp;z=14&amp;output=embed"
+                                    allowfullscreen="" loading="lazy"></iframe>
+                            </t>
+                            <t t-else="">
+                                <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+                                    <span style="color:var(--ut-color-text-subtle);">Peta tidak tersedia</span>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                        <!-- Share Popover - Figma node 98:1037 -->
+                        <div id="ut-share-popover"
+                            class="tw-hidden tw-absolute tw-z-[20] tw-bg-[var(--ut-color-bg-page)] tw-border tw-border-solid tw-border-heading tw-rounded-[31px] tw-w-[125px] tw-h-[62px] tw-items-center tw-justify-center tw-gap-[10px] tw-shadow-lg"
+                            data-node-id="98:1037"
+                            aria-hidden="true">
+                            <button type="button"
+                                onclick="utShareWhatsApp(); return false;"
+                                class="tw-w-[39px] tw-h-[39px] tw-rounded-full tw-bg-button tw-text-button-text tw-border-0 tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-opacity-90 tw-transition-opacity"
+                                aria-label="Bagikan ke WhatsApp">
+                                <i class="fa fa-whatsapp" style="font-size:21px;"></i>
+                            </button>
+                            <button type="button"
+                                onclick="utCopyShareLink(this); return false;"
+                                class="tw-w-[39px] tw-h-[39px] tw-rounded-full tw-bg-transparent tw-text-heading tw-border tw-border-solid tw-border-border tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-bg-surface tw-transition-colors"
+                                aria-label="Salin link produk">
+                                <i class="fa fa-link" style="font-size:18px;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabs: Deskripsi / Rating & Ulasan -->
+                    <div class="tw-mb-10" id="ut-tabs-wrapper">
+
+                        <!-- Tab Headers -->
+                        <div class="ut-product-detail-tabbar">
+                            <span class="ut-product-detail-tabbar-label">Produk</span>
+                            <button id="ut-tab-deskripsi" type="button"
+                                onclick="utSwitchTab(this, 'deskripsi')"
+                                class="ut-product-detail-tab-btn ut-product-detail-tab-active">
+                                Deskripsi
+                            </button>
+                            <button id="ut-tab-ulasan" type="button"
+                                onclick="utSwitchTab(this, 'ulasan')"
+                                class="ut-product-detail-tab-btn">
+                                Rating &amp; Ulasan
+                            </button>
+                        </div>
+
+                        <!-- Tab Content: Deskripsi -->
+                        <div id="tab-deskripsi" class="tw-bg-bg-surface tw-rounded-[24px] tw-p-6 tw-shadow-sm tw-mt-5">
+                            <div style="color:var(--ut-color-text-body); font-size:16px; line-height:24px; max-width:1145px;">
+                                <div style="margin-bottom:24px; display:grid; gap:4px; color:var(--ut-color-text-body);">
+                                    <div>
+                                        <span>Kondisi: </span>
+                                        <strong style="color:var(--ut-color-heading);"><t t-esc="condition_label"/></strong>
+                                    </div>
+                                    <div t-if="product.x_weight_product">
+                                        <span>Berat Satuan: </span>
+                                        <strong style="color:var(--ut-color-heading);"><t t-esc="'{:,.0f}'.format(product.x_weight_product).replace(',', '.')"/> g</strong>
+                                    </div>
+                                    <div t-if="product.categ_id">
+                                        <span>Kategori: </span>
+                                        <strong style="color:#121212;"><t t-esc="product.categ_id.name"/></strong>
+                                    </div>
+                                    <div t-if="product.x_brand">
+                                        <span>Merek: </span>
+                                        <strong style="color:#121212;"><t t-esc="product.x_brand"/></strong>
+                                    </div>
+                                </div>
+                                <t t-if="product.description_sale">
+                                    <div t-field="product.description_sale" style="white-space:pre-line;"></div>
+                                </t>
+                                <t t-else="">
+                                    <p>These premium wireless headphones deliver exceptional audio quality with advanced active noise cancellation technology. Perfect for music lovers, commuters, and professionals who demand the best in audio performance.</p>
+                                    <p style="margin-top:16px;">The ergonomic design ensures all-day comfort while the long-lasting battery keeps you connected for up to 30 hours of continuous playback.</p>
+                                </t>
+                                <div t-if="ut_specification" style="margin-top:24px;">
+                                    <div style="font-weight:700; color:var(--ut-color-heading); margin-bottom:10px;">Spesifikasi Tambahan</div>
+                                    <div t-raw="ut_specification" style="white-space:normal;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab Content: Rating & Ulasan -->
+                        <div id="tab-ulasan" class="tw-bg-bg-surface tw-rounded-[24px] tw-p-6 tw-shadow-sm tw-mt-5" style="display:none;">
+                            <div id="ut-product-review-owl" t-att-data-product-id="product.id"></div>
+                        </div>
+
+                    </div>
+
+
+                    <!-- Related Products -->
+                    <div class="tw-mb-8">
+                        <h2 style="font-size:32px; font-weight:600; color:var(--ut-color-heading); margin-bottom:32px;">Pilihan lainnya untukmu</h2>
+                        <div t-if="ut_recommended_products" class="tw-flex tw-gap-[30px] tw-overflow-x-auto tw-pt-5 tw-pb-6 tw-px-2">
+                            <t t-foreach="ut_recommended_products" t-as="p">
+                                <div class="oe_product tw-w-[188px] tw-min-w-[188px] tw-shrink-0 tw-h-full">
+                                    <t t-set="ut_card_product" t-value="p"/>
+                                    <t t-set="ut_card_href" t-value="p.website_url"/>
+                                    <t t-set="ut_card_class" t-value="'tw-bg-white tw-border tw-border-solid tw-border-gray-200 tw-rounded-[14px] tw-overflow-hidden tw-shadow-sm hover:tw-shadow-md hover:-tw-translate-y-1 tw-transition-all tw-duration-300 tw-flex tw-flex-col tw-h-full tw-no-underline tw-group'"/>
+                                    <t t-call="unitrade_theme.unitrade_product_card"/>
+                                </div>
+                            </t>
+                        </div>
+                        <div t-else="" style="padding:24px 0; color:var(--ut-color-text-body);">
+                            Belum ada rekomendasi produk lain.
+                        </div>
+                    </div>
+
+                    <!-- Hidden Odoo Hooks -->
+                    <div style="display:none;">
+                        <div id="product_detail_main" data-name="Product Page"/>
+                        <div id="o_wsale_cta_wrapper"/>
+                        <div id="add_to_cart_wrap"/>
+                        <div id="o_product_terms_and_share"/>
+                        <div id="product_option_block"/>
+                        <div id="contact_us_wrapper"/>
+                        <div id="product_attributes_simple"/>
+                        <div id="product_documents"/>
+                    </div>
+
+                </div>
+                </div>
+                <!-- Script: pola identik dengan seller_verification.xml -->
+                <script>
+                    /* ── Quantity Counter ─── */
+                    function utChangeQty(change) {
+                        var input = document.querySelector('input[name="add_qty"]');
+                        if (!input) return;
+                        var currentVal = parseInt(input.value) || 1;
+                        var minVal = parseInt(input.getAttribute('data-min')) || 1;
+                        var newVal = currentVal + change;
+                        if (newVal >= minVal) {
+                            input.value = newVal;
+                            var event = new Event('change', { bubbles: true });
+                            input.dispatchEvent(event);
+                        }
+                    }
+
+                    /* Share popover */
+                    function utToggleSharePopover(trigger) {
+                        var popover = document.getElementById('ut-share-popover');
+                        if (!popover || !trigger) return;
+                        if (!popover.classList.contains('tw-hidden')) {
+                            utHideShareModal();
+                            return;
+                        }
+                        var container = document.getElementById('ut-product-main-card');
+                        if (!container) return;
+                        var rect = trigger.getBoundingClientRect();
+                        var containerRect = container.getBoundingClientRect();
+                        var width = 125;
+                        var height = 62;
+                        var gap = 10;
+                        var left = rect.left - containerRect.left + (rect.width / 2) - (width / 2);
+                        left = Math.max(12, Math.min(left, containerRect.width - width - 12));
+                        var top = rect.top - containerRect.top - height - gap;
+                        if (top &lt; 12) {
+                            top = rect.bottom - containerRect.top + gap;
+                        }
+                        popover.style.left = left + 'px';
+                        popover.style.top = top + 'px';
+                        popover.classList.remove('tw-hidden');
+                        popover.classList.add('tw-flex');
+                        popover.setAttribute('aria-hidden', 'false');
+                    }
+                    function utHideShareModal() {
+                        var popover = document.getElementById('ut-share-popover');
+                        if (!popover) return;
+                        popover.classList.add('tw-hidden');
+                        popover.classList.remove('tw-flex');
+                        popover.setAttribute('aria-hidden', 'true');
+                    }
+                    function utCopyShareLink(btn) {
+                        var url = window.location.href;
+                        var icon = btn ? btn.querySelector('i') : null;
+                        var oldTitle = btn ? btn.getAttribute('aria-label') : '';
+                        var copied = false;
+                        function flash() {
+                            copied = true;
+                            if (!icon) return;
+                            var orig = icon.className;
+                            icon.className = 'fa fa-check';
+                            icon.style.color = 'var(--ut-color-success)';
+                            if (btn) btn.setAttribute('aria-label', 'Link berhasil disalin');
+                            setTimeout(function() {
+                                icon.className = orig;
+                                icon.style.color = '';
+                                if (btn) btn.setAttribute('aria-label', oldTitle || 'Salin link produk');
+                                utHideShareModal();
+                            }, 900);
+                        }
+                        function fallbackCopy() {
+                            var ta = document.createElement('textarea');
+                            ta.value = url;
+                            ta.setAttribute('readonly', 'readonly');
+                            ta.style.position = 'fixed';
+                            ta.style.left = '-9999px';
+                            document.body.appendChild(ta);
+                            ta.focus();
+                            ta.select();
+                            try {
+                                document.execCommand('copy');
+                            } catch (err) {
+                                console.warn('[UniTrade] Fallback copy failed:', err);
+                            }
+                            document.body.removeChild(ta);
+                            flash();
+                        }
+                        if (!navigator.clipboard || !document.hasFocus()) {
+                            fallbackCopy();
+                            return;
+                        }
+                        try {
+                            Promise.resolve(navigator.clipboard.writeText(url))
+                                .then(flash)
+                                .catch(function() {
+                                    if (!copied) fallbackCopy();
+                                });
+                        } catch (err) {
+                            fallbackCopy();
+                        }
+                    }
+                    function utShareWhatsApp() {
+                        var url = encodeURIComponent(window.location.href);
+                        window.open('https://wa.me/?text=' + url, '_blank');
+                        utHideShareModal();
+                    }
+                    document.addEventListener('click', function(ev) {
+                        var popover = document.getElementById('ut-share-popover');
+                        if (!popover || popover.classList.contains('tw-hidden')) return;
+                        var target = ev.target;
+                        if (popover.contains(target)) return;
+                        var shareTrigger = target.closest ? target.closest('[title="Bagikan"]') : null;
+                        if (shareTrigger) return;
+                        utHideShareModal();
+                    });
+                    document.addEventListener('keydown', function(ev) {
+                        if (ev.key === 'Escape') utHideShareModal();
+                    });
+                    function utSwitchTab(btn, tabName) {
+                        var tabs = ['deskripsi', 'ulasan'];
+                        for (var i = 0; i &lt; tabs.length; i++) {
+                            var panel = document.getElementById('tab-' + tabs[i]);
+                            var tb = document.getElementById('ut-tab-' + tabs[i]);
+                            if (panel) panel.style.display = 'none';
+                            if (tb) tb.classList.remove('ut-product-detail-tab-active');
+                        }
+                        var active = document.getElementById('tab-' + tabName);
+                        if (active) active.style.display = 'block';
+                        btn.classList.add('ut-product-detail-tab-active');
+                    }
+
+                    /* ── Gallery thumbnail (IIFE - immediate) ──────── */
+                    (function() {
+                        function initProductGallery() {
+                            var mainImg = document.getElementById('ut-main-image');
+                            var gallery = document.querySelector('.ut-thumbnail-container');
+                            if (!mainImg || !gallery || gallery.dataset.utGalleryBound === '1') return;
+
+                            gallery.dataset.utGalleryBound = '1';
+                            mainImg.style.transition = 'opacity 180ms ease';
+
+                            gallery.addEventListener('click', function(ev) {
+                                var thumb = ev.target.closest ? ev.target.closest('.ut-thumb') : null;
+                                if (!thumb || !gallery.contains(thumb)) return;
+
+                                var src = thumb.getAttribute('data-src');
+                                if (!src || mainImg.getAttribute('src') === src) return;
+
+                                mainImg.style.opacity = '0.45';
+
+                                var nextImage = new Image();
+                                nextImage.onload = function() {
+                                    mainImg.src = src;
+                                    mainImg.style.opacity = '1';
+                                };
+                                nextImage.onerror = function() {
+                                    mainImg.src = src;
+                                    mainImg.style.opacity = '1';
+                                };
+                                nextImage.src = src;
+
+                                var thumbs = gallery.querySelectorAll('.ut-thumb');
+                                for (var i = 0; i &lt; thumbs.length; i++) {
+                                    thumbs[i].style.borderColor = 'transparent';
+                                }
+                                thumb.style.borderColor = 'var(--ut-color-border-strong)';
+                            });
+                        }
+
+                        if (document.readyState === 'loading') {
+                            document.addEventListener('DOMContentLoaded', initProductGallery);
+                        } else {
+                            initProductGallery();
+                        }
+                    })();
+                </script>
+
+            </section>
+        </xpath>
+
+        <xpath expr="//div[@id='product_full_description']" position="replace">
+            <div id="product_full_description" class="d-none"/>
+        </xpath>
+    </template>
+</odoo>

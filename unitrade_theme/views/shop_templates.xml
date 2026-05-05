@@ -31,6 +31,10 @@
                 </div>
             </div>
 
+            <div id="ut-shop-owl-mount"
+                t-att-data-search="search or ''"
+                t-att-data-category-id="category.id if category else ''"
+                t-att-data-ppg="ppg or ''">
             <div class="row o_wsale_products_main_row align-items-start flex-nowrap tw-w-full tw-max-w-[1200px] tw-mx-auto tw-m-0 tw-px-0 md:tw-px-4">
                 <!-- Filter Sidebar -->
                 <aside id="products_grid_before" class="d-none d-lg-block col-3 px-3 clearfix">
@@ -44,7 +48,7 @@
                         <!-- Lokasi -->
                         <div class="tw-mb-8">
                             <h6 class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-[#4a4a4a] tw-mb-3 tw-text-left">Lokasi</h6>
-                            <div class="tw-bg-[#fafafa] tw-p-[4px] tw-rounded-full tw-flex tw-items-center tw-w-full" id="ut-lokasi-group">
+                            <div class="tw-bg-[#fafafa] tw-p-[4px] tw-rounded-full tw-flex tw-items-center tw-w-full tw-min-h-[44px]" id="ut-lokasi-group">
                                 <div class="ut-pill ut-pill-inactive" data-group="lokasi" data-value="terdekat">Terdekat</div>
                                 <div class="ut-pill ut-pill-inactive" data-group="lokasi" data-value="kabupaten">Kabupaten</div>
                                 <div class="ut-pill ut-pill-inactive" data-group="lokasi" data-value="diy">DIY</div>
@@ -70,9 +74,10 @@
                                 .custom-range-slider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; pointer-events:auto; width:18px; height:18px; background:#000; border-radius:50%; cursor:pointer; border:none; position:relative; z-index:50; margin-top:-4px; }
                                 .custom-range-slider::-moz-range-track { background:transparent; height:10px; border:none; }
                                 .custom-range-slider::-moz-range-thumb { pointer-events:auto; width:18px; height:18px; background:#000; border-radius:50%; cursor:pointer; border:none; }
-                                .ut-pill { flex:1; text-align:center; padding:6px 0; border-radius:999px; font-family:'Urbanist',sans-serif; font-size:14px; cursor:pointer; transition:all 0.2s ease; user-select:none; }
+                                .ut-pill { flex:1 1 0; min-width:0; height:36px; display:flex; align-items:center; justify-content:center; text-align:center; padding:0 8px; border-radius:999px; font-family:'Urbanist',sans-serif; font-size:13px; line-height:1; white-space:nowrap; cursor:pointer; transition:all 0.2s ease; user-select:none; }
                                 .ut-pill-inactive { color:#b3b3b3; font-weight:500; background:transparent; }
                                 .ut-pill-active { color:#1a1a1a; font-weight:700; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+                                .ut-pill-loading { font-size:12px; }
                             </style>
                         </div>
                         
@@ -108,35 +113,42 @@
                         </div>
                     </div>
                     
-                    <!-- Products Grid Container -->
-                    <div t-if="products" class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 xl:tw-grid-cols-5 tw-gap-3 md:tw-gap-4 tw-mb-8 tw-w-full">
-                        <t t-foreach="products" t-as="product">
-                            <div class="oe_product tw-h-full">
-                                <t t-call="website_sale.products_item">
-                                    <t t-set="product" t-value="product"/>
-                                </t>
-                            </div>
-                        </t>
-                    </div>
-                    <div t-else="" class="tw-w-full tw-flex tw-flex-col tw-items-center tw-justify-center tw-pt-[80px] tw-pb-[120px]">
-                        <svg class="tw-w-[111px] tw-h-[111px] tw-opacity-68 tw-mb-[15px] tw-text-[#d9d9d9]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75l-2.489-2.489m0 0a3.375 3.375 0 10-4.773-4.773 3.375 3.375 0 004.774 4.774zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <p class="tw-font-['Urbanist'] tw-font-bold tw-text-[#212529] tw-text-[18px] tw-opacity-68 tw-leading-[28px] tw-m-0">
-                            Sepertinya barang yang kamu cari tidak ada
-                        </p>
-                        <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[#737373] tw-text-[16px] tw-opacity-68 tw-leading-[28px] tw-m-0">
-                            Coba gunakan kata kunci yang lain atau umum
-                        </p>
-                    </div>
-                    
-                    <div class="products_pager d-flex justify-content-center pt-5 pb-3">
-                        <t t-call="website.pager"/>
+                    <div id="ut-shop-results">
+                        <t t-call="unitrade_theme.unitrade_shop_results_fragment"/>
                     </div>
                 </div>
             </div>
+            </div>
 
         </xpath>
+    </template>
+
+    <template id="unitrade_shop_results_fragment" name="UniTrade Shop Results Fragment">
+        <!-- Products Grid Container -->
+        <div t-if="products" class="ut-product-card-grid tw-grid tw-mb-8 tw-w-full">
+            <t t-foreach="products" t-as="product">
+                <div class="oe_product tw-h-full">
+                    <t t-call="website_sale.products_item">
+                        <t t-set="product" t-value="product"/>
+                    </t>
+                </div>
+            </t>
+        </div>
+        <div t-else="" class="tw-w-full tw-flex tw-flex-col tw-items-center tw-justify-center tw-pt-[80px] tw-pb-[120px]">
+            <svg class="tw-w-[111px] tw-h-[111px] tw-opacity-68 tw-mb-[15px] tw-text-[#d9d9d9]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75l-2.489-2.489m0 0a3.375 3.375 0 10-4.773-4.773 3.375 3.375 0 004.774 4.774zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="tw-font-['Urbanist'] tw-font-bold tw-text-[#212529] tw-text-[18px] tw-opacity-68 tw-leading-[28px] tw-m-0">
+                Sepertinya barang yang kamu cari tidak ada
+            </p>
+            <p class="tw-font-['Urbanist'] tw-font-medium tw-text-[#737373] tw-text-[16px] tw-opacity-68 tw-leading-[28px] tw-m-0">
+                Coba gunakan kata kunci yang lain atau umum
+            </p>
+        </div>
+
+        <div class="products_pager d-flex justify-content-center pt-5 pb-3">
+            <t t-call="website.pager"/>
+        </div>
     </template>
 
     <!-- Override individual product card -->
@@ -149,54 +161,16 @@
                 
                 <t t-set="product_href" t-value="keep(product.website_url, page=(pager['page']['num'] if pager['page']['num']&gt;1 else None))" t-if="pager and pager.get('page')"/>
                 <t t-set="product_href" t-value="product.website_url" t-else=""/>
-                
-                <a t-att-href="product_href" class="tw-bg-white tw-border tw-border-solid tw-border-gray-200 tw-rounded-[14px] tw-overflow-hidden tw-shadow-sm hover:tw-shadow-md hover:-tw-translate-y-1 tw-transition-all tw-duration-300 tw-flex tw-flex-col tw-h-full tw-no-underline tw-group">
-                    <div class="tw-p-2">
-                        <div class="tw-w-full tw-aspect-square tw-rounded-[10px] tw-overflow-hidden tw-bg-gray-100 tw-relative">
-                            <t t-set="image_holder" t-value="product._get_image_holder()"/>
-                            <span t-field="image_holder.image_1920"
-                                t-options="{'widget': 'image', 'preview_image': 'image_512', 'itemprop': 'image', 'class': 'tw-w-full tw-h-full tw-object-cover position-absolute group-hover:tw-scale-105 tw-transition-transform tw-duration-300'}"
-                                class="oe_product_image_img_wrapper d-flex h-100 justify-content-center align-items-center position-absolute tw-w-full tw-h-full"/>
-                        </div>
-                    </div>
-                    <div class="tw-px-3 tw-pb-3 tw-flex tw-flex-col tw-flex-grow">
-                        <h3 class="tw-font-medium tw-text-[#212529] tw-text-[13px] tw-leading-snug tw-line-clamp-2 tw-mb-1 tw-flex-grow" itemprop="name">
-                            <t t-out="product.name"/>
-                        </h3>
-                        <p class="tw-text-[11px] tw-text-gray-400 tw-mb-2 tw-flex tw-items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-3 tw-h-3 tw-mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg> Sleman
-                        </p>
-                        
-                        <div class="tw-flex tw-justify-between tw-items-center tw-mt-auto">
-                            <!-- Price -->
-                            <t t-set="template_price_vals" t-value="get_product_prices(product)"/>
-                            <div class="tw-font-bold tw-text-[#212529] tw-text-[14px]" itemprop="offers" itemscope="itemscope" itemtype="http://schema.org/Offer">
-                                <span t-if="template_price_vals['price_reduce'] or not website.prevent_zero_price_sale" t-esc="template_price_vals['price_reduce']" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
-                                <span t-else="" t-field="website.prevent_zero_price_sale_text"/>
-                                <span itemprop="price" style="display:none;" t-esc="template_price_vals['price_reduce']" />
-                                <span itemprop="priceCurrency" style="display:none;" t-esc="website.currency_id.name" />
-                            </div>
-                            
-                            <!-- Rating -->
-                            <div class="tw-flex tw-items-center tw-gap-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-3 tw-h-3 tw-text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                </svg>
-                                <span class="tw-text-[11px] tw-text-gray-500">
-                                    <t t-esc="product.rating_avg or 5.0"/>
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <!-- Required Odoo hidden elements -->
-                        <div class="o_wsale_product_btn d-none"/>
-                        <t t-set="product_variant_id" t-value="product._get_first_possible_variant_id()"/>
-                        <input name="product_id" t-att-value="product_variant_id" type="hidden"/>
-                    </div>
-                </a>
+
+                <t t-set="ut_card_href" t-value="product_href"/>
+                <t t-set="ut_card_product" t-value="product"/>
+                <t t-set="ut_card_class" t-value="'tw-bg-white tw-border tw-border-solid tw-border-gray-200 tw-rounded-[14px] tw-overflow-hidden tw-shadow-sm hover:tw-shadow-md hover:-tw-translate-y-1 tw-transition-all tw-duration-300 tw-flex tw-flex-col tw-h-full tw-no-underline tw-group'"/>
+                <t t-call="unitrade_theme.unitrade_product_card"/>
+
+                <!-- Required Odoo hidden elements -->
+                <div class="o_wsale_product_btn d-none"/>
+                <t t-set="product_variant_id" t-value="product._get_first_possible_variant_id()"/>
+                <input name="product_id" t-att-value="product_variant_id" type="hidden"/>
             </form>
         </xpath>
     </template>

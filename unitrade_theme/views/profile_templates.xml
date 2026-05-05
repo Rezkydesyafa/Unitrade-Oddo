@@ -1,0 +1,656 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="unitrade_account_sidebar" name="UniTrade Account Sidebar">
+        <aside class="ut-account-sidebar ut-user-profile-sidebar tw-flex tw-min-h-[582px] tw-flex-col tw-rounded-[36px] tw-bg-white tw-px-5 tw-py-9">
+            <a href="/my/account" t-att-class="'ut-user-profile-menu tw-flex tw-items-center tw-gap-5 tw-no-underline %s' % ('is-active tw-h-16 tw-rounded-[32px] tw-bg-[#f5f5f7] tw-px-3 tw-text-[#212529]' if active_account_page == 'profile' else 'tw-h-[47px] tw-text-[#939393]')">
+                <span t-att-class="'ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full %s' % ('tw-bg-[#050505] tw-text-white' if active_account_page == 'profile' else 'tw-bg-[#f5f5f7]')">
+                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </span>
+                <span t-att-class="'tw-text-[20px] %s' % ('tw-text-black' if active_account_page == 'profile' else '')">Profile</span>
+            </a>
+            <a href="/my/wishlist" t-att-class="'ut-user-profile-menu tw-mt-5 tw-flex tw-items-center tw-gap-5 tw-no-underline %s' % ('is-active tw-h-16 tw-rounded-[32px] tw-bg-[#f5f5f7] tw-px-3 tw-text-[#212529]' if active_account_page == 'wishlist' else 'tw-h-[47px] tw-text-[#939393]')">
+                <span t-att-class="'ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full %s' % ('tw-bg-[#050505] tw-text-white' if active_account_page == 'wishlist' else 'tw-bg-[#f5f5f7]')">
+                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+                    </svg>
+                </span>
+                <span t-att-class="'tw-text-[20px] %s' % ('tw-text-black' if active_account_page == 'wishlist' else '')">Wishlist</span>
+            </a>
+            <a href="/my/orders" t-att-class="'ut-user-profile-menu tw-mt-5 tw-flex tw-items-center tw-gap-5 tw-no-underline %s' % ('is-active tw-h-16 tw-rounded-[32px] tw-bg-[#f5f5f7] tw-px-3 tw-text-[#212529]' if active_account_page == 'orders' else 'tw-h-[47px] tw-text-[#939393]')">
+                <span t-att-class="'ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full %s' % ('tw-bg-[#050505] tw-text-white' if active_account_page == 'orders' else 'tw-bg-[#f5f5f7]')">
+                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/>
+                        <path d="m3.3 7 8.7 5 8.7-5"/>
+                        <path d="M12 22V12"/>
+                    </svg>
+                </span>
+                <span t-att-class="'tw-text-[20px] %s' % ('tw-text-black' if active_account_page == 'orders' else '')">Pesanan saya</span>
+            </a>
+            <a href="/my/settings" t-att-class="'ut-user-profile-menu tw-mt-5 tw-flex tw-items-center tw-gap-5 tw-no-underline %s' % ('is-active tw-h-16 tw-rounded-[32px] tw-bg-[#f5f5f7] tw-px-3 tw-text-[#212529]' if active_account_page == 'settings' else 'tw-h-[47px] tw-text-[#939393]')">
+                <span t-att-class="'ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full %s' % ('tw-bg-[#050505] tw-text-white' if active_account_page == 'settings' else 'tw-bg-[#f5f5f7]')">
+                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1h.1a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>
+                    </svg>
+                </span>
+                <span t-att-class="'tw-text-[20px] %s' % ('tw-text-black' if active_account_page == 'settings' else '')">Pengaturan</span>
+            </a>
+            <div class="tw-flex-1"></div>
+            <a href="/web/session/logout?redirect=/" class="ut-user-profile-logout tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-red-600 tw-no-underline">
+                <span class="tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-red-600 tw-text-white">
+                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <path d="m16 17 5-5-5-5"/>
+                        <path d="M21 12H9"/>
+                    </svg>
+                </span>
+                <span class="tw-text-[20px]">Keluar</span>
+            </a>
+        </aside>
+    </template>
+
+    <template id="unitrade_portal_my_details" inherit_id="portal.portal_my_details" name="UniTrade User Profile">
+        <xpath expr="//t[@t-call='portal.portal_layout']" position="replace">
+            <t t-call="website.layout">
+                <t t-set="page_title">Profile - UniTrade</t>
+                <section class="ut-user-profile-page tw-min-h-screen tw-bg-[#f5f5f7] tw-px-6 tw-py-10 lg:tw-px-12" style="font-family: Urbanist, Inter, sans-serif;">
+                    <div class="ut-user-profile-shell tw-mx-auto tw-mt-[96px] tw-grid tw-max-w-[1460px] tw-grid-cols-[269px_minmax(0,1fr)] tw-gap-11">
+                        <aside class="ut-user-profile-sidebar tw-flex tw-min-h-[582px] tw-flex-col tw-rounded-[36px] tw-bg-white tw-px-5 tw-py-9">
+                            <a href="/my/account" class="ut-user-profile-menu is-active tw-flex tw-h-16 tw-items-center tw-gap-5 tw-rounded-[32px] tw-bg-[#f5f5f7] tw-px-3 tw-text-[#212529] tw-no-underline">
+                                <span class="ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-[#050505] tw-text-white">
+                                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                </span>
+                                <span class="tw-text-[20px] tw-text-black">Profile</span>
+                            </a>
+                            <a href="/my/wishlist" class="ut-user-profile-menu tw-mt-5 tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-[#939393] tw-no-underline">
+                                <span class="ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-[#f5f5f7]">
+                                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+                                    </svg>
+                                </span>
+                                <span class="tw-text-[20px]">Wishlist</span>
+                            </a>
+                            <a href="/my/orders" class="ut-user-profile-menu tw-mt-5 tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-[#939393] tw-no-underline">
+                                <span class="ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-[#f5f5f7]">
+                                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/>
+                                        <path d="m3.3 7 8.7 5 8.7-5"/>
+                                        <path d="M12 22V12"/>
+                                    </svg>
+                                </span>
+                                <span class="tw-text-[20px]">Pesanan saya</span>
+                            </a>
+                            <a href="/my/settings" class="ut-user-profile-menu tw-mt-5 tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-[#939393] tw-no-underline">
+                                <span class="ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-[#f5f5f7]">
+                                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="3"/>
+                                        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1h.1a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>
+                                    </svg>
+                                </span>
+                                <span class="tw-text-[20px]">Pengaturan</span>
+                            </a>
+                            <div class="tw-flex-1"></div>
+                            <a href="/web/session/logout?redirect=/" class="ut-user-profile-logout tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-red-600 tw-no-underline">
+                                <span class="tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-red-600 tw-text-white">
+                                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                        <path d="m16 17 5-5-5-5"/>
+                                        <path d="M21 12H9"/>
+                                    </svg>
+                                </span>
+                                <span class="tw-text-[20px]">Keluar</span>
+                            </a>
+                        </aside>
+
+                        <main class="ut-user-profile-card tw-rounded-[36px] tw-bg-white tw-px-16 tw-py-12">
+                            <t t-if="profile_saved">
+                                <div class="tw-mb-6 tw-rounded-2xl tw-border tw-border-green-200 tw-bg-green-50 tw-px-5 tw-py-3 tw-text-[14px] tw-font-medium tw-text-green-700">
+                                    Profil berhasil diperbarui.
+                                </div>
+                            </t>
+                            <t t-if="error_message">
+                                <div class="tw-mb-6 tw-rounded-2xl tw-border tw-border-red-200 tw-bg-red-50 tw-px-5 tw-py-3 tw-text-[14px] tw-font-medium tw-text-red-700">
+                                    <t t-foreach="error_message" t-as="message">
+                                        <div t-esc="message"/>
+                                    </t>
+                                </div>
+                            </t>
+
+                            <form action="/my/account" method="post" enctype="multipart/form-data"
+                                t-att-data-editing="'1' if error_message else '0'"
+                                t-att-class="'ut-user-profile-form tw-grid tw-grid-cols-[minmax(0,582px)_minmax(260px,394px)] tw-gap-20 is-editing' if error_message else 'ut-user-profile-form tw-grid tw-grid-cols-[minmax(0,582px)_minmax(260px,394px)] tw-gap-20 is-readonly'">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <input type="hidden" name="redirect" t-att-value="redirect"/>
+
+                                <div>
+                                    <div class="ut-user-profile-title-row tw-flex tw-items-center">
+                                        <h1 class="tw-m-0 tw-text-[40px] tw-font-semibold tw-leading-none tw-text-[#525252]">Profile</h1>
+                                        <button type="button" class="ut-user-profile-edit tw-h-[45px] tw-rounded-[22.5px] tw-border tw-border-[#525252] tw-bg-transparent tw-px-5 tw-text-[16px] tw-text-[#525252]" data-profile-edit="1">Ubah profile</button>
+                                    </div>
+
+                                    <label class="ut-user-profile-field">
+                                        <span>Nama Pengguna</span>
+                                        <input type="text" name="name" t-att-value="form_values.get('name') or partner.name" class="ut-user-profile-input" required="required" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                    </label>
+
+                                    <div class="ut-user-profile-field">
+                                        <span>Jenis Kelamin</span>
+                                        <div class="ut-user-profile-radio-row">
+                                            <label>
+                                                <input type="radio" name="x_gender" value="male" t-att-checked="'checked' if user_profile.x_gender == 'male' else None" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                                <span>Pria</span>
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="x_gender" value="female" t-att-checked="'checked' if user_profile.x_gender == 'female' else None" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                                <span>Wanita</span>
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="x_gender" value="" t-att-checked="'checked' if not user_profile.x_gender else None" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                                <span>Tidak ada</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <label class="ut-user-profile-field">
+                                        <span>Tanggal Lahir</span>
+                                        <input type="date" name="x_birth_date" t-att-value="form_values.get('x_birth_date') or user_profile.x_birth_date" class="ut-user-profile-input" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                    </label>
+
+                                    <label class="ut-user-profile-field">
+                                        <span>Email</span>
+                                        <input type="email" name="email" t-att-value="form_values.get('email') or partner.email or user_profile.login" class="ut-user-profile-input" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                    </label>
+
+                                    <label class="ut-user-profile-field">
+                                        <span>Nomor Telpon</span>
+                                        <input type="tel" name="phone" t-att-value="form_values.get('phone') or partner.phone or ''" class="ut-user-profile-input" placeholder="08xxxxxxxxxx" pattern="(\+62|62|08)[0-9]{8,13}" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                    </label>
+
+                                    <div class="ut-user-profile-address">
+                                        <div class="ut-user-profile-address-main">
+                                            <label class="ut-user-profile-field tw-m-0">
+                                                <span>Alamat</span>
+                                                <small>Provinsi, Kota, Kecamatan</small>
+                                                <textarea name="street" maxlength="255" class="ut-user-profile-textarea" t-esc="form_values.get('street') or partner.street or ''" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"></textarea>
+                                            </label>
+                                        </div>
+                                        <label class="ut-user-profile-field tw-m-0">
+                                            <span class="tw-opacity-0">Kode Pos</span>
+                                            <small>Kode Pos</small>
+                                            <input type="text" name="zipcode" t-att-value="form_values.get('zipcode') or partner.zip" class="ut-user-profile-input" inputmode="numeric" pattern="[0-9]{4,10}" maxlength="10" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                        </label>
+                                    </div>
+
+                                    <div class="ut-user-profile-actions tw-mt-[30px] tw-flex tw-gap-5">
+                                        <button type="submit" class="tw-h-12 tw-w-32 tw-rounded-3xl tw-border-0 tw-bg-[#212529] tw-text-[16px] tw-text-[#f5f5f7]">Simpan</button>
+                                        <a href="/my/account" class="tw-flex tw-h-12 tw-w-32 tw-items-center tw-justify-center tw-rounded-3xl tw-border tw-border-[#525252] tw-text-[16px] tw-text-[#525252] tw-no-underline">Batal</a>
+                                    </div>
+                                </div>
+
+                                <div class="ut-user-profile-avatar-panel tw-flex tw-flex-col tw-items-center tw-justify-start tw-pt-14">
+                                    <label class="ut-user-profile-avatar-picker">
+                                        <span class="ut-user-profile-avatar-frame">
+                                            <img t-attf-src="/web/image/res.users/#{user_id.id}/image_1920?unique=#{user_id.write_date}" alt="Foto profil" class="ut-user-profile-avatar-img"/>
+                                            <span class="ut-user-profile-avatar-action">
+                                                <span>Ubah</span>
+                                                <svg class="tw-h-6 tw-w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M12 20h9"/>
+                                                    <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                                                </svg>
+                                            </span>
+                                        </span>
+                                        <input type="file" name="avatar_upload" accept="image/jpeg,image/png,image/webp" class="tw-sr-only" data-profile-control="1" data-profile-avatar-input="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                    </label>
+                                    <p class="ut-user-profile-avatar-hint tw-mt-3 tw-max-w-[220px] tw-text-center tw-font-['Urbanist'] tw-text-[12px] tw-leading-[16px] tw-text-[#777]">
+                                        Foto profil maksimal 2 MB. Gunakan JPG, PNG, atau WEBP.
+                                    </p>
+                                </div>
+                            </form>
+                        </main>
+                    </div>
+                </section>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="unitrade_portal_my_security" inherit_id="portal.portal_my_security" name="UniTrade Portal Security">
+        <xpath expr="//t[@t-call='portal.portal_layout']" position="replace">
+            <t t-call="website.layout">
+                <t t-set="page_title">Pengaturan - UniTrade</t>
+                <t t-set="additional_title">Security</t>
+                <t t-set="no_breadcrumbs" t-value="1"/>
+                <section class="ut-user-profile-page ut-user-settings-page tw-min-h-screen tw-bg-[#f5f5f7]" style="font-family: Urbanist, Inter, sans-serif;">
+                    <nav class="ut-settings-navbar">
+                        <a href="/" class="ut-settings-brand">
+                            <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="UniTrade"/>
+                            <span>UniTrade</span>
+                        </a>
+                        <form action="/shop" method="get" class="ut-settings-search">
+                            <input type="search" name="search" aria-label="Cari produk"/>
+                            <button type="submit" aria-label="Cari">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="11" cy="11" r="6"/>
+                                    <path d="m16 16 4 4"/>
+                                </svg>
+                            </button>
+                        </form>
+                        <a href="/shop/cart" class="ut-settings-nav-icon" aria-label="Keranjang">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="9" cy="21" r="1"/>
+                                <circle cx="20" cy="21" r="1"/>
+                                <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 2-1.6L22 6H6"/>
+                            </svg>
+                        </a>
+                        <a href="/my/notifications" class="ut-settings-nav-icon" aria-label="Notifikasi">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7"/>
+                                <path d="M13.7 21a2 2 0 0 1-3.4 0"/>
+                            </svg>
+                        </a>
+                        <a href="/my/account" class="ut-settings-nav-user">
+                            <span t-esc="request.env.user.name"/>
+                            <img t-attf-src="/web/image/res.users/#{request.env.user.id}/image_128?unique=#{request.env.user.write_date}" alt="Foto profil"/>
+                        </a>
+                    </nav>
+
+                    <div class="ut-settings-layout">
+                        <aside class="ut-settings-sidebar">
+                            <a href="/my/account" class="ut-settings-menu">
+                                <span class="ut-settings-menu-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                </span>
+                                <span>Profile</span>
+                            </a>
+                            <a href="/my/wishlist" class="ut-settings-menu">
+                                <span class="ut-settings-menu-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+                                    </svg>
+                                </span>
+                                <span>Wishlist</span>
+                            </a>
+                            <a href="/my/orders" class="ut-settings-menu">
+                                <span class="ut-settings-menu-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/>
+                                        <path d="m3.3 7 8.7 5 8.7-5"/>
+                                        <path d="M12 22V12"/>
+                                    </svg>
+                                </span>
+                                <span>Pesanan saya</span>
+                            </a>
+                            <a href="/my/settings" class="ut-settings-menu is-active">
+                                <span class="ut-settings-menu-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="3"/>
+                                        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1h.1a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>
+                                    </svg>
+                                </span>
+                                <span>Pengaturan</span>
+                            </a>
+                            <a href="/web/session/logout?redirect=/" class="ut-settings-logout">
+                                <span class="ut-settings-logout-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                        <path d="m16 17 5-5-5-5"/>
+                                        <path d="M21 12H9"/>
+                                    </svg>
+                                </span>
+                                <span>Keluar</span>
+                            </a>
+                        </aside>
+
+                        <main class="ut-settings-main o_portal_security_body">
+                            <h1>Pengaturan</h1>
+
+                            <section class="ut-settings-section">
+                                <h2>Notifikasi</h2>
+                                <div class="ut-settings-card ut-settings-notification-card" data-settings-notifications="1">
+                                    <div class="ut-settings-notification-master">
+                                        <span>Aktifkan Semua</span>
+                                        <label class="ut-settings-switch">
+                                            <input type="checkbox" data-notification-field="x_notify_all" t-att-checked="'checked' if notify_all else None"/>
+                                            <span></span>
+                                        </label>
+                                    </div>
+                                    <div class="ut-settings-notification-row">
+                                        <span class="ut-settings-line-icon">
+                                            <svg viewBox="0 0 45 45" fill="none" stroke="currentColor" stroke-width="1.6">
+                                                <circle cx="22.5" cy="22.5" r="14"/>
+                                                <path d="M16 20c1.5 1.5 1.5 3.5 0 5"/>
+                                                <path d="M22 18c2.2 2.8 2.2 6.2 0 9"/>
+                                                <path d="M28 16c3.2 4.3 3.2 8.7 0 13"/>
+                                            </svg>
+                                        </span>
+                                        <strong>Transaksi</strong>
+                                        <small>Status pesanan, pembayaran berhasil.</small>
+                                        <label class="ut-settings-switch">
+                                            <input type="checkbox" data-notification-field="x_notify_transaction" t-att-checked="'checked' if notify_transaction else None"/>
+                                            <span></span>
+                                        </label>
+                                    </div>
+                                    <div class="ut-settings-notification-row">
+                                        <span class="ut-settings-line-icon">
+                                            <svg viewBox="0 0 45 45" fill="none" stroke="currentColor" stroke-width="1.6">
+                                                <path d="M14 10h11l10 10-15 15L10 25V14a4 4 0 0 1 4-4Z"/>
+                                                <circle cx="17" cy="17" r="1.5"/>
+                                            </svg>
+                                        </span>
+                                        <strong>Promo</strong>
+                                        <small>Info diskon, flash sale, dan voucher.</small>
+                                        <label class="ut-settings-switch">
+                                            <input type="checkbox" data-notification-field="x_notify_promo" t-att-checked="'checked' if notify_promo else None"/>
+                                            <span></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section name="portal_revoke_all_devices_popup" class="ut-settings-section">
+                                <h2>Aktifitas akun</h2>
+                                <div class="ut-settings-card ut-settings-activity-card">
+                                    <t t-foreach="session_activity" t-as="item">
+                                        <article class="ut-settings-session-row">
+                                            <span class="ut-settings-device-icon">
+                                                <t t-if="item.get('device_name') == 'Android'">
+                                                    <svg viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-width="1.8">
+                                                        <rect x="15" y="7" width="16" height="32" rx="3"/>
+                                                        <path d="M20 11h6"/>
+                                                        <path d="M22 35h2"/>
+                                                    </svg>
+                                                </t>
+                                                <t t-else="">
+                                                    <svg viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-width="1.8">
+                                                        <rect x="8" y="10" width="30" height="20" rx="2"/>
+                                                        <path d="M17 37h12"/>
+                                                        <path d="M23 30v7"/>
+                                                    </svg>
+                                                </t>
+                                            </span>
+                                            <div class="ut-settings-session-copy">
+                                                <strong t-esc="item.get('device_name')"/>
+                                                <small t-esc="item.get('ip_label')"/>
+                                                <span t-if="item.get('is_current')" class="ut-settings-active-badge">Sedang aktif</span>
+                                                <small t-else="" t-esc="item.get('last_seen')"/>
+                                            </div>
+                                            <form action="/my/settings/session/revoke" method="post" class="ut-settings-session-action">
+                                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                <input type="hidden" name="sid" t-att-value="item.get('sid')"/>
+                                                <button type="submit">Keluar</button>
+                                            </form>
+                                        </article>
+                                    </t>
+                                </div>
+                                <form action="/my/settings/session/revoke_all" method="post">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <button type="submit" class="ut-settings-revoke-all">
+                                        Keluarkan semua perangkat
+                                    </button>
+                                </form>
+                                <div class="ut-settings-alert ut-settings-alert-success" role="alert" t-if="sessions_revoked">
+                                    Semua perangkat lain berhasil dikeluarkan.
+                                </div>
+                            </section>
+
+                            <section name="portal_change_password" class="ut-settings-section">
+                                <h2>Password</h2>
+                                <div class="ut-settings-card ut-settings-action-card">
+                                    <form action="/my/settings/password/request" method="post">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <button type="submit" class="ut-settings-red-action">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M12 20h9"/>
+                                                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                                            </svg>
+                                            <span>Ubah Password</span>
+                                        </button>
+                                    </form>
+                                    <p class="ut-settings-warning">
+                                        <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5">
+                                            <circle cx="6.5" cy="6.5" r="5"/>
+                                            <path d="M6.5 3.5v3.5"/>
+                                            <path d="M6.5 9.5h.01"/>
+                                        </svg>
+                                        <span>Ubah password Anda perlu verifikasi terlebih dahulu</span>
+                                    </p>
+                                    <div class="ut-settings-alert ut-settings-alert-success" role="alert" t-if="success and success.get('password')">
+                                        Password berhasil diperbarui.
+                                    </div>
+                                    <div class="ut-settings-alert ut-settings-alert-error" role="alert" t-if="password_otp_error == 'email'">
+                                        Akun Anda belum memiliki email aktif untuk menerima kode OTP dan link reset password.
+                                    </div>
+                                </div>
+
+                            </section>
+
+                            <section name="portal_deactivate_account" groups="base.group_portal" class="ut-settings-section">
+                                <h2>Hapus akun</h2>
+                                <div class="ut-settings-card ut-settings-action-card">
+                                    <button type="button" class="ut-settings-red-action" data-bs-toggle="modal" data-bs-target="#portal_deactivate_account_modal">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 6h18"/>
+                                            <path d="M8 6V4h8v2"/>
+                                            <path d="M19 6l-1 14H6L5 6"/>
+                                            <path d="M10 11v5"/>
+                                            <path d="M14 11v5"/>
+                                        </svg>
+                                        <span>Hapus akun</span>
+                                    </button>
+                                    <p class="ut-settings-warning">
+                                        <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5">
+                                            <circle cx="6.5" cy="6.5" r="5"/>
+                                            <path d="M6.5 3.5v3.5"/>
+                                            <path d="M6.5 9.5h.01"/>
+                                        </svg>
+                                        <span>Setelah Anda menghapus akun Anda, tidak ada jalan kembali. Harap pastikan</span>
+                                    </p>
+                                </div>
+
+                                <div t-attf-class="modal #{'show d-block' if open_deactivate_modal else ''}" id="portal_deactivate_account_modal" tabindex="-1" role="dialog">
+                                    <div class="modal-dialog modal-dialog-centered" role="document">
+                                        <div class="modal-content ut-settings-modal">
+                                            <div class="modal-header ut-settings-modal-head ut-settings-modal-head-danger">
+                                                <h5 class="modal-title">Konfirmasi Hapus Akun</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form action="/my/deactivate_account" method="post" class="modal-body ut-settings-password-form" id="portal_deactivate_account_form">
+                                                <t t-set="deactivate_error" t-value="get_error(errors, 'deactivate')"/>
+                                                <div t-if="get_error(errors, 'deactivate.other')" class="ut-settings-alert ut-settings-alert-error" t-esc="get_error(errors, 'deactivate.other')"/>
+                                                <p class="ut-settings-modal-copy">Masukkan password dan login akun untuk mengonfirmasi tindakan ini.</p>
+                                                <label class="ut-settings-modal-field">
+                                                    <span>Password</span>
+                                                    <input name="password" type="password" required="1"
+                                                        t-attf-class="ut-settings-input #{'is-invalid' if deactivate_error == 'password' else ''}"
+                                                        placeholder="Password"/>
+                                                    <small t-if="deactivate_error == 'password'" class="invalid-feedback">
+                                                        Password salah.
+                                                    </small>
+                                                </label>
+                                                <label class="ut-settings-modal-field">
+                                                    <span>Ketik login: <strong t-esc="env.user.login"/></span>
+                                                    <input name="validation" type="text" required="1"
+                                                        t-attf-class="ut-settings-input #{'is-invalid' if deactivate_error == 'validation' else ''}"/>
+                                                    <small t-if="deactivate_error == 'validation'" class="invalid-feedback">
+                                                        Login yang dimasukkan belum sesuai.
+                                                    </small>
+                                                </label>
+                                                <label class="ut-settings-check">
+                                                    <input type="checkbox" name="request_blacklist" id="request_blacklist" checked="1"/>
+                                                    <span>Masukkan email dan nomor telepon saya ke daftar blokir agar tidak dihubungi lagi.</span>
+                                                </label>
+                                                <label class="ut-settings-check">
+                                                    <input type="checkbox" name="confirm_deactivate" value="1" required="1"
+                                                        t-attf-class="#{'is-invalid' if deactivate_error == 'confirm' else ''}"/>
+                                                    <span>Saya memahami akun akan dinonaktifkan dan tindakan ini tidak dapat dibatalkan dari halaman ini.</span>
+                                                </label>
+                                                <small t-if="deactivate_error == 'confirm'" class="invalid-feedback d-block">
+                                                    Konfirmasi penghapusan akun wajib dicentang.
+                                                </small>
+                                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                            </form>
+                                            <div class="modal-footer ut-settings-modal-footer">
+                                                <input type="submit" class="ut-settings-modal-danger" form="portal_deactivate_account_form" value="Hapus Akun"/>
+                                                <button type="button" class="ut-settings-modal-cancel" data-bs-dismiss="modal">
+                                                    Batal
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        </main>
+                    </div>
+                </section>
+            </t>
+        </xpath>
+    </template>
+    <template id="unitrade_portal_my_orders" name="UniTrade My Orders">
+        <t t-call="website.layout">
+            <t t-set="page_title">Pesanan Saya - UniTrade</t>
+            <section class="ut-user-profile-page ut-user-orders-page tw-min-h-screen tw-bg-[#f5f5f7] tw-px-6 tw-py-10 lg:tw-px-12" style="font-family: Urbanist, Inter, sans-serif;">
+                <div class="ut-user-profile-shell tw-mx-auto tw-grid tw-max-w-[1460px] tw-grid-cols-[269px_minmax(0,1fr)] tw-gap-11">
+                    <aside class="ut-user-profile-sidebar tw-flex tw-min-h-[582px] tw-flex-col tw-rounded-[36px] tw-bg-white tw-px-5 tw-py-9">
+                        <a href="/my/account" class="ut-user-profile-menu tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-[#939393] tw-no-underline">
+                            <span class="ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-[#f5f5f7]">
+                                <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                            </span>
+                            <span class="tw-text-[20px]">Profile</span>
+                        </a>
+                        <a href="/my/wishlist" class="ut-user-profile-menu tw-mt-5 tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-[#939393] tw-no-underline">
+                            <span class="ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-[#f5f5f7]">
+                                <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+                                </svg>
+                            </span>
+                            <span class="tw-text-[20px]">Wishlist</span>
+                        </a>
+                        <a href="/my/orders" class="ut-user-profile-menu is-active tw-mt-5 tw-flex tw-h-16 tw-items-center tw-gap-5 tw-rounded-[32px] tw-bg-[#f5f5f7] tw-px-3 tw-text-[#212529] tw-no-underline">
+                            <span class="ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-[#050505] tw-text-white">
+                                <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/>
+                                    <path d="m3.3 7 8.7 5 8.7-5"/>
+                                    <path d="M12 22V12"/>
+                                </svg>
+                            </span>
+                            <span class="tw-text-[20px] tw-text-black">Pesanan saya</span>
+                        </a>
+                        <a href="/my/settings" class="ut-user-profile-menu tw-mt-5 tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-[#939393] tw-no-underline">
+                            <span class="ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-[#f5f5f7]">
+                                <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"/>
+                                    <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1h.1a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>
+                                </svg>
+                            </span>
+                            <span class="tw-text-[20px]">Pengaturan</span>
+                        </a>
+                        <div class="tw-flex-1"></div>
+                        <a href="/web/session/logout?redirect=/" class="ut-user-profile-logout tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-red-600 tw-no-underline">
+                            <span class="tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-red-600 tw-text-white">
+                                <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                    <path d="m16 17 5-5-5-5"/>
+                                    <path d="M21 12H9"/>
+                                </svg>
+                            </span>
+                            <span class="tw-text-[20px]">Keluar</span>
+                        </a>
+                    </aside>
+
+                    <main class="ut-user-orders-main">
+                        <h1 class="ut-user-orders-title">Pesanan saya</h1>
+                        <div id="ut-user-orders-tabs"
+                            t-att-data-active-status="active_order_status"
+                            t-att-data-counts="order_status_counts_json">
+                        </div>
+
+                        <div class="ut-user-orders-list" data-orders-list="1">
+                            <t t-if="order_items">
+                                <t t-foreach="order_items" t-as="item">
+                                    <article t-att-data-order-status="item.get('status')"
+                                        t-att-class="'ut-user-order-card %s' % ('ut-is-hidden' if active_order_status != 'all' and item.get('status') != active_order_status else '')">
+                                        <header class="ut-user-order-seller">
+                                            <a t-att-href="item.get('seller_url')" class="ut-user-order-seller-link">
+                                                <img t-att-src="item.get('seller_avatar_url')" alt="Avatar penjual" class="ut-user-order-seller-avatar"/>
+                                                <span t-esc="item.get('seller_name')"/>
+                                            </a>
+                                            <span t-att-class="'ut-user-order-status ut-status-%s' % item.get('status')">
+                                                <t t-if="item.get('status') == 'unpaid'">Belum di bayar</t>
+                                                <t t-elif="item.get('status') == 'cancel'">Dibatalkan</t>
+                                                <t t-else="">Selesai</t>
+                                            </span>
+                                        </header>
+                                        <div class="ut-user-order-body">
+                                            <a t-att-href="item.get('product_url')" class="ut-user-order-image-wrap">
+                                                <img t-att-src="item.get('image_url')" alt="Produk pesanan" class="ut-user-order-image"/>
+                                            </a>
+                                            <div class="ut-user-order-info">
+                                                <a t-att-href="item.get('product_url')" class="ut-user-order-product-name" t-esc="item.get('product').name"/>
+                                                <p>Kategori : <t t-esc="item.get('category')"/></p>
+                                                <p>Jumlah : <t t-esc="item.get('quantity')"/></p>
+                                                <div class="ut-user-order-rating">
+                                                    <i class="fa fa-star"></i>
+                                                    <span t-esc="item.get('rating')"/>
+                                                </div>
+                                            </div>
+                                            <div class="ut-user-order-price" t-esc="item.get('price')"/>
+                                        </div>
+                                        <footer class="ut-user-order-actions">
+                                            <a t-if="item.get('can_review')" t-att-href="item.get('review_url')" class="ut-user-order-btn ut-user-order-btn-primary">Beri Ulasan</a>
+                                            <span t-elif="item.get('review_exists')" class="ut-user-order-btn ut-user-order-btn-muted">Sudah Ulasan</span>
+                                            <span t-else="" class="ut-user-order-btn ut-user-order-btn-muted">Beri Ulasan</span>
+                                            <a t-att-href="item.get('seller_chat_url')" class="ut-user-order-btn ut-user-order-btn-outline">Chat Penjual</a>
+                                            <a t-if="item.get('can_buy_again')" t-att-href="item.get('buy_again_url')" class="ut-user-order-btn ut-user-order-btn-outline">Beli Lagi</a>
+                                            <span t-else="" class="ut-user-order-btn ut-user-order-btn-disabled" title="Produk tidak tersedia">Beli Lagi</span>
+                                        </footer>
+                                    </article>
+                                </t>
+                            </t>
+                            <div t-else="" class="ut-user-orders-empty">
+                                Belum ada pesanan.
+                            </div>
+                            <div class="ut-user-orders-empty ut-user-orders-filter-empty">
+                                Tidak ada pesanan pada status ini.
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            </section>
+        </t>
+    </template>
+
+    <template id="unitrade_portal_my_details_sidebar_component" inherit_id="unitrade_theme.unitrade_portal_my_details" name="UniTrade Profile Sidebar Component">
+        <xpath expr="//aside[hasclass('ut-user-profile-sidebar')]" position="replace">
+            <t t-call="unitrade_theme.unitrade_account_sidebar">
+                <t t-set="active_account_page" t-value="'profile'"/>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="unitrade_portal_my_security_sidebar_component" inherit_id="unitrade_theme.unitrade_portal_my_security" name="UniTrade Settings Sidebar Component">
+        <xpath expr="//aside[hasclass('ut-settings-sidebar')]" position="replace">
+            <t t-call="unitrade_theme.unitrade_account_sidebar">
+                <t t-set="active_account_page" t-value="'settings'"/>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="unitrade_portal_my_orders_sidebar_component" inherit_id="unitrade_theme.unitrade_portal_my_orders" name="UniTrade Orders Sidebar Component">
+        <xpath expr="//aside[hasclass('ut-user-profile-sidebar')]" position="replace">
+            <t t-call="unitrade_theme.unitrade_account_sidebar">
+                <t t-set="active_account_page" t-value="'orders'"/>
+            </t>
+        </xpath>
+    </template>
+</odoo>

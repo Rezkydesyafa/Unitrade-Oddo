@@ -1,0 +1,27 @@
+.o_form_view .ut_review_admin_comment_group,
+.o_form_view .ut_review_admin_comment,
+.o_form_view .ut_review_admin_comment .o_field_widget,
+.o_form_view .ut_review_admin_comment textarea {
+    max-width: 100%;
+    min-width: 0;
+}
+
+.o_form_view .ut_review_admin_comment .o_field_widget,
+.o_form_view .ut_review_admin_comment textarea,
+.o_form_view .ut_review_admin_comment span,
+.o_form_view .ut_review_admin_comment div {
+    white-space: pre-wrap !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.o_form_view .ut_review_admin_comment textarea {
+    min-height: 160px;
+    resize: vertical;
+}
+
+.o_form_view .ut_review_admin_image img {
+    max-width: 320px;
+    max-height: 240px;
+    object-fit: contain;
+}

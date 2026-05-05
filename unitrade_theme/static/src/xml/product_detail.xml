@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="unitrade_theme.ProductWishlistButton">
+        <button type="button"
+            t-on-click="toggle"
+            t-att-disabled="state.loading"
+            t-att-title="state.active ? 'Hapus dari wishlist' : 'Tambahkan ke wishlist'"
+            t-att-class="buttonClass"
+            aria-label="Wishlist">
+            <i class="fa fa-heart" style="font-size:16px;"></i>
+        </button>
+    </t>
+
+    <t t-name="unitrade_theme.ProductReviewPanel">
+        <div class="ut-review-panel">
+            <div class="ut-review-summary-card">
+                <div class="ut-review-filter-row">
+                    <button type="button" t-on-click="() => this.setSort('newest')" t-att-class="chipClass(state.sort === 'newest')">Terbaru</button>
+                    <button type="button" t-on-click="() => this.setSort('oldest')" t-att-class="chipClass(state.sort === 'oldest')">Terlama</button>
+                    <button type="button" t-on-click="() => this.setSort('highest')" t-att-class="chipClass(state.sort === 'highest')">Tertinggi</button>
+                    <button type="button" t-on-click="() => this.setSort('lowest')" t-att-class="chipClass(state.sort === 'lowest')">Terendah</button>
+                    <t t-foreach="[5, 4, 3, 2, 1]" t-as="star" t-key="star">
+                        <button type="button" t-on-click="() => this.setRating(star)" t-att-class="chipClass(state.rating === star)">
+                            <t t-esc="star"/> bintang (<t t-esc="getRatingCount(star)"/>)
+                        </button>
+                    </t>
+                    <button t-if="state.rating" type="button" t-on-click="clearRating" class="ut-review-chip">Semua</button>
+                </div>
+                <div class="ut-review-score">
+                    <div class="ut-review-score-line">
+                        <span class="ut-review-score-value" t-esc="state.summary.average || 0"></span>
+                        <span class="ut-review-score-label">Out Of</span>
+                        <span class="ut-review-score-max">5</span>
+                    </div>
+                    <div class="ut-review-score-stars">
+                        <t t-foreach="[1, 2, 3, 4, 5]" t-as="star" t-key="star">
+                            <i class="fa fa-star" t-att-style="summaryStarStyle(star)"></i>
+                        </t>
+                    </div>
+                </div>
+            </div>
+
+            <div t-if="state.canReview" style="background:var(--ut-color-bg-surface); border-radius:24px; padding:24px; margin-bottom:32px;">
+                <div style="display:flex; justify-content:space-between; gap:16px; align-items:center; margin-bottom:16px;">
+                    <h3 style="font-size:20px; font-weight:600; color:var(--ut-color-heading); margin:0;">Tulis ulasan</h3>
+                    <div style="display:flex; gap:6px;">
+                        <t t-foreach="[1, 2, 3, 4, 5]" t-as="star" t-key="star">
+                            <button type="button" t-on-click="() => this.setFormRating(star)" t-att-style="formStarStyle(star)" aria-label="Pilih rating">
+                                <i class="fa fa-star"></i>
+                            </button>
+                        </t>
+                    </div>
+                </div>
+                <textarea t-model="state.comment"
+                    placeholder="Bagikan pengalamanmu tentang produk ini"
+                    style="width:100%; min-height:96px; border:1px solid var(--ut-color-border); border-radius:16px; padding:14px 16px; resize:vertical; color:var(--ut-color-text-body); font-size:15px; outline:none;"></textarea>
+                <div style="display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:14px;">
+                    <label style="height:40px; padding:0 18px; border-radius:20px; border:1px solid var(--ut-color-border); color:var(--ut-color-text-body); font-size:13px; font-weight:600; display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+                        <i class="fa fa-image" style="font-size:13px;"></i>
+                        <span t-esc="state.imageName || 'Tambah gambar (opsional)'"></span>
+                        <input type="file" accept="image/jpeg,image/png,image/webp" t-on-change="onImageChange" style="display:none;"/>
+                    </label>
+                    <div t-if="state.imagePreview" style="display:flex; align-items:center; gap:10px;">
+                        <img t-att-src="state.imagePreview" alt="Preview gambar ulasan" style="width:56px; height:56px; border-radius:10px; object-fit:cover; border:1px solid var(--ut-color-border);"/>
+                        <button type="button" t-on-click="clearImage" style="height:32px; padding:0 14px; border-radius:16px; border:1px solid var(--ut-color-border); background:transparent; color:var(--ut-color-text-body); font-size:12px; cursor:pointer;">Hapus</button>
+                    </div>
+                    <div style="flex:1;"></div>
+                    <span t-if="state.message" t-att-style="state.error ? 'color:var(--ut-color-danger); font-size:13px;' : 'color:var(--ut-color-success); font-size:13px;'" t-esc="state.message"></span>
+                    <button type="button" t-on-click="submitReview" t-att-disabled="state.submitting" style="height:40px; padding:0 24px; border-radius:20px; border:none; background:var(--ut-color-button-bg); color:var(--ut-color-button-text); font-size:14px; font-weight:600; cursor:pointer;">
+                        <t t-esc="state.submitting ? 'Mengirim...' : 'Kirim ulasan'"/>
+                    </button>
+                </div>
+            </div>
+
+            <div t-if="state.loading" class="ut-review-loading">
+                <div class="ut-review-skeleton-avatar"></div>
+                <div class="ut-review-skeleton-body">
+                    <div class="ut-review-skeleton-line ut-review-skeleton-name"></div>
+                    <div class="ut-review-skeleton-line ut-review-skeleton-date"></div>
+                    <div class="ut-review-skeleton-line ut-review-skeleton-text"></div>
+                    <div class="ut-review-skeleton-line ut-review-skeleton-text ut-review-skeleton-text-short"></div>
+                    <div class="ut-review-skeleton-actions">
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+            <div t-elif="!state.reviews.length" style="padding:48px 0; color:var(--ut-color-text-body); text-align:center;">
+                Belum ada ulasan untuk produk ini.
+            </div>
+            <div t-else="" class="ut-review-list">
+                <t t-foreach="state.reviews" t-as="review" t-key="review.id">
+                    <article class="ut-review-item">
+                        <img t-att-src="review.avatar_url" class="ut-review-avatar" alt="Reviewer"/>
+                        <div class="ut-review-body">
+                            <div class="ut-review-head">
+                                <p class="ut-review-name" t-esc="review.user_name"></p>
+                                <p class="ut-review-date" t-esc="review.date || 'Date &amp; time'"></p>
+                            </div>
+                            <div t-if="review.image_url" class="ut-review-image-row">
+                                <img t-att-src="review.image_url" alt="Gambar ulasan" class="ut-review-image"/>
+                            </div>
+                            <p class="ut-review-comment" t-esc="review.comment || 'Tidak ada komentar.'"></p>
+                            <div class="ut-review-actions">
+                                <button type="button" class="ut-review-report">Report</button>
+                                <button type="button" class="ut-review-helpful">
+                                    <i class="fa fa-thumbs-up" style="color:var(--ut-color-border); font-size:12px;"></i>
+                                    <span>Membantu</span>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                </t>
+            </div>
+
+            <div t-if="state.hasMore" class="ut-review-more-wrap">
+                <button type="button" t-on-click="loadMore" t-att-disabled="state.loadingMore" class="ut-review-more">
+                    <t t-esc="state.loadingMore ? 'Memuat...' : 'Lihat selengkapnya'"/>
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>
