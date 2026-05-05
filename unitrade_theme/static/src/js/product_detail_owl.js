@@ -181,8 +181,8 @@ export class ProductReviewPanel extends Component {
             return;
         }
 
-        if (file.size > 3 * 1024 * 1024) {
-            this.state.message = "Ukuran gambar maksimal 3 MB.";
+        if (file.size >= 2 * 1024 * 1024) {
+            this.state.message = "Ukuran gambar harus kurang dari 2 MB.";
             this.state.error = true;
             ev.target.value = "";
             return;
@@ -224,7 +224,7 @@ export class ProductReviewPanel extends Component {
                 product_id: this.props.productId,
                 rating: this.state.formRating,
                 comment: this.state.comment,
-                image_data: this.state.imageData,
+                images: this.state.imageData ? [this.state.imageData] : [],
             });
             if (!result.success) {
                 this.state.message = result.message || "Ulasan gagal dikirim.";

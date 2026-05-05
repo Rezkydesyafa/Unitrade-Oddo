@@ -23,6 +23,21 @@ class UnitradeReview(models.Model):
         help='Gambar opsional yang diunggah bersama ulasan produk.',
     )
     review_image_mimetype = fields.Char(string='Tipe Gambar', readonly=True)
+    review_image_2 = fields.Image(
+        string='Gambar Ulasan 2',
+        max_width=1920,
+        max_height=1920,
+        help='Gambar opsional kedua yang diunggah bersama ulasan produk.',
+    )
+    review_image_2_mimetype = fields.Char(string='Tipe Gambar 2', readonly=True)
+    review_image_3 = fields.Image(
+        string='Gambar Ulasan 3',
+        max_width=1920,
+        max_height=1920,
+        help='Gambar opsional ketiga yang diunggah bersama ulasan produk.',
+    )
+    review_image_3_mimetype = fields.Char(string='Tipe Gambar 3', readonly=True)
+    review_tags = fields.Char(string='Tag Ulasan')
     is_visible = fields.Boolean(string='Tampilkan', default=True)
 
     _sql_constraints = [
@@ -44,7 +59,7 @@ class UnitradeReview(models.Model):
     @api.constrains('order_id')
     def _check_order_done(self):
         for record in self:
-            if record.order_id.state != 'done':
+            if record.order_id.state not in ('sale', 'done'):
                 raise ValidationError(_('Ulasan hanya bisa diberikan untuk pesanan yang sudah selesai.'))
 
     def action_save_review(self):

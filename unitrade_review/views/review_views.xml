@@ -10,6 +10,7 @@
                 <field name="order_id"/>
                 <field name="rating"/>
                 <field name="review_image" string="Gambar" widget="image" optional="show"/>
+                <field name="review_tags" optional="show"/>
                 <field name="comment"/>
                 <field name="is_visible"/>
                 <field name="create_date"/>
@@ -39,6 +40,7 @@
                         </group>
                         <group>
                             <field name="rating" required="1"/>
+                            <field name="review_tags"/>
                             <field name="is_visible"/>
                         </group>
                     </group>
@@ -49,6 +51,18 @@
                             class="ut_review_admin_image"
                             options="{'preview_image': 'review_image'}"/>
                         <field name="review_image_mimetype" readonly="1"/>
+                        <field name="review_image_2"
+                            widget="image"
+                            nolabel="1"
+                            class="ut_review_admin_image"
+                            options="{'preview_image': 'review_image_2'}"/>
+                        <field name="review_image_2_mimetype" readonly="1"/>
+                        <field name="review_image_3"
+                            widget="image"
+                            nolabel="1"
+                            class="ut_review_admin_image"
+                            options="{'preview_image': 'review_image_3'}"/>
+                        <field name="review_image_3_mimetype" readonly="1"/>
                     </group>
                     <group string="Komentar" class="ut_review_admin_comment_group">
                         <field name="comment" nolabel="1" colspan="4"

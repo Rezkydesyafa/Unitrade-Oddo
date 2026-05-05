@@ -97,8 +97,15 @@
                                 <p class="ut-review-name" t-esc="review.user_name"></p>
                                 <p class="ut-review-date" t-esc="review.date || 'Date &amp; time'"></p>
                             </div>
-                            <div t-if="review.image_url" class="ut-review-image-row">
-                                <img t-att-src="review.image_url" alt="Gambar ulasan" class="ut-review-image"/>
+                            <div t-if="review.image_urls &amp;&amp; review.image_urls.length" class="ut-review-image-row">
+                                <t t-foreach="review.image_urls" t-as="imageUrl" t-key="imageUrl">
+                                    <img t-att-src="imageUrl" alt="Gambar ulasan" class="ut-review-image"/>
+                                </t>
+                            </div>
+                            <div t-if="review.tags &amp;&amp; review.tags.length" class="ut-review-tag-row">
+                                <t t-foreach="review.tags" t-as="tag" t-key="tag">
+                                    <span t-esc="tag"></span>
+                                </t>
                             </div>
                             <p class="ut-review-comment" t-esc="review.comment || 'Tidak ada komentar.'"></p>
                             <div class="ut-review-actions">
