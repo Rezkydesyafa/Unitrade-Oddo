@@ -262,7 +262,7 @@
                                     </div>
 
                                     <!-- CTA Row -->
-                                    <div class="tw-flex tw-items-center tw-gap-3">
+                                    <div class="ut-product-cta-row tw-flex tw-items-center tw-gap-3">
                                         <!-- Belanja / Login button -->
                                         <t t-if="user_id._is_public()">
                                             <a href="/web/login"
@@ -279,9 +279,14 @@
                                                 <i class="fa fa-shopping-cart"></i>
                                                 Belanja
                                             </button>
-                                            <div id="ut-product-wishlist-owl"
+                                            <button type="button"
+                                                t-att-class="'ut-product-wishlist-direct is-active' if ut_is_in_wishlist else 'ut-product-wishlist-direct'"
                                                 t-att-data-product-id="product.id"
-                                                t-att-data-active="'1' if ut_is_in_wishlist else '0'"></div>
+                                                t-att-data-active="'1' if ut_is_in_wishlist else '0'"
+                                                t-att-title="'Lihat wishlist' if ut_is_in_wishlist else 'Tambahkan ke wishlist'"
+                                                aria-label="Wishlist">
+                                                <i class="fa fa-heart"></i>
+                                            </button>
                                         </t>
                                         <!-- Share (dark circle) -->
                                         <a href="#" title="Bagikan"

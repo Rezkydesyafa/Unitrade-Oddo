@@ -1,5 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <template id="unitrade_account_sidebar" name="UniTrade Account Sidebar">
+        <aside class="ut-account-sidebar ut-user-profile-sidebar tw-flex tw-min-h-[582px] tw-flex-col tw-rounded-[36px] tw-bg-white tw-px-5 tw-py-9">
+            <a href="/my/account" t-att-class="'ut-user-profile-menu tw-flex tw-items-center tw-gap-5 tw-no-underline %s' % ('is-active tw-h-16 tw-rounded-[32px] tw-bg-[#f5f5f7] tw-px-3 tw-text-[#212529]' if active_account_page == 'profile' else 'tw-h-[47px] tw-text-[#939393]')">
+                <span t-att-class="'ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full %s' % ('tw-bg-[#050505] tw-text-white' if active_account_page == 'profile' else 'tw-bg-[#f5f5f7]')">
+                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </span>
+                <span t-att-class="'tw-text-[20px] %s' % ('tw-text-black' if active_account_page == 'profile' else '')">Profile</span>
+            </a>
+            <a href="/my/wishlist" t-att-class="'ut-user-profile-menu tw-mt-5 tw-flex tw-items-center tw-gap-5 tw-no-underline %s' % ('is-active tw-h-16 tw-rounded-[32px] tw-bg-[#f5f5f7] tw-px-3 tw-text-[#212529]' if active_account_page == 'wishlist' else 'tw-h-[47px] tw-text-[#939393]')">
+                <span t-att-class="'ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full %s' % ('tw-bg-[#050505] tw-text-white' if active_account_page == 'wishlist' else 'tw-bg-[#f5f5f7]')">
+                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+                    </svg>
+                </span>
+                <span t-att-class="'tw-text-[20px] %s' % ('tw-text-black' if active_account_page == 'wishlist' else '')">Wishlist</span>
+            </a>
+            <a href="/my/orders" t-att-class="'ut-user-profile-menu tw-mt-5 tw-flex tw-items-center tw-gap-5 tw-no-underline %s' % ('is-active tw-h-16 tw-rounded-[32px] tw-bg-[#f5f5f7] tw-px-3 tw-text-[#212529]' if active_account_page == 'orders' else 'tw-h-[47px] tw-text-[#939393]')">
+                <span t-att-class="'ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full %s' % ('tw-bg-[#050505] tw-text-white' if active_account_page == 'orders' else 'tw-bg-[#f5f5f7]')">
+                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/>
+                        <path d="m3.3 7 8.7 5 8.7-5"/>
+                        <path d="M12 22V12"/>
+                    </svg>
+                </span>
+                <span t-att-class="'tw-text-[20px] %s' % ('tw-text-black' if active_account_page == 'orders' else '')">Pesanan saya</span>
+            </a>
+            <a href="/my/settings" t-att-class="'ut-user-profile-menu tw-mt-5 tw-flex tw-items-center tw-gap-5 tw-no-underline %s' % ('is-active tw-h-16 tw-rounded-[32px] tw-bg-[#f5f5f7] tw-px-3 tw-text-[#212529]' if active_account_page == 'settings' else 'tw-h-[47px] tw-text-[#939393]')">
+                <span t-att-class="'ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full %s' % ('tw-bg-[#050505] tw-text-white' if active_account_page == 'settings' else 'tw-bg-[#f5f5f7]')">
+                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1h.1a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>
+                    </svg>
+                </span>
+                <span t-att-class="'tw-text-[20px] %s' % ('tw-text-black' if active_account_page == 'settings' else '')">Pengaturan</span>
+            </a>
+            <div class="tw-flex-1"></div>
+            <a href="/web/session/logout?redirect=/" class="ut-user-profile-logout tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-red-600 tw-no-underline">
+                <span class="tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-red-600 tw-text-white">
+                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <path d="m16 17 5-5-5-5"/>
+                        <path d="M21 12H9"/>
+                    </svg>
+                </span>
+                <span class="tw-text-[20px]">Keluar</span>
+            </a>
+        </aside>
+    </template>
+
     <template id="unitrade_portal_my_details" inherit_id="portal.portal_my_details" name="UniTrade User Profile">
         <xpath expr="//t[@t-call='portal.portal_layout']" position="replace">
             <t t-call="website.layout">
@@ -595,5 +647,29 @@
                 </div>
             </section>
         </t>
+    </template>
+
+    <template id="unitrade_portal_my_details_sidebar_component" inherit_id="unitrade_theme.unitrade_portal_my_details" name="UniTrade Profile Sidebar Component">
+        <xpath expr="//aside[hasclass('ut-user-profile-sidebar')]" position="replace">
+            <t t-call="unitrade_theme.unitrade_account_sidebar">
+                <t t-set="active_account_page" t-value="'profile'"/>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="unitrade_portal_my_security_sidebar_component" inherit_id="unitrade_theme.unitrade_portal_my_security" name="UniTrade Settings Sidebar Component">
+        <xpath expr="//aside[hasclass('ut-settings-sidebar')]" position="replace">
+            <t t-call="unitrade_theme.unitrade_account_sidebar">
+                <t t-set="active_account_page" t-value="'settings'"/>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="unitrade_portal_my_orders_sidebar_component" inherit_id="unitrade_theme.unitrade_portal_my_orders" name="UniTrade Orders Sidebar Component">
+        <xpath expr="//aside[hasclass('ut-user-profile-sidebar')]" position="replace">
+            <t t-call="unitrade_theme.unitrade_account_sidebar">
+                <t t-set="active_account_page" t-value="'orders'"/>
+            </t>
+        </xpath>
     </template>
 </odoo>

@@ -4,7 +4,7 @@
     'summary': 'Product wishlist for buyers',
     'author': 'Tim 1 - UNISA Yogyakarta',
     'category': 'Website',
-    'depends': ['website_sale', 'unitrade_product_ext'],
+    'depends': ['website_sale', 'unitrade_product_ext', 'unitrade_theme'],
     'data': [
         'security/ir.model.access.csv',
         'views/wishlist_templates.xml',

@@ -1,6 +1,7 @@
 /** @odoo-module **/
 
 import publicWidget from "@web/legacy/js/public/public_widget";
+import { jsonrpc } from "@web/core/network/rpc_service";
 
 publicWidget.registry.UnitradeProductDetailSkeleton = publicWidget.Widget.extend({
     selector: "#product_detail.ut-product-detail-hydrating",
@@ -74,5 +75,76 @@ publicWidget.registry.UnitradeProductDetailHashTabs = publicWidget.Widget.extend
         if (reviewPanel) {
             reviewPanel.scrollIntoView({ behavior: "smooth", block: "start" });
         }
+    },
+});
+
+publicWidget.registry.UnitradeProductWishlistDirect = publicWidget.Widget.extend({
+    selector: "#product_detail",
+    events: {
+        "click .ut-product-wishlist-direct": "_onWishlistClick",
+    },
+
+    async _onWishlistClick(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        const button = ev.currentTarget;
+        const productId = parseInt(button.dataset.productId, 10);
+        if (!productId || button.disabled) {
+            return;
+        }
+
+        button.disabled = true;
+        button.classList.add("is-loading");
+
+        try {
+            const result = await jsonrpc("/unitrade/wishlist/toggle", {
+                product_id: productId,
+            });
+
+            if (!result || result.success === false) {
+                throw new Error((result && result.message) || "Wishlist update failed");
+            }
+
+            const isActive = Boolean(result.added);
+            button.dataset.active = isActive ? "1" : "0";
+            button.classList.toggle("is-active", isActive);
+            button.setAttribute("title", isActive ? "Lihat wishlist" : "Tambahkan ke wishlist");
+            this._showWishlistFeedback(button, isActive ? "Ditambahkan ke wishlist" : "Dihapus dari wishlist", isActive);
+        } catch (error) {
+            if (error && (error.message || "").includes("Session expired")) {
+                window.location.href = `/web/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+                return;
+            }
+            this._showWishlistFeedback(button, "Wishlist gagal diperbarui", false);
+            console.error("[UniTrade] Wishlist direct:", error);
+        } finally {
+            button.disabled = false;
+            button.classList.remove("is-loading");
+        }
+    },
+
+    _showWishlistFeedback(button, message, showLink) {
+        const wrapper = button.parentElement;
+        if (!wrapper) {
+            return;
+        }
+
+        let feedback = wrapper.querySelector(".ut-product-wishlist-feedback");
+        if (!feedback) {
+            feedback = document.createElement("a");
+            feedback.className = "ut-product-wishlist-feedback";
+            wrapper.appendChild(feedback);
+        }
+
+        feedback.textContent = message;
+        feedback.href = showLink ? "/my/wishlist" : "#";
+        feedback.classList.toggle("is-link", showLink);
+        feedback.classList.add("is-visible");
+
+        window.clearTimeout(this._wishlistFeedbackTimer);
+        this._wishlistFeedbackTimer = window.setTimeout(() => {
+            feedback.classList.remove("is-visible");
+        }, 2400);
     },
 });

@@ -104,3 +104,60 @@ publicWidget.registry.UnitradeSettingsNotifications = publicWidget.Widget.extend
         }
     },
 });
+
+publicWidget.registry.UnitradeWishlistPage = publicWidget.Widget.extend({
+    selector: "[data-unitrade-wishlist-page]",
+    events: {
+        "click [data-wishlist-remove]": "_onRemoveWishlist",
+    },
+
+    async _onRemoveWishlist(ev) {
+        ev.preventDefault();
+        const button = ev.currentTarget;
+        if (button.disabled) {
+            return;
+        }
+        button.disabled = true;
+        button.classList.add("is-loading");
+
+        try {
+            const result = await jsonrpc("/unitrade/wishlist/remove", {
+                wishlist_id: button.dataset.wishlistId,
+                product_id: button.dataset.productId,
+            });
+
+            if (!result || !result.success) {
+                throw new Error((result && result.message) || "Wishlist update failed");
+            }
+
+            const productRow = button.closest("[data-wishlist-item]")
+                || this.el.querySelector(`[data-wishlist-item][data-wishlist-id="${button.dataset.wishlistId}"]`);
+            if (productRow) {
+                const card = productRow.closest("[data-wishlist-seller-card]");
+                productRow.remove();
+                if (card) {
+                    const nextHeartItem = card.querySelector("[data-wishlist-item]");
+                    if (nextHeartItem) {
+                        button.dataset.wishlistId = nextHeartItem.dataset.wishlistId;
+                        button.dataset.productId = nextHeartItem.dataset.productId;
+                        button.disabled = false;
+                        button.classList.remove("is-loading");
+                    } else {
+                        card.remove();
+                    }
+                }
+            }
+
+            if (!this.el.querySelector("[data-wishlist-item]")) {
+                const empty = this.el.querySelector("[data-wishlist-empty]");
+                if (empty) {
+                    empty.classList.remove("tw-hidden");
+                }
+            }
+        } catch (error) {
+            button.disabled = false;
+            button.classList.remove("is-loading");
+            console.error("[UniTrade] Wishlist page:", error);
+        }
+    },
+});
