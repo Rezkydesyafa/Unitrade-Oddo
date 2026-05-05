@@ -138,6 +138,9 @@ class UnitradeAuthSignup(OAuthLogin):
     def web_auth_reset_password(self, *args, **kw):
         """Override reset password to show success message instead of auto-login after password change."""
         qcontext = self.get_auth_signup_qcontext()
+        if request.session.pop('unitrade_password_reset_link_sent', False):
+            qcontext['reset_password_enabled'] = True
+            qcontext['message'] = _("Password reset instructions sent to your email")
 
         if not qcontext.get('token') and not qcontext.get('reset_password_enabled'):
             raise werkzeug.exceptions.NotFound()
@@ -180,7 +183,7 @@ class UnitradeAuthSignup(OAuthLogin):
         response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
         return response
 
-    def _generate_and_redirect_otp(self, user_sudo, login_value):
+    def _generate_and_redirect_otp(self, user_sudo, login_value, purpose='account_verification'):
         """Generate OTP, send it, store session, and redirect to verify page."""
         try:
             otp_model = request.env['unitrade.otp'].sudo()
@@ -209,6 +212,7 @@ class UnitradeAuthSignup(OAuthLogin):
             request.session['otp_verified'] = False
             request.session['otp_sent_via'] = sent_via
             request.session['otp_code_dev'] = otp_code  # Dev only — remove in production!
+            request.session['otp_purpose'] = purpose
 
             _logger.info("OTP generated for %s via %s, redirecting to verify", login_value, sent_via)
             return request.redirect('/web/verify-otp')
@@ -381,6 +385,7 @@ class UnitradeOTPController(http.Controller):
         email = request.session.get('otp_email', '')
         sent_via = request.session.get('otp_sent_via', 'email')
         otp_code_dev = request.session.get('otp_code_dev', '')
+        purpose = request.session.get('otp_purpose', 'account_verification')
 
         if not user_id:
             return request.redirect('/web/login')
@@ -394,6 +399,11 @@ class UnitradeOTPController(http.Controller):
             'is_phone': _is_phone(email),
             'is_email': _is_email(email),
             'otp_code_dev': otp_code_dev,  # Dev only
+            'otp_title': _('Verifikasi Password') if purpose == 'settings_password_reset' else _('Verifikasi Akun'),
+            'otp_submit_label': _('Lanjutkan') if purpose == 'settings_password_reset' else _('Verifikasi akun'),
+            'otp_email_message': _('Kami telah mengirimkan kode OTP 6 digit ke email Anda untuk memverifikasi permintaan ubah password.') if purpose == 'settings_password_reset' else _('Kami telah mengirimkan kode verifikasi 6 digit ke email Anda'),
+            'otp_back_url': '/my/settings' if purpose == 'settings_password_reset' else '/web/login',
+            'otp_back_label': _('Kembali ke pengaturan') if purpose == 'settings_password_reset' else _('Back to login'),
             'error': kw.get('error', ''),
         }
         return request.render('unitrade_theme.verify_otp_page', values)
@@ -418,6 +428,24 @@ class UnitradeOTPController(http.Controller):
         is_valid = otp_model.verify_otp(user_id, code)
 
         if is_valid:
+            purpose = request.session.get('otp_purpose', 'account_verification')
+            if purpose == 'settings_password_reset':
+                user = request.env['res.users'].sudo().browse(user_id)
+                try:
+                    reset_email = (user.email or user.partner_id.email or request.session.get('otp_email') or '').strip()
+                    if reset_email and not user.email:
+                        user.partner_id.sudo().write({'email': reset_email})
+                    request.env['res.users'].sudo().reset_password(user.login)
+                    request.session['unitrade_password_reset_link_sent'] = True
+                    _logger.info("Password reset email sent after OTP verification for user %s", user.login)
+                except Exception as e:
+                    _logger.error("Failed to send password reset email after OTP: %s", str(e))
+                    return request.redirect('/web/verify-otp?error=Gagal mengirim link reset password. Coba lagi nanti.')
+
+                for key in ('otp_user_id', 'otp_email', 'otp_code_dev', 'otp_sent_via', 'otp_purpose'):
+                    request.session.pop(key, None)
+                return request.redirect('/web/reset_password')
+
             # Mark user as verified
             try:
                 user = request.env['res.users'].sudo().browse(user_id)
@@ -436,7 +464,7 @@ class UnitradeOTPController(http.Controller):
             _logger.info("User %s authenticated after OTP verification", user.login)
 
             request.session['otp_verified'] = True
-            for key in ('otp_user_id', 'otp_email', 'otp_code_dev', 'otp_sent_via'):
+            for key in ('otp_user_id', 'otp_email', 'otp_code_dev', 'otp_sent_via', 'otp_purpose'):
                 request.session.pop(key, None)
             return request.redirect('/')
         else:
@@ -550,6 +578,23 @@ class UnitradePortalProfile(CustomerPortal):
         response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
         return response
 
+    @http.route('/my/settings/password/request', type='http', auth='user', website=True, methods=['POST'])
+    def request_settings_password_reset(self, **post):
+        """Start OTP verification before sending the reset-password email link."""
+        user = request.env.user.sudo()
+        email = (user.email or user.partner_id.email or '').strip()
+        if not email and _is_email(user.login):
+            email = user.login
+
+        if not _is_email(email):
+            return request.redirect('/my/settings?password_otp_error=email')
+
+        return UnitradeAuthSignup()._generate_and_redirect_otp(
+            user,
+            email,
+            purpose='settings_password_reset',
+        )
+
     @http.route('/my/settings/notifications', type='json', auth='user', website=True, methods=['POST'])
     def update_settings_notifications(self, field=None, value=None, **kwargs):
         """Persist notification switches from the settings page."""
@@ -639,6 +684,7 @@ class UnitradePortalProfile(CustomerPortal):
             'notify_transaction': user.x_notify_transaction,
             'notify_promo': user.x_notify_promo,
             'session_activity': self._unitrade_session_activity(),
+            'password_otp_error': request.params.get('password_otp_error'),
         })
         return values
 

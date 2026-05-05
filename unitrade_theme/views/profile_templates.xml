@@ -395,13 +395,16 @@
                             <section name="portal_change_password" class="ut-settings-section">
                                 <h2>Password</h2>
                                 <div class="ut-settings-card ut-settings-action-card">
-                                    <button type="button" class="ut-settings-red-action" data-bs-toggle="modal" data-bs-target="#ut_settings_password_modal">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M12 20h9"/>
-                                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
-                                        </svg>
-                                        <span>Ubah Password</span>
-                                    </button>
+                                    <form action="/my/settings/password/request" method="post">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <button type="submit" class="ut-settings-red-action">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M12 20h9"/>
+                                                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                                            </svg>
+                                            <span>Ubah Password</span>
+                                        </button>
+                                    </form>
                                     <p class="ut-settings-warning">
                                         <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5">
                                             <circle cx="6.5" cy="6.5" r="5"/>
@@ -412,6 +415,9 @@
                                     </p>
                                     <div class="ut-settings-alert ut-settings-alert-success" role="alert" t-if="success and success.get('password')">
                                         Password berhasil diperbarui.
+                                    </div>
+                                    <div class="ut-settings-alert ut-settings-alert-error" role="alert" t-if="password_otp_error == 'email'">
+                                        Akun Anda belum memiliki email aktif untuk menerima kode OTP dan link reset password.
                                     </div>
                                 </div>
 
