@@ -169,7 +169,7 @@
 
                                     <label class="ut-user-profile-field">
                                         <span>Nomor Telpon</span>
-                                        <input type="tel" name="phone" t-att-value="form_values.get('phone') or partner.phone or ''" class="ut-user-profile-input" placeholder="08xxxxxxxxxx" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                        <input type="tel" name="phone" t-att-value="form_values.get('phone') or partner.phone or ''" class="ut-user-profile-input" placeholder="08xxxxxxxxxx" pattern="(\+62|62|08)[0-9]{8,13}" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
                                     </label>
 
                                     <div class="ut-user-profile-address">
@@ -177,13 +177,13 @@
                                             <label class="ut-user-profile-field tw-m-0">
                                                 <span>Alamat</span>
                                                 <small>Provinsi, Kota, Kecamatan</small>
-                                                <textarea name="street" class="ut-user-profile-textarea" t-esc="form_values.get('street') or partner.street or ''" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"></textarea>
+                                                <textarea name="street" maxlength="255" class="ut-user-profile-textarea" t-esc="form_values.get('street') or partner.street or ''" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"></textarea>
                                             </label>
                                         </div>
                                         <label class="ut-user-profile-field tw-m-0">
                                             <span class="tw-opacity-0">Kode Pos</span>
                                             <small>Kode Pos</small>
-                                            <input type="text" name="zipcode" t-att-value="form_values.get('zipcode') or partner.zip" class="ut-user-profile-input" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                            <input type="text" name="zipcode" t-att-value="form_values.get('zipcode') or partner.zip" class="ut-user-profile-input" inputmode="numeric" pattern="[0-9]{4,10}" maxlength="10" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
                                         </label>
                                     </div>
 
@@ -205,8 +205,11 @@
                                                 </svg>
                                             </span>
                                         </span>
-                                        <input type="file" name="avatar_upload" accept="image/*" class="tw-sr-only" data-profile-control="1" data-profile-avatar-input="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                        <input type="file" name="avatar_upload" accept="image/jpeg,image/png,image/webp" class="tw-sr-only" data-profile-control="1" data-profile-avatar-input="1" t-att-disabled="None if error_message else 'disabled'"/>
                                     </label>
+                                    <p class="tw-mt-3 tw-max-w-[220px] tw-text-center tw-font-['Urbanist'] tw-text-[12px] tw-leading-[16px] tw-text-[#777]">
+                                        Foto profil maksimal 2 MB. Gunakan JPG, PNG, atau WEBP.
+                                    </p>
                                 </div>
                             </form>
                         </main>
@@ -387,9 +390,15 @@
                                         </article>
                                     </t>
                                 </div>
-                                <button type="button" class="ut-settings-revoke-all" id="portal_revoke_all_sessions_popup">
-                                    Keluarkan semua perangkat
-                                </button>
+                                <form action="/my/settings/session/revoke_all" method="post">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <button type="submit" class="ut-settings-revoke-all">
+                                        Keluarkan semua perangkat
+                                    </button>
+                                </form>
+                                <div class="ut-settings-alert ut-settings-alert-success" role="alert" t-if="sessions_revoked">
+                                    Semua perangkat lain berhasil dikeluarkan.
+                                </div>
                             </section>
 
                             <section name="portal_change_password" class="ut-settings-section">
@@ -421,48 +430,6 @@
                                     </div>
                                 </div>
 
-                                <div t-attf-class="modal #{'show d-block' if get_error(errors, 'password') else ''}" id="ut_settings_password_modal" tabindex="-1" role="dialog">
-                                    <div class="modal-dialog modal-dialog-centered" role="document">
-                                        <div class="modal-content ut-settings-modal">
-                                            <div class="modal-header ut-settings-modal-head">
-                                                <h5 class="modal-title">Ubah Password</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <form action="/my/settings" method="post" class="modal-body oe_reset_password_form ut-settings-password-form">
-                                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                                <input type="hidden" name="op" value="password"/>
-                                                <div class="ut-settings-alert ut-settings-alert-error" role="alert" t-if="get_error(errors, 'password')">
-                                                    <t t-esc="errors['password']"/>
-                                                </div>
-                                                <label class="ut-settings-modal-field">
-                                                    <span>Password Saat Ini</span>
-                                                    <input type="password" t-attf-class="ut-settings-input {{ 'is-invalid' if get_error(errors, 'password.old') else '' }}"
-                                                        id="current" name="old" autocomplete="current-password" required="required"/>
-                                                    <small class="invalid-feedback">
-                                                        <t t-esc="get_error(errors, 'password.old')"/>
-                                                    </small>
-                                                </label>
-                                                <div class="ut-settings-modal-field">
-                                                    <label for="new">Password Baru</label>
-                                                    <input type="password" t-attf-class="ut-settings-input {{ 'is-invalid' if get_error(errors, 'password.new1') else '' }}"
-                                                        id="new" name="new1" autocomplete="new-password" required="required"/>
-                                                    <small class="invalid-feedback">
-                                                        <t t-esc="get_error(errors, 'password.new1')"/>
-                                                    </small>
-                                                </div>
-                                                <label class="ut-settings-modal-field">
-                                                    <span>Konfirmasi Password Baru</span>
-                                                    <input type="password" t-attf-class="ut-settings-input {{ 'is-invalid' if get_error(errors, 'password.new2') else '' }}"
-                                                        id="new2" name="new2" autocomplete="new-password" required="required"/>
-                                                    <small class="invalid-feedback">
-                                                        <t t-esc="get_error(errors, 'password.new2')"/>
-                                                    </small>
-                                                </label>
-                                                <button type="submit" class="ut-settings-modal-submit">Simpan Password</button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
                             </section>
 
                             <section name="portal_deactivate_account" groups="base.group_portal" class="ut-settings-section">
@@ -520,6 +487,14 @@
                                                     <input type="checkbox" name="request_blacklist" id="request_blacklist" checked="1"/>
                                                     <span>Masukkan email dan nomor telepon saya ke daftar blokir agar tidak dihubungi lagi.</span>
                                                 </label>
+                                                <label class="ut-settings-check">
+                                                    <input type="checkbox" name="confirm_deactivate" value="1" required="1"
+                                                        t-attf-class="#{'is-invalid' if deactivate_error == 'confirm' else ''}"/>
+                                                    <span>Saya memahami akun akan dinonaktifkan dan tindakan ini tidak dapat dibatalkan dari halaman ini.</span>
+                                                </label>
+                                                <small t-if="deactivate_error == 'confirm'" class="invalid-feedback d-block">
+                                                    Konfirmasi penghapusan akun wajib dicentang.
+                                                </small>
                                                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                             </form>
                                             <div class="modal-footer ut-settings-modal-footer">

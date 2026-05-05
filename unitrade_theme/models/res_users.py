@@ -19,6 +19,40 @@ class ResUsers(models.Model):
     x_notify_transaction = fields.Boolean(string='Notifikasi Transaksi UniTrade', default=True)
     x_notify_promo = fields.Boolean(string='Notifikasi Promo UniTrade', default=True)
 
+    def unitrade_allows_notification(self, category):
+        """Return whether UniTrade may send a non-security notification to this user."""
+        self.ensure_one()
+        if category == 'transaction':
+            return bool(self.x_notify_all and self.x_notify_transaction)
+        if category == 'promo':
+            return bool(self.x_notify_all and self.x_notify_promo)
+        return bool(self.x_notify_all)
+
+    def unitrade_send_notification_email(self, category, subject, body_html, email_values=None):
+        """Send an email only when the user's UniTrade notification preference allows it."""
+        self.ensure_one()
+        if not self.unitrade_allows_notification(category):
+            _logger.info(
+                "Skipped UniTrade %s notification for user %s because it is disabled.",
+                category, self.login,
+            )
+            return False
+
+        email_to = self.email or self.partner_id.email
+        if not email_to:
+            _logger.info("Skipped UniTrade %s notification for user %s because email is empty.", category, self.login)
+            return False
+
+        values = {
+            'email_to': email_to,
+            'subject': subject,
+            'body_html': body_html,
+            'auto_delete': True,
+        }
+        if email_values:
+            values.update(email_values)
+        return self.env['mail.mail'].sudo().create(values).send()
+
     @api.model
     def _auth_oauth_signin(self, provider, validation, params):
         """Override to link existing users by email when signing in via OAuth.

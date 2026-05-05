@@ -564,15 +564,6 @@ class UnitradePortalProfile(CustomerPortal):
         """Render and process the UniTrade settings page."""
         values = self._prepare_unitrade_settings_values()
 
-        if request.httprequest.method == 'POST':
-            operation = post.get('op')
-            if operation == 'password':
-                values.update(self._update_password(
-                    (post.get('old') or '').strip(),
-                    (post.get('new1') or '').strip(),
-                    (post.get('new2') or '').strip()
-                ))
-
         response = request.render('portal.portal_my_security', values)
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
@@ -645,13 +636,24 @@ class UnitradePortalProfile(CustomerPortal):
                 session_store.delete(session)
         return request.redirect('/my/settings')
 
+    @http.route('/my/settings/session/revoke_all', type='http', auth='user', website=True, methods=['POST'])
+    def revoke_all_settings_sessions(self, **post):
+        """Revoke every session owned by the current user except the active one."""
+        session_store = http.root.session_store
+        for sid, session in self._iter_unitrade_user_sessions():
+            if sid != request.session.sid:
+                session_store.delete(session)
+        return request.redirect('/my/settings?sessions_revoked=1')
+
     @http.route('/my/deactivate_account', type='http', auth='user', website=True, methods=['POST'])
-    def deactivate_account(self, validation, password, **post):
+    def deactivate_account(self, validation=None, password=None, confirm_deactivate=None, **post):
         """Render UniTrade settings again when account deactivation validation fails."""
         values = self._prepare_unitrade_settings_values()
         values['open_deactivate_modal'] = True
 
-        if validation != request.env.user.login:
+        if confirm_deactivate != '1':
+            values['errors'] = {'deactivate': 'confirm'}
+        elif validation != request.env.user.login:
             values['errors'] = {'deactivate': 'validation'}
         else:
             try:
@@ -685,6 +687,7 @@ class UnitradePortalProfile(CustomerPortal):
             'notify_promo': user.x_notify_promo,
             'session_activity': self._unitrade_session_activity(),
             'password_otp_error': request.params.get('password_otp_error'),
+            'sessions_revoked': request.params.get('sessions_revoked') == '1',
         })
         return values
 
@@ -695,21 +698,8 @@ class UnitradePortalProfile(CustomerPortal):
         session['unitrade_last_seen'] = fields.Datetime.to_string(fields.Datetime.now())
 
     def _unitrade_session_activity(self):
-        session_store = http.root.session_store
-        path = getattr(session_store, 'path', '')
-        pattern = os.path.join(path, '*', '*')
         rows = []
-        for filename in glob.iglob(pattern):
-            sid = os.path.basename(filename)
-            if sid.endswith('.__wz_sess') or not session_store.is_valid_key(sid):
-                continue
-            try:
-                session = session_store.get(sid)
-            except Exception:
-                _logger.debug("Unable to read portal session %s", sid, exc_info=True)
-                continue
-            if session.get('uid') != request.env.uid:
-                continue
+        for sid, session in self._iter_unitrade_user_sessions():
             rows.append({
                 'sid': sid,
                 'is_current': sid == request.session.sid,
@@ -728,6 +718,22 @@ class UnitradePortalProfile(CustomerPortal):
                 'last_seen': _('Sedang aktif'),
             })
         return rows[:4]
+
+    def _iter_unitrade_user_sessions(self):
+        session_store = http.root.session_store
+        path = getattr(session_store, 'path', '')
+        pattern = os.path.join(path, '*', '*')
+        for filename in glob.iglob(pattern):
+            sid = os.path.basename(filename)
+            if sid.endswith('.__wz_sess') or not session_store.is_valid_key(sid):
+                continue
+            try:
+                session = session_store.get(sid)
+            except Exception:
+                _logger.debug("Unable to read portal session %s", sid, exc_info=True)
+                continue
+            if session.get('uid') == request.env.uid:
+                yield sid, session
 
     @staticmethod
     def _unitrade_device_name(user_agent):
@@ -764,7 +770,7 @@ class UnitradePortalProfile(CustomerPortal):
         email = (post.get('email') or '').strip()
         gender = (post.get('x_gender') or '').strip()
         birth_date = (post.get('x_birth_date') or '').strip()
-        phone = (post.get('phone') or '').strip()
+        phone = re.sub(r'[\s-]+', '', (post.get('phone') or '').strip())
         street = (post.get('street') or '').strip()
         zipcode = (post.get('zipcode') or '').strip()
 
@@ -778,12 +784,29 @@ class UnitradePortalProfile(CustomerPortal):
 
         if birth_date:
             try:
-                user_vals['x_birth_date'] = fields.Date.to_date(birth_date)
+                parsed_birth_date = fields.Date.to_date(birth_date)
+                if parsed_birth_date > fields.Date.today():
+                    error['x_birth_date'] = 'future'
+                    error_message.append(_('Tanggal lahir tidak boleh di masa depan.'))
+                else:
+                    user_vals['x_birth_date'] = parsed_birth_date
             except ValueError:
                 error['x_birth_date'] = 'error'
                 error_message.append(_('Format tanggal lahir tidak valid.'))
         else:
             user_vals['x_birth_date'] = False
+
+        if phone and not _is_phone(phone):
+            error['phone'] = 'error'
+            error_message.append(_('Nomor telepon harus diawali 08, 62, atau +62 dan berisi 10-15 digit.'))
+
+        if zipcode and (not zipcode.isdigit() or len(zipcode) < 4 or len(zipcode) > 10):
+            error['zipcode'] = 'error'
+            error_message.append(_('Kode pos harus berupa angka 4 sampai 10 digit.'))
+
+        if street and len(street) > 255:
+            error['street'] = 'error'
+            error_message.append(_('Alamat maksimal 255 karakter.'))
 
         if gender in ('male', 'female'):
             user_vals['x_gender'] = gender
@@ -794,14 +817,26 @@ class UnitradePortalProfile(CustomerPortal):
         if avatar_file and getattr(avatar_file, 'filename', ''):
             avatar_content = avatar_file.read()
             content_type = (getattr(avatar_file, 'content_type', '') or '').lower()
+            allowed_avatar_types = {'image/jpeg', 'image/jpg', 'image/png', 'image/webp'}
             if len(avatar_content) > self._MAX_AVATAR_BYTES:
                 error['avatar_upload'] = 'too_large'
                 error_message.append(_('Ukuran foto profil maksimal 2MB.'))
-            elif content_type and not content_type.startswith('image/'):
+            elif content_type and content_type not in allowed_avatar_types:
                 error['avatar_upload'] = 'invalid'
-                error_message.append(_('Foto profil harus berupa file gambar.'))
+                error_message.append(_('Foto profil harus berupa JPG, PNG, atau WEBP.'))
             else:
-                user_vals['image_1920'] = base64.b64encode(avatar_content)
+                try:
+                    user_vals['image_1920'] = base64.b64encode(tools.image_process(
+                        avatar_content,
+                        size=(512, 512),
+                        crop='center',
+                        quality=85,
+                        verify_resolution=True,
+                        output_format='JPEG',
+                    ))
+                except Exception:
+                    error['avatar_upload'] = 'invalid'
+                    error_message.append(_('Foto profil tidak dapat diproses. Gunakan JPG, PNG, atau WEBP yang valid.'))
 
         partner_vals.update({
             'name': name,

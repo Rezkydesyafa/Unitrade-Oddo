@@ -1260,6 +1260,10 @@
   max-width: 1460px;
 }
 
+.tw-max-w-\[220px\] {
+  max-width: 220px;
+}
+
 .tw-max-w-\[340px\] {
   max-width: 340px;
 }
@@ -2754,6 +2758,10 @@
   line-height: 1.8;
 }
 
+.tw-leading-\[16px\] {
+  line-height: 16px;
+}
+
 .tw-leading-\[17px\] {
   line-height: 17px;
 }
@@ -2871,6 +2879,11 @@
 .tw-text-\[\#737373\] {
   --tw-text-opacity: 1;
   color: rgb(115 115 115 / var(--tw-text-opacity, 1));
+}
+
+.tw-text-\[\#777\] {
+  --tw-text-opacity: 1;
+  color: rgb(119 119 119 / var(--tw-text-opacity, 1));
 }
 
 .tw-text-\[\#92400e\] {

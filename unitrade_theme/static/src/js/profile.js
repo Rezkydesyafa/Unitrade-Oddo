@@ -28,7 +28,13 @@ publicWidget.registry.UnitradeUserProfileForm = publicWidget.Widget.extend({
     _onAvatarChange(ev) {
         const file = ev.currentTarget.files && ev.currentTarget.files[0];
         const preview = this.el.querySelector(".ut-user-profile-avatar-img");
-        if (!file || !preview || !file.type.startsWith("image/")) {
+        const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+        if (!file || !preview) {
+            return;
+        }
+        if (!allowedTypes.includes(file.type) || file.size > 2 * 1024 * 1024) {
+            ev.currentTarget.value = "";
+            window.alert("Foto profil harus JPG, PNG, atau WEBP dan maksimal 2 MB.");
             return;
         }
         const reader = new FileReader();
