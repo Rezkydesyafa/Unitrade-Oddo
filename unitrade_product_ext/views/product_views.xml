@@ -38,6 +38,8 @@
                 <field name="x_seller_id"/>
                 <field name="categ_id"/>
                 <field name="list_price"/>
+                <field name="x_unitrade_stock_qty"/>
+                <field name="x_unitrade_free_qty" optional="hide"/>
                 <field name="x_seller_location"/>
                 <field name="x_discount_percent" optional="hide"/>
                 <field name="website_published" widget="boolean_toggle"/>
@@ -101,11 +103,24 @@
                     </group>
 
                     <group class="ut_product_admin_group_grid">
+                        <group string="Stok dan Checkout" class="ut_product_admin_panel">
+                            <field name="detailed_type" required="1"/>
+                            <field name="x_unitrade_stock_qty"/>
+                            <field name="x_unitrade_free_qty" readonly="1"/>
+                            <field name="allow_out_of_stock_order"/>
+                            <label for="x_unitrade_stock_qty" string="Catatan"/>
+                            <div class="text-muted">
+                                Isi stok dari sini. Sistem akan memakai stok ini untuk memblokir checkout jika jumlah keranjang melebihi stok tersedia.
+                            </div>
+                        </group>
                         <group string="Penjual" class="ut_product_admin_panel">
                             <field name="x_seller_id" required="1" domain="[('status', '=', 'verified')]"/>
                             <field name="x_seller_name" readonly="1"/>
                             <field name="x_seller_location" required="1" placeholder="Contoh: Yogyakarta"/>
                         </group>
+                    </group>
+
+                    <group class="ut_product_admin_group_grid">
                         <group string="Lokasi Produk / Map" class="ut_product_admin_panel">
                             <field name="x_item_province" required="1"/>
                             <field name="x_item_district" required="1"/>
@@ -240,7 +255,7 @@
             'default_x_is_marketplace': True,
             'default_sale_ok': True,
             'default_website_published': True,
-            'default_detailed_type': 'consu',
+            'default_detailed_type': 'product',
             'default_x_condition': 'used',
             'default_x_item_province': 'diy'
         }</field>
@@ -255,5 +270,5 @@
         parent="unitrade_seller.menu_unitrade_root"
         action="action_unitrade_products"
         sequence="15"
-        groups="base.group_user"/>
+        groups="unitrade_seller.group_unitrade_admin"/>
 </odoo>

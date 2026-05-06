@@ -4,7 +4,7 @@
     'summary': 'Extend products with condition, seller, and location fields',
     'author': 'Tim 1 - UNISA Yogyakarta',
     'category': 'Website/Website',
-    'depends': ['product', 'website_sale', 'unitrade_seller'],
+    'depends': ['product', 'website_sale', 'website_sale_stock', 'unitrade_seller'],
     'data': [
         'security/ir.model.access.csv',
         'views/product_views.xml',

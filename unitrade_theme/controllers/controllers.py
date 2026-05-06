@@ -66,6 +66,9 @@ class UnitradeAuthSignup(OAuthLogin):
 
         if 'error' not in qcontext and request.httprequest.method == 'POST':
             try:
+                if request.params.get('terms_accepted') != '1':
+                    raise UserError(_("Anda harus menyetujui Syarat Ketentuan & Kebijakan Privasi."))
+
                 if not request.env['ir.http']._verify_request_recaptcha_token('signup'):
                     raise UserError(_("Suspicious activity detected by Google reCaptcha."))
 
@@ -1226,7 +1229,15 @@ class UnitradePortalProfile(CustomerPortal):
             ('state', 'in', ['sent', 'sale', 'done', 'cancel']),
         ], order='date_order desc', limit=80)
 
-        Review = request.env['unitrade.review'].sudo() if 'unitrade.review' in request.env.registry else False
+        Review = False
+        reviewed_product_ids = set()
+        try:
+            Review = request.env['unitrade.review'].sudo()
+            reviewed_product_ids = set(Review.search([
+                ('user_id', '=', request.env.uid),
+            ]).mapped('product_id').ids)
+        except KeyError:
+            _logger.info('UniTrade review module is not available while rendering customer orders.')
         items = []
         for order in orders:
             status_key = self._unitrade_order_status_key(order)
@@ -1237,11 +1248,7 @@ class UnitradePortalProfile(CustomerPortal):
                 seller_ref = seller.x_profile_uuid or seller.id if seller else ''
                 review_exists = False
                 if Review and status_key == 'done':
-                    review_exists = bool(Review.search_count([
-                        ('order_id', '=', order.id),
-                        ('product_id', '=', product.id),
-                        ('user_id', '=', request.env.uid),
-                    ]))
+                    review_exists = product.id in reviewed_product_ids
 
                 can_buy_again = self._unitrade_can_buy_again(product, line.product_id)
                 items.append({

@@ -698,3 +698,275 @@ publicWidget.registry.UnitradeWishlistPage = publicWidget.Widget.extend({
         }
     },
 });
+
+publicWidget.registry.UnitradeAccountShell = publicWidget.Widget.extend({
+    selector: ".ut-user-profile-page",
+    events: {
+        "click .ut-account-sidebar a": "_onSidebarLinkClick",
+    },
+
+    init() {
+        this._super(...arguments);
+        this.accountPaths = new Set(["/my/account", "/my/wishlist", "/my/orders", "/my/settings"]);
+        this.isNavigating = false;
+        this._onPopState = this._onPopState.bind(this);
+        window.__unitradeAccountShellNavigation = window.__unitradeAccountShellNavigation || {
+            sequence: 0,
+            controller: null,
+        };
+    },
+
+    start() {
+        window.addEventListener("popstate", this._onPopState);
+        if (history.replaceState && this._isAccountPath(window.location.pathname)) {
+            history.replaceState({ unitradeAccountShell: true }, "", window.location.href);
+        }
+        return this._super(...arguments);
+    },
+
+    destroy() {
+        window.removeEventListener("popstate", this._onPopState);
+        return this._super(...arguments);
+    },
+
+    _onSidebarLinkClick(ev) {
+        const link = ev.currentTarget;
+        const url = new URL(link.href, window.location.origin);
+
+        if (
+            ev.defaultPrevented
+            || ev.button !== 0
+            || ev.metaKey
+            || ev.ctrlKey
+            || ev.shiftKey
+            || ev.altKey
+            || link.target
+            || url.origin !== window.location.origin
+            || !this._isAccountPath(url.pathname)
+        ) {
+            return;
+        }
+
+        ev.preventDefault();
+        if (url.pathname === window.location.pathname && url.search === window.location.search) {
+            return;
+        }
+        this._navigate(url, { push: true });
+    },
+
+    _onPopState() {
+        const url = new URL(window.location.href);
+        if (this._isAccountPath(url.pathname)) {
+            this._navigate(url, { push: false });
+        }
+    },
+
+    async _navigate(url, options = {}) {
+        const navigation = this._createNavigation();
+        this.isNavigating = true;
+        this._showSkeleton(url.pathname);
+
+        try {
+            const response = await fetch(url.toString(), {
+                method: "GET",
+                credentials: "same-origin",
+                signal: navigation.controller.signal,
+                headers: {
+                    Accept: "text/html",
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+            });
+
+            if (!this._isCurrentNavigation(navigation)) {
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(`Account page request failed: ${response.status}`);
+            }
+
+            const nextDoc = new DOMParser().parseFromString(await response.text(), "text/html");
+            if (!this._isCurrentNavigation(navigation)) {
+                return;
+            }
+
+            const nextSection = nextDoc.querySelector(".ut-user-profile-page");
+            if (!nextSection) {
+                throw new Error("Account page fragment not found");
+            }
+
+            await this._replacePageSection(nextSection, nextDoc, url, Boolean(options.push));
+        } catch (error) {
+            if (error && error.name === "AbortError") {
+                return;
+            }
+            console.error("[UniTrade] Account shell navigation:", error);
+            window.location.href = url.toString();
+        } finally {
+            if (this._isCurrentNavigation(navigation)) {
+                this.isNavigating = false;
+            }
+        }
+    },
+
+    async _replacePageSection(nextSection, nextDoc, url, shouldPushState) {
+        const oldSection = this.el && this.el.isConnected
+            ? this.el
+            : document.querySelector(".ut-user-profile-page");
+        const root = window.odoo && window.odoo.__WOWL_DEBUG__ && window.odoo.__WOWL_DEBUG__.root;
+        const jq = window.jQuery || window.$;
+
+        if (!oldSection || !root || !jq || !root._startWidgets || !root._stopWidgets) {
+            throw new Error("Odoo public widget root is not available");
+        }
+
+        if (shouldPushState && history.pushState) {
+            history.pushState({ unitradeAccountShell: true }, "", url.toString());
+        }
+
+        document.title = nextDoc.title || document.title;
+
+        try {
+            root._stopWidgets(jq(oldSection));
+        } catch (error) {
+            console.warn("[UniTrade] Account shell stop widgets:", error);
+        }
+
+        oldSection.replaceWith(nextSection);
+
+        try {
+            await root._startWidgets(jq(nextSection));
+        } catch (error) {
+            console.warn("[UniTrade] Account shell start widgets:", error);
+            throw error;
+        }
+
+        this._scrollToAccountTop(nextSection);
+    },
+
+    _createNavigation() {
+        const state = window.__unitradeAccountShellNavigation || {
+            sequence: 0,
+            controller: null,
+        };
+        if (state.controller) {
+            state.controller.abort();
+        }
+        state.sequence += 1;
+        state.controller = new AbortController();
+        window.__unitradeAccountShellNavigation = state;
+        return {
+            sequence: state.sequence,
+            controller: state.controller,
+        };
+    },
+
+    _isCurrentNavigation(navigation) {
+        const state = window.__unitradeAccountShellNavigation;
+        return Boolean(state && navigation && state.sequence === navigation.sequence);
+    },
+
+    _showSkeleton(pathname) {
+        const main = this.el.querySelector("main");
+        if (!main) {
+            return;
+        }
+        this.el.classList.add("ut-account-shell-loading");
+        main.innerHTML = this._skeletonMarkup(pathname);
+    },
+
+    _skeletonMarkup(pathname) {
+        const type = this._pageType(pathname);
+        const titleWidth = {
+            profile: "36%",
+            wishlist: "30%",
+            orders: "34%",
+            settings: "38%",
+        }[type] || "34%";
+
+        return `
+            <div class="ut-account-skeleton ut-account-skeleton-${type}" aria-live="polite" aria-busy="true">
+                <div class="ut-account-skeleton-header">
+                    <span class="ut-account-skeleton-block ut-account-skeleton-title" style="width:${titleWidth}"></span>
+                    <span class="ut-account-skeleton-block ut-account-skeleton-action"></span>
+                </div>
+                ${this._skeletonBody(type)}
+            </div>
+        `;
+    },
+
+    _skeletonBody(type) {
+        if (type === "wishlist" || type === "orders") {
+            return `
+                <div class="ut-account-skeleton-list">
+                    ${[0, 1, 2].map(() => `
+                        <div class="ut-account-skeleton-card-row">
+                            <span class="ut-account-skeleton-block ut-account-skeleton-thumb"></span>
+                            <div class="ut-account-skeleton-lines">
+                                <span class="ut-account-skeleton-block"></span>
+                                <span class="ut-account-skeleton-block is-short"></span>
+                                <span class="ut-account-skeleton-block is-mini"></span>
+                            </div>
+                            <div class="ut-account-skeleton-actions">
+                                <span class="ut-account-skeleton-block"></span>
+                                <span class="ut-account-skeleton-block"></span>
+                            </div>
+                        </div>
+                    `).join("")}
+                </div>
+            `;
+        }
+
+        if (type === "settings") {
+            return `
+                <div class="ut-account-skeleton-grid">
+                    ${[0, 1, 2, 3].map((index) => `
+                        <div class="ut-account-skeleton-setting">
+                            <span class="ut-account-skeleton-block"></span>
+                            <span class="ut-account-skeleton-block is-short"></span>
+                            <span class="ut-account-skeleton-block ut-account-skeleton-toggle"></span>
+                        </div>
+                    `).join("")}
+                </div>
+            `;
+        }
+
+        return `
+            <div class="ut-account-skeleton-profile">
+                <div class="ut-account-skeleton-form">
+                    ${[0, 1, 2, 3, 4, 5].map((index) => `
+                        <div class="ut-account-skeleton-field ${index % 2 ? "is-narrow" : ""}">
+                            <span class="ut-account-skeleton-block is-label"></span>
+                            <span class="ut-account-skeleton-block"></span>
+                        </div>
+                    `).join("")}
+                </div>
+                <span class="ut-account-skeleton-block ut-account-skeleton-avatar"></span>
+            </div>
+        `;
+    },
+
+    _pageType(pathname) {
+        const normalized = pathname.replace(/\/$/, "");
+        if (normalized === "/my/wishlist") {
+            return "wishlist";
+        }
+        if (normalized === "/my/orders") {
+            return "orders";
+        }
+        if (normalized === "/my/settings") {
+            return "settings";
+        }
+        return "profile";
+    },
+
+    _isAccountPath(pathname) {
+        return this.accountPaths.has(pathname.replace(/\/$/, ""));
+    },
+
+    _scrollToAccountTop(section) {
+        const rect = section.getBoundingClientRect();
+        const top = window.scrollY + rect.top - 18;
+        window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    },
+});

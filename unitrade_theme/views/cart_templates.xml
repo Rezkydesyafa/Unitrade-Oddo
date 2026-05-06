@@ -295,6 +295,39 @@
                     text-align: center !important;
                     font-size: 16px !important;
                 }
+                .ut-cart-stock-alert {
+                    border-radius: 16px;
+                    border: 1px solid #fecaca;
+                    background: #fff5f5;
+                    color: #991b1b;
+                    padding: 16px 18px;
+                    margin-bottom: 18px;
+                    font-family: 'Urbanist', sans-serif;
+                }
+                .ut-cart-stock-alert strong {
+                    display: block;
+                    color: #7f1d1d;
+                    font-size: 15px;
+                    margin-bottom: 6px;
+                }
+                .ut-cart-stock-alert ul {
+                    margin: 8px 0 0 18px;
+                    padding: 0;
+                }
+                .ut-cart-stock-alert li {
+                    margin-top: 4px;
+                }
+                .ut-cart-line-stock-warning {
+                    grid-column: 1 / -1;
+                    max-width: 220px;
+                    color: #dc2626;
+                    font-family: 'Urbanist', sans-serif;
+                    font-size: 13px;
+                    font-weight: 600;
+                    line-height: 1.35;
+                    text-align: right;
+                    margin-top: 6px;
+                }
 
                 /* ── Responsive: mobile stack ───────────────────────── */
                 @media (max-width: 767px) {
@@ -331,6 +364,11 @@
                     }
                     .unitrade-delete-icon { order: 1; margin-right: 8px; }
                     .o_cart_product .css_quantity { order: 2; }
+                    .ut-cart-line-stock-warning {
+                        order: 3;
+                        width: 100%;
+                        max-width: 100%;
+                    }
                 }
             </style>
         </xpath>
@@ -346,6 +384,18 @@
          2. CART LINES — Replace trash/delete button with SVG icon
     ================================================================ -->
     <template id="unitrade_cart_lines_delete" inherit_id="website_sale.cart_lines" name="UniTrade Cart Delete Button">
+
+        <xpath expr="//div[@id='cart_products']" position="before">
+            <t t-if="unitrade_cart_stock_warning or unitrade_cart_stock_issues">
+                <div class="ut-cart-stock-alert js_cart_lines" role="alert">
+                    <strong>Stok produk berubah</strong>
+                    <div t-if="unitrade_cart_stock_warning and not unitrade_cart_stock_issues" t-esc="unitrade_cart_stock_warning"/>
+                    <ul t-if="unitrade_cart_stock_issues">
+                        <li t-foreach="unitrade_cart_stock_issues" t-as="issue" t-esc="issue.get('message')"/>
+                    </ul>
+                </div>
+            </t>
+        </xpath>
 
         <!-- Hide the default "Remove" text and mobile trash btn completely -->
         <xpath expr="//div[hasclass('flex-grow-1')]/div[last()]" position="replace"/>
@@ -365,6 +415,20 @@
                     <line x1="14" y1="11" x2="14" y2="17"></line>
                 </svg>
             </a>
+        </xpath>
+
+        <xpath expr="//div[@name='website_sale_cart_line_quantity']" position="after">
+            <t t-set="unitrade_line_stock_issue" t-value="(unitrade_cart_stock_issues_by_product or {}).get(line.product_id.id)"/>
+            <div t-if="unitrade_line_stock_issue"
+                 class="ut-cart-line-stock-warning"
+                 role="alert"
+                 aria-live="polite">
+                <t t-esc="unitrade_line_stock_issue.get('message')"/>
+            </div>
+        </xpath>
+
+        <xpath expr="//i[hasclass('fa-warning')]" position="attributes">
+            <attribute name="t-att-title">line._get_shop_warning()</attribute>
         </xpath>
 
     </template>

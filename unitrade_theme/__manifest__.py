@@ -12,7 +12,7 @@
     'author': 'Tim 1 - UNISA Yogyakarta',
     'website': 'https://unitrade.dev',
     'category': 'Website/Theme',
-    'depends': ['website', 'website_sale', 'portal', 'auth_signup', 'auth_oauth'],
+    'depends': ['website', 'website_sale', 'website_sale_stock', 'portal', 'auth_signup', 'auth_oauth'],
     'data': [
         'security/ir.model.access.csv',
         'data/oauth_provider.xml',

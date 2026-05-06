@@ -117,6 +117,7 @@ publicWidget.registry.UnitradeOrderReviewModal = publicWidget.Widget.extend({
         this.state = this._initialState();
         this._onKeydown = this._onKeydown.bind(this);
         document.addEventListener("keydown", this._onKeydown);
+        this._syncReviewedButtons();
         return this._super(...arguments);
     },
 
@@ -385,9 +386,54 @@ publicWidget.registry.UnitradeOrderReviewModal = publicWidget.Widget.extend({
         if (!button) {
             return;
         }
-        const replacement = document.createElement("span");
-        replacement.className = "ut-user-order-btn ut-user-order-btn-muted";
-        replacement.textContent = "Sudah Ulasan";
+        this._disableReviewButton(button, "Sudah Ulasan");
+    },
+
+    async _syncReviewedButtons() {
+        const buttons = Array.from(this.el.querySelectorAll("[data-review-open]"));
+        if (!buttons.length) {
+            return;
+        }
+
+        const productIds = Array.from(new Set(
+            buttons
+                .map((button) => Number(button.dataset.reviewProductId || 0))
+                .filter((productId) => productId > 0)
+        ));
+        if (!productIds.length) {
+            return;
+        }
+
+        try {
+            const result = await jsonrpc("/unitrade/reviews/status", {
+                product_ids: productIds,
+            });
+            if (!result || !result.success || !result.status) {
+                return;
+            }
+
+            buttons.forEach((button) => {
+                const productId = String(Number(button.dataset.reviewProductId || 0));
+                const status = result.status[productId];
+                if (status && status.reviewed) {
+                    this._disableReviewButton(button, "Sudah Ulasan");
+                }
+            });
+        } catch (error) {
+            console.error("[UniTrade] Review status:", error);
+        }
+    },
+
+    _disableReviewButton(button, text) {
+        if (!button) {
+            return;
+        }
+        const replacement = document.createElement("button");
+        replacement.type = "button";
+        replacement.disabled = true;
+        replacement.setAttribute("aria-disabled", "true");
+        replacement.className = "ut-user-order-btn ut-user-order-btn-disabled";
+        replacement.textContent = text || "Sudah Ulasan";
         button.replaceWith(replacement);
     },
 

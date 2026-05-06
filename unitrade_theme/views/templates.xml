@@ -57,8 +57,9 @@
                     </div>
 
                     <!-- Actions -->
-                    <div class="tw-flex tw-items-center tw-gap-3">
-                        <t t-if="not user_id._is_public()">
+                    <div class="tw-flex tw-items-center tw-gap-3" t-nocache="User-specific navigation actions">
+                        <t t-set="current_user" t-value="request.env.user"/>
+                        <t t-if="not website.is_public_user()">
                             <!-- Cart Icon -->
                             <a href="/shop/cart" class="tw-relative tw-flex tw-items-center tw-justify-center tw-w-10 tw-h-10 tw-rounded-full hover:tw-bg-[#fffffc] tw-transition-colors tw-mr-1 tw-text-[#fffffc] hover:tw-text-[#1f1f1f] tw-no-underline tw-group">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-6 tw-h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -78,9 +79,9 @@
                                 <!-- Trigger -->
                                 <div class="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer tw-h-full tw-py-1">
                                     <div class="tw-flex tw-items-center tw-justify-center tw-w-9 tw-h-9 tw-rounded-full tw-bg-gray-800 tw-overflow-hidden tw-border tw-border-white/20">
-                                        <img t-attf-src="/web/image/res.users/#{user_id.id}/image_128?unique=#{user_id.write_date}" alt="Avatar" class="tw-w-full tw-h-full tw-object-cover" onerror="this.src='/web/static/img/user_menu_avatar.png'"/>
+                                        <img t-attf-src="/web/image/res.users/#{current_user.id}/image_128?unique=#{current_user.write_date}" alt="Avatar" class="tw-w-full tw-h-full tw-object-cover" onerror="this.src='/web/static/img/user_menu_avatar.png'"/>
                                     </div>
-                                    <span class="tw-font-['Urbanist'] tw-font-semibold tw-text-[15px] tw-text-[#fffffc] tw-capitalize" t-esc="user_id.name.split(' ')[0]"/>
+                                    <span class="tw-font-['Urbanist'] tw-font-semibold tw-text-[15px] tw-text-[#fffffc] tw-capitalize" t-esc="current_user.name.split(' ')[0]"/>
                                     <!-- Arrow down -->
                                     <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-4 tw-h-4 tw-text-[#fffffc] tw-transition-transform group-hover:tw-rotate-180" viewBox="0 0 20 20" fill="currentColor">
                                         <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -101,7 +102,7 @@
                                             <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-gray-300 group-hover/item:tw-text-[#fffffc]">Pengaturan</span>
                                         </a>
                                         
-                                        <t t-if="request.env.user.x_is_seller">
+                                        <t t-if="current_user.x_is_seller">
                                             <a href="/seller/dashboard" class="tw-flex tw-items-center tw-gap-3 tw-px-4 tw-py-2.5 tw-rounded-xl hover:tw-bg-white/10 tw-transition-colors tw-group/item tw-no-underline tw-mt-1">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-[18px] tw-h-[18px] tw-text-emerald-400 group-hover/item:tw-text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                                                 <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-emerald-400 group-hover/item:tw-text-emerald-300">Dashboard Penjual</span>

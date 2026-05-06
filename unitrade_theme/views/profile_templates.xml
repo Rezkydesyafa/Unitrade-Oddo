@@ -719,8 +719,18 @@
                                                 t-att-data-review-image-url="item.get('image_url')">
                                                 Beri Ulasan
                                             </button>
-                                            <span t-elif="item.get('review_exists')" class="ut-user-order-btn ut-user-order-btn-muted">Sudah Ulasan</span>
-                                            <span t-else="" class="ut-user-order-btn ut-user-order-btn-muted">Beri Ulasan</span>
+                                            <button t-elif="item.get('review_exists')" type="button"
+                                                class="ut-user-order-btn ut-user-order-btn-disabled"
+                                                disabled="disabled"
+                                                aria-disabled="true">
+                                                Sudah Ulasan
+                                            </button>
+                                            <button t-else="" type="button"
+                                                class="ut-user-order-btn ut-user-order-btn-disabled"
+                                                disabled="disabled"
+                                                aria-disabled="true">
+                                                Beri Ulasan
+                                            </button>
                                             <a t-att-href="item.get('seller_chat_url')" class="ut-user-order-btn ut-user-order-btn-outline">Chat Penjual</a>
                                             <a t-if="item.get('can_buy_again')" t-att-href="item.get('buy_again_url')" class="ut-user-order-btn ut-user-order-btn-outline">Beli Lagi</a>
                                             <span t-else="" class="ut-user-order-btn ut-user-order-btn-disabled" title="Produk tidak tersedia">Beli Lagi</span>

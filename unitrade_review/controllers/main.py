@@ -143,9 +143,28 @@ class UnitradeReviewController(http.Controller):
         existing = request.env['unitrade.review'].sudo().search([
             ('product_id', '=', product_id),
             ('user_id', '=', request.env.uid),
-            ('order_id', '=', order.id),
         ], limit=1)
         return not bool(existing)
+
+    @staticmethod
+    def _review_status_map(product_ids):
+        product_ids = [int(product_id) for product_id in product_ids if int(product_id or 0)]
+        if request.env.user._is_public() or not product_ids:
+            return {}
+
+        Review = request.env['unitrade.review'].sudo()
+        reviews = Review.search([
+            ('product_id', 'in', product_ids),
+            ('user_id', '=', request.env.uid),
+        ])
+        reviewed_ids = set(reviews.mapped('product_id').ids)
+        return {
+            str(product_id): {
+                'reviewed': product_id in reviewed_ids,
+                'can_review': product_id not in reviewed_ids,
+            }
+            for product_id in product_ids
+        }
 
     @http.route('/unitrade/reviews/list', type='json', auth='public', website=True, methods=['POST'])
     def list_reviews(self, **kwargs):
@@ -192,6 +211,20 @@ class UnitradeReviewController(http.Controller):
             'is_public': request.env.user._is_public(),
         }
 
+    @http.route('/unitrade/reviews/status', type='json', auth='user', website=True, methods=['POST'])
+    def review_status(self, **kwargs):
+        product_ids = kwargs.get('product_ids') or []
+        if isinstance(product_ids, (str, int)):
+            product_ids = [product_ids]
+        try:
+            normalized_ids = list({int(product_id) for product_id in product_ids if int(product_id or 0)})
+        except (TypeError, ValueError):
+            return {'success': False, 'message': 'Produk tidak valid'}
+        return {
+            'success': True,
+            'status': self._review_status_map(normalized_ids),
+        }
+
     @http.route('/unitrade/reviews/create', type='json', auth='user', website=True, methods=['POST'])
     def create_review(self, **kwargs):
         try:
@@ -211,10 +244,19 @@ class UnitradeReviewController(http.Controller):
         if rating < 1 or rating > 5:
             return {'success': False, 'message': 'Rating harus antara 1 sampai 5'}
 
-        try:
-            image_values = self._prepare_review_images(kwargs.get('images') or kwargs.get('image_data') or [])
-        except ValueError as exc:
-            return {'success': False, 'message': str(exc)}
+        user_product_review = request.env['unitrade.review'].sudo().search([
+            ('product_id', '=', product_id),
+            ('user_id', '=', request.env.uid),
+        ], limit=1)
+        if user_product_review:
+            return {
+                'success': True,
+                'message': 'Anda sudah memberikan ulasan untuk produk ini.',
+                'review': self._review_payload(user_product_review),
+                'summary': self._summary(product_id),
+                'can_review': False,
+                'already_reviewed': True,
+            }
 
         order = self._eligible_order_for_review(product_id, order_id)
         if not order:
@@ -225,7 +267,6 @@ class UnitradeReviewController(http.Controller):
 
         existing_review = request.env['unitrade.review'].sudo().search([
             ('product_id', '=', product_id),
-            ('user_id', '=', request.env.uid),
             ('order_id', '=', order.id),
         ], limit=1)
         if existing_review:
@@ -237,6 +278,11 @@ class UnitradeReviewController(http.Controller):
                 'can_review': False,
                 'already_reviewed': True,
             }
+
+        try:
+            image_values = self._prepare_review_images(kwargs.get('images') or kwargs.get('image_data') or [])
+        except ValueError as exc:
+            return {'success': False, 'message': str(exc)}
 
         try:
             review = request.env['unitrade.review'].sudo().create({

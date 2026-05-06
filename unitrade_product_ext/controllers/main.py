@@ -105,27 +105,21 @@ class UnitradeWebsiteSale(WebsiteSale):
 
         # Reviews
         reviews = []
+        review_count = 0
+        rating = 0.0
         try:
             Review = request.env['unitrade.review'].sudo()
-            reviews = Review.search([
+            review_domain = [
                 ('product_id', '=', product.id),
                 ('is_visible', '=', True),
-            ], order='create_date desc', limit=20)
+            ]
+            reviews = Review.search(review_domain, order='create_date desc', limit=20)
+            review_stats = Review.read_group(review_domain, ['rating:avg'], [])
+            if review_stats:
+                review_count = review_stats[0].get('__count', 0)
+                rating = round(review_stats[0].get('rating_avg') or 0.0, 1) if review_count else 0.0
         except Exception:
-            pass
-
-        all_reviews = reviews
-        if len(reviews) == 20:
-            try:
-                all_reviews = request.env['unitrade.review'].sudo().search([
-                    ('product_id', '=', product.id),
-                    ('is_visible', '=', True),
-                ])
-            except Exception:
-                all_reviews = reviews
-
-        review_count = len(all_reviews)
-        rating = round(sum(all_reviews.mapped('rating')) / review_count, 1) if review_count else 0.0
+            _logger.exception('Failed to load UniTrade reviews for product %s', product.id)
         full_stars = int(rating)
         has_half = (rating - full_stars) >= 0.5
 
@@ -170,19 +164,26 @@ class UnitradeWebsiteSale(WebsiteSale):
 
         # Stock text
         try:
-            qty = (
-                sum(product.product_variant_ids.mapped('qty_available'))
-                if 'qty_available' in product.product_variant_ids._fields
-                else None
-            )
+            variant = product.product_variant_id or product.product_variant_ids[:1]
+            if variant and hasattr(request.website, '_get_product_available_qty'):
+                qty = request.website.sudo()._get_product_available_qty(variant.sudo())
+            else:
+                qty = (
+                    sum(product.product_variant_ids.sudo().mapped('qty_available'))
+                    if 'qty_available' in product.product_variant_ids._fields
+                    else None
+                )
         except Exception:
             qty = None
+        allow_out_of_stock = bool(
+            'allow_out_of_stock_order' in product._fields
+            and product.allow_out_of_stock_order
+        )
         stock_text = (
             f'Stok: {int(qty)} tersedia'
             if qty and qty > 0
             else 'Stok habis' if qty == 0 else 'Tersedia'
         )
-
         return {
             'ut_rating': rating,
             'ut_full_stars': full_stars,
@@ -208,6 +209,10 @@ class UnitradeWebsiteSale(WebsiteSale):
             'ut_is_in_wishlist': is_in_wishlist,
             'ut_is_public_user': is_public_user,
             'ut_stock_text': stock_text,
+            'ut_available_qty': max(qty or 0, 0) if qty is not None else 0,
+            'ut_cart_qty': 0,
+            'ut_allow_out_of_stock_order': allow_out_of_stock,
+            'ut_product_stock_warning': request.session.pop('unitrade_product_stock_warning', ''),
             'ut_shipping_text': '',
             'ut_product_images': product.product_template_image_ids or [],
         }

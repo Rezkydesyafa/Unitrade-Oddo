@@ -152,16 +152,12 @@
                     <!-- ========================= -->
                     <!-- POPUP MODAL (Result)      -->
                     <!-- ========================= -->
-                    <div id="result_popup" class="tw-hidden tw-fixed tw-inset-0 tw-z-[9999] tw-flex tw-items-center tw-justify-center tw-bg-black/50 tw-backdrop-blur-sm tw-font-['Urbanist'] tw-px-4 overlay-animate">
-                        <div class="tw-bg-white tw-rounded-[24px] tw-w-full tw-max-w-[380px] tw-p-8 tw-shadow-2xl popup-animate tw-flex tw-flex-col tw-items-center tw-text-center">
-                            <!-- Icon container -->
-                            <div id="popup_icon" class="tw-w-[72px] tw-h-[72px] tw-rounded-full tw-flex tw-items-center tw-justify-center tw-mb-5"></div>
-                            <!-- Title -->
-                            <h3 id="popup_title" class="tw-text-[#212529] tw-text-[20px] tw-font-bold tw-m-0 tw-mb-2"></h3>
-                            <!-- Message -->
-                            <p id="popup_message" class="tw-text-[14px] tw-text-gray-500 tw-mb-6 tw-leading-relaxed tw-whitespace-pre-line"></p>
-                            <!-- Close button -->
-                            <button type="button" onclick="closePopup()" class="tw-w-full tw-py-3.5 tw-bg-[#1a1a1a] hover:tw-bg-black tw-text-white tw-rounded-[16px] tw-font-semibold tw-text-[14px] tw-transition-colors tw-border-none tw-cursor-pointer">
+                    <div id="result_popup" class="tw-hidden ut-verification-result-popup tw-fixed tw-inset-0 tw-z-[9999] tw-flex tw-items-center tw-justify-center tw-bg-black/50 tw-backdrop-blur-sm tw-font-['Urbanist'] tw-px-4 overlay-animate" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="popup_title" aria-describedby="popup_message">
+                        <div class="ut-verification-result-dialog tw-bg-white tw-w-full tw-max-w-[520px] tw-min-h-[380px] tw-rounded-[32px] tw-shadow-2xl popup-animate tw-flex tw-flex-col tw-items-center tw-text-center">
+                            <div id="popup_icon" class="ut-verification-result-icon" aria-hidden="true"></div>
+                            <h3 id="popup_title" class="ut-verification-result-title"></h3>
+                            <p id="popup_message" class="ut-verification-result-message"></p>
+                            <button type="button" onclick="closePopup()" class="ut-verification-result-button tw-bg-[#1a1a1a] hover:tw-bg-black tw-text-white tw-border-none tw-cursor-pointer">
                                 OK
                             </button>
                         </div>
@@ -253,6 +249,39 @@
                             var iconEl = document.getElementById('popup_icon');
                             var titleEl = document.getElementById('popup_title');
                             var msgEl = document.getElementById('popup_message');
+                            var popupType = type || 'error';
+                            var popupConfig = {
+                                success: {
+                                    title: 'Pengajuan Diterima',
+                                    message: 'Selamat pengajuan anda diterima',
+                                    icon: '<svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="28" cy="28" r="21" stroke="#20c74f" stroke-width="4"/><path d="M19 29.2L25.1 35.2L37.5 21.8" stroke="#20c74f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+                                },
+                                warning: {
+                                    title: 'Gambar tidak sesuai',
+                                    message: 'Gambar tidak sesuai, silahkan coba lagi',
+                                    icon: '<svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="28" cy="28" r="21" stroke="#c88a00" stroke-width="4"/><path d="M28 16V31" stroke="#c88a00" stroke-width="4" stroke-linecap="round"/><circle cx="28" cy="39" r="2.5" fill="#c88a00"/></svg>'
+                                },
+                                rejected: {
+                                    title: 'Pengajuan Ditolak',
+                                    message: 'Pengajuan anda ditolak pastikan mahasiswa anda mahasiswa UNISA',
+                                    icon: '<svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="28" cy="28" r="21" stroke="#ff1515" stroke-width="4"/><path d="M22 22L34 34M34 22L22 34" stroke="#ff1515" stroke-width="4" stroke-linecap="round"/></svg>'
+                                },
+                                error: {
+                                    title: title || 'Terjadi Kesalahan',
+                                    message: message || 'Silakan coba lagi.',
+                                    icon: '<svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="28" cy="28" r="21" stroke="#6b7280" stroke-width="4"/><path d="M28 16V31" stroke="#6b7280" stroke-width="4" stroke-linecap="round"/><circle cx="28" cy="39" r="2.5" fill="#6b7280"/></svg>'
+                                }
+                            }[popupType] || {};
+
+                            popup.classList.remove('ut-verification-result-success', 'ut-verification-result-warning', 'ut-verification-result-rejected', 'ut-verification-result-error');
+                            popup.classList.add('ut-verification-result-' + popupType);
+                            titleEl.textContent = popupConfig.title || title || 'Terjadi Kesalahan';
+                            msgEl.textContent = popupConfig.message || message || 'Silakan coba lagi.';
+                            iconEl.className = 'ut-verification-result-icon';
+                            iconEl.innerHTML = popupConfig.icon || '';
+                            popup.setAttribute('aria-hidden', 'false');
+                            popup.classList.remove('tw-hidden');
+                            return;
 
                             titleEl.textContent = title;
                             msgEl.textContent = message;
@@ -276,7 +305,9 @@
                         }
 
                         function closePopup() {
-                            document.getElementById('result_popup').classList.add('tw-hidden');
+                            var popup = document.getElementById('result_popup');
+                            popup.classList.add('tw-hidden');
+                            popup.setAttribute('aria-hidden', 'true');
                             // Reload page to refresh status banner
                             window.location.reload();
                         }
