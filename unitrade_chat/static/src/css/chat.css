@@ -4,6 +4,17 @@
   background: #f7f7f7;
 }
 
+.ut-chat-safety-link {
+  color: #111111;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.ut-chat-safety-link:hover {
+  color: #000000;
+  text-decoration: underline;
+}
+
 body:has(.ut-chat-page),
 body:has(.ut-chat-page) #wrapwrap,
 body:has(.ut-chat-page) #wrap {

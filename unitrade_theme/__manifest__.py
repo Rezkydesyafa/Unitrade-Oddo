@@ -22,6 +22,7 @@
         'views/shop_templates.xml',
         'views/product_templates.xml',
         'views/snippets.xml',
+        'views/legal_templates.xml',
         'views/login_templates.xml',
         'views/otp_templates.xml',
         'views/profile_templates.xml',
@@ -31,10 +32,12 @@
     'assets': {
         'web.assets_frontend': [
             'unitrade_theme/static/src/css/output.css',
+            'unitrade_theme/static/src/css/legal.css',
             'unitrade_theme/static/src/xml/shop_filter.xml',
             'unitrade_theme/static/src/xml/product_detail.xml',
             'unitrade_theme/static/src/xml/orders.xml',
             'unitrade_theme/static/src/js/main.js',
+            'unitrade_theme/static/src/js/legal.js',
             'unitrade_theme/static/src/js/shop_filter.js',
             'unitrade_theme/static/src/js/product_detail_owl.js',
             'unitrade_theme/static/src/js/product_detail.js',

@@ -113,21 +113,24 @@ class UnitradeWebsiteSale(WebsiteSale):
             else original_price
         )
 
-        # Reviews
-        reviews = []
+        # Reviews — compute from actual review records (same pattern as unitrade_review._summary)
+        reviews = request.env['unitrade.review']
         review_count = 0
         rating = 0.0
+        rating_counts = {str(star): 0 for star in range(1, 6)}
         try:
             Review = request.env['unitrade.review'].sudo()
             review_domain = [
                 ('product_id', '=', product.id),
                 ('is_visible', '=', True),
             ]
-            reviews = Review.search(review_domain, order='create_date desc', limit=20)
-            review_stats = Review.read_group(review_domain, ['rating:avg'], [])
-            if review_stats:
-                review_count = review_stats[0].get('__count', 0)
-                rating = round(review_stats[0].get('rating_avg') or 0.0, 1) if review_count else 0.0
+            all_visible_reviews = Review.search(review_domain)
+            review_count = len(all_visible_reviews)
+            if review_count:
+                rating = round(sum(all_visible_reviews.mapped('rating')) / review_count, 1)
+            for star in range(1, 6):
+                rating_counts[str(star)] = len(all_visible_reviews.filtered(lambda r, s=star: r.rating == s))
+            reviews = all_visible_reviews.sorted('create_date', reverse=True)[:20]
         except Exception:
             _logger.exception('Failed to load UniTrade reviews for product %s', product.id)
         full_stars = int(rating)
@@ -199,6 +202,7 @@ class UnitradeWebsiteSale(WebsiteSale):
             'ut_full_stars': full_stars,
             'ut_has_half_star': has_half,
             'ut_review_count': review_count,
+            'ut_rating_counts': rating_counts,
             'ut_star_range': list(range(1, 6)),
             'ut_weight_int': int(weight),
             'ut_condition': condition,

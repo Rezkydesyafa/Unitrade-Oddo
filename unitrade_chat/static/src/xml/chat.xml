@@ -103,7 +103,8 @@
                     </header>
 
                     <div class="ut-chat-safety">
-                        Hati-hati penipuan! Jangan berikan data pribadi seperti nomor HP dan alamat. Berinteraksi melalui aplikasi UniTrade dan baca Panduan Keamanan.
+                        Hati-hati penipuan! Jangan berikan data pribadi seperti nomor HP dan alamat. Berinteraksi melalui aplikasi UniTrade dan baca
+                        <a href="/help#terms" class="ut-chat-safety-link">Panduan Keamanan</a>.
                     </div>
 
                     <div class="ut-chat-date-divider">

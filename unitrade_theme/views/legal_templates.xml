@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="unitrade_faq_terms_page" name="UniTrade FAQ and Terms">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="page_title"/>
+            <main class="ut-legal-page tw-min-h-screen tw-bg-[#f5f5f7] tw-px-4 tw-pb-16 tw-pt-4 md:tw-px-8" t-att-data-active-anchor="active_anchor">
+                <div class="ut-legal-shell tw-mx-auto tw-flex tw-w-full tw-max-w-[1280px] tw-flex-col tw-gap-4">
+                    <aside class="ut-legal-sidebar tw-bg-white tw-rounded-[28px] tw-px-4 tw-py-3 md:tw-px-5" aria-label="Navigasi bantuan UniTrade">
+                        <nav class="ut-legal-sidebar-list">
+                            <a href="#faq" t-att-class="'ut-legal-nav-link %s' % ('is-active' if active_anchor == 'faq' else '')" data-legal-nav="faq">
+                                <span class="ut-legal-nav-icon" aria-hidden="true">
+                                    <i class="fa fa-question-circle-o"></i>
+                                </span>
+                                <span>Pertanyaan FAQ</span>
+                            </a>
+                            <a href="#terms" t-att-class="'ut-legal-nav-link %s' % ('is-active' if active_anchor == 'terms' else '')" data-legal-nav="terms">
+                                <span class="ut-legal-nav-icon" aria-hidden="true">
+                                    <i class="fa fa-file-text-o"></i>
+                                </span>
+                                <span>Syarat dan Kebijakan</span>
+                            </a>
+                        </nav>
+                    </aside>
+
+                    <div class="ut-legal-content">
+                        <section id="faq" class="ut-legal-card tw-bg-white tw-rounded-[36px]" data-legal-section="faq">
+                            <h1 class="ut-legal-title">Pertanyaan FAQ</h1>
+                            <div class="ut-legal-accordion-list">
+                                <t t-foreach="faq_items" t-as="item">
+                                    <article t-att-class="'ut-legal-accordion %s' % ('is-open' if item_index == 0 else '')" data-legal-accordion="1">
+                                        <button type="button"
+                                                class="ut-legal-accordion-trigger"
+                                                t-att-aria-expanded="'true' if item_index == 0 else 'false'"
+                                                t-att-aria-controls="'ut_faq_%s' % item.get('id')">
+                                            <span t-esc="item.get('question')"/>
+                                            <i class="fa fa-chevron-down" aria-hidden="true"></i>
+                                        </button>
+                                        <div class="ut-legal-accordion-panel" t-att-id="'ut_faq_%s' % item.get('id')">
+                                            <div class="ut-legal-accordion-panel-inner">
+                                                <p t-esc="item.get('answer')"/>
+                                            </div>
+                                        </div>
+                                    </article>
+                                </t>
+                            </div>
+                        </section>
+
+                        <section id="terms" class="ut-legal-card ut-legal-terms-card tw-bg-white tw-rounded-[36px]" data-legal-section="terms">
+                            <h2 class="ut-legal-title">Syarat &amp; Kebijakan</h2>
+                            <div class="ut-legal-policy-list">
+                                <t t-foreach="policy_sections" t-as="section">
+                                    <article class="ut-legal-policy-section" t-att-id="'policy_%s' % section.get('id')">
+                                        <h3 t-esc="section.get('title')"/>
+                                        <t t-foreach="section.get('paragraphs', [])" t-as="paragraph">
+                                            <p t-esc="paragraph"/>
+                                        </t>
+                                        <ol t-if="section.get('items')" class="ut-legal-policy-ordered">
+                                            <t t-foreach="section.get('items')" t-as="item">
+                                                <li t-esc="item"/>
+                                            </t>
+                                        </ol>
+                                        <ul t-if="section.get('bullets')" class="ut-legal-policy-bullets">
+                                            <t t-foreach="section.get('bullets')" t-as="bullet">
+                                                <li t-esc="bullet"/>
+                                            </t>
+                                        </ul>
+                                    </article>
+                                </t>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </main>
+        </t>
+    </template>
+</odoo>

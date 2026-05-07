@@ -211,7 +211,7 @@
                         </div>
 
                         <!-- Right Section Links -->
-                        <div class="tw-flex tw-gap-24 md:tw-gap-32 tw-mt-10 md:tw-mt-0 md:tw-mr-8">
+                        <div class="tw-flex tw-flex-wrap tw-gap-12 md:tw-gap-20 lg:tw-gap-24 tw-mt-10 md:tw-mt-0 md:tw-mr-8">
                             <div>
                                 <h4 class="tw-font-semibold tw-text-[#212529] tw-mb-6 tw-text-[15px]">Beli</h4>
                                 <ul class="tw-space-y-4 tw-text-sm tw-text-gray-500 tw-p-0 tw-list-none">
@@ -226,6 +226,14 @@
                                     <li><a href="/unitrade/seller/register" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Daftar Toko</a></li>
                                 </ul>
                             </div>
+                            <div>
+                                <h4 class="tw-font-semibold tw-text-[#212529] tw-mb-6 tw-text-[15px]">Bantuan</h4>
+                                <ul class="tw-space-y-4 tw-text-sm tw-text-gray-500 tw-p-0 tw-list-none">
+                                    <li><a href="/help" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">FAQ</a></li>
+                                    <li><a href="/terms" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Syarat &amp; Kebijakan</a></li>
+                                    <li><a href="/privacy-policy" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Kebijakan Privasi</a></li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
 
@@ -236,9 +244,9 @@
                     <div class="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-center tw-text-[13px] tw-text-gray-500 tw-gap-4 md:tw-gap-0">
                         <p class="tw-m-0">© 2025 UniTrade. All right reserved.</p>
                         <div class="tw-flex tw-gap-6 tw-items-center">
-                            <a href="#" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Privacy Policy</a>
-                            <a href="#" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Terms of Service</a>
-                            <a href="#" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Cookies Settings</a>
+                            <a href="/privacy-policy" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Privacy Policy</a>
+                            <a href="/terms" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Terms of Service</a>
+                            <a href="/help#terms" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Cookies Settings</a>
                         </div>
                     </div>
                 </div>
