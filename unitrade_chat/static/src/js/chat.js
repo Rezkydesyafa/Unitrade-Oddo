@@ -9,6 +9,9 @@ const POLL_INTERVAL = 8000;
 const POLL_INTERVAL_FAST = 4000;
 const POLL_INTERVAL_SLOW = 15000;
 const PRESENCE_INTERVAL = 30000;
+const REPORT_IMAGE_MAX_FILES = 3;
+const REPORT_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
+const REPORT_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 function intOrDefault(value, fallback = 0) {
     const parsed = parseInt(value, 10);
@@ -93,10 +96,8 @@ export class UnitradeChatApp extends Component {
             productPickerOpen: false,
             reportModalOpen: false,
             reportReason: "",
-            reportProofData: "",
-            reportProofName: "",
-            reportProofMimetype: "",
-            reportProofPreview: "",
+            reportProofs: [],
+            reportDragActive: false,
             reportSubmitting: false,
             reportError: "",
             reportSuccess: "",
@@ -140,7 +141,7 @@ export class UnitradeChatApp extends Component {
     }
 
     get reportFormValid() {
-        return Boolean(this.state.reportReason && this.state.reportProofData && !this.state.reportSubmitting);
+        return Boolean((this.state.reportReason || "").trim() && !this.state.reportSubmitting);
     }
 
     conversationItemClass(conversation) {
@@ -629,10 +630,8 @@ export class UnitradeChatApp extends Component {
         this.state.headerMenuOpen = false;
         this.state.reportModalOpen = true;
         this.state.reportReason = "";
-        this.state.reportProofData = "";
-        this.state.reportProofName = "";
-        this.state.reportProofMimetype = "";
-        this.state.reportProofPreview = "";
+        this.state.reportProofs = [];
+        this.state.reportDragActive = false;
         this.state.reportError = "";
         this.state.reportSuccess = "";
     }
@@ -654,31 +653,77 @@ export class UnitradeChatApp extends Component {
     }
 
     onReportProofChange(ev) {
-        const file = ev.target.files && ev.target.files[0];
+        const files = Array.from(ev.target.files || []);
         ev.target.value = "";
-        if (!file) {
+        this.handleReportProofFiles(files);
+    }
+
+    onReportProofDragEnter(ev) {
+        ev.preventDefault();
+        this.state.reportDragActive = true;
+    }
+
+    onReportProofDragOver(ev) {
+        ev.preventDefault();
+        this.state.reportDragActive = true;
+    }
+
+    onReportProofDragLeave(ev) {
+        ev.preventDefault();
+        if (ev.currentTarget === ev.target) {
+            this.state.reportDragActive = false;
+        }
+    }
+
+    onReportProofDrop(ev) {
+        ev.preventDefault();
+        this.state.reportDragActive = false;
+        this.handleReportProofFiles(Array.from(ev.dataTransfer?.files || []));
+    }
+
+    handleReportProofFiles(files) {
+        if (!files.length) {
             return;
         }
         this.state.reportError = "";
-        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-            this.state.reportError = "Bukti foto harus JPG, PNG, atau WebP.";
+        const availableSlots = REPORT_IMAGE_MAX_FILES - this.state.reportProofs.length;
+        if (availableSlots <= 0 || files.length > availableSlots) {
+            this.state.reportError = "Maksimal upload 3 gambar bukti laporan.";
             return;
         }
-        if (file.size > 2 * 1024 * 1024) {
-            this.state.reportError = "Ukuran bukti foto maksimal 2 MB.";
-            return;
+        files.slice(0, availableSlots).forEach((file) => {
+            if (!REPORT_IMAGE_TYPES.includes(file.type)) {
+                this.state.reportError = "Format bukti harus JPG, PNG, atau WebP.";
+                return;
+            }
+            if (file.size > REPORT_IMAGE_MAX_BYTES) {
+                this.state.reportError = "Ukuran setiap bukti foto maksimal 2 MB.";
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+                this.state.reportProofs.push({
+                    id: `proof-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+                    data: reader.result,
+                    preview: reader.result,
+                    filename: file.name,
+                    mimetype: file.type,
+                    size: file.size,
+                });
+            };
+            reader.onerror = () => {
+                this.state.reportError = "Bukti foto gagal dibaca.";
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    removeReportProof(proofId) {
+        const index = this.state.reportProofs.findIndex((proof) => proof.id === proofId);
+        if (index !== -1) {
+            this.state.reportProofs.splice(index, 1);
+            this.state.reportError = "";
         }
-        const reader = new FileReader();
-        reader.onload = () => {
-            this.state.reportProofData = reader.result;
-            this.state.reportProofPreview = reader.result;
-            this.state.reportProofName = file.name;
-            this.state.reportProofMimetype = file.type;
-        };
-        reader.onerror = () => {
-            this.state.reportError = "Bukti foto gagal dibaca.";
-        };
-        reader.readAsDataURL(file);
     }
 
     async submitReport() {
@@ -691,10 +736,12 @@ export class UnitradeChatApp extends Component {
         try {
             const result = await jsonrpc("/unitrade/chat/report", {
                 conversation_id: this.state.activeConversationId,
-                reason: this.state.reportReason,
-                proof_image_data: this.state.reportProofData,
-                proof_filename: this.state.reportProofName,
-                proof_mimetype: this.state.reportProofMimetype,
+                reason: this.state.reportReason.trim(),
+                proof_images: this.state.reportProofs.map((proof) => ({
+                    data: proof.data,
+                    filename: proof.filename,
+                    mimetype: proof.mimetype,
+                })),
             });
             if (!result.success) {
                 throw new Error(result.message || "Laporan gagal dikirim.");

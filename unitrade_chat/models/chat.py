@@ -93,6 +93,25 @@ class UnitradeChatConversation(models.Model):
         return ['|', ('buyer_user_id', '=', user.id), ('seller_user_id', '=', user.id)]
 
     @api.model
+    def nav_unread_count(self, user=None):
+        user = (user or self.env.user).sudo()
+        if not user or user._is_public():
+            return 0
+        conversations = self.sudo().search([
+            ('active', '=', True),
+            '|',
+            ('buyer_user_id', '=', user.id),
+            ('seller_user_id', '=', user.id),
+        ])
+        unread_count = 0
+        for conversation in conversations:
+            if conversation.buyer_user_id.id == user.id:
+                unread_count += conversation.buyer_unread_count
+            elif conversation.seller_user_id.id == user.id:
+                unread_count += conversation.seller_unread_count
+        return unread_count
+
+    @api.model
     def _get_verified_seller(self, seller_id=None, profile_ref=None):
         Seller = self.env['unitrade.seller'].sudo()
         seller = Seller.browse()
@@ -553,9 +572,19 @@ class UnitradeChatReport(models.Model):
     reason = fields.Selection([
         ('spam', 'Spam'),
         ('harmful_content', 'Konten mengandung SARA, diskriminasi, vulgar, ancaman, dan pelanggaran nilai / norma sosial'),
-        ('other', 'Lainnya'),
-    ], string='Reason', required=True)
+        ('abuse', 'Abuse or Harassment'),
+        ('fraud', 'Fraud or Suspicious Activity'),
+        ('other', 'Other'),
+    ], string='Reason Category', default='other', required=True)
+    reason_detail = fields.Text(string='Reason Detail', required=True)
     proof_attachment_id = fields.Many2one('ir.attachment', string='Proof Photo', ondelete='set null')
+    proof_attachment_ids = fields.Many2many(
+        'ir.attachment',
+        'unitrade_chat_report_ir_attachment_rel',
+        'report_id',
+        'attachment_id',
+        string='Proof Photos',
+    )
     state = fields.Selection([
         ('submitted', 'Submitted'),
         ('under_review', 'Under Review'),
@@ -572,19 +601,26 @@ class UnitradeChatReport(models.Model):
         conversation._check_participant(self.env.user)
         if self.env.user.sudo().x_unitrade_chat_blocked:
             raise AccessError(_('Akun kamu sedang dibatasi untuk membuat laporan chat.'))
-        reason = values.get('reason')
-        if reason not in dict(self._fields['reason'].selection):
-            raise ValidationError(_('Pilih alasan laporan.'))
+        reason_detail = (values.get('reason') or '').strip()
+        if not reason_detail:
+            raise ValidationError(_('Alasan laporan wajib diisi.'))
+        reason_detail = reason_detail[:1000]
+        reason_category = reason_detail if reason_detail in dict(self._fields['reason'].selection) else 'other'
 
         reported_user = conversation._other_user(self.env.user)
         report = self.sudo().create({
             'conversation_id': conversation.id,
             'reporter_user_id': self.env.user.id,
             'reported_user_id': reported_user.id,
-            'reason': reason,
+            'reason': reason_category,
+            'reason_detail': reason_detail,
         })
-        attachment = self._create_proof_attachment(report, values)
-        report.sudo().write({'proof_attachment_id': attachment.id})
+        attachments = self._create_proof_attachments(report, values)
+        if attachments:
+            report.sudo().write({
+                'proof_attachment_id': attachments[:1].id,
+                'proof_attachment_ids': [(6, 0, attachments.ids)],
+            })
         _logger.info(
             'UniTrade chat report %s submitted by user %s against user %s',
             report.id,
@@ -593,10 +629,29 @@ class UnitradeChatReport(models.Model):
         )
         return report
 
-    def _create_proof_attachment(self, report, values):
-        data_url = values.get('proof_image_data') or ''
-        filename = (values.get('proof_filename') or 'chat-report-proof').strip()[:120]
-        mimetype = values.get('proof_mimetype') or ''
+    def _proof_values(self, values):
+        proof_images = values.get('proof_images')
+        if proof_images is None and values.get('proof_image_data'):
+            proof_images = [{
+                'data': values.get('proof_image_data'),
+                'filename': values.get('proof_filename'),
+                'mimetype': values.get('proof_mimetype'),
+            }]
+        proof_images = proof_images or []
+        if len(proof_images) > 3:
+            raise ValidationError(_('Maksimal upload 3 gambar bukti laporan.'))
+        return proof_images
+
+    def _create_proof_attachments(self, report, values):
+        attachments = self.env['ir.attachment'].sudo().browse()
+        for index, proof in enumerate(self._proof_values(values), start=1):
+            attachments |= self._create_proof_attachment(report, proof, index=index)
+        return attachments
+
+    def _create_proof_attachment(self, report, values, index=1):
+        data_url = values.get('data') or values.get('proof_image_data') or ''
+        filename = (values.get('filename') or values.get('proof_filename') or 'chat-report-proof-%s' % index).strip()[:120]
+        mimetype = values.get('mimetype') or values.get('proof_mimetype') or ''
         if ',' in data_url:
             header, encoded = data_url.split(',', 1)
             if not mimetype and ';' in header:
@@ -604,13 +659,13 @@ class UnitradeChatReport(models.Model):
         else:
             encoded = data_url
         if mimetype not in UNITRADE_CHAT_IMAGE_TYPES:
-            raise ValidationError(_('Bukti foto wajib berupa JPG, PNG, atau WebP.'))
+            raise ValidationError(_('Bukti foto harus berupa JPG, PNG, atau WebP.'))
         try:
             raw = base64.b64decode(encoded)
         except Exception as error:
             raise ValidationError(_('Bukti foto gagal dibaca.')) from error
         if not raw:
-            raise ValidationError(_('Bukti foto wajib dilampirkan.'))
+            raise ValidationError(_('Bukti foto tidak boleh kosong.'))
         if len(raw) > UNITRADE_CHAT_IMAGE_MAX_BYTES:
             raise ValidationError(_('Ukuran bukti foto maksimal 2 MB.'))
         return self.env['ir.attachment'].sudo().create({
@@ -643,7 +698,7 @@ class UnitradeChatReport(models.Model):
         for report in self:
             report.reported_user_id.sudo().write({
                 'x_unitrade_chat_blocked': True,
-                'x_unitrade_chat_block_reason': report.reason,
+                'x_unitrade_chat_block_reason': (report.reason_detail or report.reason or '')[:120],
             })
         self.write(self._review_vals('blocked'))
 

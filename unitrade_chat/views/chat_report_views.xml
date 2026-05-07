@@ -10,6 +10,7 @@
                 <field name="reporter_user_id"/>
                 <field name="reported_user_id"/>
                 <field name="reason"/>
+                <field name="reason_detail"/>
                 <field name="reviewer_user_id"/>
                 <field name="reviewed_at"/>
             </tree>
@@ -36,9 +37,11 @@
                             <field name="reporter_user_id" readonly="1"/>
                             <field name="reported_user_id" readonly="1"/>
                             <field name="reason" readonly="1"/>
+                            <field name="reason_detail" readonly="1"/>
                         </group>
                         <group>
                             <field name="proof_attachment_id" readonly="1"/>
+                            <field name="proof_attachment_ids" widget="many2many_tags" readonly="1"/>
                             <field name="reviewer_user_id" readonly="1"/>
                             <field name="reviewed_at" readonly="1"/>
                         </group>
@@ -59,6 +62,7 @@
                 <field name="reporter_user_id"/>
                 <field name="reported_user_id"/>
                 <field name="reason"/>
+                <field name="reason_detail"/>
                 <filter name="submitted" string="Baru" domain="[('state', '=', 'submitted')]"/>
                 <filter name="under_review" string="Sedang Review" domain="[('state', '=', 'under_review')]"/>
                 <filter name="blocked" string="Blocked" domain="[('state', '=', 'blocked')]"/>

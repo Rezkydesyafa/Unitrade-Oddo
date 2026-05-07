@@ -167,11 +167,43 @@ class TestUnitradeChat(TransactionCase):
         with self.assertRaises(ValidationError):
             self.env['unitrade.chat.report'].with_user(self.buyer).create_from_controller(
                 conversation,
+                {'reason': '   '},
+            )
+        with self.assertRaises(ValidationError):
+            self.env['unitrade.chat.report'].with_user(self.buyer).create_from_controller(
+                conversation,
                 {
                     'reason': 'spam',
                     'proof_image_data': 'bad',
                     'proof_filename': 'bad.txt',
                     'proof_mimetype': 'text/plain',
+                },
+            )
+
+    def test_report_accepts_up_to_three_proof_images(self):
+        conversation = self.env['unitrade.chat.conversation'].with_user(self.buyer).open_for_seller(
+            seller_id=self.seller.id,
+        )
+        proof = {
+            'data': 'data:image/png;base64,%s' % TINY_PNG,
+            'filename': 'proof.png',
+            'mimetype': 'image/png',
+        }
+        report = self.env['unitrade.chat.report'].with_user(self.buyer).create_from_controller(
+            conversation,
+            {
+                'reason': 'Produk mencurigakan',
+                'proof_images': [proof, proof, proof],
+            },
+        )
+        self.assertEqual(len(report.proof_attachment_ids), 3)
+
+        with self.assertRaises(ValidationError):
+            self.env['unitrade.chat.report'].with_user(self.buyer).create_from_controller(
+                conversation,
+                {
+                    'reason': 'Terlalu banyak bukti',
+                    'proof_images': [proof, proof, proof, proof],
                 },
             )
 

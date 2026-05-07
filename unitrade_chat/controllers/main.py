@@ -246,7 +246,7 @@ class UnitradeChatController(http.Controller):
 
     @http.route('/unitrade/chat/report', type='json', auth='user', website=True, methods=['POST'])
     def report_user(self, conversation_id=None, reason=None, proof_image_data=None,
-                    proof_filename=None, proof_mimetype=None, **kwargs):
+                    proof_filename=None, proof_mimetype=None, proof_images=None, **kwargs):
         try:
             conversation = self._conversation(conversation_id)
             request.env['unitrade.chat.rate.limit'].check(request.env.user, 'report', 3)
@@ -255,6 +255,7 @@ class UnitradeChatController(http.Controller):
                 'proof_image_data': proof_image_data,
                 'proof_filename': proof_filename,
                 'proof_mimetype': proof_mimetype,
+                'proof_images': proof_images,
             })
             return {
                 'success': True,
