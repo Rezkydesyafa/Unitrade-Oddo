@@ -13,6 +13,19 @@
                 body {
                     background-color: #ffffff !important;
                 }
+                body:has(.o_website_sale_checkout) header {
+                    --ut-cart-header-offset: 184px;
+                    background: transparent !important;
+                }
+                body:has(.o_website_sale_checkout) header > div {
+                    background: transparent !important;
+                }
+                body:has(.o_website_sale_checkout) header > div:first-child {
+                    background: #f7f7f7 !important;
+                }
+                body:has(.o_website_sale_checkout) header > div:nth-child(2) {
+                    background: transparent !important;
+                }
                 .o_website_sale_checkout {
                     background-color: #ffffff !important;
                     padding-top: 32px !important;
@@ -188,7 +201,7 @@
                 @media (min-width: 992px) {
                     #o_cart_summary {
                         position: sticky !important;
-                        top: 110px !important;
+                        top: var(--ut-cart-header-offset, 184px) !important;
                         align-self: flex-start;
                     }
                 }
@@ -440,6 +453,9 @@
         <!-- Inject before the total table inside the summary card -->
         <xpath expr="//div[@id='o_cart_summary']//t[@t-call='website_sale.total']" position="before">
             <span class="unitrade-summary-title">Ringkasan Pesanan</span>
+            <a href="/help#terms" class="tw-mb-4 tw-inline-flex tw-text-[12px] tw-font-medium tw-text-gray-500 tw-no-underline hover:tw-text-black hover:tw-underline">
+                Syarat &amp; Kebijakan Transaksi
+            </a>
         </xpath>
     </template>
 

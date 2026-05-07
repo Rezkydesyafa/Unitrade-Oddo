@@ -38,6 +38,12 @@
                             <input type="file" name="ktm_image" accept="image/jpeg,image/png" required="required"/>
                         </div>
                         <button type="submit" class="unitrade-btn-primary tw-w-full">Daftar</button>
+                        <p class="tw-m-0 tw-text-center tw-text-[12px] tw-leading-relaxed tw-text-gray-500">
+                            Dengan mendaftar, kamu menyetujui
+                            <a href="/terms" target="_blank" rel="noopener" class="tw-text-[#2563eb] hover:tw-underline tw-no-underline">Syarat &amp; Kebijakan</a>
+                            dan dapat membaca
+                            <a href="/help" target="_blank" rel="noopener" class="tw-text-[#2563eb] hover:tw-underline tw-no-underline">FAQ UniTrade</a>.
+                        </p>
                     </form>
                 </t>
             </div>
@@ -49,6 +55,11 @@
             <t t-set="title">Dashboard Penjual</t>
             <div class="tw-max-w-7xl tw-mx-auto tw-px-4 tw-py-8">
                 <h1 class="tw-text-2xl tw-font-bold tw-mb-8">📊 Dashboard Penjual</h1>
+                <div class="tw-mt-[-20px] tw-mb-8 tw-flex tw-justify-end">
+                    <a href="/help#terms" class="tw-inline-flex tw-items-center tw-justify-center tw-rounded-full tw-border tw-border-gray-200 tw-bg-white tw-px-4 tw-py-2 tw-text-sm tw-font-semibold tw-text-gray-700 tw-no-underline tw-shadow-sm hover:tw-border-gray-300 hover:tw-text-black">
+                        Syarat &amp; Kebijakan
+                    </a>
+                </div>
                 <div class="tw-grid tw-grid-cols-2 lg:tw-grid-cols-4 tw-gap-6 tw-mb-10">
                     <div class="tw-bg-white tw-rounded-2xl tw-shadow-md tw-p-6">
                         <p class="tw-text-sm tw-text-gray-500">Pendapatan</p>
@@ -253,7 +264,7 @@
                         </strong>
                         <span class="tw-flex tw-items-center tw-gap-1 tw-text-[12px] tw-text-black/25">
                             <i class="fa fa-star tw-text-[#ffb000]"></i>
-                            <t t-esc="'%.1f' % (product.x_average_rating or 5.0)"/>
+                            <t t-esc="'%.1f' % (product.x_average_rating or 0.0)"/>
                         </span>
                     </div>
                 </a>

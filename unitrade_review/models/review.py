@@ -45,6 +45,51 @@ class UnitradeReview(models.Model):
         ('rating_range', 'CHECK(rating >= 1 AND rating <= 5)', 'Rating harus antara 1-5!'),
     ]
 
+    @api.model
+    def _unitrade_refresh_product_review_stats(self, products):
+        products = products.exists()
+        if not products:
+            return
+
+        Review = self.sudo()
+        for product in products.sudo():
+            visible_reviews = Review.search([
+                ('product_id', '=', product.id),
+                ('is_visible', '=', True),
+            ])
+            review_count = len(visible_reviews)
+            average_rating = (
+                round(sum(visible_reviews.mapped('rating')) / review_count, 1)
+                if review_count else 0.0
+            )
+            product.write({
+                'x_average_rating': average_rating,
+                'x_review_count': review_count,
+            })
+
+    def init(self):
+        reviews = self.sudo().search([('product_id', '!=', False)])
+        self._unitrade_refresh_product_review_stats(reviews.mapped('product_id'))
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        reviews = super().create(vals_list)
+        self._unitrade_refresh_product_review_stats(reviews.mapped('product_id'))
+        return reviews
+
+    def write(self, vals):
+        products_before = self.mapped('product_id')
+        result = super().write(vals)
+        if {'product_id', 'rating', 'is_visible'}.intersection(vals):
+            self._unitrade_refresh_product_review_stats(products_before | self.mapped('product_id'))
+        return result
+
+    def unlink(self):
+        products = self.mapped('product_id')
+        result = super().unlink()
+        self._unitrade_refresh_product_review_stats(products)
+        return result
+
     @api.onchange('product_id', 'user_id')
     def _onchange_review_order_domain(self):
         domain = [('state', '=', 'done')]
