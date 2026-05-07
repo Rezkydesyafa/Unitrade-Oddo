@@ -34,7 +34,12 @@
             <div id="ut-shop-owl-mount"
                 t-att-data-search="search or ''"
                 t-att-data-category-id="category.id if category else ''"
-                t-att-data-ppg="ppg or ''">
+                t-att-data-ppg="ppg or ''"
+                t-att-data-search-count="search_count or 0"
+                t-att-data-page="ut_page or 1"
+                t-att-data-page-count="ut_page_count or 0"
+                t-att-data-has-more="'true' if ut_has_more else 'false'"
+                t-att-data-next-page="ut_next_page or ''">
             <div class="row o_wsale_products_main_row align-items-start flex-nowrap tw-w-full tw-max-w-[1200px] tw-mx-auto tw-m-0 tw-px-0 md:tw-px-4">
                 <!-- Filter Sidebar -->
                 <aside id="products_grid_before" class="d-none d-lg-block col-3 px-3 clearfix">
@@ -63,11 +68,11 @@
                                 <div style="position:absolute; top:50%; transform:translateY(-50%); width:100%; height:10px; background:#f0f0f0; border-radius:999px; z-index:1; pointer-events:none;"></div>
                                 <div id="slider-track" style="position:absolute; top:50%; transform:translateY(-50%); height:10px; background:#d0d0d0; border-radius:999px; z-index:2; pointer-events:none; left:0%; right:0%;"></div>
                                 <div id="min-tooltip" class="tw-bg-black tw-text-white tw-px-3 tw-py-1 tw-rounded-full tw-font-['Urbanist'] tw-font-bold tw-text-[11px]" style="position:absolute; top:100%; margin-top:4px; z-index:5; pointer-events:none; transform:translateX(-50%); left:0%;">0 K</div>
-                                <div id="max-tooltip" class="tw-bg-black tw-text-white tw-px-3 tw-py-1 tw-rounded-full tw-font-['Urbanist'] tw-font-bold tw-text-[11px]" style="position:absolute; bottom:100%; margin-bottom:4px; z-index:5; pointer-events:none; transform:translateX(-50%); left:100%;">5000 K</div>
-                                <input type="range" id="min-price" min="0" max="5000" value="0" step="10" class="custom-range-slider" style="position:absolute; top:50%; transform:translateY(-50%); width:100%; height:10px; -webkit-appearance:none; appearance:none; background:transparent; pointer-events:none; z-index:10; margin:0; outline:none;"/>
-                                <input type="range" id="max-price" min="0" max="5000" value="5000" step="10" class="custom-range-slider" style="position:absolute; top:50%; transform:translateY(-50%); width:100%; height:10px; -webkit-appearance:none; appearance:none; background:transparent; pointer-events:none; z-index:11; margin:0; outline:none;"/>
+                                <div id="max-tooltip" class="tw-bg-black tw-text-white tw-px-3 tw-py-1 tw-rounded-full tw-font-['Urbanist'] tw-font-bold tw-text-[11px]" style="position:absolute; bottom:100%; margin-bottom:4px; z-index:5; pointer-events:none; transform:translateX(-50%); left:100%;">10 Jt</div>
+                                <input type="range" id="min-price" min="0" max="10000" value="0" step="10" class="custom-range-slider" style="position:absolute; top:50%; transform:translateY(-50%); width:100%; height:10px; -webkit-appearance:none; appearance:none; background:transparent; pointer-events:none; z-index:10; margin:0; outline:none;"/>
+                                <input type="range" id="max-price" min="0" max="10000" value="10000" step="10" class="custom-range-slider" style="position:absolute; top:50%; transform:translateY(-50%); width:100%; height:10px; -webkit-appearance:none; appearance:none; background:transparent; pointer-events:none; z-index:11; margin:0; outline:none;"/>
                                 <input type="hidden" name="min_price" id="odoo-min-price" value="0"/>
-                                <input type="hidden" name="max_price" id="odoo-max-price" value="5000000"/>
+                                <input type="hidden" name="max_price" id="odoo-max-price" value="10000000"/>
                             </div>
                             <style>
                                 .custom-range-slider::-webkit-slider-runnable-track { background:transparent; height:10px; }

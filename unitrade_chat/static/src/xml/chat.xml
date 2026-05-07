@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="unitrade_chat.ChatApp">
+        <section t-ref="root" class="ut-chat-shell" t-att-class="state.mobileConversationOpen ? 'ut-chat-mobile-open' : ''">
+            <aside class="ut-chat-sidebar">
+                <div class="ut-chat-sidebar-title" t-esc="sidebarTitle"></div>
+                <div t-if="state.loading" class="ut-chat-sidebar-state">Memuat percakapan...</div>
+                <div t-elif="!state.conversations.length" class="ut-chat-sidebar-empty">
+                    Belum ada percakapan.
+                </div>
+                <div t-else="" class="ut-chat-list">
+                    <t t-foreach="state.conversations" t-as="conversation" t-key="conversation.id">
+                        <button type="button"
+                            t-att-class="conversationItemClass(conversation)"
+                            t-on-click="() => this.selectConversation(conversation.id)">
+                            <span class="ut-chat-avatar-wrap">
+                                <img t-att-src="conversation.avatar_url" alt="" class="ut-chat-avatar"/>
+                                <span t-if="conversation.online" class="ut-chat-online-dot"></span>
+                            </span>
+                            <span class="ut-chat-list-main">
+                                <span class="ut-chat-list-top">
+                                    <span class="ut-chat-list-name" t-esc="conversation.title"></span>
+                                    <span class="ut-chat-list-date" t-esc="conversation.last_message_label"></span>
+                                </span>
+                                <span class="ut-chat-list-preview" t-esc="conversation.last_message || conversation.subtitle"></span>
+                            </span>
+                            <span t-if="conversation.unread_count" class="ut-chat-unread" t-esc="conversation.unread_count"></span>
+                        </button>
+                    </t>
+                </div>
+            </aside>
+
+            <main class="ut-chat-main">
+                <t t-if="activeConversation">
+                    <header class="ut-chat-header">
+                        <button type="button" class="ut-chat-back" t-on-click="backToList" aria-label="Kembali ke daftar chat">
+                            <i class="fa fa-chevron-left"></i>
+                        </button>
+                        <span class="ut-chat-avatar-wrap">
+                            <img t-att-src="activeConversation.avatar_url" alt="" class="ut-chat-avatar"/>
+                            <span t-if="activeConversation.online" class="ut-chat-online-dot"></span>
+                        </span>
+                        <div class="ut-chat-header-text">
+                            <h1 t-esc="activeConversation.title"></h1>
+                            <p t-esc="activeConversation.last_seen_label"></p>
+                        </div>
+                        <div class="ut-chat-header-menu-wrap">
+                            <button type="button" class="ut-chat-menu" t-on-click="toggleHeaderMenu" aria-label="Menu chat" t-att-aria-expanded="state.headerMenuOpen ? 'true' : 'false'">
+                                <i class="fa fa-ellipsis-v"></i>
+                            </button>
+                            <div t-if="state.headerMenuOpen" class="ut-chat-header-menu">
+                                <button type="button" t-on-click="configureChatReceiving">Atur Penerimaan Chat</button>
+                                <button type="button" t-on-click="openReportModal">Laporkan Pengguna</button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <div class="ut-chat-safety">
+                        Hati-hati penipuan! Jangan berikan data pribadi seperti nomor HP dan alamat. Berinteraksi melalui aplikasi UniTrade dan baca Panduan Keamanan.
+                    </div>
+
+                    <div class="ut-chat-date-divider">
+                        <span t-esc="todayLabel"></span>
+                    </div>
+
+                    <div t-ref="messageList" class="ut-chat-messages" t-on-scroll="onMessagesScroll">
+                        <button t-if="state.hasMoreMessages" type="button" class="ut-chat-load-more" t-att-disabled="state.loadingOlder" t-on-click="loadOlderMessages">
+                            <t t-if="state.loadingOlder">Memuat histori...</t>
+                            <t t-else="">Muat pesan lama</t>
+                        </button>
+                        <t t-if="state.messagesLoading">
+                            <div class="ut-chat-sidebar-state">Memuat pesan...</div>
+                        </t>
+                        <t t-foreach="state.messages" t-as="message" t-key="message.id">
+                            <article t-att-class="messageClass(message)">
+                                <img t-if="!message.is_mine" t-att-src="message.author_avatar_url" alt="" class="ut-chat-message-avatar"/>
+                                <div t-att-class="message.failed ? 'ut-chat-bubble ut-is-failed' : message.pending ? 'ut-chat-bubble ut-is-pending' : 'ut-chat-bubble'">
+                                    <t t-if="message.type === 'image'">
+                                        <img t-att-src="message.image_url" alt="Gambar chat" class="ut-chat-image"/>
+                                        <p t-if="message.body" t-esc="message.body"></p>
+                                    </t>
+                                    <t t-elif="message.type === 'product'">
+                                        <div t-if="message.product" class="ut-chat-product-card">
+                                            <a t-att-href="message.product.url" class="ut-chat-product-media" aria-label="Lihat produk">
+                                                <img t-att-src="message.product.image_url" alt="" class="ut-chat-product-thumb"/>
+                                            </a>
+                                            <span class="ut-chat-product-body">
+                                                <a t-att-href="message.product.url" class="ut-chat-product-name" t-esc="message.product.name"></a>
+                                                <span class="ut-chat-product-price" t-esc="message.product.price_label"></span>
+                                            </span>
+                                            <div class="ut-chat-product-actions">
+                                                <button type="button" class="ut-chat-product-cart" t-on-click="(ev) => this.addProductToCart(message.product.id, false, ev)">+ Keranjang</button>
+                                                <button type="button" class="ut-chat-product-buy" t-on-click="(ev) => this.addProductToCart(message.product.id, true, ev)">Beli</button>
+                                            </div>
+                                        </div>
+                                    </t>
+                                    <t t-else="">
+                                        <p t-esc="message.body"></p>
+                                    </t>
+                                    <div class="ut-chat-message-meta">
+                                        <button t-if="message.failed" type="button" class="ut-chat-retry" t-on-click="() => this.retryMessage(message)">Coba lagi</button>
+                                        <span t-if="message.is_mine" t-att-class="message.failed ? 'ut-chat-delivery ut-is-error' : 'ut-chat-delivery'" t-esc="deliveryLabel(message)"></span>
+                                        <time t-esc="message.time"></time>
+                                    </div>
+                                </div>
+                                <img t-if="message.is_mine" t-att-src="message.author_avatar_url" alt="" class="ut-chat-message-avatar"/>
+                            </article>
+                        </t>
+                        <div t-if="state.otherTyping" class="ut-chat-typing">
+                            <span></span><span></span><span></span>
+                            <em>Sedang mengetik...</em>
+                        </div>
+                    </div>
+
+                    <footer class="ut-chat-composer">
+                        <div class="ut-chat-quick-row">
+                            <button type="button" class="ut-chat-chip" t-on-click="() => this.applyQuickReply('Apakah produk ini masih tersedia?')">Apakah produk...</button>
+                            <button type="button" class="ut-chat-chip" t-on-click="() => this.applyQuickReply('Halo saya ingin menanyakan produk ini.')">Halo saya ingin m...</button>
+                        </div>
+
+                        <div class="ut-chat-composer-panel">
+                            <div t-if="state.productPickerOpen" class="ut-chat-product-picker">
+                                <t t-if="state.products.length">
+                                    <t t-foreach="state.products" t-as="product" t-key="product.id">
+                                        <button type="button" class="ut-chat-product-option" t-on-click="() => this.sendProduct(product.id)">
+                                            <img t-att-src="product.image_url" alt=""/>
+                                            <span>
+                                                <strong t-esc="product.name"></strong>
+                                                <small t-esc="product.price_label"></small>
+                                            </span>
+                                        </button>
+                                    </t>
+                                </t>
+                                <span t-else="" class="ut-chat-sidebar-state">Belum ada produk untuk dibagikan.</span>
+                            </div>
+
+                            <input t-ref="imageInput" type="file" accept="image/jpeg,image/png,image/webp" class="tw-hidden" t-on-change="onImageChange"/>
+                            <form class="ut-chat-input-row" t-on-submit.prevent="sendText">
+                                <div class="ut-chat-attach-wrap">
+                                    <button type="button" class="ut-chat-plus" t-on-click="toggleAttachMenu" aria-label="Buka menu lampiran" t-att-aria-expanded="state.attachMenuOpen ? 'true' : 'false'">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                    <div t-if="state.attachMenuOpen" class="ut-chat-attach-menu">
+                                        <button type="button" t-on-click="chooseImage">
+                                            <i class="fa fa-image"></i>
+                                            <span>Kirim Gambar</span>
+                                        </button>
+                                        <button type="button" t-on-click="chooseProduct">
+                                            <i class="fa fa-tag"></i>
+                                            <span>Kirim Produk</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <input t-ref="messageInput" t-model="state.composer" t-on-input="onComposerInput" type="text" maxlength="2000" placeholder="Tulis Pesan ..." class="ut-chat-input"/>
+                                <button type="submit" class="ut-chat-send" t-att-disabled="state.sending || !state.composer.trim()" aria-label="Kirim pesan">
+                                    <i class="fa fa-paper-plane-o"></i>
+                                </button>
+                            </form>
+                        </div>
+                        <p t-if="state.uploadStatus" class="ut-chat-upload-status" t-esc="state.uploadStatus"></p>
+                        <p t-if="state.error" class="ut-chat-error" t-esc="state.error"></p>
+                    </footer>
+                </t>
+                <t t-else="">
+                    <div class="ut-chat-empty-main">
+                        Pilih percakapan untuk mulai chat.
+                    </div>
+                </t>
+            </main>
+
+            <div t-if="state.reportModalOpen" class="ut-chat-modal-backdrop" t-on-click.self="closeReportModal">
+                <section class="ut-chat-report-modal" role="dialog" aria-modal="true" aria-labelledby="ut-chat-report-title">
+                    <button type="button" class="ut-chat-report-close" t-on-click="closeReportModal" aria-label="Tutup laporan">
+                        <i class="fa fa-times"></i>
+                    </button>
+                    <h2 id="ut-chat-report-title">Mengapa Kamu Melaporkan Pengguna?</h2>
+                    <div class="ut-chat-report-reasons">
+                        <label class="ut-chat-report-option">
+                            <input type="radio" name="unitrade_report_reason" value="spam" t-att-checked="state.reportReason === 'spam'" t-on-change="() => this.setReportReason('spam')"/>
+                            <span>Spam</span>
+                        </label>
+                        <label class="ut-chat-report-option">
+                            <input type="radio" name="unitrade_report_reason" value="harmful_content" t-att-checked="state.reportReason === 'harmful_content'" t-on-change="() => this.setReportReason('harmful_content')"/>
+                            <span>Konten mengandung SARA, diskriminasi, vulgar, ancaman, dan pelanggaran nilai / norma sosial</span>
+                        </label>
+                        <label class="ut-chat-report-option">
+                            <input type="radio" name="unitrade_report_reason" value="other" t-att-checked="state.reportReason === 'other'" t-on-change="() => this.setReportReason('other')"/>
+                            <span>Lainnya</span>
+                        </label>
+                    </div>
+
+                    <div class="ut-chat-report-proof-head">
+                        <span>Lampirkan Bukti Foto</span>
+                        <strong>Wajib</strong>
+                    </div>
+                    <input t-ref="reportProofInput" type="file" accept="image/jpeg,image/png,image/webp" class="tw-hidden" t-on-change="onReportProofChange"/>
+                    <button type="button" class="ut-chat-report-proof" t-on-click="chooseReportProof">
+                        <img t-if="state.reportProofPreview" t-att-src="state.reportProofPreview" alt="Preview bukti laporan"/>
+                        <span t-else="">
+                            <i class="fa fa-picture-o"></i>
+                            <small>+</small>
+                        </span>
+                    </button>
+                    <p t-if="state.reportProofName" class="ut-chat-report-filename" t-esc="state.reportProofName"></p>
+                    <p t-if="state.reportError" class="ut-chat-error" t-esc="state.reportError"></p>
+                    <p t-if="state.reportSuccess" class="ut-chat-report-success" t-esc="state.reportSuccess"></p>
+
+                    <div class="ut-chat-report-actions">
+                        <button type="button" class="ut-chat-report-submit" t-att-disabled="!reportFormValid || state.reportSubmitting" t-on-click="submitReport">
+                            <t t-if="state.reportSubmitting">Mengirim...</t>
+                            <t t-else="">Kirim Laporan</t>
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </t>
+</templates>

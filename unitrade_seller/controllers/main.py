@@ -307,10 +307,22 @@ class UnitradeSellerController(http.Controller):
         '/unitrade/seller/<int:seller_id>/chat',
     ], type='http', auth='user', website=True)
     def seller_chat(self, profile_ref=None, seller_id=None, **kwargs):
-        """Entry point for seller chat until a dedicated chat module is available."""
+        """Open the internal UniTrade chat when available, otherwise keep the old fallback."""
         seller = self._get_seller_by_public_ref(profile_ref=profile_ref, seller_id=seller_id)
         if not seller:
             return request.not_found()
+
+        if 'unitrade.chat.conversation' in request.env.registry:
+            product_id = kwargs.get('product_id')
+            try:
+                conversation = request.env['unitrade.chat.conversation'].open_for_seller(
+                    seller=seller,
+                    product_id=product_id,
+                )
+                return request.redirect('/unitrade/chat?conversation_id=%s' % conversation.id)
+            except Exception:
+                _logger.exception('Internal seller chat failed for user %s and seller %s', request.env.uid, seller.id)
+                return request.redirect('/seller-profile/%s?chat=failed' % self._seller_public_ref(seller))
 
         whatsapp = seller.user_id.x_whatsapp if 'x_whatsapp' in seller.user_id._fields else ''
         if whatsapp:

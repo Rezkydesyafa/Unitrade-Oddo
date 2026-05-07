@@ -357,7 +357,7 @@
                                         Kunjungi profile
                                     </a>
                                     <a t-if="product.x_seller_id"
-                                        t-attf-href="/seller-profile/#{product.x_seller_id.x_profile_uuid or product.x_seller_id.id}/chat"
+                                        t-attf-href="/seller-profile/#{product.x_seller_id.x_profile_uuid or product.x_seller_id.id}/chat?product_id=#{product.id}"
                                         class="ut-btn-dark"
                                         style="width:217px; height:48px; border:1px solid var(--ut-color-border-strong); border-radius:24px; background:var(--ut-color-button-bg); color:var(--ut-color-button-text); font-size:16px; display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; box-sizing:border-box;">
                                         <i class="fa fa-commenting-o"></i> Chat penjual
