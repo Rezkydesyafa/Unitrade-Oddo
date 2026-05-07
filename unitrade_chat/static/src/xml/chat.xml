@@ -72,7 +72,9 @@
                             <div class="ut-chat-sidebar-state">Memuat pesan...</div>
                         </t>
                         <t t-foreach="state.messages" t-as="message" t-key="message.id">
-                            <article t-att-class="messageClass(message)">
+                            <article t-att-class="messageClass(message)"
+                                t-att-data-message-id="message.pending ? '' : message.id"
+                                t-att-data-author-user-id="message.author_user_id">
                                 <img t-if="!message.is_mine" t-att-src="message.author_avatar_url" alt="" class="ut-chat-message-avatar"/>
                                 <div t-att-class="message.failed ? 'ut-chat-bubble ut-is-failed' : message.pending ? 'ut-chat-bubble ut-is-pending' : 'ut-chat-bubble'">
                                     <t t-if="message.type === 'image'">

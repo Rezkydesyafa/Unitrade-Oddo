@@ -98,6 +98,53 @@ class TestUnitradeChat(TransactionCase):
         self.assertTrue(seller_message._message_payload(self.seller_user)['is_mine'])
         self.assertFalse(seller_message._message_payload(self.buyer)['is_mine'])
 
+    def test_message_is_not_read_until_receiver_marks_visible_message(self):
+        conversation = self.env['unitrade.chat.conversation'].sudo().create({
+            'buyer_user_id': self.buyer.id,
+            'seller_id': self.seller.id,
+        })
+        buyer_message = self.env['unitrade.chat.message'].with_user(self.buyer).create_from_controller(
+            conversation,
+            {'message_type': 'text', 'body': 'Halo seller'},
+        )
+        self.assertTrue(buyer_message.delivered_at)
+        self.assertFalse(buyer_message.read_at)
+
+        self.assertFalse(conversation.with_user(self.buyer).mark_read(self.buyer, last_seen_message_id=buyer_message.id))
+        buyer_message.invalidate_recordset(['read_at'])
+        self.assertFalse(buyer_message.read_at)
+
+        self.assertFalse(conversation.with_user(self.seller_user).mark_read(self.seller_user))
+        buyer_message.invalidate_recordset(['read_at'])
+        self.assertFalse(buyer_message.read_at)
+
+        self.assertTrue(conversation.with_user(self.seller_user).mark_read(
+            self.seller_user,
+            last_seen_message_id=buyer_message.id,
+        ))
+        buyer_message.invalidate_recordset(['read_at'])
+        self.assertTrue(buyer_message.read_at)
+
+    def test_read_receipt_does_not_mark_sender_own_messages(self):
+        conversation = self.env['unitrade.chat.conversation'].sudo().create({
+            'buyer_user_id': self.buyer.id,
+            'seller_id': self.seller.id,
+        })
+        buyer_message = self.env['unitrade.chat.message'].with_user(self.buyer).create_from_controller(
+            conversation,
+            {'message_type': 'text', 'body': 'Halo seller'},
+        )
+        seller_message = self.env['unitrade.chat.message'].with_user(self.seller_user).create_from_controller(
+            conversation,
+            {'message_type': 'text', 'body': 'Halo buyer'},
+        )
+
+        conversation.with_user(self.seller_user).mark_read(self.seller_user, last_seen_message_id=seller_message.id)
+        buyer_message.invalidate_recordset(['read_at'])
+        seller_message.invalidate_recordset(['read_at'])
+        self.assertTrue(buyer_message.read_at)
+        self.assertFalse(seller_message.read_at)
+
     def test_invalid_image_rejected(self):
         conversation = self.env['unitrade.chat.conversation'].with_user(self.buyer).open_for_seller(
             seller_id=self.seller.id,

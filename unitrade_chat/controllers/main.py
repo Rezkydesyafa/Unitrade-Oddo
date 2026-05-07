@@ -117,7 +117,6 @@ class UnitradeChatController(http.Controller):
             payload['messages'] = page['messages']
             payload['has_more_messages'] = page['has_more']
             payload['products'] = self._seller_product_payloads(active)
-            active.mark_read(user)
         return payload
 
     def _message_payloads(self, conversation, limit=80):
@@ -166,7 +165,6 @@ class UnitradeChatController(http.Controller):
         try:
             conversation = self._conversation(conversation_id)
             request.env.user.sudo().write({'x_unitrade_chat_last_seen': fields.Datetime.now()})
-            conversation.mark_read(request.env.user)
             return {
                 'success': True,
                 'conversation': conversation._conversation_payload(request.env.user, include_token=True),
@@ -270,12 +268,28 @@ class UnitradeChatController(http.Controller):
             return self._json_error('Laporan gagal dikirim.', code='report_failed')
 
     @http.route('/unitrade/chat/read', type='json', auth='user', website=True, methods=['POST'])
-    def mark_read(self, conversation_id=None, **kwargs):
+    def mark_read(self, conversation_id=None, last_seen_message_id=None, active_conversation_id=None,
+                  receiver_id=None, page_visible=False, window_focused=False, **kwargs):
         try:
             conversation = self._conversation(conversation_id)
-            conversation.mark_read(request.env.user)
+            try:
+                active_conversation_id = int(active_conversation_id or 0)
+                receiver_id = int(receiver_id or 0)
+            except (TypeError, ValueError):
+                active_conversation_id = 0
+                receiver_id = 0
+            if active_conversation_id != conversation.id or receiver_id != request.env.user.id:
+                return self._json_error('Read receipt tidak valid.', code='invalid_read_receipt')
+            if not page_visible or not window_focused:
+                return {
+                    'success': True,
+                    'read': False,
+                    'conversation': conversation._conversation_payload(request.env.user),
+                }
+            read = conversation.mark_read(request.env.user, last_seen_message_id=last_seen_message_id)
             return {
                 'success': True,
+                'read': bool(read),
                 'conversation': conversation._conversation_payload(request.env.user),
             }
         except (AccessError, UserError, ValidationError) as error:

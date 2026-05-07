@@ -58,6 +58,8 @@ export class UnitradeChatApp extends Component {
         this.busHandlersBound = false;
         this.subscribedChannels = new Set();
         this.pendingSeq = 0;
+        this.lastReadSentByConversation = new Map();
+        this.readReceiptTimer = null;
         this.onDocumentClick = (ev) => {
             const target = ev.target;
             if (this.state.attachMenuOpen && target && target.closest && !target.closest(".ut-chat-attach-wrap")) {
@@ -67,6 +69,8 @@ export class UnitradeChatApp extends Component {
                 this.state.headerMenuOpen = false;
             }
         };
+        this.onWindowFocus = () => this.scheduleVisibleReadReceipt();
+        this.onVisibilityChange = () => this.scheduleVisibleReadReceipt();
         this.state = useState({
             loading: true,
             messagesLoading: false,
@@ -101,11 +105,15 @@ export class UnitradeChatApp extends Component {
 
         onMounted(() => {
             document.addEventListener("click", this.onDocumentClick);
+            document.addEventListener("visibilitychange", this.onVisibilityChange);
+            window.addEventListener("focus", this.onWindowFocus);
             this.bootstrap();
         });
 
         onWillUnmount(() => {
             document.removeEventListener("click", this.onDocumentClick);
+            document.removeEventListener("visibilitychange", this.onVisibilityChange);
+            window.removeEventListener("focus", this.onWindowFocus);
             this.stopTimers();
             this.unsubscribeChannels();
         });
@@ -213,6 +221,7 @@ export class UnitradeChatApp extends Component {
                 this.subscribe(active.conversation_channel || active.bus_channel);
             }
             this.startTimers();
+            this.scheduleVisibleReadReceipt();
         } catch (error) {
             console.error("[UniTrade] Chat bootstrap:", error);
             this.state.error = "Chat belum bisa dimuat.";
@@ -264,7 +273,7 @@ export class UnitradeChatApp extends Component {
             if (!this.consumeMatchingPending(message) && !this.state.messages.some((existing) => existing.id === message.id)) {
                 this.state.messages.push(message);
             }
-            this.markRead();
+            this.scheduleVisibleReadReceipt();
         }
     }
 
@@ -273,8 +282,9 @@ export class UnitradeChatApp extends Component {
             return;
         }
         this.state.messages.forEach((message) => {
-            if (message.is_mine) {
+            if (message.is_mine && (!payload.last_seen_message_id || Number(message.id) <= Number(payload.last_seen_message_id))) {
                 message.read = true;
+                message.delivery_state = "read";
             }
         });
     }
@@ -334,6 +344,10 @@ export class UnitradeChatApp extends Component {
             window.clearTimeout(this.otherTypingTimer);
             this.otherTypingTimer = null;
         }
+        if (this.readReceiptTimer) {
+            window.clearTimeout(this.readReceiptTimer);
+            this.readReceiptTimer = null;
+        }
     }
 
     schedulePoll(delay = this.pollDelay) {
@@ -369,6 +383,7 @@ export class UnitradeChatApp extends Component {
             this.state.products = result.products || [];
             this.subscribe(conversation.conversation_channel || conversation.bus_channel);
             window.history.replaceState({}, "", `/unitrade/chat?conversation_id=${conversation.id}`);
+            this.scheduleVisibleReadReceipt();
         } catch (error) {
             console.error("[UniTrade] Chat conversation:", error);
             this.state.error = "Percakapan gagal dimuat.";
@@ -405,6 +420,9 @@ export class UnitradeChatApp extends Component {
                     newCount++;
                 }
             });
+            if (newCount) {
+                this.scheduleVisibleReadReceipt();
+            }
             this.pollDelay = newCount ? POLL_INTERVAL_FAST : POLL_INTERVAL_SLOW;
         } catch (error) {
             console.warn("[UniTrade] Chat polling failed:", error);
@@ -454,6 +472,7 @@ export class UnitradeChatApp extends Component {
         if (el && el.scrollTop < 80) {
             this.loadOlderMessages();
         }
+        this.scheduleVisibleReadReceipt();
     }
 
     async sendPresence() {
@@ -472,15 +491,69 @@ export class UnitradeChatApp extends Component {
         }
     }
 
-    async markRead() {
-        if (!this.state.activeConversationId) {
+    isPageReadyForReadReceipt() {
+        return document.visibilityState === "visible" && document.hasFocus() && Boolean(this.state.activeConversationId);
+    }
+
+    getLastVisibleIncomingMessageId() {
+        if (!this.isPageReadyForReadReceipt()) {
+            return 0;
+        }
+        const el = this.messageListRef.el;
+        if (!el) {
+            return 0;
+        }
+        const containerRect = el.getBoundingClientRect();
+        const visibleTop = containerRect.top;
+        const visibleBottom = containerRect.bottom;
+        let lastVisibleId = 0;
+        el.querySelectorAll(".ut-chat-message[data-message-id]").forEach((node) => {
+            const id = Number(node.dataset.messageId || 0);
+            const authorUserId = Number(node.dataset.authorUserId || 0);
+            if (!id || authorUserId === this.state.currentUserId) {
+                return;
+            }
+            const rect = node.getBoundingClientRect();
+            const visibleHeight = Math.max(0, Math.min(rect.bottom, visibleBottom) - Math.max(rect.top, visibleTop));
+            const visibilityRatio = rect.height ? visibleHeight / rect.height : 0;
+            const isVisible = visibilityRatio >= 0.6 || visibleHeight >= 48;
+            if (isVisible) {
+                lastVisibleId = Math.max(lastVisibleId, id);
+            }
+        });
+        return lastVisibleId;
+    }
+
+    scheduleVisibleReadReceipt() {
+        if (this.readReceiptTimer) {
+            window.clearTimeout(this.readReceiptTimer);
+        }
+        this.readReceiptTimer = window.setTimeout(() => this.markVisibleMessagesRead(), 180);
+    }
+
+    async markVisibleMessagesRead() {
+        if (!this.isPageReadyForReadReceipt()) {
+            return;
+        }
+        const lastSeenMessageId = this.getLastVisibleIncomingMessageId();
+        if (!lastSeenMessageId) {
+            return;
+        }
+        const previous = Number(this.lastReadSentByConversation.get(this.state.activeConversationId) || 0);
+        if (lastSeenMessageId <= previous) {
             return;
         }
         try {
             const result = await jsonrpc("/unitrade/chat/read", {
                 conversation_id: this.state.activeConversationId,
+                active_conversation_id: this.state.activeConversationId,
+                receiver_id: this.state.currentUserId,
+                last_seen_message_id: lastSeenMessageId,
+                page_visible: document.visibilityState === "visible",
+                window_focused: document.hasFocus(),
             });
             if (result.success && result.conversation) {
+                this.lastReadSentByConversation.set(this.state.activeConversationId, lastSeenMessageId);
                 upsertById(this.state.conversations, this.normalizeConversation(result.conversation));
             }
         } catch (error) {
@@ -888,6 +961,7 @@ export class UnitradeChatApp extends Component {
             const el = this.messageListRef.el;
             if (el) {
                 el.scrollTop = el.scrollHeight;
+                this.scheduleVisibleReadReceipt();
             }
         }, 0);
     }

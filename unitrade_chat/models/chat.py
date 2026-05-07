@@ -321,21 +321,47 @@ class UnitradeChatConversation(models.Model):
             },
         )
 
-    def mark_read(self, user=None):
+    def mark_read(self, user=None, last_seen_message_id=None):
         user = user or self.env.user
         now = fields.Datetime.now()
         for conversation in self:
             conversation._check_participant(user)
+            try:
+                last_seen_message_id = int(last_seen_message_id or 0)
+            except (TypeError, ValueError):
+                last_seen_message_id = 0
+            if not last_seen_message_id:
+                return False
+
+            readable_messages = conversation.message_ids.sudo().filtered(
+                lambda message: (
+                    message.id <= last_seen_message_id
+                    and message.author_user_id.id != user.id
+                    and not message.read_at
+                )
+            )
+            if not readable_messages:
+                return False
+
+            readable_messages.write({'read_at': now})
+            remaining_unread = self.env['unitrade.chat.message'].sudo().search_count([
+                ('conversation_id', '=', conversation.id),
+                ('author_user_id', '!=', user.id),
+                ('read_at', '=', False),
+                ('message_type', '!=', 'system'),
+            ])
             vals = {}
             if user.id == conversation.buyer_user_id.id:
-                vals.update({'buyer_last_read_at': now, 'buyer_unread_count': 0})
+                vals.update({'buyer_last_read_at': now, 'buyer_unread_count': remaining_unread})
             else:
-                vals.update({'seller_last_read_at': now, 'seller_unread_count': 0})
+                vals.update({'seller_last_read_at': now, 'seller_unread_count': remaining_unread})
             conversation.sudo().write(vals)
-            conversation.message_ids.sudo().filtered(lambda m: m.author_user_id.id != user.id and not m.read_at).write({'read_at': now})
             conversation._notify('unitrade_chat_read', {
                 'conversation_id': conversation.id,
                 'reader_user_id': user.id,
+                'receiver_id': user.id,
+                'last_seen_message_id': last_seen_message_id,
+                'read_message_ids': readable_messages.ids,
                 'read_at': fields.Datetime.to_string(now),
             })
         return True
