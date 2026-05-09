@@ -26,7 +26,9 @@
     ],
     'assets': {
         'web.assets_frontend': [
+            'unitrade_seller/static/src/css/seller_dashboard.css',
             'unitrade_seller/static/src/xml/seller_profile_owl.xml',
+            'unitrade_seller/static/src/js/seller_dashboard.js',
             'unitrade_seller/static/src/js/seller_profile_owl.js',
         ],
     },

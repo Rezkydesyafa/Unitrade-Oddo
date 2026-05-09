@@ -22,6 +22,8 @@
                     <field name="x_weight_product"/>
                     <field name="x_free_shipping"/>
                     <field name="x_discount_percent"/>
+                    <field name="x_listing_fee"/>
+                    <field name="x_listing_expires_at"/>
                 </group>
             </xpath>
         </field>
@@ -42,6 +44,8 @@
                 <field name="x_unitrade_free_qty" optional="hide"/>
                 <field name="x_seller_location"/>
                 <field name="x_discount_percent" optional="hide"/>
+                <field name="x_listing_fee" optional="hide"/>
+                <field name="x_listing_expires_at" optional="hide"/>
                 <field name="website_published" widget="boolean_toggle"/>
                 <field name="sale_ok" widget="boolean_toggle" optional="hide"/>
                 <field name="create_date" optional="hide"/>
@@ -97,6 +101,8 @@
                             <field name="standard_price" groups="base.group_system"/>
                             <field name="x_discount_percent"/>
                             <field name="x_free_shipping"/>
+                            <field name="x_listing_fee"/>
+                            <field name="x_listing_expires_at"/>
                             <field name="x_brand"/>
                             <field name="x_weight_product"/>
                         </group>
@@ -232,8 +238,10 @@
                 <field name="x_seller_id"/>
                 <field name="categ_id"/>
                 <field name="x_seller_location"/>
+                <field name="x_listing_expires_at"/>
                 <filter name="filter_published" string="Published" domain="[('website_published', '=', True)]"/>
                 <filter name="filter_unpublished" string="Unpublished" domain="[('website_published', '=', False)]"/>
+                <filter name="filter_listing_expired" string="Listing Expired" domain="[('x_listing_expires_at', '!=', False), ('x_listing_expires_at', '&lt;', context_today())]"/>
                 <filter name="filter_new" string="Baru" domain="[('x_condition', '=', 'new')]"/>
                 <filter name="filter_used" string="Bekas" domain="[('x_condition', '=', 'used')]"/>
                 <separator/>

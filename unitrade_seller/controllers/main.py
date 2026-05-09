@@ -1,8 +1,15 @@
-from odoo import http
+from collections import defaultdict
+from datetime import timedelta
+import json
+import math
+import logging
+
+# pyrefly: ignore [missing-import]
+from odoo import fields, http
+# pyrefly: ignore [missing-import]
 from odoo.http import request
 from markupsafe import Markup, escape
 from werkzeug.urls import url_encode
-import logging
 
 _logger = logging.getLogger(__name__)
 
@@ -170,6 +177,321 @@ class UnitradeSellerController(http.Controller):
         except (TypeError, ValueError):
             return 0
         return rating if 1 <= rating <= 5 else 0
+
+    @staticmethod
+    def _format_money(amount, currency=None):
+        currency = currency or request.website.currency_id or request.env.company.currency_id
+        formatted = ('{:,.0f}'.format(amount or 0.0)).replace(',', '.')
+        symbol = currency.symbol or 'Rp'
+        if currency.position == 'after':
+            return '%s %s' % (formatted, symbol)
+        return '%s %s' % (symbol, formatted)
+
+    @staticmethod
+    def _format_datetime_label(value):
+        if not value:
+            return ''
+        try:
+            localized = fields.Datetime.context_timestamp(request.env.user, value)
+        except Exception:
+            localized = value
+        return localized.strftime('%d %b %Y')
+
+    @staticmethod
+    def _dashboard_seller():
+        user = request.env.user
+        return request.env['unitrade.seller'].sudo().search([
+            ('user_id', '=', user.id),
+            ('status', '=', 'verified'),
+        ], limit=1)
+
+    @staticmethod
+    def _seller_dashboard_product_domain(seller, active_only=False):
+        Product = request.env['product.template'].sudo()
+        required_fields = {'x_seller_id', 'x_is_marketplace'}
+        if not required_fields.issubset(Product._fields):
+            return [('id', '=', 0)]
+        domain = [
+            ('x_seller_id', '=', seller.id),
+            ('x_is_marketplace', '=', True),
+        ]
+        if active_only:
+            domain += [
+                ('sale_ok', '=', True),
+                ('website_published', '=', True),
+            ]
+        return domain
+
+    def _seller_dashboard_products(self, seller, limit=8):
+        Product = request.env['product.template'].sudo()
+        products = Product.search(
+            self._seller_dashboard_product_domain(seller, active_only=True),
+            order='write_date desc, create_date desc',
+            limit=limit,
+        )
+        return products
+
+    @staticmethod
+    def _stock_label(product):
+        qty = _safe_get(product, 'x_unitrade_free_qty', False)
+        if qty is False:
+            variant = product.product_variant_id or product.product_variant_ids[:1]
+            qty = variant.free_qty if variant and 'free_qty' in variant._fields else 0
+        try:
+            qty = float(qty or 0)
+        except (TypeError, ValueError):
+            qty = 0
+        if qty <= 0:
+            return 'Stok habis'
+        if qty.is_integer():
+            return '%s stok' % int(qty)
+        return '%s stok' % qty
+
+    def _listing_expiry(self, product):
+        expires_at = _safe_get(product, 'x_listing_expires_at', False)
+        if not expires_at:
+            return {'label': 'Tanpa batas', 'state': 'neutral'}
+        now = fields.Datetime.now()
+        if expires_at < now:
+            return {'label': 'Expired', 'state': 'error'}
+        days = max(0, int(math.ceil((expires_at - now).total_seconds() / 86400.0)))
+        if days <= 0:
+            return {'label': 'Exp: hari ini', 'state': 'warning'}
+        return {'label': 'Exp: %s hari' % days, 'state': 'warning' if days <= 3 else 'neutral'}
+
+    def _seller_dashboard_product_payloads(self, seller):
+        payloads = []
+        for product in self._seller_dashboard_products(seller):
+            expiry = self._listing_expiry(product)
+            payloads.append({
+                'id': product.id,
+                'name': product.name,
+                'price_label': self._format_money(product.list_price, request.website.currency_id),
+                'image_url': '/web/image/product.template/%s/image_256' % product.id,
+                'url': product.website_url or '/unitrade/product/%s' % product.id,
+                'listing_fee_label': self._format_money(_safe_get(product, 'x_listing_fee', 0.0), request.website.currency_id),
+                'expiry_label': expiry['label'],
+                'expiry_state': expiry['state'],
+                'stock_label': self._stock_label(product),
+                'rating_label': '%.1f' % (_safe_get(product, 'x_average_rating', 0.0) or 0.0),
+            })
+        return payloads
+
+    def _seller_dashboard_order_lines(self, seller, limit=None, revenue_only=False):
+        SaleOrderLine = request.env['sale.order.line'].sudo()
+        Product = request.env['product.template'].sudo()
+        if 'x_seller_id' not in Product._fields:
+            return SaleOrderLine.browse()
+
+        domain = [
+            ('display_type', '=', False),
+            ('product_id', '!=', False),
+            ('product_id.product_tmpl_id.x_seller_id', '=', seller.id),
+        ]
+        if revenue_only:
+            domain.append(('order_id.state', 'in', ['sale', 'done']))
+            if 'x_payment_status' in request.env['sale.order']._fields:
+                domain.append(('order_id.x_payment_status', '=', 'paid'))
+        else:
+            domain.append(('order_id.state', 'in', ['sent', 'sale', 'done', 'cancel']))
+        return SaleOrderLine.search(domain, order='create_date desc, id desc', limit=limit)
+
+    def _delivery_by_order(self, order_ids):
+        if not order_ids or 'unitrade.delivery' not in request.env.registry:
+            return {}
+        deliveries = request.env['unitrade.delivery'].sudo().search([
+            ('order_id', 'in', order_ids),
+        ], order='create_date desc')
+        result = {}
+        for delivery in deliveries:
+            result.setdefault(delivery.order_id.id, delivery)
+        return result
+
+    def _order_status_payload(self, order, delivery=False):
+        payment_status = _safe_get(order, 'x_payment_status', '') or ''
+        delivery_status = delivery.status if delivery else ''
+        if order.state == 'cancel':
+            return {'key': 'cancel', 'label': 'Dibatalkan'}
+        if delivery_status == 'delivered':
+            return {'key': 'done', 'label': 'Terkirim'}
+        if delivery_status in ('picked_up', 'in_transit'):
+            return {'key': 'shipping', 'label': 'Dikirim'}
+        if payment_status in ('failed', 'expired'):
+            return {'key': 'cancel', 'label': 'Pembayaran gagal'}
+        if payment_status == 'pending':
+            return {'key': 'pending', 'label': 'Menunggu bayar'}
+        if order.state in ('sale', 'done'):
+            return {'key': 'processing', 'label': 'Perlu diproses'}
+        return {'key': 'pending', 'label': 'Masuk'}
+
+    def _customer_avatar_url(self, order):
+        user = request.env['res.users'].sudo().search([
+            ('partner_id', '=', order.partner_id.id),
+        ], limit=1)
+        if user:
+            return '/web/image/res.users/%s/avatar_128?unique=%s' % (user.id, user.write_date or '')
+        return '/web/static/img/user_menu_avatar.png'
+
+    def _seller_dashboard_order_payloads(self, seller, limit=6):
+        lines = self._seller_dashboard_order_lines(seller, limit=limit)
+        deliveries = self._delivery_by_order(lines.mapped('order_id').ids)
+        conversations = {}
+        if 'unitrade.chat.conversation' in request.env.registry:
+            buyer_users = request.env['res.users'].sudo().search([
+                ('partner_id', 'in', lines.mapped('order_id.partner_id').ids),
+            ])
+            chat_records = request.env['unitrade.chat.conversation'].sudo().search([
+                ('seller_id', '=', seller.id),
+                ('buyer_user_id', 'in', buyer_users.ids),
+                ('active', '=', True),
+            ], order='last_message_date desc, create_date desc')
+            for conversation in chat_records:
+                conversations.setdefault(conversation.buyer_user_id.partner_id.id, conversation)
+
+        payloads = []
+        for line in lines:
+            order = line.order_id
+            status = self._order_status_payload(order, deliveries.get(order.id))
+            conversation = conversations.get(order.partner_id.id)
+            payloads.append({
+                'order_name': order.name,
+                'customer_name': order.partner_id.name or 'Pembeli UniTrade',
+                'customer_avatar_url': self._customer_avatar_url(order),
+                'product_name': line.product_id.product_tmpl_id.name,
+                'date_label': self._format_datetime_label(order.date_order),
+                'total_label': self._format_money(line.price_total, order.currency_id),
+                'status_key': status['key'],
+                'status_label': status['label'],
+                'action_url': '/unitrade/chat?conversation_id=%s' % conversation.id if conversation else '/unitrade/chat',
+            })
+        return payloads
+
+    def _seller_dashboard_pending_order_count(self, seller):
+        lines = self._seller_dashboard_order_lines(seller)
+        deliveries = self._delivery_by_order(lines.mapped('order_id').ids)
+        count = 0
+        for line in lines:
+            status = self._order_status_payload(line.order_id, deliveries.get(line.order_id.id))
+            if status['key'] in ('pending', 'processing', 'shipping'):
+                count += 1
+        return count
+
+    def _seller_dashboard_chat_payloads(self, seller, limit=4):
+        if 'unitrade.chat.conversation' not in request.env.registry:
+            return [], 0
+        all_conversations = request.env['unitrade.chat.conversation'].sudo().search([
+            ('seller_id', '=', seller.id),
+            ('seller_user_id', '=', request.env.uid),
+            ('active', '=', True),
+        ], order='last_message_date desc, create_date desc')
+        unread_total = sum(all_conversations.mapped('seller_unread_count'))
+        conversations = all_conversations[:limit]
+        payloads = []
+        for conversation in conversations:
+            payloads.append({
+                'title': conversation.buyer_user_id.name or 'Pembeli UniTrade',
+                'subtitle': conversation.product_id.name if conversation.product_id else 'Chat pembeli',
+                'last_message': conversation.last_message_body or 'Belum ada pesan',
+                'last_message_label': conversation.last_message_date.strftime('%d %b') if conversation.last_message_date else '',
+                'unread_count': conversation.seller_unread_count,
+                'url': '/unitrade/chat?conversation_id=%s' % conversation.id,
+                'avatar_url': conversation._avatar_url(conversation.buyer_user_id),
+            })
+        return payloads, unread_total
+
+    def _seller_dashboard_review_payloads(self, products, limit=3):
+        if not products or 'unitrade.review' not in request.env.registry:
+            return []
+        reviews = request.env['unitrade.review'].sudo().search([
+            ('product_id', 'in', products.ids),
+            ('is_visible', '=', True),
+        ], order='create_date desc', limit=limit)
+        return [{
+            'reviewer_name': review.user_id.name or 'Pengguna',
+            'product_name': review.product_id.name,
+            'rating': review.rating,
+            'comment': review.comment or 'Tidak ada komentar.',
+            'date_label': self._format_datetime_label(review.create_date),
+        } for review in reviews]
+
+    def _seller_dashboard_chart_data(self, seller):
+        lines = self._seller_dashboard_order_lines(seller, revenue_only=True)
+        daily_revenue = defaultdict(float)
+        daily_orders = defaultdict(int)
+        for line in lines:
+            date_order = line.order_id.date_order
+            if not date_order:
+                continue
+            day = date_order.date()
+            daily_revenue[day] += line.price_total
+            daily_orders[day] += 1
+
+        today = fields.Date.context_today(request.env.user)
+        weekly_days = [today - timedelta(days=offset) for offset in range(6, -1, -1)]
+        weekly = {
+            'labels': [day.strftime('%d/%m') for day in weekly_days],
+            'revenue': [round(daily_revenue.get(day, 0.0), 2) for day in weekly_days],
+            'orders': [daily_orders.get(day, 0) for day in weekly_days],
+        }
+
+        monthly_days = [today - timedelta(days=offset) for offset in range(29, -1, -1)]
+        buckets = []
+        for start in range(0, len(monthly_days), 5):
+            bucket_days = monthly_days[start:start + 5]
+            if not bucket_days:
+                continue
+            buckets.append({
+                'label': '%s-%s' % (bucket_days[0].strftime('%d/%m'), bucket_days[-1].strftime('%d/%m')),
+                'revenue': round(sum(daily_revenue.get(day, 0.0) for day in bucket_days), 2),
+                'orders': sum(daily_orders.get(day, 0) for day in bucket_days),
+            })
+        monthly = {
+            'labels': [bucket['label'] for bucket in buckets],
+            'revenue': [bucket['revenue'] for bucket in buckets],
+            'orders': [bucket['orders'] for bucket in buckets],
+        }
+        return {'weekly': weekly, 'monthly': monthly}
+
+    def _seller_dashboard_context(self, seller):
+        all_products = request.env['product.template'].sudo().search(
+            self._seller_dashboard_product_domain(seller, active_only=False)
+        )
+        active_products = request.env['product.template'].sudo().search(
+            self._seller_dashboard_product_domain(seller, active_only=True)
+        )
+        review_summary = self._seller_review_summary(all_products)
+        revenue_lines = self._seller_dashboard_order_lines(seller, revenue_only=True)
+        total_revenue = sum(revenue_lines.mapped('price_total'))
+        order_payloads = self._seller_dashboard_order_payloads(seller)
+        chat_payloads, unread_chat_count = self._seller_dashboard_chat_payloads(seller)
+        pending_order_count = self._seller_dashboard_pending_order_count(seller)
+        sold_count = int(sum(all_products.mapped('sales_count'))) if all_products and 'sales_count' in all_products._fields else len(revenue_lines)
+        chart_data = self._seller_dashboard_chart_data(seller)
+
+        return {
+            'seller': seller,
+            'seller_public_ref': self._seller_public_ref(seller),
+            'dashboard_stats': {
+                'revenue_label': self._format_money(total_revenue, request.website.currency_id),
+                'available_balance_label': self._format_money(total_revenue, request.website.currency_id),
+                'active_products': len(active_products),
+                'incoming_orders': pending_order_count,
+                'average_rating': review_summary['rating'] or seller.average_rating or 0.0,
+                'review_count': review_summary['review_count'],
+                'sold_count': sold_count,
+                'unread_chat_count': unread_chat_count,
+                'notification_count': pending_order_count + unread_chat_count,
+            },
+            'dashboard_products': self._seller_dashboard_product_payloads(seller),
+            'dashboard_orders': order_payloads,
+            'dashboard_messages': chat_payloads,
+            'dashboard_reviews': self._seller_dashboard_review_payloads(all_products),
+            'dashboard_chart_json': json.dumps(chart_data),
+            'dashboard_search_items_json': json.dumps([]),
+            'add_product_url': '/web#action=unitrade_product_ext.action_unitrade_products&model=product.template&view_type=form'
+                if request.env.user.has_group('unitrade_seller.group_unitrade_admin') else '',
+            'page_title': 'Dashboard Penjual - UniTrade',
+        }
 
     @http.route([
         '/seller-profile/<string:profile_ref>',
@@ -381,23 +703,21 @@ class UnitradeSellerController(http.Controller):
         """Keep the old submit URL from creating a second verification path."""
         return request.redirect('/seller-verification')
 
-    @http.route('/unitrade/seller/dashboard', type='http', auth='user', website=True)
+    @http.route([
+        '/unitrade/seller/dashboard',
+        '/seller/dashboard',
+        '/my/seller/dashboard',
+    ], type='http', auth='user', website=True, sitemap=False)
     def seller_dashboard(self, **kwargs):
-        """Render seller dashboard."""
-        user = request.env.user
-        seller = request.env['unitrade.seller'].sudo().search([
-            ('user_id', '=', user.id),
-            ('status', '=', 'verified'),
-        ], limit=1)
-
+        """Render the standalone seller dashboard app shell."""
+        seller = self._dashboard_seller()
         if not seller:
             return request.redirect('/seller-verification')
 
-        values = {
-            'seller': seller,
-            'page_title': 'Dashboard Penjual - UniTrade',
-        }
-        return request.render('unitrade_seller.seller_dashboard_template', values)
+        return request.render(
+            'unitrade_seller.seller_dashboard_template',
+            self._seller_dashboard_context(seller),
+        )
 
     @http.route('/unitrade/otp/send', type='json', auth='user', methods=['POST'])
     def send_otp(self, **kwargs):

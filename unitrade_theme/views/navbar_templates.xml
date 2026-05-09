@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <template id="unitrade_navbar" name="UniTrade Navbar Component">
+        <header class="tw-sticky tw-top-0 tw-z-[1100] tw-w-full tw-bg-transparent tw-font-['Urbanist']">
+            <div class="ut-top-promo-bar tw-relative tw-z-[1101] tw-h-[34px] tw-w-full tw-bg-white tw-px-4 tw-text-[12px] tw-leading-6 tw-text-black md:tw-px-7" style="background-color: #FFFFFF !important;">
+                <div class="tw-mx-auto tw-flex tw-h-full tw-max-w-[1440px] tw-items-center tw-justify-between tw-gap-4">
+                    <div class="tw-flex tw-min-w-0 tw-items-center tw-gap-3">
+                        <span class="tw-hidden tw-whitespace-nowrap tw-font-normal sm:tw-inline">Diskon 20% Spesial Mahasiswa</span>
+                        <a href="/shop" class="tw-whitespace-nowrap tw-font-semibold tw-text-black tw-no-underline tw-transition-colors hover:tw-text-[#545454]">Belanja Sekarang &#8594;</a>
+                        <span class="tw-hidden tw-font-semibold tw-text-[#939393] sm:tw-inline">|</span>
+                        <a href="/seller/register" class="tw-hidden tw-whitespace-nowrap tw-font-semibold tw-text-black tw-no-underline tw-transition-colors hover:tw-text-[#545454] sm:tw-inline">Mulai Berjualan</a>
+                    </div>
+                    <div class="tw-hidden tw-items-center tw-gap-4 md:tw-flex">
+                        <a href="/help" class="tw-font-normal tw-text-black tw-no-underline tw-transition-colors hover:tw-text-[#545454]">Bantuan</a>
+                        <a href="/contactus" class="tw-font-normal tw-text-black tw-no-underline tw-transition-colors hover:tw-text-[#545454]">Kontak</a>
+                        <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                        <div class="tw-flex tw-items-center tw-gap-2">
+                            <span>Ikuti kami :</span>
+                            <a href="#" aria-label="Instagram UniTrade" class="tw-flex tw-size-4 tw-items-center tw-justify-center tw-text-black tw-no-underline hover:tw-text-[#545454]">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="tw-size-[14px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="2" width="20" height="20" rx="5"></rect>
+                                    <circle cx="12" cy="12" r="4"></circle>
+                                    <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"></circle>
+                                </svg>
+                            </a>
+                            <a href="#" aria-label="Facebook UniTrade" class="tw-flex tw-size-4 tw-items-center tw-justify-center tw-text-black tw-no-underline hover:tw-text-[#545454]">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="tw-size-[14px]" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M14 8h3V4h-3c-3 0-5 2-5 5v3H6v4h3v8h4v-8h3l1-4h-4V9c0-.6.4-1 1-1z"/>
+                                </svg>
+                            </a>
+                            <a href="#" aria-label="TikTok UniTrade" class="tw-flex tw-size-4 tw-items-center tw-justify-center tw-text-black tw-no-underline hover:tw-text-[#545454]">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="tw-size-[14px]" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M18.3 7.5c-1.4-.1-2.7-.8-3.5-1.9v8.6c0 3.1-2.5 5.6-5.6 5.6S3.7 17.3 3.7 14.2s2.5-5.6 5.6-5.6c.4 0 .8 0 1.2.1v3.4c-.4-.2-.8-.3-1.2-.3-1.3 0-2.4 1.1-2.4 2.4s1.1 2.4 2.4 2.4 2.4-1.1 2.4-2.4V2.8h3.2c.4 2 1.8 3.4 3.4 3.8v.9z"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tw-w-full tw-bg-transparent tw-px-4 tw-py-[15px] md:tw-px-8">
+                <div class="tw-mx-auto tw-flex tw-h-[70px] tw-max-w-[1376px] tw-items-center tw-gap-5 tw-overflow-visible tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                    <a href="/" aria-label="UniTrade beranda" class="tw-flex tw-h-[52px] tw-w-[129px] tw-shrink-0 tw-items-center tw-justify-center tw-gap-2 tw-rounded-[36.5px] tw-text-[#212529] tw-no-underline hover:tw-text-[#212529] hover:tw-no-underline focus:tw-no-underline" style="text-decoration: none !important;">
+                        <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="" class="tw-h-[37px] tw-w-auto tw-object-contain"/>
+                        <span class="tw-whitespace-nowrap tw-text-[13px] tw-font-semibold tw-leading-none tw-text-[#212529]" style="text-decoration: none !important;">UniTrade</span>
+                    </a>
+
+                    <form action="/shop" method="get" class="tw-relative tw-hidden tw-h-[48px] tw-min-w-[220px] tw-max-w-[760px] tw-flex-[1_1_560px] tw-rounded-full tw-border tw-border-[#DADADA] tw-bg-[#F9F9F9] tw-transition-colors focus-within:tw-border-[#212529] focus-within:tw-shadow-[0_0_0_2px_rgba(33,37,41,0.08)] lg:tw-block xl:tw-max-w-[820px]">
+                        <input type="text" name="search" class="unitrade-search tw-h-full tw-w-full tw-appearance-none tw-rounded-full tw-border-0 tw-bg-transparent tw-py-0 tw-pl-5 tw-pr-[58px] tw-text-[14px] tw-font-normal tw-text-[#212529] tw-shadow-none tw-outline-none placeholder:tw-text-[#8c8c8c] focus:tw-border-0 focus:tw-shadow-none focus:tw-outline-none focus:tw-ring-0" placeholder="Cari produk di UniTrade"/>
+                        <button type="submit" aria-label="Cari produk" class="tw-absolute tw-right-[5px] tw-top-1/2 tw-flex tw-size-[38px] tw--translate-y-1/2 tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-[#212529] tw-p-0 tw-text-white tw-transition-colors hover:tw-bg-black">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="tw-size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="6"></circle>
+                                <path d="m16 16 4 4"></path>
+                            </svg>
+                        </button>
+                    </form>
+
+                    <div class="tw-ml-auto tw-flex tw-shrink-0 tw-items-center tw-gap-3 lg:tw-gap-4" t-nocache="User-specific navigation actions">
+                        <t t-set="current_user" t-value="request.env.user"/>
+                        <t t-if="not website.is_public_user()">
+                            <a href="/shop/cart" title="Keranjang" aria-label="Keranjang" class="tw-relative tw-flex tw-size-[38px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#212529] tw-text-white tw-no-underline tw-transition-colors hover:tw-bg-black">
+                                <img src="/unitrade_theme/static/src/img/navbar-cart.svg" alt="" class="tw-size-6"/>
+                                <t t-set="website_sale_order" t-value="website.sale_get_order()"/>
+                                <t t-if="website_sale_order and website_sale_order.cart_quantity > 0">
+                                    <span class="tw-absolute tw-right-[-4px] tw-top-[-5px] tw-flex tw-min-w-[17px] tw-items-center tw-justify-center tw-rounded-full tw-bg-red-500 tw-px-1 tw-text-[10px] tw-font-bold tw-leading-[17px] tw-text-white" t-esc="website_sale_order.cart_quantity"/>
+                                </t>
+                            </a>
+
+                            <a href="/my/orders" title="Notifikasi" aria-label="Notifikasi" class="tw-flex tw-size-[38px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#212529] tw-text-white tw-no-underline tw-transition-colors hover:tw-bg-black">
+                                <img src="/unitrade_theme/static/src/img/navbar-bell.svg" alt="" class="tw-size-6"/>
+                            </a>
+
+                            <span class="tw-hidden tw-h-[38.5px] tw-w-px tw-bg-[#c3c3c3] md:tw-block"></span>
+
+                            <t t-set="is_unitrade_seller" t-value="'x_is_seller' in current_user._fields and current_user.x_is_seller"/>
+                            <a t-att-href="'/seller/dashboard' if is_unitrade_seller else '/seller-verification'" t-att-title="'Dashboard Penjual' if is_unitrade_seller else 'Mulai Berjualan'" t-att-aria-label="'Dashboard Penjual' if is_unitrade_seller else 'Mulai Berjualan'" class="tw-hidden tw-size-[38px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#212529] tw-text-white tw-no-underline tw-transition-colors hover:tw-bg-black md:tw-flex">
+                                <img src="/unitrade_theme/static/src/img/navbar-seller.svg" alt="" class="tw-size-6"/>
+                            </a>
+
+                            <div class="tw-relative tw-hidden tw-shrink-0 tw-overflow-visible tw-group md:tw-block">
+                                <button type="button" class="tw-flex tw-h-[45px] tw-w-auto tw-items-center tw-gap-2.5 tw-overflow-visible tw-rounded-full tw-border-0 tw-bg-transparent tw-p-0 tw-text-[#212529]">
+                                    <span class="tw-flex tw-size-[45px] tw-shrink-0 tw-items-center tw-justify-center tw-overflow-visible tw-rounded-full tw-border tw-border-solid tw-border-[#212529] tw-bg-white tw-p-[2px]" style="border: 1.5px solid #212529; border-radius: 9999px; overflow: visible;">
+                                        <img t-attf-src="/web/image/res.users/#{current_user.id}/image_128?unique=#{current_user.write_date}" alt="Avatar" class="tw-size-full tw-rounded-full tw-object-cover" style="aspect-ratio: 1 / 1; border-radius: 50%; object-fit: cover;" onerror="this.src='/web/static/img/user_menu_avatar.png'"/>
+                                    </span>
+                                    <span class="tw-min-w-0 tw-max-w-[112px] tw-truncate tw-text-left tw-text-[16px] tw-font-medium tw-leading-6" t-esc="current_user.name"/>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="tw-size-4 tw-shrink-0 tw-text-[#212529] tw-transition-transform group-hover:tw-rotate-180" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.17l3.71-3.94a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                                <div class="tw-invisible tw-absolute tw-right-0 tw-top-full tw-z-[999] tw-w-[232px] tw-pt-3 tw-opacity-0 tw-transition-all tw-duration-200 group-hover:tw-visible group-hover:tw-opacity-100">
+                                    <div class="tw-rounded-[24px] tw-border tw-border-[#ececec] tw-bg-white tw-p-2 tw-shadow-[0_18px_45px_rgba(0,0,0,0.12)]">
+                                        <a href="/my/account" class="tw-flex tw-items-center tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-medium tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Profil Saya</a>
+                                        <a href="/my/orders" class="tw-flex tw-items-center tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-medium tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Pesanan Saya</a>
+                                        <a href="/my/wishlist" class="tw-flex tw-items-center tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-medium tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Wishlist</a>
+                                        <a t-att-href="'/seller/dashboard' if is_unitrade_seller else '/seller-verification'" class="tw-flex tw-items-center tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-medium tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">
+                                            <t t-esc="'Dashboard Penjual' if is_unitrade_seller else 'Mulai Berjualan'"/>
+                                        </a>
+                                        <a href="/my/settings" class="tw-flex tw-items-center tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-medium tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Pengaturan</a>
+                                        <div class="tw-my-2 tw-h-px tw-bg-[#ececec]"></div>
+                                        <a href="/web/session/logout?redirect=/" class="tw-flex tw-items-center tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-red-600 tw-no-underline hover:tw-bg-red-50">Keluar</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <a href="/web/login" class="tw-hidden tw-rounded-full tw-bg-[#212529] tw-px-5 tw-py-2.5 tw-text-[14px] tw-font-semibold tw-text-white tw-no-underline tw-transition-colors hover:tw-bg-black hover:tw-text-white hover:tw-no-underline focus:tw-text-white focus:tw-no-underline md:tw-inline-flex">Masuk</a>
+                            <a href="/web/signup" class="tw-hidden tw-rounded-full tw-border tw-border-solid tw-border-[#212529] tw-bg-white tw-px-5 tw-py-2.5 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline tw-transition-colors hover:tw-bg-[#f5f5f7] hover:tw-text-[#212529] hover:tw-no-underline focus:tw-text-[#212529] focus:tw-no-underline md:tw-inline-flex">Daftar</a>
+                        </t>
+
+                        <button type="button" id="unitrade-mobile-menu-btn" aria-label="Buka menu" class="tw-flex tw-size-[38px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-[#212529] tw-p-0 tw-text-white md:tw-hidden">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="tw-size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 7h16"></path>
+                                <path d="M4 12h16"></path>
+                                <path d="M4 17h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="unitrade-mobile-menu" class="tw-hidden tw-mx-auto tw-mt-3 tw-max-w-[1376px] tw-rounded-[28px] tw-bg-white tw-p-4 tw-shadow-[0_12px_32px_rgba(0,0,0,0.12)] md:tw-hidden" t-nocache="Mobile navigation">
+                    <t t-set="current_user" t-value="request.env.user"/>
+                    <form action="/shop" method="get" class="tw-relative tw-mb-3 tw-h-[46px] tw-rounded-full tw-border tw-border-[#DADADA] tw-bg-[#F9F9F9] tw-transition-colors focus-within:tw-border-[#212529] focus-within:tw-shadow-[0_0_0_2px_rgba(33,37,41,0.08)]">
+                        <input type="text" name="search" class="unitrade-search tw-h-full tw-w-full tw-appearance-none tw-rounded-full tw-border-0 tw-bg-transparent tw-px-5 tw-pr-12 tw-text-[14px] tw-text-[#212529] tw-shadow-none tw-outline-none focus:tw-border-0 focus:tw-shadow-none focus:tw-outline-none focus:tw-ring-0" placeholder="Cari produk di UniTrade"/>
+                        <button type="submit" aria-label="Cari produk" class="tw-absolute tw-right-1 tw-top-1/2 tw-flex tw-size-[38px] tw--translate-y-1/2 tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-[#212529] tw-p-0 tw-text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="tw-size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="6"></circle>
+                                <path d="m16 16 4 4"></path>
+                            </svg>
+                        </button>
+                    </form>
+                    <nav class="tw-grid tw-gap-1">
+                        <a href="/shop" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Belanja Sekarang</a>
+                        <a href="/seller/register" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Mulai Berjualan</a>
+                        <a href="/help" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Bantuan</a>
+                        <a href="/contactus" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Kontak</a>
+                        <t t-if="not website.is_public_user()">
+                            <a href="/my/account" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Profil Saya</a>
+                            <a href="/my/orders" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Pesanan Saya</a>
+                            <a href="/my/wishlist" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Wishlist</a>
+                        </t>
+                        <t t-else="">
+                            <a href="/web/login" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7] hover:tw-text-[#212529] hover:tw-no-underline focus:tw-no-underline">Masuk</a>
+                            <a href="/web/signup" class="tw-rounded-[16px] tw-border tw-border-solid tw-border-[#212529] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7] hover:tw-text-[#212529] hover:tw-no-underline focus:tw-no-underline">Daftar</a>
+                        </t>
+                    </nav>
+                </div>
+            </div>
+        </header>
+    </template>
+
+    <template id="unitrade_header_figma_override" inherit_id="unitrade_theme.unitrade_header" name="UniTrade Figma Navbar Override" priority="90">
+        <xpath expr="//header" position="replace">
+            <t t-call="unitrade_theme.unitrade_navbar"/>
+        </xpath>
+    </template>
+
+</odoo>

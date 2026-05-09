@@ -100,6 +100,16 @@ class ProductTemplateUniTrade(models.Model):
         digits=(5, 2),
         default=0.0,
     )
+    x_listing_fee = fields.Monetary(
+        string='Biaya Listing',
+        currency_field='currency_id',
+        default=0.0,
+        help='Biaya listing yang ditampilkan pada dashboard penjual UniTrade.',
+    )
+    x_listing_expires_at = fields.Datetime(
+        string='Listing Berakhir',
+        help='Tanggal berakhir listing untuk label dashboard penjual. Tidak otomatis unpublish produk.',
+    )
     x_unitrade_stock_qty = fields.Float(
         string='Stok UniTrade',
         compute='_compute_unitrade_stock_qty',

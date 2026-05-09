@@ -1,0 +1,845 @@
+    <template id="seller_dashboard_template" name="Seller Dashboard">
+        <t t-call="website.layout">
+            <t t-set="no_header" t-value="True"/>
+            <t t-set="no_footer" t-value="True"/>
+            <t t-set="title" t-value="page_title"/>
+            <t t-set="head">
+<meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SellerHub - Dashboard</title>
+  <meta name="description" content="Seller dashboard overview with sales, orders, and product metrics."/>
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"
+    onload="window.lucideLoaded=true; if(window.initLucide) window.initLucide();"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    window.initLucide = function () { if (window.lucide) lucide.createIcons(); };
+    document.addEventListener('DOMContentLoaded', function () { if (window.lucideLoaded) window.initLucide(); });
+  </script>
+  <style type="text/tailwindcss">
+    :root {
+    --primary: #292929;
+    --primary-hover: #0E4BD9;
+    --foreground: #080C1A;
+    --secondary: #6A7686;
+    --muted: #EFF2F7;
+    --border: #F3F4F3;
+    --card-grey: #F1F3F6;
+    --card-message: #C9E6FC;
+    --success: #30B22D;
+    --success-light: #DCFCE7;
+    --success-dark: #166534;
+    --error: #ED6B60;
+    --error-light: #FEE2E2;
+    --error-dark: #991B1B;
+    --warning: #FED71F;
+    --warning-light: #FEF9C3;
+    --warning-dark: #854D0E;
+    --info: #292929;
+    --info-light: #DBEAFE;
+    --info-dark: #1E40AF;
+    --font-sans: 'Urbanist', sans-serif;
+  }
+  @theme inline {
+    --color-primary: var(--primary);
+    --color-primary-hover: var(--primary-hover);
+    --color-foreground: var(--foreground);
+    --color-secondary: var(--secondary);
+    --color-muted: var(--muted);
+    --color-border: var(--border);
+    --color-card-grey: var(--card-grey);
+    --color-card-message: var(--card-message);
+    --color-success: var(--success);
+    --color-success-light: var(--success-light);
+    --color-success-dark: var(--success-dark);
+    --color-error: var(--error);
+    --color-error-light: var(--error-light);
+    --color-error-dark: var(--error-dark);
+    --color-warning: var(--warning);
+    --color-warning-light: var(--warning-light);
+    --color-warning-dark: var(--warning-dark);
+    --color-info: var(--info);
+    --color-info-light: var(--info-light);
+    --color-info-dark: var(--info-dark);
+    --font-sans: var(--font-sans);
+  }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+            </t>
+            
+            <div class="font-sans bg-white min-h-screen overflow-x-hidden">
+<!-- Mobile Overlay -->
+  <div id="sidebar-overlay" class="fixed inset-0 bg-black/80 z-40 lg:hidden hidden" onclick="toggleSidebar()"></div>
+
+  <div class="flex h-screen max-h-screen flex-1 bg-muted overflow-hidden">
+    <!-- SIDEBAR -->
+    <aside id="sidebar"
+      class="flex flex-col w-[280px] shrink-0 h-screen fixed inset-y-0 left-0 z-50 bg-white border-r border-border transform -translate-x-full lg:translate-x-0 transition-transform duration-300 overflow-hidden">
+      <!-- Top Bar with logo -->
+      <div class="flex items-center justify-between border-b border-border h-[90px] px-5 gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-9 bg-primary rounded-xl flex items-center justify-center">
+            <i data-lucide="shopping-bag" class="w-5 h-5 text-white"></i>
+          </div>
+          <h1 class="font-semibold text-xl text-foreground">UniTrade</h1>
+        </div>
+        <button onclick="toggleSidebar()" aria-label="Close sidebar"
+          class="lg:hidden size-11 flex shrink-0 bg-white rounded-xl p-[10px] items-center justify-center ring-1 ring-border hover:ring-primary transition-all duration-300 cursor-pointer">
+          <i data-lucide="x" class="size-6 text-secondary"></i>
+        </button>
+      </div>
+
+      <!-- Navigation Menu -->
+      <div class="flex flex-col p-5 pb-28 gap-6 overflow-y-auto flex-1">
+        <div class="flex flex-col gap-4">
+          <h3 class="font-medium text-sm text-secondary">Store Management</h3>
+          <div class="flex flex-col gap-1">
+            <a href="javascript:void(0)" class="group active cursor-pointer">
+              <div
+                class="flex items-center rounded-xl p-4 gap-3 bg-white group-[.active]:bg-muted group-hover:bg-muted transition-all duration-300">
+                <i data-lucide="layout-dashboard"
+                  class="size-6 text-secondary group-[.active]:text-foreground group-hover:text-foreground transition-all duration-300"></i>
+                <span
+                  class="font-medium text-secondary group-[.active]:font-semibold group-[.active]:text-foreground group-hover:text-foreground transition-all duration-300">Dashboard</span>
+              </div>
+            </a>
+            <a href="javascript:void(0)" class="group cursor-pointer">
+              <div
+                class="flex items-center justify-between rounded-xl p-4 bg-white group-[.active]:bg-muted group-hover:bg-muted transition-all duration-300">
+                <div class="flex items-center gap-3">
+                  <i data-lucide="shopping-cart"
+                    class="size-6 text-secondary group-[.active]:text-foreground group-hover:text-foreground transition-all duration-300"></i>
+                  <span
+                    class="font-medium text-secondary group-[.active]:font-semibold group-[.active]:text-foreground group-hover:text-foreground transition-all duration-300">Orders</span>
+                </div>
+                <t t-if="dashboard_stats.get('incoming_orders')"><span class="h-5 px-[7px] rounded-full bg-warning text-xs font-medium flex items-center" t-esc="dashboard_stats.get('incoming_orders')"></span></t>
+              </div>
+            </a>
+            <a href="javascript:void(0)" class="group cursor-pointer">
+              <div
+                class="flex items-center rounded-xl p-4 gap-3 bg-white group-[.active]:bg-muted group-hover:bg-muted transition-all duration-300">
+                <i data-lucide="package"
+                  class="size-6 text-secondary group-[.active]:text-foreground group-hover:text-foreground transition-all duration-300"></i>
+                <span
+                  class="font-medium text-secondary group-[.active]:font-semibold group-[.active]:text-foreground group-hover:text-foreground transition-all duration-300">Products</span>
+              </div>
+            </a>
+            <a href="javascript:void(0)" class="group cursor-pointer">
+              <div
+                class="flex items-center rounded-xl p-4 gap-3 bg-white group-[.active]:bg-muted group-hover:bg-muted transition-all duration-300">
+                <i data-lucide="bar-chart-2"
+                  class="size-6 text-secondary group-[.active]:text-foreground group-hover:text-foreground transition-all duration-300"></i>
+                <span
+                  class="font-medium text-secondary group-[.active]:font-semibold group-[.active]:text-foreground group-hover:text-foreground transition-all duration-300">Analytics</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-4">
+          <h3 class="font-medium text-sm text-secondary">Communication</h3>
+          <div class="flex flex-col gap-1">
+            <a href="javascript:void(0)" class="group cursor-pointer">
+              <div
+                class="flex items-center justify-between rounded-xl p-4 bg-white group-[.active]:bg-muted group-hover:bg-muted transition-all duration-300">
+                <div class="flex items-center gap-3">
+                  <i data-lucide="message-square"
+                    class="size-6 text-secondary group-[.active]:text-foreground group-hover:text-foreground transition-all duration-300"></i>
+                  <span
+                    class="font-medium text-secondary group-[.active]:font-semibold group-[.active]:text-foreground group-hover:text-foreground transition-all duration-300">Customer
+                    Chat</span>
+                </div>
+                <span
+                  class="h-5 px-[7px] rounded-full bg-error text-white text-xs font-medium flex items-center">3</span>
+              </div>
+            </a>
+            <a href="javascript:void(0)" class="group cursor-pointer">
+              <div
+                class="flex items-center rounded-xl p-4 gap-3 bg-white group-[.active]:bg-muted group-hover:bg-muted transition-all duration-300">
+                <i data-lucide="star"
+                  class="size-6 text-secondary group-[.active]:text-foreground group-hover:text-foreground transition-all duration-300"></i>
+                <span
+                  class="font-medium text-secondary group-[.active]:font-semibold group-[.active]:text-foreground group-hover:text-foreground transition-all duration-300">Reviews</span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Settings Card -->
+      <div class="absolute bottom-0 left-0 w-[280px]">
+        <div class="flex flex-col border-t bg-white border-border p-5 gap-3">
+          <a href="javascript:void(0)" class="group cursor-pointer">
+            <div class="flex items-center rounded-xl p-3 gap-3 bg-white hover:bg-muted transition-all duration-300">
+              <i data-lucide="settings"
+                class="size-5 text-secondary group-hover:text-foreground transition-all duration-300"></i>
+              <span class="font-medium text-secondary group-hover:text-foreground transition-all duration-300">Store
+                Settings</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 lg:ml-[280px] flex flex-col bg-white min-h-screen overflow-x-hidden">
+      <!-- Top Header Bar -->
+      <div
+        class="flex items-center justify-between w-full h-[90px] shrink-0 border-b border-border bg-white px-5 md:px-8">
+        <button onclick="toggleSidebar()" aria-label="Open menu"
+          class="lg:hidden size-11 flex items-center justify-center rounded-xl ring-1 ring-border hover:ring-primary transition-all duration-300 cursor-pointer">
+          <i data-lucide="menu" class="size-6 text-foreground"></i>
+        </button>
+
+        <div class="hidden lg:block">
+          <h2 class="font-bold text-2xl text-foreground">Overview</h2>
+        </div>
+
+        <div class="flex items-center gap-3 ml-auto">
+          <button onclick="openSearchModal()"
+            class="size-11 flex items-center justify-center rounded-xl ring-1 ring-border hover:ring-primary transition-all duration-300 cursor-pointer"
+            aria-label="Search">
+            <i data-lucide="search" class="size-6 text-secondary"></i>
+          </button>
+          <button
+            class="size-11 flex items-center justify-center rounded-xl ring-1 ring-border hover:ring-primary transition-all duration-300 cursor-pointer relative"
+            aria-label="Notifications">
+            <i data-lucide="bell" class="size-6 text-secondary"></i>
+            <span
+              class="absolute -top-1 -right-1 h-5 px-1.5 rounded-full bg-error text-white text-xs font-medium flex items-center justify-center">5</span>
+          </button>
+          <div class="hidden md:flex items-center gap-3 pl-3 border-l border-border">
+            <div class="text-right">
+              <p class="font-semibold text-foreground text-sm" t-esc="seller.name"></p>
+              <p class="text-secondary text-xs">Premium Seller</p>
+            </div>
+            <img src="https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=100&h=100&fit=crop" alt="Store Logo"
+              class="size-11 rounded-full object-cover ring-2 ring-border"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page Content Area -->
+      <div class="flex-1 overflow-y-auto p-5 md:p-8 bg-muted/30">
+
+        <!-- Page Header -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 md:mb-8">
+          <div>
+            <h1 class="text-foreground text-2xl md:text-3xl font-bold mb-1">Seller Dashboard</h1>
+            <p class="text-secondary text-sm md:text-base">Here's what's happening with your store today.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button
+              class="flex items-center justify-center gap-2 px-4 py-2.5 bg-white ring-1 ring-border hover:ring-primary rounded-xl text-foreground font-semibold transition-all duration-300 cursor-pointer">
+              <i data-lucide="calendar" class="w-4 h-4"></i>
+              <span class="text-sm">Last 30 Days</span>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-secondary"></i>
+            </button>
+            <button
+              class="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl font-semibold hover:bg-primary-hover transition-all duration-300 cursor-pointer">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span class="text-sm">Add Product</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Stat Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+          <!-- Revenue -->
+          <div class="flex flex-col rounded-2xl border border-border p-6 gap-3 bg-white">
+            <div class="flex items-center gap-[6px]">
+              <div class="size-11 bg-success/10 rounded-xl flex items-center justify-center shrink-0">
+                <i data-lucide="trending-up" class="size-6 text-success"></i>
+              </div>
+              <p class="font-medium text-secondary">Total Revenue</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <p class="font-bold text-[32px] leading-10" t-esc="dashboard_stats.get('revenue_label')"></p>
+              <span
+                class="flex items-center text-success text-sm font-semibold bg-success-light px-2 py-0.5 rounded-full">
+                <i data-lucide="arrow-up-right" class="w-3 h-3 mr-1"></i> 12%
+              </span>
+            </div>
+          </div>
+
+          <!-- Active Products -->
+          <div class="flex flex-col rounded-2xl border border-border p-6 gap-3 bg-white">
+            <div class="flex items-center gap-[6px]">
+              <div class="size-11 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                <i data-lucide="package" class="size-6 text-primary"></i>
+              </div>
+              <p class="font-medium text-secondary">Active Products</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <p class="font-bold text-[32px] leading-10" t-esc="dashboard_stats.get('active_products')"></p>
+              <span class="text-secondary text-sm font-medium">Items listed</span>
+            </div>
+          </div>
+
+          <!-- Incoming Orders -->
+          <div class="flex flex-col rounded-2xl border border-border p-6 gap-3 bg-white">
+            <div class="flex items-center gap-[6px]">
+              <div class="size-11 bg-warning/10 rounded-xl flex items-center justify-center shrink-0">
+                <i data-lucide="shopping-cart" class="size-6 text-warning-dark"></i>
+              </div>
+              <p class="font-medium text-secondary">Incoming Orders</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <p class="font-bold text-[32px] leading-10" t-esc="dashboard_stats.get('incoming_orders')"></p>
+              <span class="text-warning-dark text-sm font-semibold bg-warning-light px-2 py-0.5 rounded-full">Needs
+                action</span>
+            </div>
+          </div>
+
+          <!-- Balance & Earnings -->
+          <div class="flex flex-col rounded-2xl border border-border p-6 gap-3 bg-white relative overflow-hidden">
+            <div class="absolute right-0 top-0 w-24 h-24 bg-primary/5 rounded-bl-full -z-0"></div>
+            <div class="flex items-center justify-between relative z-10">
+              <div class="flex items-center gap-[6px]">
+                <div class="size-11 bg-info/10 rounded-xl flex items-center justify-center shrink-0">
+                  <i data-lucide="wallet" class="size-6 text-info"></i>
+                </div>
+                <p class="font-medium text-secondary">Available Balance</p>
+              </div>
+            </div>
+            <div class="flex items-center justify-between mt-1 relative z-10">
+              <p class="font-bold text-[32px] leading-10" t-esc="dashboard_stats.get('available_balance_label')"></p>
+              <button class="text-sm font-semibold text-primary hover:underline cursor-pointer">Withdraw</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Middle Section: Chart & Chat -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 md:mb-8">
+          <!-- Sales Chart -->
+          <div class="lg:col-span-2 flex flex-col rounded-2xl border border-border p-6 gap-4 bg-white">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 class="font-bold text-lg text-foreground">Sales Overview</h3>
+                <p class="text-sm text-secondary">Revenue vs Orders over time</p>
+              </div>
+              <div class="flex items-center gap-2 bg-muted p-1 rounded-xl">
+                <button
+                  class="px-3 py-1.5 text-sm font-semibold bg-white rounded-lg shadow-sm text-foreground cursor-pointer">Weekly</button>
+                <button
+                  class="px-3 py-1.5 text-sm font-medium text-secondary hover:text-foreground cursor-pointer">Monthly</button>
+              </div>
+            </div>
+            <div class="w-full overflow-x-auto mt-2">
+              <div class="min-w-[500px] h-[280px]">
+                <canvas id="salesChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Preview Widget -->
+          <div class="flex flex-col rounded-2xl border border-border bg-white overflow-hidden">
+            <div class="flex items-center justify-between p-5 border-b border-border">
+              <div class="flex items-center gap-2">
+                <h3 class="font-bold text-lg text-foreground">Recent Messages</h3>
+                <span class="h-5 px-[7px] rounded-full bg-error text-white text-xs font-medium flex items-center">3
+                  New</span>
+              </div>
+              <a href="javascript:void(0)" class="cursor-pointer"><span class="text-sm text-primary font-semibold hover:underline">View
+                  All</span></a>
+            </div>
+            <div class="flex flex-col flex-1 overflow-y-auto max-h-[320px]">
+              <!-- Chat Item 1 (Unread) -->
+              <a href="javascript:void(0)" class="group cursor-pointer border-b border-border last:border-0">
+                <div
+                  class="flex items-start gap-3 p-4 bg-card-message/30 hover:bg-card-grey transition-all duration-300">
+                  <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop"
+                    class="size-10 rounded-full object-cover shrink-0 ring-2 ring-white" alt="Customer"/>
+                  <div class="flex flex-col flex-1 min-w-0">
+                    <div class="flex items-center justify-between mb-0.5">
+                      <p class="font-semibold text-sm text-foreground truncate">Sarah Jenkins</p>
+                      <span class="text-[10px] text-primary font-semibold shrink-0">10m ago</span>
+                    </div>
+                    <p class="text-xs text-foreground font-medium truncate">Is this item compatible with the new model?
+                    </p>
+                    <p class="text-[10px] text-secondary mt-1 truncate">Regarding: Wireless Earbuds Pro</p>
+                  </div>
+                  <div class="size-2 rounded-full bg-primary shrink-0 mt-1.5"></div>
+                </div>
+              </a>
+              <!-- Chat Item 2 (Unread) -->
+              <a href="javascript:void(0)" class="group cursor-pointer border-b border-border last:border-0">
+                <div
+                  class="flex items-start gap-3 p-4 bg-card-message/30 hover:bg-card-grey transition-all duration-300">
+                  <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop"
+                    class="size-10 rounded-full object-cover shrink-0 ring-2 ring-white" alt="Customer"/>
+                  <div class="flex flex-col flex-1 min-w-0">
+                    <div class="flex items-center justify-between mb-0.5">
+                      <p class="font-semibold text-sm text-foreground truncate">Michael Chen</p>
+                      <span class="text-[10px] text-primary font-semibold shrink-0">1h ago</span>
+                    </div>
+                    <p class="text-xs text-foreground font-medium truncate">I need to change my shipping address.</p>
+                    <p class="text-[10px] text-secondary mt-1 truncate">Order #ORD-8921</p>
+                  </div>
+                  <div class="size-2 rounded-full bg-primary shrink-0 mt-1.5"></div>
+                </div>
+              </a>
+              <!-- Chat Item 3 (Read) -->
+              <a href="javascript:void(0)" class="group cursor-pointer border-b border-border last:border-0">
+                <div class="flex items-start gap-3 p-4 hover:bg-card-grey transition-all duration-300">
+                  <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop"
+                    class="size-10 rounded-full object-cover shrink-0 ring-2 ring-white" alt="Customer"/>
+                  <div class="flex flex-col flex-1 min-w-0">
+                    <div class="flex items-center justify-between mb-0.5">
+                      <p class="font-medium text-sm text-foreground truncate">Emma Wilson</p>
+                      <span class="text-[10px] text-secondary shrink-0">Yesterday</span>
+                    </div>
+                    <p class="text-xs text-secondary truncate">Thanks for the quick delivery! 5 stars.</p>
+                  </div>
+                </div>
+              </a>
+              <!-- Chat Item 4 (Read) -->
+              <a href="javascript:void(0)" class="group cursor-pointer border-b border-border last:border-0">
+                <div class="flex items-start gap-3 p-4 hover:bg-card-grey transition-all duration-300">
+                  <div
+                    class="size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold text-sm">
+                    JD
+                  </div>
+                  <div class="flex flex-col flex-1 min-w-0">
+                    <div class="flex items-center justify-between mb-0.5">
+                      <p class="font-medium text-sm text-foreground truncate">John Doe</p>
+                      <span class="text-[10px] text-secondary shrink-0">2 days ago</span>
+                    </div>
+                    <p class="text-xs text-secondary truncate">Do you offer bulk discounts?</p>
+                  </div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Section: Orders & Products -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          <!-- Recent Orders Table -->
+          <div class="lg:col-span-2 flex flex-col rounded-2xl border border-border bg-white overflow-hidden">
+            <div class="flex items-center justify-between p-5 md:p-6 border-b border-border">
+              <h3 class="font-bold text-lg text-foreground">Incoming Orders</h3>
+              <a href="javascript:void(0)" class="cursor-pointer"><span class="text-sm text-primary font-semibold hover:underline">View
+                  All Orders</span></a>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full min-w-[700px]">
+                <thead class="bg-muted/50 border-b border-border">
+                  <tr>
+                    <th
+                      class="w-[20%] px-6 py-4 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
+                      Order ID</th>
+                    <th
+                      class="w-[25%] px-6 py-4 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
+                      Customer</th>
+                    <th
+                      class="w-[20%] px-6 py-4 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
+                      Date</th>
+                    <th
+                      class="w-[15%] px-6 py-4 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
+                      Total</th>
+                    <th
+                      class="w-[15%] px-6 py-4 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
+                      Status</th>
+                    <th
+                      class="w-[5%] px-6 py-4 text-right text-xs font-semibold text-secondary uppercase tracking-wider">
+                      Action</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-border">
+                  <tr class="hover:bg-muted/30 transition-colors group">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="font-semibold text-sm text-foreground">#ORD-8924</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center gap-3">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop"
+                          class="size-8 rounded-full object-cover" alt="Customer"/>
+                        <span class="text-sm font-medium text-foreground">Alice Smith</span>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-secondary">Today, 10:24 AM</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-foreground">$124.50</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-warning-light text-warning-dark">
+                        Pending
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                      <button
+                        class="p-2 text-secondary hover:text-primary hover:bg-primary/10 rounded-lg transition-colors cursor-pointer"
+                        title="Process Order">
+                        <i data-lucide="arrow-right-circle" class="size-4"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-muted/30 transition-colors group">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="font-semibold text-sm text-foreground">#ORD-8923</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center gap-3">
+                        <div
+                          class="size-8 rounded-full bg-info/10 flex items-center justify-center text-info font-bold text-xs">
+                          RJ</div>
+                        <span class="text-sm font-medium text-foreground">Robert Jones</span>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-secondary">Today, 09:15 AM</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-foreground">$89.99</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-info-light text-info-dark">
+                        Processing
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                      <button
+                        class="p-2 text-secondary hover:text-primary hover:bg-primary/10 rounded-lg transition-colors cursor-pointer"
+                        title="View Details">
+                        <i data-lucide="eye" class="size-4"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-muted/30 transition-colors group">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="font-semibold text-sm text-foreground">#ORD-8922</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center gap-3">
+                        <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop"
+                          class="size-8 rounded-full object-cover" alt="Customer"/>
+                        <span class="text-sm font-medium text-foreground">David Clark</span>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-secondary">Yesterday</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-foreground">$245.00</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-success-light text-success-dark">
+                        Shipped
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                      <button
+                        class="p-2 text-secondary hover:text-primary hover:bg-primary/10 rounded-lg transition-colors cursor-pointer"
+                        title="View Details">
+                        <i data-lucide="eye" class="size-4"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-muted/30 transition-colors group">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="font-semibold text-sm text-foreground">#ORD-8921</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center gap-3">
+                        <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop"
+                          class="size-8 rounded-full object-cover" alt="Customer"/>
+                        <span class="text-sm font-medium text-foreground">Michael Chen</span>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-secondary">Yesterday</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-foreground">$55.20</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-success-light text-success-dark">
+                        Shipped
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                      <button
+                        class="p-2 text-secondary hover:text-primary hover:bg-primary/10 rounded-lg transition-colors cursor-pointer"
+                        title="View Details">
+                        <i data-lucide="eye" class="size-4"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Active Products List -->
+          <div class="flex flex-col rounded-2xl border border-border bg-white overflow-hidden">
+            <div class="flex items-center justify-between p-5 border-b border-border">
+              <h3 class="font-bold text-lg text-foreground">Active Listings</h3>
+              <a href="javascript:void(0)" class="cursor-pointer"><span
+                  class="text-sm text-primary font-semibold hover:underline">Manage</span></a>
+            </div>
+            <div class="flex flex-col flex-1 overflow-y-auto max-h-[400px] p-2">
+
+              <!-- Product Item 1 -->
+              <div class="flex gap-4 p-3 rounded-xl hover:bg-card-grey transition-all duration-300 group">
+                <img src="https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=150&h=150&fit=crop"
+                  alt="Wireless Earbuds" class="w-16 h-16 rounded-lg object-cover flex-shrink-0 border border-border"/>
+                <div class="flex-1 min-w-0 flex flex-col justify-center">
+                  <div class="flex items-start justify-between gap-2">
+                    <h4
+                      class="text-foreground text-sm font-bold mb-1 truncate group-hover:text-primary transition-colors">
+                      Wireless Earbuds Pro</h4>
+                    <span class="text-sm font-semibold text-foreground shrink-0">$89.99</span>
+                  </div>
+                  <div class="flex items-center gap-3 text-xs text-secondary mt-1">
+                    <span class="flex items-center gap-1" title="Listing Fee">
+                      <i data-lucide="tag" class="w-3 h-3"></i> Fee: $0.20
+                    </span>
+                    <span class="flex items-center gap-1 text-warning-dark" title="Expires Soon">
+                      <i data-lucide="clock" class="w-3 h-3"></i> Exp: 2 days
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Product Item 2 -->
+              <div class="flex gap-4 p-3 rounded-xl hover:bg-card-grey transition-all duration-300 group">
+                <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=150&h=150&fit=crop"
+                  alt="Smart Watch" class="w-16 h-16 rounded-lg object-cover flex-shrink-0 border border-border"/>
+                <div class="flex-1 min-w-0 flex flex-col justify-center">
+                  <div class="flex items-start justify-between gap-2">
+                    <h4
+                      class="text-foreground text-sm font-bold mb-1 truncate group-hover:text-primary transition-colors">
+                      Smart Watch Series 5</h4>
+                    <span class="text-sm font-semibold text-foreground shrink-0">$199.00</span>
+                  </div>
+                  <div class="flex items-center gap-3 text-xs text-secondary mt-1">
+                    <span class="flex items-center gap-1" title="Listing Fee">
+                      <i data-lucide="tag" class="w-3 h-3"></i> Fee: $0.20
+                    </span>
+                    <span class="flex items-center gap-1" title="Expiry Date">
+                      <i data-lucide="clock" class="w-3 h-3"></i> Exp: 14 days
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Product Item 3 -->
+              <div class="flex gap-4 p-3 rounded-xl hover:bg-card-grey transition-all duration-300 group">
+                <img src="https://images.unsplash.com/photo-1583394838336-acd977736f90?w=150&h=150&fit=crop"
+                  alt="Bluetooth Speaker" class="w-16 h-16 rounded-lg object-cover flex-shrink-0 border border-border"/>
+                <div class="flex-1 min-w-0 flex flex-col justify-center">
+                  <div class="flex items-start justify-between gap-2">
+                    <h4
+                      class="text-foreground text-sm font-bold mb-1 truncate group-hover:text-primary transition-colors">
+                      Portable Bluetooth Speaker</h4>
+                    <span class="text-sm font-semibold text-foreground shrink-0">$45.50</span>
+                  </div>
+                  <div class="flex items-center gap-3 text-xs text-secondary mt-1">
+                    <span class="flex items-center gap-1" title="Listing Fee">
+                      <i data-lucide="tag" class="w-3 h-3"></i> Fee: $0.20
+                    </span>
+                    <span class="flex items-center gap-1" title="Expiry Date">
+                      <i data-lucide="clock" class="w-3 h-3"></i> Exp: 21 days
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Product Item 4 -->
+              <div class="flex gap-4 p-3 rounded-xl hover:bg-card-grey transition-all duration-300 group">
+                <img src="https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=150&h=150&fit=crop"
+                  alt="Gaming Mouse" class="w-16 h-16 rounded-lg object-cover flex-shrink-0 border border-border"/>
+                <div class="flex-1 min-w-0 flex flex-col justify-center">
+                  <div class="flex items-start justify-between gap-2">
+                    <h4
+                      class="text-foreground text-sm font-bold mb-1 truncate group-hover:text-primary transition-colors">
+                      Ergonomic Gaming Mouse</h4>
+                    <span class="text-sm font-semibold text-foreground shrink-0">$59.99</span>
+                  </div>
+                  <div class="flex items-center gap-3 text-xs text-secondary mt-1">
+                    <span class="flex items-center gap-1" title="Listing Fee">
+                      <i data-lucide="tag" class="w-3 h-3"></i> Fee: $0.20
+                    </span>
+                    <span class="flex items-center gap-1 text-error" title="Expired">
+                      <i data-lucide="alert-circle" class="w-3 h-3"></i> Expired
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <div class="p-4 border-t border-border bg-muted/20">
+              <button
+                class="w-full py-2.5 bg-white ring-1 ring-border hover:ring-primary text-foreground font-semibold rounded-xl transition-all duration-300 cursor-pointer text-sm">
+                Renew Listings
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Search Modal -->
+  <div id="search-modal" class="fixed inset-0 bg-black/50 z-[100] hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl">
+      <div class="p-4 border-b border-border">
+        <div class="flex items-center gap-3 bg-muted rounded-xl px-4">
+          <i data-lucide="search" class="size-5 text-secondary"></i>
+          <input type="text" id="search-input" placeholder="Search orders, products, or customers..."
+            class="flex-1 py-3 bg-transparent outline-none text-foreground placeholder:text-secondary"/>
+          <kbd
+            class="hidden sm:inline-flex items-center gap-1 px-2 py-1 bg-white rounded-lg text-xs text-secondary border border-border">ESC</kbd>
+        </div>
+      </div>
+      <div class="p-4 overflow-y-auto max-h-[60vh]">
+        <p class="text-sm text-secondary mb-3">Quick Links</p>
+        <div class="flex flex-col gap-2">
+          <a href="javascript:void(0)" class="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-all cursor-pointer">
+            <div class="size-10 bg-primary/10 rounded-xl flex items-center justify-center">
+              <i data-lucide="plus" class="size-5 text-primary"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-medium text-foreground truncate">Add New Product</p>
+              <p class="text-sm text-secondary truncate">Create a new listing in your store</p>
+            </div>
+          </a>
+          <a href="javascript:void(0)" class="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-all cursor-pointer">
+            <div class="size-10 bg-warning/10 rounded-xl flex items-center justify-center">
+              <i data-lucide="shopping-cart" class="size-5 text-warning-dark"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-medium text-foreground truncate">Pending Orders</p>
+              <p class="text-sm text-secondary truncate">View orders that need processing</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page Not Found Modal -->
+  <div id="page-not-found-modal" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-xl">
+      <div class="w-16 h-16 bg-warning-light rounded-full flex items-center justify-center mx-auto mb-4">
+        <i data-lucide="alert-triangle" class="w-8 h-8 text-warning-dark"></i>
+      </div>
+      <h3 class="text-foreground text-xl font-bold mb-2">Page Not Available</h3>
+      <p class="text-gray-500 text-sm mb-6">This page hasn't been created yet. Generate it using the chat!</p>
+      <button onclick="closePageNotFoundModal()"
+        class="w-full px-4 py-2.5 bg-primary text-white rounded-full font-medium hover:bg-primary-hover transition-all duration-200 cursor-pointer">
+        Got it
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Sidebar Toggle
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      sidebar.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+      document.body.classList.toggle('overflow-hidden');
+    }
+
+    // Search Modal
+    function openSearchModal() {
+      document.getElementById('search-modal').classList.remove('hidden');
+      document.getElementById('search-modal').classList.add('flex');
+      document.getElementById('search-input').focus();
+    }
+    function closeSearchModal() {
+      document.getElementById('search-modal').classList.add('hidden');
+      document.getElementById('search-modal').classList.remove('flex');
+    }
+    document.getElementById('search-modal').addEventListener('click', function (e) {
+      if (e.target === this) closeSearchModal();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeSearchModal();
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openSearchModal(); }
+    });
+
+    // Page Not Found Modal
+    function closePageNotFoundModal() {
+      document.getElementById('page-not-found-modal').classList.add('hidden');
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      // Intercept links
+      document.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', function (e) {
+          e.preventDefault();
+          document.getElementById('page-not-found-modal').classList.remove('hidden');
+        });
+      });
+
+      // Initialize Chart.js
+      const ctx = document.getElementById('salesChart');
+      if (ctx) {
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+              label: 'Revenue ($)',
+              data: [1200, 1900, 1500, 2200, 1800, 2800, 2400],
+              borderColor: '#292929',
+              backgroundColor: 'rgba(41, 41, 41, 0.1)',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: true,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: '#292929',
+              pointBorderWidth: 2,
+              pointRadius: 4,
+              pointHoverRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: '#080C1A',
+                padding: 12,
+                titleFont: { family: "'Lexend Deca', sans-serif", size: 13 },
+                bodyFont: { family: "'Lexend Deca', sans-serif", size: 14, weight: 'bold' },
+                displayColors: false,
+                callbacks: {
+                  label: function (context) {
+                    return '$' + context.parsed.y;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: '#F3F4F3', drawBorder: false },
+                ticks: {
+                  font: { family: "'Lexend Deca', sans-serif", size: 12 },
+                  color: '#6A7686',
+                  callback: function (value) { return '$' + value; }
+                },
+                border: { display: false }
+              },
+              x: {
+                grid: { display: false, drawBorder: false },
+                ticks: {
+                  font: { family: "'Lexend Deca', sans-serif", size: 12 },
+                  color: '#6A7686'
+                },
+                border: { display: false }
+              }
+            },
+            interaction: {
+              intersect: false,
+              mode: 'index',
+            },
+          }
+        });
+      }
+    });
+  </script>
+            </div>
+        </t>
+    </template>

@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <template id="unitrade_chat_navbar_icon" inherit_id="unitrade_theme.unitrade_header" name="UniTrade Chat Navbar Icon">
-        <xpath expr="//a[@href='/shop/cart']" position="after">
+    <template id="unitrade_chat_navbar_icon" inherit_id="unitrade_theme.unitrade_navbar" name="UniTrade Chat Navbar Icon">
+        <xpath expr="//a[@href='/shop/cart']" position="before">
             <t t-set="unitrade_chat_unread_count" t-value="request.env['unitrade.chat.conversation'].nav_unread_count(current_user)"/>
             <a href="/unitrade/chat"
                 title="Chat"
                 aria-label="Chat"
-                class="tw-relative tw-flex tw-items-center tw-justify-center tw-w-10 tw-h-10 tw-rounded-full hover:tw-bg-[#fffffc] tw-transition-colors tw-mr-1 tw-text-[#fffffc] hover:tw-text-[#1f1f1f] tw-no-underline tw-group">
-                <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-6 tw-h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path>
-                </svg>
+                class="tw-relative tw-flex tw-size-[38px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#212529] tw-text-white tw-no-underline tw-transition-colors hover:tw-bg-black">
+                <img src="/unitrade_theme/static/src/img/navbar-message.svg" alt="" class="tw-size-6"/>
                 <t t-if="unitrade_chat_unread_count">
-                    <span class="tw-absolute tw-top-0 tw-right-0 tw-bg-red-500 tw-text-[#fffffc] tw-text-[10px] tw-font-bold tw-px-1.5 tw-py-0.5 tw-rounded-full tw-min-w-[16px] tw-text-center tw-transform tw-translate-x-1 tw--translate-y-1">
+                    <span class="tw-absolute tw-right-[-4px] tw-top-[-5px] tw-flex tw-min-w-[17px] tw-items-center tw-justify-center tw-rounded-full tw-bg-red-500 tw-px-1 tw-text-[10px] tw-font-bold tw-leading-[17px] tw-text-white">
                         <t t-esc="unitrade_chat_unread_count if unitrade_chat_unread_count &lt; 100 else '99+'"/>
                     </span>
                 </t>
