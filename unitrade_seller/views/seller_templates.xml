@@ -603,9 +603,9 @@
     <template id="seller_profile_products_fragment" name="UniTrade Seller Profile Products Fragment">
         <div t-if="seller_products" class="ut-seller-product-grid tw-grid tw-grid-cols-2 tw-gap-5 sm:tw-grid-cols-3 xl:tw-grid-cols-5">
             <t t-foreach="seller_products" t-as="product">
-                <a t-att-href="product.website_url or '/unitrade/product/%s' % product.id" class="ut-seller-product-card tw-flex tw-h-[253px] tw-flex-col tw-rounded-[22px] tw-border tw-border-[#d9d9d9] tw-bg-white tw-p-[9px] tw-text-[#212529] tw-no-underline tw-transition hover:tw--translate-y-1 hover:tw-shadow-md">
-                    <div class="tw-h-[133px] tw-w-full tw-overflow-hidden tw-rounded-[12px] tw-bg-[#d9d9d9]">
-                        <img t-attf-src="/web/image/product.template/#{product.id}/image_1024" t-att-alt="product.name" class="tw-h-full tw-w-full tw-object-cover"/>
+                <a t-att-href="product.website_url or '/unitrade/product/%s' % product.id" class="ut-seller-product-card tw-flex tw-h-[300px] tw-flex-col tw-rounded-[22px] tw-border tw-border-[#d9d9d9] tw-bg-white tw-p-[9px] tw-text-[#212529] tw-no-underline tw-transition hover:tw--translate-y-1 hover:tw-shadow-md">
+                    <div class="ut-product-card-image-wrap tw-rounded-t-[14px]">
+                        <img t-attf-src="/web/image/product.template/#{product.id}/image_1024" t-att-alt="product.name" class="ut-product-card-image" loading="lazy"/>
                     </div>
                     <h3 class="tw-m-0 tw-mt-2 tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[16px] tw-font-semibold tw-leading-6">
                         <t t-esc="product.name"/>
