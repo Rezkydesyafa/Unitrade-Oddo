@@ -12,12 +12,12 @@
                 <header>
                     <button name="action_approve" type="object"
                             string="Approve" class="btn-primary"
-                            invisible="state != 'pending'"/>
+                            invisible="state not in ('pending', 'manual_review')"/>
                     <button name="action_reject" type="object"
                             string="Reject" class="btn-danger"
-                            invisible="state != 'pending'"/>
+                            invisible="state not in ('pending', 'manual_review')"/>
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,pending,approved,rejected"/>
+                           statusbar_visible="draft,pending,manual_review,approved,rejected"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -35,8 +35,28 @@
                             <field name="nim_extracted"/>
                             <field name="nim_valid"/>
                             <field name="nim_registered"/>
+                            <field name="student_name"/>
+                            <field name="name_match_token"/>
                             <field name="name_confidence"/>
                             <field name="confidence_flag"/>
+                            <field name="duplicate_warning"/>
+                            <field name="duplicate_seller_id" invisible="not duplicate_warning"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Audit Review">
+                            <field name="rejection_reason"/>
+                            <field name="review_note"/>
+                            <field name="reviewed_by"/>
+                            <field name="reviewed_date"/>
+                            <field name="state_changed_by"/>
+                            <field name="state_changed_at"/>
+                        </group>
+                        <group string="File &amp; Rate Limit">
+                            <field name="image_width"/>
+                            <field name="image_height"/>
+                            <field name="upload_attempt_count"/>
+                            <field name="upload_window_start"/>
                         </group>
                     </group>
                     <notebook>
@@ -60,16 +80,22 @@
         <field name="name">unitrade.seller.verification.tree</field>
         <field name="model">unitrade.seller.verification</field>
         <field name="arch" type="xml">
-            <tree string="Verifikasi KTM Seller" decoration-warning="state == 'pending'" decoration-success="state == 'approved'" decoration-danger="state == 'rejected'">
+            <tree string="Verifikasi KTM Seller" decoration-warning="state in ('pending', 'manual_review')" decoration-success="state == 'approved'" decoration-danger="state == 'rejected'">
                 <field name="partner_id"/>
                 <field name="nim_extracted"/>
                 <field name="nim_valid"/>
                 <field name="nim_registered"/>
+                <field name="student_name"/>
+                <field name="name_match_token"/>
                 <field name="name_confidence" widget="float" digits="[4,3]"/>
                 <field name="confidence_flag"/>
+                <field name="duplicate_warning"/>
+                <field name="reviewed_by"/>
+                <field name="reviewed_date"/>
                 <field name="state" widget="badge"
                        decoration-info="state == 'draft'"
                        decoration-warning="state == 'pending'"
+                       decoration-muted="state == 'manual_review'"
                        decoration-success="state == 'approved'"
                        decoration-danger="state == 'rejected'"/>
             </tree>
@@ -89,11 +115,13 @@
                 <separator/>
                 <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
                 <filter name="filter_pending" string="Pending" domain="[('state', '=', 'pending')]"/>
+                <filter name="filter_manual_review" string="Manual Review" domain="[('state', '=', 'manual_review')]"/>
                 <filter name="filter_approved" string="Approved" domain="[('state', '=', 'approved')]"/>
                 <filter name="filter_rejected" string="Rejected" domain="[('state', '=', 'rejected')]"/>
                 <separator/>
                 <filter name="filter_low_confidence" string="Low Confidence" domain="[('confidence_flag', '=', 'low')]"/>
                 <filter name="filter_high_confidence" string="High Confidence" domain="[('confidence_flag', '=', 'high')]"/>
+                <filter name="filter_duplicate" string="Duplicate Warning" domain="[('duplicate_warning', '=', True)]"/>
                 <separator/>
                 <group expand="0" string="Group By">
                     <filter name="group_confidence" string="Confidence Flag" context="{'group_by': 'confidence_flag'}"/>
@@ -111,7 +139,16 @@
         <field name="res_model">unitrade.seller.verification</field>
         <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_seller_verification_search"/>
-        <field name="context">{'search_default_filter_pending': 1}</field>
+        <field name="context">{'search_default_filter_manual_review': 1}</field>
+    </record>
+
+    <record id="action_seller_verification_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard Verifikasi Seller</field>
+        <field name="res_model">unitrade.seller.verification</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('state', 'in', ('manual_review', 'pending'))]</field>
+        <field name="search_view_id" ref="view_seller_verification_search"/>
+        <field name="context">{'search_default_filter_manual_review': 1}</field>
     </record>
 
     <!-- ==============================
@@ -122,6 +159,13 @@
               parent="unitrade_seller.menu_unitrade_sellers"
               action="action_seller_verification"
               sequence="30"
+              groups="base.group_system"/>
+
+    <menuitem id="menu_seller_verification_dashboard"
+              name="Dashboard Verifikasi"
+              parent="unitrade_seller.menu_unitrade_sellers"
+              action="action_seller_verification_dashboard"
+              sequence="25"
               groups="base.group_system"/>
 
 </odoo>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="rule_unitrade_chat_conversation_participant_portal" model="ir.rule">
+        <field name="name">UniTrade Chat Conversation: participants portal</field>
+        <field name="model_id" ref="model_unitrade_chat_conversation"/>
+        <field name="domain_force">['|', ('buyer_user_id', '=', user.id), ('seller_user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+    </record>
+
+    <record id="rule_unitrade_chat_conversation_participant_user" model="ir.rule">
+        <field name="name">UniTrade Chat Conversation: participants users</field>
+        <field name="model_id" ref="model_unitrade_chat_conversation"/>
+        <field name="domain_force">['|', ('buyer_user_id', '=', user.id), ('seller_user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="rule_unitrade_chat_message_participant_portal" model="ir.rule">
+        <field name="name">UniTrade Chat Message: participants portal</field>
+        <field name="model_id" ref="model_unitrade_chat_message"/>
+        <field name="domain_force">['|', ('conversation_id.buyer_user_id', '=', user.id), ('conversation_id.seller_user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+    </record>
+
+    <record id="rule_unitrade_chat_message_participant_user" model="ir.rule">
+        <field name="name">UniTrade Chat Message: participants users</field>
+        <field name="model_id" ref="model_unitrade_chat_message"/>
+        <field name="domain_force">['|', ('conversation_id.buyer_user_id', '=', user.id), ('conversation_id.seller_user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="rule_unitrade_chat_conversation_admin" model="ir.rule">
+        <field name="name">UniTrade Chat Conversation: admin all</field>
+        <field name="model_id" ref="model_unitrade_chat_conversation"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('unitrade_seller.group_unitrade_admin'))]"/>
+    </record>
+
+    <record id="rule_unitrade_chat_message_admin" model="ir.rule">
+        <field name="name">UniTrade Chat Message: admin all</field>
+        <field name="model_id" ref="model_unitrade_chat_message"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('unitrade_seller.group_unitrade_admin'))]"/>
+    </record>
+
+    <record id="rule_unitrade_chat_report_reporter_portal" model="ir.rule">
+        <field name="name">UniTrade Chat Report: reporter portal</field>
+        <field name="model_id" ref="model_unitrade_chat_report"/>
+        <field name="domain_force">[('reporter_user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+    </record>
+
+    <record id="rule_unitrade_chat_report_reporter_user" model="ir.rule">
+        <field name="name">UniTrade Chat Report: reporter users</field>
+        <field name="model_id" ref="model_unitrade_chat_report"/>
+        <field name="domain_force">[('reporter_user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="rule_unitrade_chat_report_admin" model="ir.rule">
+        <field name="name">UniTrade Chat Report: admin all</field>
+        <field name="model_id" ref="model_unitrade_chat_report"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('unitrade_seller.group_unitrade_admin'))]"/>
+    </record>
+</odoo>

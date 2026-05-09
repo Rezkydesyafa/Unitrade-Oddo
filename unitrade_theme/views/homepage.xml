@@ -353,7 +353,7 @@
                             </div>
                             
                             <div class="tw-mt-8 tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-gap-4">
-                                <a href="/seller/register" class="tw-bg-[#000] hover:tw-bg-[#222] tw-text-white tw-font-bold tw-text-[15px] tw-px-8 tw-py-3.5 tw-rounded-[12px] tw-transition-all tw-duration-300 hover:-tw-translate-y-0.5 tw-shadow-md hover:tw-shadow-lg tw-no-underline tw-text-center tw-w-full sm:tw-w-auto">
+                                <a href="/seller-onboarding" class="tw-bg-[#000] hover:tw-bg-[#222] tw-text-white tw-font-bold tw-text-[15px] tw-px-8 tw-py-3.5 tw-rounded-[12px] tw-transition-all tw-duration-300 hover:-tw-translate-y-0.5 tw-shadow-md hover:tw-shadow-lg tw-no-underline tw-text-center tw-w-full sm:tw-w-auto">
                                     Mulai Jualan Gratis
                                 </a>
                                 <a href="/help" class="tw-text-[#212529] hover:tw-text-blue-600 tw-font-bold tw-text-[15px] tw-no-underline hover:tw-underline tw-px-4 tw-py-2 tw-transition-colors tw-text-center tw-w-full sm:tw-w-auto">

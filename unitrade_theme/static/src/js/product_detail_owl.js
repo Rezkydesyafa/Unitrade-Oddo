@@ -74,6 +74,8 @@ export class ProductReviewPanel extends Component {
             imageData: "",
             imagePreview: "",
             imageName: "",
+            previewImageUrl: "",
+            previewImageAlt: "Preview gambar ulasan",
             message: "",
             error: false,
         });
@@ -97,6 +99,11 @@ export class ProductReviewPanel extends Component {
 
     reviewStarStyle(rating, star) {
         return `color:${star <= rating ? "var(--ut-color-danger)" : "var(--ut-color-border)"}; font-size:14px;`;
+    }
+
+    reviewImageAlt(review, index) {
+        const name = review && review.user_name ? review.user_name : "pengguna";
+        return `Gambar ulasan ${index + 1} dari ${name}`;
     }
 
     formStarStyle(star) {
@@ -181,8 +188,8 @@ export class ProductReviewPanel extends Component {
             return;
         }
 
-        if (file.size > 3 * 1024 * 1024) {
-            this.state.message = "Ukuran gambar maksimal 3 MB.";
+        if (file.size >= 2 * 1024 * 1024) {
+            this.state.message = "Ukuran gambar harus kurang dari 2 MB.";
             this.state.error = true;
             ev.target.value = "";
             return;
@@ -208,6 +215,19 @@ export class ProductReviewPanel extends Component {
         this.state.imageName = "";
     }
 
+    openReviewImage(imageUrl, altText) {
+        if (!imageUrl) {
+            return;
+        }
+        this.state.previewImageUrl = imageUrl;
+        this.state.previewImageAlt = altText || "Preview gambar ulasan";
+    }
+
+    closeReviewImage() {
+        this.state.previewImageUrl = "";
+        this.state.previewImageAlt = "Preview gambar ulasan";
+    }
+
     loadMore() {
         this.loadReviews({ reset: false });
     }
@@ -224,7 +244,7 @@ export class ProductReviewPanel extends Component {
                 product_id: this.props.productId,
                 rating: this.state.formRating,
                 comment: this.state.comment,
-                image_data: this.state.imageData,
+                images: this.state.imageData ? [this.state.imageData] : [],
             });
             if (!result.success) {
                 this.state.message = result.message || "Ulasan gagal dikirim.";

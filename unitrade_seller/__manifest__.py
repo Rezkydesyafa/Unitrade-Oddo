@@ -20,13 +20,16 @@
         'data/mail_template.xml',
         'data/demo_students.xml',
         'views/seller_views.xml',
+        'views/seller_onboarding_templates.xml',
         'views/seller_templates.xml',
         'views/seller_menus.xml',
         'views/seller_verification_views.xml',
     ],
     'assets': {
         'web.assets_frontend': [
+            'unitrade_seller/static/src/css/seller_dashboard.css',
             'unitrade_seller/static/src/xml/seller_profile_owl.xml',
+            'unitrade_seller/static/src/js/seller_dashboard.js',
             'unitrade_seller/static/src/js/seller_profile_owl.js',
         ],
     },

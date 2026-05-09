@@ -10,13 +10,13 @@
         <xpath expr="//header" position="replace">
             <header class="tw-w-full tw-z-50 tw-mb-6 md:tw-mb-8 tw-sticky tw-top-0">
                 <!-- Top Bar -->
-                <div class="tw-w-full tw-bg-[#f5f5f7] tw-h-[40px] tw-flex tw-items-center tw-justify-between tw-px-4 md:tw-px-8 tw-text-[#1d1d1f] tw-text-[13px] tw-font-['Urbanist']">
+                <div class="tw-w-full tw-bg-white tw-h-[40px] tw-flex tw-items-center tw-justify-between tw-px-4 md:tw-px-8 tw-text-[#1d1d1f] tw-text-[13px] tw-font-['Urbanist']" style="background-color: #FFFFFF !important;">
                     <!-- Left Section -->
                     <div class="tw-flex tw-items-center tw-gap-3">
                         <span class="tw-font-medium">Gratis Ongkir + Diskon 30%</span>
                         <a href="/shop" class="tw-text-[#1d1d1f] hover:tw-text-[#000000] hover:tw-underline tw-transition-colors tw-no-underline tw-font-bold">Belanja Sekarang &amp;rarr;</a>
                         <span class="tw-text-gray-300 tw-mx-1">|</span>
-                        <a href="/seller/register" class="tw-text-[#1d1d1f] hover:tw-text-[#000000] hover:tw-underline tw-transition-colors tw-no-underline tw-font-bold">Mulai Berjualan</a>
+                        <a href="/seller-onboarding" class="tw-text-[#1d1d1f] hover:tw-text-[#000000] hover:tw-underline tw-transition-colors tw-no-underline tw-font-bold">Mulai Berjualan</a>
                     </div>
                     
                     <!-- Right Section -->
@@ -57,8 +57,9 @@
                     </div>
 
                     <!-- Actions -->
-                    <div class="tw-flex tw-items-center tw-gap-3">
-                        <t t-if="not user_id._is_public()">
+                    <div class="tw-flex tw-items-center tw-gap-3" t-nocache="User-specific navigation actions">
+                        <t t-set="current_user" t-value="request.env.user"/>
+                        <t t-if="not website.is_public_user()">
                             <!-- Cart Icon -->
                             <a href="/shop/cart" class="tw-relative tw-flex tw-items-center tw-justify-center tw-w-10 tw-h-10 tw-rounded-full hover:tw-bg-[#fffffc] tw-transition-colors tw-mr-1 tw-text-[#fffffc] hover:tw-text-[#1f1f1f] tw-no-underline tw-group">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-6 tw-h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -78,9 +79,9 @@
                                 <!-- Trigger -->
                                 <div class="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer tw-h-full tw-py-1">
                                     <div class="tw-flex tw-items-center tw-justify-center tw-w-9 tw-h-9 tw-rounded-full tw-bg-gray-800 tw-overflow-hidden tw-border tw-border-white/20">
-                                        <img t-attf-src="/web/image/res.users/#{user_id.id}/image_128?unique=#{user_id.write_date}" alt="Avatar" class="tw-w-full tw-h-full tw-object-cover" onerror="this.src='/web/static/img/user_menu_avatar.png'"/>
+                                        <img t-attf-src="/web/image/res.users/#{current_user.id}/image_128?unique=#{current_user.write_date}" alt="Avatar" class="tw-w-full tw-h-full tw-object-cover" onerror="this.src='/web/static/img/user_menu_avatar.png'"/>
                                     </div>
-                                    <span class="tw-font-['Urbanist'] tw-font-semibold tw-text-[15px] tw-text-[#fffffc] tw-capitalize" t-esc="user_id.name.split(' ')[0]"/>
+                                    <span class="tw-font-['Urbanist'] tw-font-semibold tw-text-[15px] tw-text-[#fffffc] tw-capitalize" t-esc="current_user.name.split(' ')[0]"/>
                                     <!-- Arrow down -->
                                     <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-4 tw-h-4 tw-text-[#fffffc] tw-transition-transform group-hover:tw-rotate-180" viewBox="0 0 20 20" fill="currentColor">
                                         <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -91,17 +92,22 @@
                                 <div class="tw-absolute tw-right-0 tw-top-full tw-pt-2 tw-invisible tw-opacity-0 group-hover:tw-visible group-hover:tw-opacity-100 tw-transition-all tw-duration-200 tw-z-[999] tw-w-[220px]">
                                     <div class="tw-bg-[#1f1f1f]/80 tw-backdrop-blur-md tw-rounded-2xl tw-shadow-lg tw-py-3 tw-px-2 tw-border tw-border-white/10">
                                         
-                                        <a href="/my/home" class="tw-flex tw-items-center tw-gap-3 tw-px-4 tw-py-2.5 tw-rounded-xl hover:tw-bg-white/10 tw-transition-colors tw-group/item tw-no-underline">
+                                        <a href="/my/account" class="tw-flex tw-items-center tw-gap-3 tw-px-4 tw-py-2.5 tw-rounded-xl hover:tw-bg-white/10 tw-transition-colors tw-group/item tw-no-underline">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-[18px] tw-h-[18px] tw-text-gray-300 group-hover/item:tw-text-[#fffffc]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                                             <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-gray-300 group-hover/item:tw-text-[#fffffc]">Profile</span>
                                         </a>
+
+                                        <a href="/my/orders" class="tw-flex tw-items-center tw-gap-3 tw-px-4 tw-py-2.5 tw-rounded-xl hover:tw-bg-white/10 tw-transition-colors tw-group/item tw-no-underline tw-mt-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-[18px] tw-h-[18px] tw-text-gray-300 group-hover/item:tw-text-[#fffffc]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                                            <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-gray-300 group-hover/item:tw-text-[#fffffc]">Pesanan Saya</span>
+                                        </a>
                                         
-                                        <a href="/my/account" class="tw-flex tw-items-center tw-gap-3 tw-px-4 tw-py-2.5 tw-rounded-xl hover:tw-bg-white/10 tw-transition-colors tw-group/item tw-no-underline tw-mt-1">
+                                        <a href="/my/settings" class="tw-flex tw-items-center tw-gap-3 tw-px-4 tw-py-2.5 tw-rounded-xl hover:tw-bg-white/10 tw-transition-colors tw-group/item tw-no-underline tw-mt-1">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-[18px] tw-h-[18px] tw-text-gray-300 group-hover/item:tw-text-[#fffffc]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                                             <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-gray-300 group-hover/item:tw-text-[#fffffc]">Pengaturan</span>
                                         </a>
                                         
-                                        <t t-if="request.env.user.x_is_seller">
+                                        <t t-if="current_user.x_is_seller">
                                             <a href="/seller/dashboard" class="tw-flex tw-items-center tw-gap-3 tw-px-4 tw-py-2.5 tw-rounded-xl hover:tw-bg-white/10 tw-transition-colors tw-group/item tw-no-underline tw-mt-1">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-[18px] tw-h-[18px] tw-text-emerald-400 group-hover/item:tw-text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                                                 <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-emerald-400 group-hover/item:tw-text-emerald-300">Dashboard Penjual</span>
@@ -109,7 +115,7 @@
                                             </a>
                                         </t>
                                         <t t-else="">
-                                            <a href="/seller-verification" class="tw-flex tw-items-center tw-gap-3 tw-px-4 tw-py-2.5 tw-rounded-xl hover:tw-bg-white/10 tw-transition-colors tw-group/item tw-no-underline tw-mt-1">
+                                            <a href="/seller-onboarding" class="tw-flex tw-items-center tw-gap-3 tw-px-4 tw-py-2.5 tw-rounded-xl hover:tw-bg-white/10 tw-transition-colors tw-group/item tw-no-underline tw-mt-1">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-[18px] tw-h-[18px] tw-text-gray-300 group-hover/item:tw-text-[#fffffc]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                                                 <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-gray-300 group-hover/item:tw-text-[#fffffc]">Jadilah penjual</span>
                                             </a>
@@ -159,7 +165,26 @@
     <!-- Footer -->
     <template id="unitrade_footer" inherit_id="website.layout" name="UniTrade Footer Override" active="True">
         <xpath expr="//footer" position="replace">
-        <footer class="tw-relative tw-w-full tw-bg-white tw-pt-16 tw-pb-32 tw-overflow-hidden tw-mt-12">
+        <style>
+            body #wrapwrap {
+                background: #f5f5f7 !important;
+            }
+            body #wrapwrap > footer.ut-main-footer {
+                border-top-left-radius: 120px !important;
+                border-top-right-radius: 120px !important;
+                background: #ffffff !important;
+            }
+            body:has(#product_detail) #wrap {
+                background: var(--ut-color-bg-page, #f5f5f7) !important;
+            }
+            @media (max-width: 767px) {
+                body #wrapwrap > footer.ut-main-footer {
+                    border-top-left-radius: 56px !important;
+                    border-top-right-radius: 56px !important;
+                }
+            }
+        </style>
+        <footer class="ut-main-footer tw-relative tw-w-full tw-bg-white tw-pt-16 tw-pb-32 tw-overflow-hidden tw-mt-12" style="border-top-left-radius: 120px; border-top-right-radius: 120px;">
             <!-- Watermark text in background -->
             <div class="tw-absolute tw-bottom-[-5%] tw-left-1/2 tw--translate-x-1/2 tw-w-full tw-text-center tw-pointer-events-none tw-select-none tw-z-0">
                 <span class="tw-font-['Urbanist'] tw-font-extrabold tw-text-[12rem] md:tw-text-[18rem] tw-text-gray-200/40 tw-tracking-widest tw-leading-none">UniTrade</span>
@@ -210,19 +235,27 @@
                         </div>
 
                         <!-- Right Section Links -->
-                        <div class="tw-flex tw-gap-24 md:tw-gap-32 tw-mt-10 md:tw-mt-0 md:tw-mr-8">
-                            <div>
+                        <div class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-3 tw-gap-10 md:tw-gap-20 lg:tw-gap-24 tw-mt-10 md:tw-mt-0 md:tw-mr-8">
+                            <div class="tw-min-w-0">
                                 <h4 class="tw-font-semibold tw-text-[#212529] tw-mb-6 tw-text-[15px]">Beli</h4>
-                                <ul class="tw-space-y-4 tw-text-sm tw-text-gray-500 tw-p-0 tw-list-none">
-                                    <li><a href="/shop" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Makanan</a></li>
-                                    <li><a href="/shop" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Minuman</a></li>
-                                    <li><a href="/shop" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Pakaian</a></li>
+                                <ul class="tw-flex tw-flex-col tw-gap-4 tw-text-sm tw-text-gray-500 tw-p-0 tw-m-0 tw-list-none">
+                                    <li class="tw-leading-5"><a href="/shop" class="tw-block tw-whitespace-nowrap hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Makanan</a></li>
+                                    <li class="tw-leading-5"><a href="/shop" class="tw-block tw-whitespace-nowrap hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Minuman</a></li>
+                                    <li class="tw-leading-5"><a href="/shop" class="tw-block tw-whitespace-nowrap hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Pakaian</a></li>
                                 </ul>
                             </div>
-                            <div>
+                            <div class="tw-min-w-0">
                                 <h4 class="tw-font-semibold tw-text-[#212529] tw-mb-6 tw-text-[15px]">Jual</h4>
-                                <ul class="tw-space-y-4 tw-text-sm tw-text-gray-500 tw-p-0 tw-list-none">
-                                    <li><a href="/unitrade/seller/register" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Daftar Toko</a></li>
+                                <ul class="tw-flex tw-flex-col tw-gap-4 tw-text-sm tw-text-gray-500 tw-p-0 tw-m-0 tw-list-none">
+                                    <li class="tw-leading-5"><a href="/seller-onboarding" class="tw-block tw-whitespace-nowrap hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Daftar Toko</a></li>
+                                </ul>
+                            </div>
+                            <div class="tw-min-w-0">
+                                <h4 class="tw-font-semibold tw-text-[#212529] tw-mb-6 tw-text-[15px]">Bantuan</h4>
+                                <ul class="tw-flex tw-flex-col tw-gap-4 tw-text-sm tw-text-gray-500 tw-p-0 tw-m-0 tw-list-none">
+                                    <li class="tw-leading-5"><a href="/help" class="tw-block tw-whitespace-nowrap hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">FAQ</a></li>
+                                    <li class="tw-leading-5"><a href="/terms" class="tw-block tw-whitespace-nowrap hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Syarat &amp; Kebijakan</a></li>
+                                    <li class="tw-leading-5"><a href="/privacy-policy" class="tw-block tw-whitespace-nowrap hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Kebijakan Privasi</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -235,9 +268,9 @@
                     <div class="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-center tw-text-[13px] tw-text-gray-500 tw-gap-4 md:tw-gap-0">
                         <p class="tw-m-0">© 2025 UniTrade. All right reserved.</p>
                         <div class="tw-flex tw-gap-6 tw-items-center">
-                            <a href="#" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Privacy Policy</a>
-                            <a href="#" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Terms of Service</a>
-                            <a href="#" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Cookies Settings</a>
+                            <a href="/privacy-policy" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Privacy Policy</a>
+                            <a href="/terms" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Terms of Service</a>
+                            <a href="/help#terms" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Cookies Settings</a>
                         </div>
                     </div>
                 </div>

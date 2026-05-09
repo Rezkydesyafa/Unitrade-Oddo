@@ -229,7 +229,7 @@
                                         </p>
                                         
                                         <!-- Form Fields Wrapper -->
-                                        <div class="tw-space-y-[10px] tw-mb-[16px]">
+                                        <div class="tw-space-y-[10px] tw-mb-[14px]">
                                             <!-- Name Field -->
                                             <div>
                                                 <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[20px] tw-py-[10px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
@@ -268,9 +268,23 @@
                                             </div>
                                         </div>
                                         
+                                        <!-- Terms Agreement -->
+                                        <div class="tw-flex tw-items-start tw-gap-[10px] tw-mb-[12px] tw-pl-[2px]">
+                                            <input type="checkbox" id="signupTermsAccepted" name="terms_accepted" value="1" required="required" class="tw-mt-[2px] tw-h-[15px] tw-w-[15px] tw-flex-shrink-0 tw-cursor-pointer tw-accent-[#2563eb]" style="accent-color: #2563eb;"/>
+                                            <label for="signupTermsAccepted" class="tw-font-['Urbanist'] tw-font-normal tw-text-[12px] tw-leading-[1.45] tw-text-[#212529] tw-m-0 tw-cursor-pointer tw-select-none">
+                                                Dengan ini saya telah memahami dan menyetujui
+                                                <a href="/terms" target="_blank" rel="noopener" class="tw-text-[#2563eb] hover:tw-underline tw-no-underline" style="color: #2563eb !important;">Syarat Ketentuan</a>
+                                                <a href="/privacy-policy" target="_blank" rel="noopener" class="tw-text-[#2563eb] hover:tw-underline tw-no-underline" style="color: #2563eb !important;">&amp; Kebijakan Privasi</a>
+                                                yang berlaku.
+                                            </label>
+                                        </div>
+                                        <p id="signupTermsError" class="tw-font-['Urbanist'] tw-font-normal tw-text-[11px] tw-text-red-500 tw-mt-[-8px] tw-mb-[8px] tw-ml-[26px] tw-hidden">
+                                            Anda harus menyetujui Syarat Ketentuan &amp; Kebijakan Privasi.
+                                        </p>
+
                                         <!-- Signup Button -->
-                                        <button type="submit" class="tw-w-full tw-h-[46px] tw-border-2 tw-border-[#1a1a1a] tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mb-[12px] hover:tw-bg-gray-50 tw-transition-colors tw-bg-transparent tw-cursor-pointer">
-                                            <span class="tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-[#1a1a1a] tw-capitalize">Daftar akun</span>
+                                        <button type="submit" id="signupSubmitBtn" disabled="disabled" class="tw-w-full tw-h-[46px] tw-border-2 tw-border-[#c7c7c7] tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mb-[12px] tw-transition-colors tw-bg-white tw-cursor-not-allowed" style="background-color: #ffffff; border-color: #c7c7c7; cursor: not-allowed;">
+                                            <span class="tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-[#9ca3af] tw-capitalize" style="color: #9ca3af;">Daftar Sekarang</span>
                                         </button>
                                         
                                         <!-- Or Separator -->
@@ -324,8 +338,38 @@
                                             setupToggle("toggleSignupConfirmPasswordBtn", "signupConfirmPasswordInput");
 
                                             // Confirm password validation
+                                            const signupForm = document.querySelector('form[action^="/web/signup"]');
+                                            const nameInput = signupForm ? signupForm.querySelector('input[name="name"]') : null;
                                             const pwd = document.getElementById("signupPasswordInput");
                                             const confirmPwd = document.getElementById("signupConfirmPasswordInput");
+                                            const termsAccepted = document.getElementById("signupTermsAccepted");
+                                            const termsError = document.getElementById("signupTermsError");
+                                            const submitBtn = document.getElementById("signupSubmitBtn");
+                                            const submitText = submitBtn ? submitBtn.querySelector("span") : null;
+                                            let hasDuplicateLogin = false;
+                                            let isLoginFormatValid = false;
+
+                                            const setSubmitState = () => {
+                                                if (!submitBtn) {
+                                                    return;
+                                                }
+                                                const nameValid = !nameInput || nameInput.value.trim().length &gt; 0;
+                                                const passwordValid = pwd &amp;&amp; pwd.value.length &gt;= 8;
+                                                const confirmPasswordValid = pwd &amp;&amp; confirmPwd &amp;&amp; confirmPwd.value.length &gt;= 8 &amp;&amp; confirmPwd.value === pwd.value;
+                                                const termsValid = termsAccepted &amp;&amp; termsAccepted.checked;
+                                                const canSubmit = nameValid &amp;&amp; isLoginFormatValid &amp;&amp; passwordValid &amp;&amp; confirmPasswordValid &amp;&amp; termsValid &amp;&amp; !hasDuplicateLogin;
+
+                                                submitBtn.disabled = !canSubmit;
+                                                submitBtn.classList.toggle('tw-cursor-pointer', canSubmit);
+                                                submitBtn.classList.toggle('tw-cursor-not-allowed', !canSubmit);
+                                                submitBtn.style.backgroundColor = '#ffffff';
+                                                submitBtn.style.borderColor = canSubmit ? '#1a1a1a' : '#c7c7c7';
+                                                submitBtn.style.cursor = canSubmit ? 'pointer' : 'not-allowed';
+                                                if (submitText) {
+                                                    submitText.style.color = canSubmit ? '#1a1a1a' : '#9ca3af';
+                                                }
+                                            };
+
                                             if (pwd &amp;&amp; confirmPwd) {
                                                 const validatePassword = () => {
                                                     if(pwd.value !== confirmPwd.value) {
@@ -333,16 +377,16 @@
                                                     } else {
                                                         confirmPwd.setCustomValidity('');
                                                     }
+                                                    setSubmitState();
                                                 };
-                                                pwd.addEventListener('change', validatePassword);
-                                                confirmPwd.addEventListener('keyup', validatePassword);
+                                                pwd.addEventListener('input', validatePassword);
+                                                confirmPwd.addEventListener('input', validatePassword);
                                             }
 
                                             // Email or Phone validation + duplicate check
                                             const loginInput = document.getElementById("signupLoginInput");
                                             const emailError = document.getElementById("signupEmailError");
                                             const emailFieldWrapper = loginInput ? loginInput.closest('.tw-border') : null;
-                                            const submitBtn = document.querySelector('button[type="submit"]');
                                             let checkTimeout = null;
 
                                             if (loginInput) {
@@ -354,17 +398,23 @@
                                                     // Reset error state
                                                     if (emailError) { emailError.classList.add('tw-hidden'); emailError.textContent = ''; }
                                                     if (emailFieldWrapper) { emailFieldWrapper.classList.remove('tw-border-red-500'); }
-                                                    if (submitBtn) { submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
+                                                    hasDuplicateLogin = false;
 
                                                     if (val === '') {
+                                                        isLoginFormatValid = false;
                                                         this.setCustomValidity('Wajib diisi');
+                                                        setSubmitState();
                                                         return;
                                                     } else if (!emailRegex.test(val) &amp;&amp; !phoneRegex.test(val)) {
+                                                        isLoginFormatValid = false;
                                                         this.setCustomValidity('Masukkan email yang valid (contoh: nama@gmail.com) atau nomor HP (contoh: 08xxx)');
+                                                        setSubmitState();
                                                         return;
                                                     } else {
+                                                        isLoginFormatValid = true;
                                                         this.setCustomValidity('');
                                                     }
+                                                    setSubmitState();
 
                                                     // Debounced duplicate check
                                                     if (checkTimeout) clearTimeout(checkTimeout);
@@ -376,19 +426,60 @@
                                                         })
                                                         .then(function(r) { return r.json(); })
                                                         .then(function(data) {
+                                                            if (loginInput.value.trim() !== val) {
+                                                                setSubmitState();
+                                                                return;
+                                                            }
+                                                            hasDuplicateLogin = false;
                                                             if (data.result &amp;&amp; data.result.exists) {
                                                                 if (emailError) {
                                                                     emailError.textContent = 'Email/No.HP sudah terdaftar. Silakan masuk.';
                                                                     emailError.classList.remove('tw-hidden');
                                                                 }
                                                                 if (emailFieldWrapper) { emailFieldWrapper.classList.add('tw-border-red-500'); }
-                                                                if (submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '0.5'; }
+                                                                hasDuplicateLogin = true;
                                                                 loginInput.setCustomValidity('Email/No.HP sudah terdaftar');
                                                             }
+                                                            setSubmitState();
                                                         })
-                                                        .catch(function() {});
+                                                        .catch(function() { setSubmitState(); });
                                                     }, 500);
                                                 });
+                                            }
+
+                                            if (signupForm) {
+                                                signupForm.addEventListener('input', setSubmitState);
+                                                signupForm.addEventListener('change', setSubmitState);
+                                                signupForm.addEventListener('submit', function(event) {
+                                                    if (termsAccepted &amp;&amp; !termsAccepted.checked) {
+                                                        if (termsError) { termsError.classList.remove('tw-hidden'); }
+                                                        termsAccepted.setCustomValidity('Anda harus menyetujui Syarat Ketentuan &amp; Kebijakan Privasi.');
+                                                    } else if (termsAccepted) {
+                                                        if (termsError) { termsError.classList.add('tw-hidden'); }
+                                                        termsAccepted.setCustomValidity('');
+                                                    }
+                                                    setSubmitState();
+                                                    if (submitBtn &amp;&amp; submitBtn.disabled) {
+                                                        event.preventDefault();
+                                                        signupForm.reportValidity();
+                                                    }
+                                                });
+                                            }
+
+                                            if (termsAccepted) {
+                                                termsAccepted.addEventListener('change', function() {
+                                                    if (this.checked) {
+                                                        this.setCustomValidity('');
+                                                        if (termsError) { termsError.classList.add('tw-hidden'); }
+                                                    }
+                                                    setSubmitState();
+                                                });
+                                            }
+
+                                            if (loginInput) {
+                                                loginInput.dispatchEvent(new Event('input'));
+                                            } else {
+                                                setSubmitState();
                                             }
                                         });
                                     </script>

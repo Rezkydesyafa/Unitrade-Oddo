@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="unitrade_chat_navbar_icon" inherit_id="unitrade_theme.unitrade_navbar" name="UniTrade Chat Navbar Icon">
+        <xpath expr="//a[@href='/shop/cart']" position="before">
+            <t t-set="unitrade_chat_unread_count" t-value="request.env['unitrade.chat.conversation'].nav_unread_count(current_user)"/>
+            <a href="/unitrade/chat"
+                title="Chat"
+                aria-label="Chat"
+                class="tw-relative tw-flex tw-size-[38px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#212529] tw-text-white tw-no-underline tw-transition-colors hover:tw-bg-black">
+                <img src="/unitrade_theme/static/src/img/navbar-message.svg" alt="" class="tw-size-6"/>
+                <t t-if="unitrade_chat_unread_count">
+                    <span class="tw-absolute tw-right-[-4px] tw-top-[-5px] tw-flex tw-min-w-[17px] tw-items-center tw-justify-center tw-rounded-full tw-bg-red-500 tw-px-1 tw-text-[10px] tw-font-bold tw-leading-[17px] tw-text-white">
+                        <t t-esc="unitrade_chat_unread_count if unitrade_chat_unread_count &lt; 100 else '99+'"/>
+                    </span>
+                </t>
+            </a>
+        </xpath>
+    </template>
+
+    <template id="chat_page_template" name="UniTrade Chat Page">
+        <t t-call="website.layout">
+            <div class="ut-chat-page tw-bg-[#f7f7f7] tw-font-['Urbanist']">
+                <div id="ut-chat-owl"
+                    t-att-data-initial-conversation-id="initial_conversation_id or 0">
+                    <div class="ut-chat-shell ut-chat-initial-skeleton" aria-hidden="true">
+                        <aside class="ut-chat-sidebar">
+                            <div class="ut-chat-sidebar-title">
+                                <span class="ut-chat-skeleton-line ut-chat-skeleton ut-is-title"></span>
+                            </div>
+                            <div class="ut-chat-list ut-chat-skeleton-list">
+                                <t t-foreach="[1, 2, 3, 4]" t-as="item">
+                                    <div class="ut-chat-list-item ut-chat-skeleton-item">
+                                        <span class="ut-chat-skeleton-avatar ut-chat-skeleton"></span>
+                                        <span class="ut-chat-list-main">
+                                            <span class="ut-chat-skeleton-line ut-chat-skeleton ut-is-title"></span>
+                                            <span class="ut-chat-skeleton-line ut-chat-skeleton ut-is-subtitle"></span>
+                                        </span>
+                                    </div>
+                                </t>
+                            </div>
+                        </aside>
+                        <main class="ut-chat-main">
+                            <div class="ut-chat-header ut-chat-skeleton-header">
+                                <span class="ut-chat-skeleton-avatar ut-chat-skeleton"></span>
+                                <div class="ut-chat-header-text">
+                                    <span class="ut-chat-skeleton-line ut-chat-skeleton ut-is-title"></span>
+                                    <span class="ut-chat-skeleton-line ut-chat-skeleton ut-is-status"></span>
+                                </div>
+                                <span class="ut-chat-skeleton-icon ut-chat-skeleton"></span>
+                            </div>
+                            <div class="ut-chat-messages ut-chat-skeleton-messages">
+                                <div class="ut-chat-message ut-is-theirs">
+                                    <span class="ut-chat-skeleton-message-avatar ut-chat-skeleton"></span>
+                                    <span class="ut-chat-skeleton-bubble ut-chat-skeleton"></span>
+                                </div>
+                                <div class="ut-chat-message ut-is-mine">
+                                    <span class="ut-chat-skeleton-bubble ut-chat-skeleton ut-is-mine"></span>
+                                    <span class="ut-chat-skeleton-message-avatar ut-chat-skeleton"></span>
+                                </div>
+                            </div>
+                            <footer class="ut-chat-composer ut-chat-skeleton-composer">
+                                <span class="ut-chat-skeleton-input ut-chat-skeleton"></span>
+                            </footer>
+                        </main>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

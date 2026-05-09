@@ -5,6 +5,7 @@ import base64
 import json
 import glob
 import os
+import requests
 
 from odoo import http, _, SUPERUSER_ID, fields, tools
 from odoo.http import request
@@ -65,6 +66,9 @@ class UnitradeAuthSignup(OAuthLogin):
 
         if 'error' not in qcontext and request.httprequest.method == 'POST':
             try:
+                if request.params.get('terms_accepted') != '1':
+                    raise UserError(_("Anda harus menyetujui Syarat Ketentuan & Kebijakan Privasi."))
+
                 if not request.env['ir.http']._verify_request_recaptcha_token('signup'):
                     raise UserError(_("Suspicious activity detected by Google reCaptcha."))
 
@@ -187,7 +191,19 @@ class UnitradeAuthSignup(OAuthLogin):
         """Generate OTP, send it, store session, and redirect to verify page."""
         try:
             otp_model = request.env['unitrade.otp'].sudo()
-            otp_record = otp_model.generate_otp(user_sudo.id, login_value)
+            limit = otp_model.rate_limit_status(
+                user_sudo.id,
+                purpose=purpose,
+                window_minutes=10,
+                max_attempts=3,
+            )
+            if not limit['allowed']:
+                message = urls.url_quote(_('Terlalu banyak permintaan OTP. Coba lagi dalam 10 menit.'))
+                if purpose == 'seller_onboarding':
+                    return request.redirect('/seller-onboarding?error=otp_rate_limit')
+                return request.redirect('/web/login?error=%s' % message)
+
+            otp_record = otp_model.generate_otp(user_sudo.id, login_value, purpose=purpose)
             otp_code = otp_record.code
 
             is_email_login = _is_email(login_value)
@@ -345,7 +361,16 @@ class UnitradeAuthSignup(OAuthLogin):
         try:
             user = request.env['res.users'].sudo().browse(user_id)
             otp_model = request.env['unitrade.otp'].sudo()
-            otp_record = otp_model.generate_otp(user_id, email)
+            purpose = request.session.get('otp_purpose', 'account_verification')
+            limit = otp_model.rate_limit_status(user_id, purpose=purpose, window_minutes=10, max_attempts=3)
+            if not limit['allowed']:
+                return {'success': False, 'message': 'Terlalu banyak permintaan OTP. Coba lagi dalam 10 menit.'}
+
+            otp_record = otp_model.generate_otp(
+                user_id,
+                email,
+                purpose=purpose,
+            )
 
             self._send_otp_email_direct(email, otp_record.code)
 
@@ -399,11 +424,33 @@ class UnitradeOTPController(http.Controller):
             'is_phone': _is_phone(email),
             'is_email': _is_email(email),
             'otp_code_dev': otp_code_dev,  # Dev only
-            'otp_title': _('Verifikasi Password') if purpose == 'settings_password_reset' else _('Verifikasi Akun'),
-            'otp_submit_label': _('Lanjutkan') if purpose == 'settings_password_reset' else _('Verifikasi akun'),
-            'otp_email_message': _('Kami telah mengirimkan kode OTP 6 digit ke email Anda untuk memverifikasi permintaan ubah password.') if purpose == 'settings_password_reset' else _('Kami telah mengirimkan kode verifikasi 6 digit ke email Anda'),
-            'otp_back_url': '/my/settings' if purpose == 'settings_password_reset' else '/web/login',
-            'otp_back_label': _('Kembali ke pengaturan') if purpose == 'settings_password_reset' else _('Back to login'),
+            'otp_title': (
+                _('Verifikasi Password') if purpose == 'settings_password_reset'
+                else _('Verifikasi Penjual') if purpose == 'seller_onboarding'
+                else _('Verifikasi Akun')
+            ),
+            'otp_submit_label': (
+                _('Lanjutkan') if purpose in ('settings_password_reset', 'seller_onboarding')
+                else _('Verifikasi akun')
+            ),
+            'otp_email_message': (
+                _('Kami telah mengirimkan kode OTP 6 digit ke email Anda untuk memverifikasi permintaan ubah password.')
+                if purpose == 'settings_password_reset'
+                else _('Kami telah mengirimkan kode OTP 6 digit ke email Anda untuk melanjutkan verifikasi penjual.')
+                if purpose == 'seller_onboarding'
+                else _('Kami telah mengirimkan kode verifikasi 6 digit ke email Anda')
+            ),
+            'otp_back_url': (
+                '/my/settings' if purpose == 'settings_password_reset'
+                else '/seller-onboarding' if purpose == 'seller_onboarding'
+                else '/web/login'
+            ),
+            'otp_back_label': (
+                _('Kembali ke pengaturan') if purpose == 'settings_password_reset'
+                else _('Kembali ke onboarding') if purpose == 'seller_onboarding'
+                else _('Back to login')
+            ),
+            'otp_purpose': purpose,
             'error': kw.get('error', ''),
         }
         return request.render('unitrade_theme.verify_otp_page', values)
@@ -424,11 +471,11 @@ class UnitradeOTPController(http.Controller):
         if len(code) != 6:
             return request.redirect('/web/verify-otp?error=Masukkan 6 digit kode verifikasi')
 
+        purpose = request.session.get('otp_purpose', 'account_verification')
         otp_model = request.env['unitrade.otp'].sudo()
-        is_valid = otp_model.verify_otp(user_id, code)
+        is_valid = otp_model.verify_otp(user_id, code, purpose=purpose)
 
         if is_valid:
-            purpose = request.session.get('otp_purpose', 'account_verification')
             if purpose == 'settings_password_reset':
                 user = request.env['res.users'].sudo().browse(user_id)
                 try:
@@ -445,6 +492,20 @@ class UnitradeOTPController(http.Controller):
                 for key in ('otp_user_id', 'otp_email', 'otp_code_dev', 'otp_sent_via', 'otp_purpose'):
                     request.session.pop(key, None)
                 return request.redirect('/web/reset_password')
+
+            if purpose == 'seller_onboarding':
+                user = request.env['res.users'].sudo().browse(user_id)
+                request.session.uid = user_id
+                request.session.login = user.login
+                request.session.db = request.db
+                request.update_env(user=user_id)
+                request.session.session_token = security.compute_session_token(request.session, request.env)
+                request.session.rotate = True
+                request.session['seller_onboarding_otp_verified'] = True
+                request.session['otp_verified'] = True
+                for key in ('otp_user_id', 'otp_email', 'otp_code_dev', 'otp_sent_via', 'otp_purpose'):
+                    request.session.pop(key, None)
+                return request.redirect('/seller-verification')
 
             # Mark user as verified
             try:
@@ -482,7 +543,16 @@ class UnitradeOTPController(http.Controller):
         try:
             user = request.env['res.users'].sudo().browse(user_id)
             otp_model = request.env['unitrade.otp'].sudo()
-            otp_record = otp_model.generate_otp(user_id, email)
+            purpose = request.session.get('otp_purpose', 'account_verification')
+            limit = otp_model.rate_limit_status(user_id, purpose=purpose, window_minutes=10, max_attempts=3)
+            if not limit['allowed']:
+                return {'success': False, 'message': 'Terlalu banyak permintaan OTP. Coba lagi dalam 10 menit.'}
+
+            otp_record = otp_model.generate_otp(
+                user_id,
+                email,
+                purpose=purpose,
+            )
 
             if _is_email(email):
                 signup_ctrl = UnitradeAuthSignup()
@@ -518,6 +588,13 @@ class UnitradePortalProfile(CustomerPortal):
 
     _MAX_AVATAR_BYTES = 2 * 1024 * 1024
     _ORDER_STATUSES = ('all', 'unpaid', 'done', 'cancel')
+    _ADDRESS_LABELS = ('home', 'office', 'school', 'other')
+    _INDONESIA_BOUNDS = {
+        'min_lat': -11.2,
+        'max_lat': 6.3,
+        'min_lng': 94.5,
+        'max_lng': 141.2,
+    }
 
     @http.route(['/my/account'], type='http', auth='user', website=True)
     def account(self, redirect=None, **post):
@@ -542,6 +619,8 @@ class UnitradePortalProfile(CustomerPortal):
             'partner': partner,
             'user_profile': user,
             'form_values': dict(post or {}),
+            'address_payload_json': json.dumps(self._unitrade_partner_address_payload(partner)),
+            'address_summary': self._unitrade_partner_address_summary(partner),
             'error': error,
             'error_message': error_message,
             'redirect': redirect,
@@ -553,6 +632,157 @@ class UnitradePortalProfile(CustomerPortal):
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
         return response
+
+    @http.route('/unitrade/mapbox/geocode', type='json', auth='user', website=True, methods=['POST'])
+    def unitrade_mapbox_geocode(self, query=None, latitude=None, longitude=None, **kwargs):
+        """Proxy Mapbox geocoding so the access token never reaches browser code."""
+        token = request.env['ir.config_parameter'].sudo().get_param('unitrade.mapbox_access_token')
+        if not token:
+            _logger.warning("Mapbox request skipped because unitrade.mapbox_access_token is not configured.")
+            return {'success': False, 'message': _('Token Mapbox belum dikonfigurasi.')}
+
+        base_url = 'https://api.mapbox.com/geocoding/v5/mapbox.places/%s.json'
+        params = {
+            'access_token': token,
+            'country': 'id',
+            'language': 'id',
+            'limit': 6,
+        }
+
+        try:
+            if latitude is not None and longitude is not None:
+                lat = float(latitude)
+                lng = float(longitude)
+                if not self._unitrade_coordinate_in_indonesia(lat, lng):
+                    return {'success': False, 'message': _('Koordinat harus berada di wilayah Indonesia.')}
+                endpoint = base_url % ('%s,%s' % (lng, lat))
+                params.update({'limit': 1, 'types': 'address,poi,place,locality,neighborhood,district,postcode'})
+            else:
+                query = (query or '').strip()
+                if len(query) < 3:
+                    return {'success': True, 'features': []}
+                endpoint = base_url % requests.utils.quote(query)
+                params.update({
+                    'autocomplete': 'true',
+                    'proximity': '110.3695,-7.7956',
+                    'types': 'address,poi,place,locality,neighborhood,district,postcode',
+                })
+                jogja_params = dict(params, bbox='109.90,-8.25,110.90,-7.45', limit=4)
+                broad_params = dict(params, limit=6)
+                jogja_payload = self._unitrade_mapbox_request(endpoint, jogja_params)
+                broad_payload = self._unitrade_mapbox_request(endpoint, broad_params)
+                payload = {
+                    'features': self._unitrade_merge_mapbox_features(
+                        jogja_payload.get('features', []),
+                        broad_payload.get('features', []),
+                    )[:6],
+                }
+                return {
+                    'success': True,
+                    'features': [
+                        self._unitrade_mapbox_feature_payload(feature)
+                        for feature in payload.get('features', [])
+                    ],
+                }
+
+            payload = self._unitrade_mapbox_request(endpoint, params)
+        except (ValueError, requests.RequestException) as exc:
+            _logger.warning("Mapbox geocoding request failed: %s", exc)
+            return {'success': False, 'message': _('Pencarian alamat sedang tidak tersedia.')}
+
+        return {
+            'success': True,
+            'features': [
+                self._unitrade_mapbox_feature_payload(feature)
+                for feature in payload.get('features', [])
+            ],
+        }
+
+    @http.route('/unitrade/mapbox/config', type='json', auth='user', website=True, methods=['POST'])
+    def unitrade_mapbox_config(self, **kwargs):
+        """Return the public Mapbox config needed by Mapbox GL JS."""
+        token = (request.env['ir.config_parameter'].sudo().get_param('unitrade.mapbox_access_token') or '').strip()
+        if not token:
+            return {'success': False, 'message': _('Token Mapbox belum dikonfigurasi.')}
+        if not token.startswith('pk.'):
+            _logger.warning("Mapbox GL JS config refused non-public token prefix for user %s.", request.env.uid)
+            return {'success': False, 'message': _('Gunakan Mapbox public token yang diawali pk. untuk peta web.')}
+
+        style = (
+            request.env['ir.config_parameter'].sudo().get_param('unitrade.mapbox_style_url')
+            or 'mapbox://styles/mapbox/streets-v12'
+        ).strip()
+        return {
+            'success': True,
+            'access_token': token,
+            'style': style,
+        }
+
+    @staticmethod
+    def _unitrade_mapbox_request(endpoint, params):
+        response = requests.get(endpoint, params=params, timeout=8)
+        response.raise_for_status()
+        return response.json()
+
+    @staticmethod
+    def _unitrade_merge_mapbox_features(*feature_groups):
+        merged = []
+        seen = set()
+        for features in feature_groups:
+            for feature in features:
+                feature_id = feature.get('id') or feature.get('place_name')
+                if feature_id and feature_id in seen:
+                    continue
+                if feature_id:
+                    seen.add(feature_id)
+                merged.append(feature)
+        return merged
+
+    @http.route('/my/account/address', type='json', auth='user', website=True, methods=['POST'])
+    def save_unitrade_address(self, **post):
+        """Persist the profile address modal values on the current user's partner."""
+        values, errors = self._unitrade_validate_address_values(post)
+        if errors:
+            error_messages = self._unitrade_address_error_messages(errors)
+            _logger.info(
+                "UniTrade address save validation failed for user %s. Errors=%s Payload keys=%s",
+                request.env.uid,
+                errors,
+                sorted(post.keys()),
+            )
+            return {
+                'success': False,
+                'message': error_messages[0] if error_messages else _('Lengkapi alamat sebelum menyimpan.'),
+                'errors': errors,
+                'error_messages': error_messages,
+            }
+
+        partner = request.env.user.partner_id.sudo()
+        country = request.env.ref('base.id', raise_if_not_found=False)
+        partner_vals = {
+            'street': values['street'],
+            'street2': values['street2'],
+            'city': values['city'],
+            'zip': values['zip'],
+            'x_unitrade_address_label': values['label'],
+            'x_unitrade_province': values['province'],
+            'x_unitrade_city': values['city'],
+            'x_unitrade_district': values['district'],
+            'x_unitrade_village': values['village'],
+            'x_unitrade_latitude': values['latitude'],
+            'x_unitrade_longitude': values['longitude'],
+            'x_unitrade_mapbox_place_id': values.get('place_id') or False,
+        }
+        if country:
+            partner_vals['country_id'] = country.id
+
+        partner.write(partner_vals)
+        return {
+            'success': True,
+            'message': _('Alamat berhasil disimpan.'),
+            'address': self._unitrade_partner_address_payload(partner),
+            'summary': self._unitrade_partner_address_summary(partner),
+        }
 
     @http.route('/my/security', type='http', auth='user', website=True, methods=['GET', 'POST'])
     def security(self, **post):
@@ -774,6 +1004,7 @@ class UnitradePortalProfile(CustomerPortal):
         phone = re.sub(r'[\s-]+', '', (post.get('phone') or '').strip())
         street = (post.get('street') or '').strip()
         zipcode = (post.get('zipcode') or '').strip()
+        has_legacy_address_fields = 'street' in post or 'zipcode' in post
 
         if not name:
             error['name'] = 'missing'
@@ -801,11 +1032,11 @@ class UnitradePortalProfile(CustomerPortal):
             error['phone'] = 'error'
             error_message.append(_('Nomor telepon harus diawali 08, 62, atau +62 dan berisi 10-15 digit.'))
 
-        if zipcode and (not zipcode.isdigit() or len(zipcode) < 4 or len(zipcode) > 10):
+        if has_legacy_address_fields and zipcode and (not zipcode.isdigit() or len(zipcode) < 4 or len(zipcode) > 10):
             error['zipcode'] = 'error'
             error_message.append(_('Kode pos harus berupa angka 4 sampai 10 digit.'))
 
-        if street and len(street) > 255:
+        if has_legacy_address_fields and street and len(street) > 255:
             error['street'] = 'error'
             error_message.append(_('Alamat maksimal 255 karakter.'))
 
@@ -843,11 +1074,186 @@ class UnitradePortalProfile(CustomerPortal):
             'name': name,
             'email': email,
             'phone': phone,
-            'street': street,
-            'zip': zipcode,
         })
+        if has_legacy_address_fields:
+            partner_vals.update({
+                'street': street,
+                'zip': zipcode,
+            })
 
         return error, error_message, partner_vals, user_vals
+
+    def _unitrade_validate_address_values(self, post):
+        values = {
+            'label': (post.get('label') or 'home').strip(),
+            'province': (post.get('province') or '').strip(),
+            'city': (post.get('city') or '').strip(),
+            'district': (post.get('district') or '').strip(),
+            'village': (post.get('village') or '').strip(),
+            'zip': (post.get('zip') or '').strip(),
+            'street': (post.get('street') or '').strip(),
+            'street2': (post.get('street2') or '').strip(),
+            'place_id': (post.get('place_id') or '').strip(),
+        }
+        errors = {}
+
+        if values['label'] not in self._ADDRESS_LABELS:
+            errors['label'] = 'invalid'
+
+        for field_name in ('province', 'city', 'district', 'village', 'street'):
+            if not values[field_name]:
+                errors[field_name] = 'missing'
+            elif len(values[field_name]) > 120:
+                errors[field_name] = 'too_long'
+
+        if values['street2'] and len(values['street2']) > 120:
+            errors['street2'] = 'too_long'
+
+        if not values['zip']:
+            errors['zip'] = 'missing'
+        elif not values['zip'].isdigit() or len(values['zip']) < 4 or len(values['zip']) > 10:
+            errors['zip'] = 'invalid'
+
+        try:
+            values['latitude'] = float(post.get('latitude'))
+            values['longitude'] = float(post.get('longitude'))
+        except (TypeError, ValueError):
+            errors['coordinates'] = 'invalid'
+        else:
+            if not self._unitrade_coordinate_in_indonesia(values['latitude'], values['longitude']):
+                errors['coordinates'] = 'outside_indonesia'
+
+        return values, errors
+
+    @staticmethod
+    def _unitrade_address_error_messages(errors):
+        labels = {
+            'label': _('Label alamat'),
+            'province': _('Provinsi'),
+            'city': _('Kota/Kabupaten'),
+            'district': _('Kecamatan'),
+            'village': _('Kelurahan'),
+            'zip': _('Kode Pos'),
+            'street': _('Nama Jalan, Gedung, No. Rumah'),
+            'street2': _('Detail lainnya'),
+            'coordinates': _('Titik lokasi pada peta'),
+        }
+        missing = [
+            labels.get(field_name, field_name)
+            for field_name, error_code in errors.items()
+            if error_code == 'missing'
+        ]
+        invalid = [
+            labels.get(field_name, field_name)
+            for field_name, error_code in errors.items()
+            if error_code in ('invalid', 'outside_indonesia')
+        ]
+        too_long = [
+            labels.get(field_name, field_name)
+            for field_name, error_code in errors.items()
+            if error_code == 'too_long'
+        ]
+
+        messages = []
+        if missing:
+            messages.append(_('Field belum lengkap: %s.') % ', '.join(missing))
+        if invalid:
+            messages.append(_('Field belum valid: %s.') % ', '.join(invalid))
+        if too_long:
+            messages.append(_('Field terlalu panjang: %s.') % ', '.join(too_long))
+        return messages
+
+    def _unitrade_partner_address_payload(self, partner):
+        return {
+            'label': partner.x_unitrade_address_label or 'home',
+            'province': partner.x_unitrade_province or '',
+            'city': partner.x_unitrade_city or partner.city or '',
+            'district': partner.x_unitrade_district or '',
+            'village': partner.x_unitrade_village or '',
+            'zip': partner.zip or '',
+            'street': partner.street or '',
+            'street2': partner.street2 or '',
+            'latitude': partner.x_unitrade_latitude or -7.7956,
+            'longitude': partner.x_unitrade_longitude or 110.3695,
+            'place_id': partner.x_unitrade_mapbox_place_id or '',
+        }
+
+    def _unitrade_partner_address_summary(self, partner):
+        address = self._unitrade_partner_address_payload(partner)
+        has_address = bool(address['street'] and address['city'] and address['zip'])
+        parts = [
+            address['street'],
+            address['street2'],
+            address['village'],
+            address['district'],
+            address['city'],
+            address['province'],
+            address['zip'],
+        ]
+        return {
+            'has_address': has_address,
+            'label': self._unitrade_address_label_text(address['label']),
+            'line': ', '.join(part for part in parts if part),
+            'coordinates': '%.6f, %.6f' % (address['latitude'], address['longitude'])
+            if has_address and address['latitude'] and address['longitude'] else '',
+        }
+
+    @staticmethod
+    def _unitrade_address_label_text(label):
+        return {
+            'home': _('Rumah'),
+            'office': _('Kantor'),
+            'school': _('Sekolah'),
+            'other': _('Lainnya'),
+        }.get(label or 'home', _('Rumah'))
+
+    def _unitrade_mapbox_feature_payload(self, feature):
+        context = self._unitrade_mapbox_context(feature)
+        center = feature.get('center') or [110.3695, -7.7956]
+        text = feature.get('text_id') or feature.get('text') or ''
+        properties = feature.get('properties') or {}
+        place_types = feature.get('place_type') or []
+        street = ''
+        if 'address' in place_types or properties.get('address'):
+            street = ('%s %s' % (properties.get('address') or '', text)).strip()
+        elif 'poi' in place_types:
+            street = text
+
+        return {
+            'id': feature.get('id') or '',
+            'label': feature.get('place_name_id') or feature.get('place_name') or text,
+            'longitude': center[0],
+            'latitude': center[1],
+            'province': context.get('region') or '',
+            'city': context.get('place') or context.get('locality') or '',
+            'district': context.get('district') or '',
+            'village': context.get('neighborhood') or context.get('locality') or '',
+            'zip': context.get('postcode') or '',
+            'street': street,
+        }
+
+    @staticmethod
+    def _unitrade_mapbox_context(feature):
+        context = {}
+        for item in feature.get('context') or []:
+            context_id = item.get('id', '')
+            key = context_id.split('.', 1)[0]
+            context[key] = item.get('text_id') or item.get('text') or ''
+
+        for place_type in feature.get('place_type') or []:
+            context.setdefault(place_type, feature.get('text_id') or feature.get('text') or '')
+
+        properties = feature.get('properties') or {}
+        if properties.get('postcode'):
+            context.setdefault('postcode', properties.get('postcode'))
+        return context
+
+    def _unitrade_coordinate_in_indonesia(self, latitude, longitude):
+        bounds = self._INDONESIA_BOUNDS
+        return (
+            bounds['min_lat'] <= latitude <= bounds['max_lat']
+            and bounds['min_lng'] <= longitude <= bounds['max_lng']
+        )
 
     @http.route([
         '/my/orders',
@@ -889,7 +1295,15 @@ class UnitradePortalProfile(CustomerPortal):
             ('state', 'in', ['sent', 'sale', 'done', 'cancel']),
         ], order='date_order desc', limit=80)
 
-        Review = request.env['unitrade.review'].sudo() if 'unitrade.review' in request.env.registry else False
+        Review = False
+        reviewed_product_ids = set()
+        try:
+            Review = request.env['unitrade.review'].sudo()
+            reviewed_product_ids = set(Review.search([
+                ('user_id', '=', request.env.uid),
+            ]).mapped('product_id').ids)
+        except KeyError:
+            _logger.info('UniTrade review module is not available while rendering customer orders.')
         items = []
         for order in orders:
             status_key = self._unitrade_order_status_key(order)
@@ -900,11 +1314,7 @@ class UnitradePortalProfile(CustomerPortal):
                 seller_ref = seller.x_profile_uuid or seller.id if seller else ''
                 review_exists = False
                 if Review and status_key == 'done':
-                    review_exists = bool(Review.search_count([
-                        ('order_id', '=', order.id),
-                        ('product_id', '=', product.id),
-                        ('user_id', '=', request.env.uid),
-                    ]))
+                    review_exists = product.id in reviewed_product_ids
 
                 can_buy_again = self._unitrade_can_buy_again(product, line.product_id)
                 items.append({

@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_unitrade_chat_conversation_portal,unitrade.chat.conversation.portal,model_unitrade_chat_conversation,base.group_portal,1,0,0,0
+access_unitrade_chat_conversation_user,unitrade.chat.conversation.user,model_unitrade_chat_conversation,base.group_user,1,0,0,0
+access_unitrade_chat_conversation_admin,unitrade.chat.conversation.admin,model_unitrade_chat_conversation,unitrade_seller.group_unitrade_admin,1,1,1,1
+access_unitrade_chat_message_portal,unitrade.chat.message.portal,model_unitrade_chat_message,base.group_portal,1,0,0,0
+access_unitrade_chat_message_user,unitrade.chat.message.user,model_unitrade_chat_message,base.group_user,1,0,0,0
+access_unitrade_chat_message_admin,unitrade.chat.message.admin,model_unitrade_chat_message,unitrade_seller.group_unitrade_admin,1,1,1,1
+access_unitrade_chat_report_portal,unitrade.chat.report.portal,model_unitrade_chat_report,base.group_portal,1,0,0,0
+access_unitrade_chat_report_user,unitrade.chat.report.user,model_unitrade_chat_report,base.group_user,1,0,0,0
+access_unitrade_chat_report_admin,unitrade.chat.report.admin,model_unitrade_chat_report,unitrade_seller.group_unitrade_admin,1,1,1,1
+access_unitrade_chat_rate_limit_admin,unitrade.chat.rate.limit.admin,model_unitrade_chat_rate_limit,unitrade_seller.group_unitrade_admin,1,1,1,1

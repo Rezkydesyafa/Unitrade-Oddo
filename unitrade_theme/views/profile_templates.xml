@@ -172,19 +172,26 @@
                                         <input type="tel" name="phone" t-att-value="form_values.get('phone') or partner.phone or ''" class="ut-user-profile-input" placeholder="08xxxxxxxxxx" pattern="(\+62|62|08)[0-9]{8,13}" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
                                     </label>
 
-                                    <div class="ut-user-profile-address">
-                                        <div class="ut-user-profile-address-main">
-                                            <label class="ut-user-profile-field tw-m-0">
+                                    <div class="ut-user-profile-address-card" data-address-summary="1">
+                                        <div class="ut-user-profile-address-head">
+                                            <div>
                                                 <span>Alamat</span>
-                                                <small>Provinsi, Kota, Kecamatan</small>
-                                                <textarea name="street" maxlength="255" class="ut-user-profile-textarea" t-esc="form_values.get('street') or partner.street or ''" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"></textarea>
-                                            </label>
+                                                <small>Alamat pengiriman utama</small>
+                                            </div>
+                                            <button type="button" class="ut-user-profile-address-btn" data-address-open="1">
+                                                Atur Alamat
+                                            </button>
                                         </div>
-                                        <label class="ut-user-profile-field tw-m-0">
-                                            <span class="tw-opacity-0">Kode Pos</span>
-                                            <small>Kode Pos</small>
-                                            <input type="text" name="zipcode" t-att-value="form_values.get('zipcode') or partner.zip" class="ut-user-profile-input" inputmode="numeric" pattern="[0-9]{4,10}" maxlength="10" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
-                                        </label>
+                                        <div t-att-class="'ut-user-profile-address-preview %s' % ('' if address_summary.get('has_address') else 'is-empty')">
+                                            <strong data-address-summary-label="1">
+                                                <t t-esc="address_summary.get('label')"/>
+                                            </strong>
+                                            <p data-address-summary-line="1">
+                                                <t t-if="address_summary.get('has_address')" t-esc="address_summary.get('line')"/>
+                                                <t t-else="">Belum ada alamat tersimpan.</t>
+                                            </p>
+                                            <small data-address-summary-coordinates="1" t-if="address_summary.get('coordinates')" t-esc="address_summary.get('coordinates')"/>
+                                        </div>
                                     </div>
 
                                     <div class="ut-user-profile-actions tw-mt-[30px] tw-flex tw-gap-5">
@@ -212,6 +219,101 @@
                                     </p>
                                 </div>
                             </form>
+
+                            <div class="ut-address-modal" data-unitrade-address-modal="1" t-att-data-address-initial="address_payload_json" aria-hidden="true">
+                                <div class="ut-address-modal-backdrop" data-address-close="1"></div>
+                                <section class="ut-address-dialog" role="dialog" aria-modal="true" aria-labelledby="ut_address_modal_title">
+                                    <div class="ut-address-dialog-scroll">
+                                        <header class="ut-address-header">
+                                            <h2 id="ut_address_modal_title">Atur Alamat</h2>
+                                            <button type="button" class="ut-address-icon-btn" data-address-close="1" aria-label="Tutup modal alamat">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M18 6 6 18"/>
+                                                    <path d="m6 6 12 12"/>
+                                                </svg>
+                                            </button>
+                                        </header>
+
+                                        <div class="ut-address-search-wrap">
+                                            <label class="tw-sr-only" for="ut_address_search">Cari alamat</label>
+                                            <input id="ut_address_search" type="search" class="ut-address-input ut-address-search" placeholder="Cari alamat di Indonesia, contoh: UNISA Yogyakarta" autocomplete="off" data-address-search="1"/>
+                                            <div class="ut-address-suggestions" data-address-suggestions="1"></div>
+                                        </div>
+
+                                        <div class="ut-address-map-wrap">
+                                            <div class="ut-address-map" data-address-map="1"></div>
+                                            <button type="button" class="ut-address-current-btn" data-address-use-current="1">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <circle cx="12" cy="12" r="3"/>
+                                                    <path d="M12 2v3"/>
+                                                    <path d="M12 19v3"/>
+                                                    <path d="M2 12h3"/>
+                                                    <path d="M19 12h3"/>
+                                                </svg>
+                                                Gunakan lokasi saya saat ini
+                                            </button>
+                                        </div>
+
+                                        <div class="ut-address-form-grid">
+                                            <label class="ut-address-field ut-address-field-wide">
+                                                <span>Provinsi</span>
+                                                <input type="text" class="ut-address-input" data-address-field="province" placeholder="DI Yogyakarta"/>
+                                            </label>
+                                            <label class="ut-address-field">
+                                                <span>Kota/Kabupaten</span>
+                                                <input type="text" class="ut-address-input" data-address-field="city" placeholder="Kota Yogyakarta"/>
+                                            </label>
+                                            <label class="ut-address-field">
+                                                <span>Kecamatan</span>
+                                                <input type="text" class="ut-address-input" data-address-field="district" placeholder="Ngampilan"/>
+                                            </label>
+                                            <label class="ut-address-field">
+                                                <span>Kelurahan</span>
+                                                <input type="text" class="ut-address-input" data-address-field="village" placeholder="Notoprajan"/>
+                                            </label>
+                                            <label class="ut-address-field">
+                                                <span>Kode Pos</span>
+                                                <input type="text" class="ut-address-input" inputmode="numeric" maxlength="10" data-address-field="zip" placeholder="55262"/>
+                                            </label>
+                                            <label class="ut-address-field ut-address-field-wide">
+                                                <span>Nama Jalan, Gedung, No. Rumah</span>
+                                                <input type="text" class="ut-address-input" data-address-field="street" placeholder="Jl. Ringroad Barat No. 63"/>
+                                            </label>
+                                            <label class="ut-address-field ut-address-field-wide">
+                                                <span>Detail lainnya</span>
+                                                <input type="text" class="ut-address-input" data-address-field="street2" placeholder="Cth: Blok/Unit, patokan, nama kos"/>
+                                            </label>
+                                        </div>
+
+                                        <div class="ut-address-coordinate-row">
+                                            <label>
+                                                <span>Latitude</span>
+                                                <input type="text" readonly="readonly" data-address-field="latitude"/>
+                                            </label>
+                                            <label>
+                                                <span>Longitude</span>
+                                                <input type="text" readonly="readonly" data-address-field="longitude"/>
+                                            </label>
+                                        </div>
+
+                                        <div class="ut-address-label-group">
+                                            <p>Tandai Sebagai</p>
+                                            <div class="ut-address-label-row" role="radiogroup" aria-label="Label alamat">
+                                                <button type="button" class="ut-address-label is-active" data-address-label="home">Rumah</button>
+                                                <button type="button" class="ut-address-label" data-address-label="office">Kantor</button>
+                                                <button type="button" class="ut-address-label" data-address-label="school">Sekolah</button>
+                                                <button type="button" class="ut-address-label" data-address-label="other">Lainnya</button>
+                                            </div>
+                                        </div>
+
+                                        <div class="ut-address-error" data-address-error="1" role="alert"></div>
+                                    </div>
+                                    <footer class="ut-address-footer">
+                                        <button type="button" class="ut-address-cancel" data-address-close="1">Batal</button>
+                                        <button type="button" class="ut-address-save" data-address-save="1">Simpan</button>
+                                    </footer>
+                                </section>
+                            </div>
                         </main>
                     </div>
                 </section>
@@ -607,9 +709,28 @@
                                             <div class="ut-user-order-price" t-esc="item.get('price')"/>
                                         </div>
                                         <footer class="ut-user-order-actions">
-                                            <a t-if="item.get('can_review')" t-att-href="item.get('review_url')" class="ut-user-order-btn ut-user-order-btn-primary">Beri Ulasan</a>
-                                            <span t-elif="item.get('review_exists')" class="ut-user-order-btn ut-user-order-btn-muted">Sudah Ulasan</span>
-                                            <span t-else="" class="ut-user-order-btn ut-user-order-btn-muted">Beri Ulasan</span>
+                                            <button t-if="item.get('can_review')" type="button"
+                                                class="ut-user-order-btn ut-user-order-btn-primary"
+                                                data-review-open="1"
+                                                t-att-data-review-product-id="item.get('product').id"
+                                                t-att-data-review-order-id="item.get('order').id"
+                                                t-att-data-review-product-name="item.get('product').name"
+                                                t-att-data-review-seller-name="item.get('seller_name')"
+                                                t-att-data-review-image-url="item.get('image_url')">
+                                                Beri Ulasan
+                                            </button>
+                                            <button t-elif="item.get('review_exists')" type="button"
+                                                class="ut-user-order-btn ut-user-order-btn-disabled"
+                                                disabled="disabled"
+                                                aria-disabled="true">
+                                                Sudah Ulasan
+                                            </button>
+                                            <button t-else="" type="button"
+                                                class="ut-user-order-btn ut-user-order-btn-disabled"
+                                                disabled="disabled"
+                                                aria-disabled="true">
+                                                Beri Ulasan
+                                            </button>
                                             <a t-att-href="item.get('seller_chat_url')" class="ut-user-order-btn ut-user-order-btn-outline">Chat Penjual</a>
                                             <a t-if="item.get('can_buy_again')" t-att-href="item.get('buy_again_url')" class="ut-user-order-btn ut-user-order-btn-outline">Beli Lagi</a>
                                             <span t-else="" class="ut-user-order-btn ut-user-order-btn-disabled" title="Produk tidak tersedia">Beli Lagi</span>
@@ -623,6 +744,64 @@
                             <div class="ut-user-orders-empty ut-user-orders-filter-empty">
                                 Tidak ada pesanan pada status ini.
                             </div>
+                        </div>
+
+                        <div class="ut-order-review-modal" data-order-review-modal="1" aria-hidden="true">
+                            <div class="ut-order-review-backdrop" data-review-close="1"></div>
+                            <section class="ut-order-review-dialog" role="dialog" aria-modal="true" aria-labelledby="ut_order_review_title">
+                                <div class="ut-order-review-scroll">
+                                    <h2 id="ut_order_review_title">Ulasan Produk</h2>
+
+                                    <article class="ut-order-review-product">
+                                        <img src="/web/static/img/placeholder.png" alt="Produk" data-review-product-image="1"/>
+                                        <div>
+                                            <h3 data-review-product-name="1">Produk</h3>
+                                            <p data-review-seller-name="1">Nama toko</p>
+                                        </div>
+                                    </article>
+
+                                    <div class="ut-order-review-section">
+                                        <p class="ut-order-review-label">Rating</p>
+                                        <div class="ut-order-review-stars" role="radiogroup" aria-label="Rating produk">
+                                            <button type="button" data-review-star="1" aria-label="1 bintang"><i class="fa fa-star"></i></button>
+                                            <button type="button" data-review-star="2" aria-label="2 bintang"><i class="fa fa-star"></i></button>
+                                            <button type="button" data-review-star="3" aria-label="3 bintang"><i class="fa fa-star"></i></button>
+                                            <button type="button" data-review-star="4" aria-label="4 bintang"><i class="fa fa-star"></i></button>
+                                            <button type="button" data-review-star="5" aria-label="5 bintang"><i class="fa fa-star"></i></button>
+                                        </div>
+                                    </div>
+
+                                    <div class="ut-order-review-section">
+                                        <p class="ut-order-review-label">Pilih Tag Populer:</p>
+                                        <div class="ut-order-review-tags">
+                                            <button type="button" data-review-tag="Sesuai Gambar">Sesuai Gambar</button>
+                                            <button type="button" data-review-tag="Penjual Ramah">Penjual Ramah</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="ut-order-review-section ut-order-review-comment-section">
+                                        <label class="ut-order-review-label" for="ut_order_review_comment">Koment</label>
+                                        <textarea id="ut_order_review_comment" data-review-comment="1" maxlength="1000" placeholder="Bagikan Penilaian mu tentang produk ini untuk membantu Pembeli lain."></textarea>
+                                    </div>
+
+                                    <div class="ut-order-review-media-row">
+                                        <label class="ut-order-review-media-button">
+                                            <i class="fa fa-camera"></i>
+                                            <span>Tambah media</span>
+                                            <input type="file" accept="image/jpeg,image/png,image/webp" multiple="multiple" data-review-media-input="1"/>
+                                        </label>
+                                        <small>Maksimal 3 gambar, masing-masing kurang dari 2 MB.</small>
+                                    </div>
+                                    <div class="ut-order-review-media-preview" data-review-media-preview="1"></div>
+
+                                    <div class="ut-order-review-message" data-review-message="1" role="alert"></div>
+                                </div>
+
+                                <footer class="ut-order-review-footer">
+                                    <button type="button" class="ut-order-review-submit" data-review-submit="1">Ok</button>
+                                    <button type="button" class="ut-order-review-later" data-review-close="1">Nanti saja</button>
+                                </footer>
+                            </section>
                         </div>
                     </main>
                 </div>

@@ -111,6 +111,14 @@ class UnitradeSeller(models.Model):
         readonly=True,
         default=False,
     )
+    ocr_student_name = fields.Char(
+        string='Nama Mahasiswa DB',
+        readonly=True,
+    )
+    ocr_name_match_token = fields.Char(
+        string='Token Nama Cocok',
+        readonly=True,
+    )
 
     # === Status ===
     status = fields.Selection([
@@ -118,6 +126,7 @@ class UnitradeSeller(models.Model):
         ('pending', 'Menunggu Verifikasi'),
         ('verified', 'Terverifikasi'),
         ('rejected', 'Ditolak'),
+        ('revoked', 'Verifikasi Dicabut'),
     ], string='Status Verifikasi',
         default='draft',
         tracking=True,
@@ -134,6 +143,48 @@ class UnitradeSeller(models.Model):
         'res.users',
         string='Diverifikasi Oleh',
         readonly=True,
+    )
+    revoke_reason = fields.Text(
+        string='Alasan Cabut Verifikasi',
+        tracking=True,
+    )
+    revoked_date = fields.Datetime(
+        string='Tanggal Dicabut',
+        readonly=True,
+    )
+    revoked_by = fields.Many2one(
+        'res.users',
+        string='Dicabut Oleh',
+        readonly=True,
+    )
+
+    # === Moderation / Reports ===
+    report_state = fields.Selection([
+        ('none', 'Tidak Ada Laporan'),
+        ('reported', 'Dilaporkan'),
+        ('under_review', 'Sedang Ditinjau'),
+        ('resolved', 'Selesai Ditinjau'),
+    ], string='Status Laporan',
+        default='none',
+        tracking=True,
+        index=True,
+    )
+    report_count = fields.Integer(
+        string='Jumlah Laporan',
+        default=0,
+        readonly=True,
+    )
+    last_reported_at = fields.Datetime(
+        string='Terakhir Dilaporkan',
+        readonly=True,
+    )
+    last_report_reason = fields.Text(
+        string='Alasan Laporan Terakhir',
+        readonly=True,
+    )
+    report_admin_note = fields.Text(
+        string='Catatan Review Laporan',
+        tracking=True,
     )
 
     # === Stats ===
@@ -166,12 +217,19 @@ class UnitradeSeller(models.Model):
     # === Constraints ===
     _sql_constraints = [
         ('user_unique', 'UNIQUE(user_id)', 'Setiap user hanya bisa memiliki satu akun penjual!'),
-        ('nim_unique', 'UNIQUE(nim)', 'NIM ini sudah terdaftar sebagai penjual!'),
         ('profile_uuid_unique', 'UNIQUE(x_profile_uuid)', 'UUID profil penjual harus unik!'),
     ]
 
     def init(self):
         """Backfill UUIDs for seller records created before the public profile route existed."""
+        self.env.cr.execute("ALTER TABLE unitrade_seller DROP CONSTRAINT IF EXISTS unitrade_seller_nim_unique")
+        self.env.cr.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS unitrade_seller_verified_nim_unique_idx
+                ON unitrade_seller (nim)
+             WHERE status = 'verified'
+               AND nim IS NOT NULL
+               AND nim != ''
+        """)
         self.env.cr.execute("""
             SELECT id
               FROM unitrade_seller
@@ -191,6 +249,24 @@ class UnitradeSeller(models.Model):
                 "UPDATE unitrade_seller SET x_profile_uuid = %s WHERE id = %s",
                 (str(uuid.uuid4()), seller_id),
             )
+
+    @api.constrains('nim', 'status', 'user_id')
+    def _check_verified_nim_unique(self):
+        """Only verified sellers reserve a NIM for duplicate prevention."""
+        for record in self:
+            if record.status != 'verified' or not record.nim:
+                continue
+
+            duplicate_domain = [
+                ('id', '!=', record.id),
+                ('nim', '=', record.nim),
+                ('status', '=', 'verified'),
+            ]
+            if record.user_id:
+                duplicate_domain.append(('user_id', '!=', record.user_id.id))
+
+            if self.sudo().search_count(duplicate_domain):
+                raise ValidationError(_('KTM/NIM ini sudah digunakan oleh akun penjual lain.'))
 
     @api.constrains('nim')
     def _check_nim_format(self):
@@ -285,7 +361,7 @@ class UnitradeSeller(models.Model):
             raise_if_not_found=False,
         )
         if template:
-            template.send_mail(self.id, force_send=True)
+            template.sudo().send_mail(self.id, force_send=True)
 
         _logger.info('Seller %s submitted for verification (NIM: %s)', self.name, self.nim)
 
@@ -394,7 +470,7 @@ class UnitradeSeller(models.Model):
             raise_if_not_found=False,
         )
         if template:
-            template.send_mail(self.id, force_send=True)
+            template.sudo().send_mail(self.id, force_send=True)
 
         _logger.info('Seller %s verified by %s', self.name, self.env.user.name)
 
@@ -412,9 +488,93 @@ class UnitradeSeller(models.Model):
             raise_if_not_found=False,
         )
         if template:
-            template.send_mail(self.id, force_send=True)
+            template.sudo().send_mail(self.id, force_send=True)
 
         _logger.info('Seller %s rejected by %s. Reason: %s', self.name, self.env.user.name, self.rejection_reason)
+
+    def action_start_report_review(self):
+        """Mark reported seller as being reviewed by admin."""
+        for record in self:
+            record.write({'report_state': 'under_review'})
+            record.message_post(
+                body=_('Laporan seller mulai ditinjau oleh %s.') % self.env.user.name,
+                subtype_xmlid='mail.mt_note',
+            )
+
+    def action_mark_report_resolved(self):
+        """Mark seller report review as resolved without changing verification."""
+        for record in self:
+            record.write({'report_state': 'resolved'})
+            record.message_post(
+                body=_('Review laporan seller ditandai selesai oleh %s.') % self.env.user.name,
+                subtype_xmlid='mail.mt_note',
+            )
+
+    def _hide_marketplace_products_after_revoke(self):
+        """Remove revoked seller products from marketplace listings while preserving records."""
+        Product = self.env['product.template'].sudo()
+        if not {'x_seller_id', 'x_is_marketplace'}.issubset(Product._fields):
+            return 0
+
+        products = Product.search([
+            ('x_seller_id', 'in', self.ids),
+            ('x_is_marketplace', '=', True),
+        ])
+        count = len(products)
+        if products:
+            products.write({'x_is_marketplace': False})
+        return count
+
+    def action_revoke_seller_verification(self):
+        """Revoke seller verification and return the account to regular-user status."""
+        for record in self:
+            if record.status != 'verified':
+                continue
+
+            reason = (
+                record.revoke_reason
+                or record.report_admin_note
+                or record.last_report_reason
+                or _('Verifikasi seller dicabut oleh admin setelah peninjauan.')
+            )
+            hidden_count = record._hide_marketplace_products_after_revoke()
+
+            record.write({
+                'status': 'revoked',
+                'revoke_reason': reason,
+                'rejection_reason': reason,
+                'revoked_date': fields.Datetime.now(),
+                'revoked_by': self.env.uid,
+                'report_state': 'resolved',
+            })
+            if record.user_id:
+                record.user_id.sudo().write({
+                    'x_is_seller': False,
+                    'x_seller_id': False,
+                })
+
+            record.message_post(
+                body=_(
+                    'Verifikasi seller dicabut oleh %s. Akun kembali menjadi user biasa. '
+                    '%s produk marketplace dinonaktifkan. Alasan: %s'
+                ) % (self.env.user.name, hidden_count, reason),
+                subtype_xmlid='mail.mt_note',
+            )
+
+            template = self.env.ref(
+                'unitrade_seller.mail_template_seller_revoked',
+                raise_if_not_found=False,
+            )
+            if template:
+                template.sudo().send_mail(record.id, force_send=True)
+
+            _logger.info(
+                'Seller %s revoked by %s. Hidden products=%s. Reason=%s',
+                record.id,
+                self.env.user.name,
+                hidden_count,
+                reason,
+            )
 
     def action_reset_to_draft(self):
         """Reset seller back to draft status"""

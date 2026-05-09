@@ -127,12 +127,17 @@
                         <div class="tw-bg-[var(--ut-color-bg-muted)] tw-rounded-[20px] tw-p-3">
                             <!-- Main image container -->
                             <div class="tw-bg-bg-surface tw-rounded-[16px] tw-p-4 tw-mb-4">
-                                <div class="tw-w-full tw-aspect-[560/384] tw-rounded-[8px] tw-overflow-hidden tw-bg-white">
+                                <button type="button"
+                                    class="ut-product-main-image-trigger tw-w-full tw-aspect-[560/384] tw-rounded-[8px] tw-overflow-hidden tw-bg-white tw-border-0 tw-p-0"
+                                    data-product-image-preview="1"
+                                    t-attf-data-preview-src="/web/image/product.template/#{product.id}/image_1920"
+                                    t-att-data-preview-alt="product.name"
+                                    aria-label="Preview gambar produk">
                                     <img id="ut-main-image"
                                         t-attf-src="/web/image/product.template/#{product.id}/image_1920"
                                         t-att-alt="product.name"
                                         class="tw-w-full tw-h-full tw-object-contain"/>
-                                </div>
+                                </button>
                             </div>
                             <!-- Thumbnails -->
                             <div class="tw-flex tw-gap-3 tw-overflow-x-auto ut-thumbnail-container tw-pb-2">
@@ -225,7 +230,7 @@
                             </p>
 
                             <!-- Add to cart form -->
-                            <form t-if="product._is_add_to_cart_possible()" action="/shop/cart/update" method="POST" class="tw-my-2">
+                            <form t-if="product._is_add_to_cart_possible()" action="/shop/cart/update" method="POST" class="tw-my-2" data-unitrade-stock-form="1">
                                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" t-nocache="csrf"/>
                                 <div class="js_product js_main_product">
                                     <t t-set="product_variant" t-value="product._get_first_possible_variant_id()"/>
@@ -250,6 +255,9 @@
                                                 name="add_qty"
                                                 t-att-value="add_qty or 1"
                                                 data-min="1"
+                                                t-att-data-max="ut_available_qty"
+                                                t-att-data-cart-qty="ut_cart_qty"
+                                                t-att-data-stock-label="ut_stock_text"
                                                 style="width:64px !important; height:40px !important; border:2px solid var(--ut-color-border-strong) !important; border-radius:26px !important; background:transparent !important; text-align:center !important; padding:0 !important; margin:0 !important; font-size:16px !important; color:var(--ut-color-text-body) !important; outline:none !important; box-shadow:none !important; flex:none !important;"/>
 
                                             <a href="#" class="btn btn-link float_left"
@@ -259,12 +267,24 @@
                                                 <i class="fa fa-plus" style="color:var(--ut-color-text-body); font-size:12px;"></i>
                                             </a>
                                         </div>
+                                        <p class="ut-product-stock-warning tw-hidden"
+                                           data-unitrade-stock-warning="1"
+                                           t-att-data-server-message="ut_product_stock_warning or None"
+                                           role="alert"
+                                           aria-live="polite">
+                                            <t t-if="ut_product_stock_warning">
+                                                <t t-esc="ut_product_stock_warning"/>
+                                            </t>
+                                            <t t-else="">
+                                                Stok tidak cukup. Stok tersedia hanya <t t-esc="int(ut_available_qty or 0)"/> item.
+                                            </t>
+                                        </p>
                                     </div>
 
                                     <!-- CTA Row -->
-                                    <div class="ut-product-cta-row tw-flex tw-items-center tw-gap-3">
+                                    <div class="ut-product-cta-row tw-flex tw-items-center tw-gap-3" t-nocache="User-specific product actions">
                                         <!-- Belanja / Login button -->
-                                        <t t-if="user_id._is_public()">
+                                        <t t-if="website.is_public_user()">
                                             <a href="/web/login"
                                                 class="tw-flex-1 tw-flex tw-items-center tw-justify-center tw-gap-2 ut-btn-dark"
                                                 style="background:var(--ut-color-button-bg); color:var(--ut-color-button-text); height:48px; border-radius:24px; border:none; font-size:16px; cursor:pointer; width:100%; text-decoration:none;">
@@ -337,7 +357,7 @@
                                         Kunjungi profile
                                     </a>
                                     <a t-if="product.x_seller_id"
-                                        t-attf-href="/seller-profile/#{product.x_seller_id.x_profile_uuid or product.x_seller_id.id}/chat"
+                                        t-attf-href="/seller-profile/#{product.x_seller_id.x_profile_uuid or product.x_seller_id.id}/chat?product_id=#{product.id}"
                                         class="ut-btn-dark"
                                         style="width:217px; height:48px; border:1px solid var(--ut-color-border-strong); border-radius:24px; background:var(--ut-color-button-bg); color:var(--ut-color-button-text); font-size:16px; display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; box-sizing:border-box;">
                                         <i class="fa fa-commenting-o"></i> Chat penjual
@@ -494,6 +514,9 @@
                             input.value = newVal;
                             var event = new Event('change', { bubbles: true });
                             input.dispatchEvent(event);
+                            if (window.unitradeValidateProductStock) {
+                                window.unitradeValidateProductStock();
+                            }
                         }
                     }
 
@@ -633,10 +656,14 @@
                                 var nextImage = new Image();
                                 nextImage.onload = function() {
                                     mainImg.src = src;
+                                    var previewTrigger = document.querySelector('[data-product-image-preview]');
+                                    if (previewTrigger) previewTrigger.setAttribute('data-preview-src', src);
                                     mainImg.style.opacity = '1';
                                 };
                                 nextImage.onerror = function() {
                                     mainImg.src = src;
+                                    var previewTrigger = document.querySelector('[data-product-image-preview]');
+                                    if (previewTrigger) previewTrigger.setAttribute('data-preview-src', src);
                                     mainImg.style.opacity = '1';
                                 };
                                 nextImage.src = src;

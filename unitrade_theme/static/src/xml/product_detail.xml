@@ -97,8 +97,20 @@
                                 <p class="ut-review-name" t-esc="review.user_name"></p>
                                 <p class="ut-review-date" t-esc="review.date || 'Date &amp; time'"></p>
                             </div>
-                            <div t-if="review.image_url" class="ut-review-image-row">
-                                <img t-att-src="review.image_url" alt="Gambar ulasan" class="ut-review-image"/>
+                            <div t-if="review.image_urls &amp;&amp; review.image_urls.length" class="ut-review-image-row">
+                                <t t-foreach="review.image_urls" t-as="imageUrl" t-key="imageUrl">
+                                    <button type="button"
+                                        class="ut-review-image-button"
+                                        t-on-click="() => this.openReviewImage(imageUrl, this.reviewImageAlt(review, imageUrl_index))"
+                                        t-att-aria-label="this.reviewImageAlt(review, imageUrl_index)">
+                                        <img t-att-src="imageUrl" t-att-alt="this.reviewImageAlt(review, imageUrl_index)" class="ut-review-image"/>
+                                    </button>
+                                </t>
+                            </div>
+                            <div t-if="review.tags &amp;&amp; review.tags.length" class="ut-review-tag-row">
+                                <t t-foreach="review.tags" t-as="tag" t-key="tag">
+                                    <span t-esc="tag"></span>
+                                </t>
                             </div>
                             <p class="ut-review-comment" t-esc="review.comment || 'Tidak ada komentar.'"></p>
                             <div class="ut-review-actions">
@@ -117,6 +129,16 @@
                 <button type="button" t-on-click="loadMore" t-att-disabled="state.loadingMore" class="ut-review-more">
                     <t t-esc="state.loadingMore ? 'Memuat...' : 'Lihat selengkapnya'"/>
                 </button>
+            </div>
+
+            <div t-if="state.previewImageUrl" class="ut-review-image-preview-modal" role="dialog" aria-modal="true" aria-label="Preview gambar ulasan">
+                <button type="button" class="ut-review-image-preview-backdrop" t-on-click="closeReviewImage" aria-label="Tutup preview"></button>
+                <div class="ut-review-image-preview-dialog">
+                    <button type="button" class="ut-review-image-preview-close" t-on-click="closeReviewImage" aria-label="Tutup preview">
+                        <i class="fa fa-times"></i>
+                    </button>
+                    <img t-att-src="state.previewImageUrl" t-att-alt="state.previewImageAlt"/>
+                </div>
             </div>
         </div>
     </t>

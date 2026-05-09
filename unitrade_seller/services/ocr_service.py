@@ -10,6 +10,7 @@ import re
 import logging
 import base64
 import requests
+from difflib import SequenceMatcher
 
 _logger = logging.getLogger(__name__)
 
@@ -374,6 +375,49 @@ class KTMOCRService:
 
     # ─────────────── Main Pipeline ───────────────
 
+    @staticmethod
+    def alpha_tokens(value, min_length=3):
+        """Return normalized alpha tokens for OCR/name matching."""
+        if not value:
+            return []
+        return [
+            token for token in re.findall(r'[A-Z]+', value.upper())
+            if len(token) >= min_length
+        ]
+
+    @classmethod
+    def match_student_name_token(cls, student_name, ocr_text):
+        """Require at least one significant student-name token in OCR text."""
+        student_tokens = cls.alpha_tokens(student_name, min_length=4) or cls.alpha_tokens(student_name, min_length=3)
+        ocr_tokens = cls.alpha_tokens(ocr_text, min_length=3)
+        ocr_compact = ''.join(ocr_tokens)
+
+        if not student_tokens or not ocr_tokens:
+            return {'matched': False, 'reviewable': False, 'token': '', 'score': 0.0}
+
+        best_token = ''
+        best_score = 0.0
+
+        for token in student_tokens:
+            if token in ocr_tokens or token in ocr_compact:
+                return {'matched': True, 'reviewable': True, 'token': token, 'score': 1.0}
+
+            for ocr_token in ocr_tokens:
+                if token in ocr_token or ocr_token in token:
+                    return {'matched': True, 'reviewable': True, 'token': token, 'score': 0.92}
+
+                score = SequenceMatcher(None, token, ocr_token).ratio()
+                if score > best_score:
+                    best_token = token
+                    best_score = score
+
+        return {
+            'matched': best_score >= 0.86,
+            'reviewable': best_score >= 0.72,
+            'token': best_token if best_score >= 0.72 else '',
+            'score': best_score,
+        }
+
     @classmethod
     def process_ktm(cls, env, image_bytes):
         """
@@ -392,6 +436,8 @@ class KTMOCRService:
             'nim': None,
             'nim_registered': False,
             'student_name': None,
+            'name_match_token': '',
+            'name_match_score': 0.0,
             'db_method': 'none',
             'verification_status': 'rejected',
             'reason': '',
@@ -429,15 +475,13 @@ class KTMOCRService:
                 _logger.info('[PIPELINE] ❌ No KTM keywords found.')
                 return result
 
-            # Step 3: Detect name
+            # Step 3: Detect name for diagnostics. Approval still requires NIM + DB student token.
             name_detected = cls.detect_name(raw_text)
             result['name_detected'] = name_detected
 
             if not name_detected:
-                result['verification_status'] = 'no_name'
                 result['reason'] = 'name_not_detected'
-                _logger.info('[PIPELINE] ❌ No name detected.')
-                return result
+                _logger.info('[PIPELINE] No standalone name detected; continuing with NIM + DB student token check.')
 
             # Step 4: Normalize and extract NIM
             normalized_text = cls.normalize_for_nim(raw_text)
@@ -447,25 +491,10 @@ class KTMOCRService:
             result['nim'] = nim
 
             if not nim:
-                _logger.info('[PIPELINE] NIM not found — trying name-based fallback...')
-                # FALLBACK: Try matching by name instead
-                name_result = cls.check_name_in_database(env, name_detected)
-                if name_result['found'] and name_result['student']:
-                    result['nim'] = name_result['student'].nim
-                    result['nim_registered'] = True
-                    result['student_name'] = name_result['student'].name
-                    result['db_method'] = name_result['method']
-                    result['verification_status'] = 'approved'
-                    result['reason'] = 'name_matched_in_db'
-                    _logger.info(
-                        '[PIPELINE] ✅ APPROVED (via name) — Student=%s, NIM=%s',
-                        name_result['student'].name, name_result['student'].nim,
-                    )
-                else:
-                    result['verification_status'] = 'rejected'
-                    result['reason'] = 'nim_not_extracted'
-                    _logger.info('[PIPELINE] ❌ NIM not found and name match failed.')
-                    return result
+                result['verification_status'] = 'rejected'
+                result['reason'] = 'nim_not_extracted'
+                _logger.info('[PIPELINE] NIM not found. Seller verification requires NIM + name token.')
+                return result
 
             # Step 5: Check NIM in database
             db_result = cls.check_nim_in_database(env, nim)
@@ -474,31 +503,39 @@ class KTMOCRService:
 
             if db_result['found'] and db_result['student']:
                 result['student_name'] = db_result['student'].name
+                name_match = cls.match_student_name_token(db_result['student'].name, raw_text)
+                result['name_match_token'] = name_match['token']
+                result['name_match_score'] = name_match['score']
+                if not name_match['matched']:
+                    if name_match.get('reviewable'):
+                        result['verification_status'] = 'manual_review'
+                        result['reason'] = 'name_token_low_confidence'
+                        _logger.info(
+                            '[PIPELINE] MANUAL REVIEW: NIM=%s found, name token "%s" score %.2f needs admin check.',
+                            nim,
+                            name_match['token'],
+                            name_match['score'],
+                        )
+                        return result
+
+                    result['verification_status'] = 'rejected'
+                    result['reason'] = 'name_token_not_matched'
+                    _logger.info(
+                        '[PIPELINE] REJECTED: NIM=%s found, but no significant name token from "%s" matched OCR.',
+                        nim,
+                        db_result['student'].name,
+                    )
+                    return result
                 result['verification_status'] = 'approved'
-                result['reason'] = 'nim_found_in_db'
+                result['reason'] = 'nim_and_name_token_matched'
                 _logger.info(
-                    '[PIPELINE] ✅ APPROVED — NIM=%s, Student=%s, Method=%s',
+                    '[PIPELINE] APPROVED: NIM=%s, Student=%s, Method=%s',
                     nim, db_result['student'].name, db_result['method'],
                 )
             else:
-                # NIM found by OCR but not in DB — try name fallback
-                _logger.info('[PIPELINE] NIM=%s not in DB — trying name fallback...', nim)
-                name_result = cls.check_name_in_database(env, name_detected)
-                if name_result['found'] and name_result['student']:
-                    result['nim'] = name_result['student'].nim
-                    result['nim_registered'] = True
-                    result['student_name'] = name_result['student'].name
-                    result['db_method'] = name_result['method']
-                    result['verification_status'] = 'approved'
-                    result['reason'] = 'name_matched_in_db'
-                    _logger.info(
-                        '[PIPELINE] ✅ APPROVED (via name fallback) — Student=%s, NIM=%s',
-                        name_result['student'].name, name_result['student'].nim,
-                    )
-                else:
-                    result['verification_status'] = 'rejected'
-                    result['reason'] = 'nim_not_in_db'
-                    _logger.info('[PIPELINE] ❌ REJECTED — NIM=%s not in DB, name match also failed.', nim)
+                result['verification_status'] = 'rejected'
+                result['reason'] = 'nim_not_in_db'
+                _logger.info('[PIPELINE] REJECTED: NIM=%s not found in unisa.student.', nim)
 
             _logger.info('=' * 60)
             _logger.info('[PIPELINE] Final: %s', {

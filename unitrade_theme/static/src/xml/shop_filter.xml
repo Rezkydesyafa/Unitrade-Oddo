@@ -18,7 +18,7 @@
                             <div t-att-class="pillClass('lokasi', 'kabupaten')" data-group="lokasi" data-value="kabupaten" t-on-click="() => this.togglePill('lokasi', 'kabupaten')">Kabupaten</div>
                             <div t-att-class="pillClass('lokasi', 'diy')" data-group="lokasi" data-value="diy" t-on-click="() => this.togglePill('lokasi', 'diy')">DIY</div>
                         </div>
-                        <input type="hidden" name="lokasi" id="ut-lokasi-val" t-att-value="state.lokasi"/>
+                        <input type="hidden" name="lokasi" id="ut-lokasi-val" t-att-value="state.draft.lokasi"/>
                     </div>
 
                     <div class="tw-mb-8">
@@ -27,15 +27,15 @@
                             <div style="position:absolute; top:50%; transform:translateY(-50%); width:100%; height:10px; background:#f0f0f0; border-radius:999px; z-index:1; pointer-events:none;"></div>
                             <div id="slider-track" t-att-style="trackStyle"></div>
                             <div id="min-tooltip" class="tw-bg-black tw-text-white tw-px-3 tw-py-1 tw-rounded-full tw-font-['Urbanist'] tw-font-bold tw-text-[11px]" t-att-style="minTooltipStyle">
-                                <t t-esc="formatK(state.minK)"/>
+                                <t t-esc="formatK(state.draft.minK)"/>
                             </div>
                             <div id="max-tooltip" class="tw-bg-black tw-text-white tw-px-3 tw-py-1 tw-rounded-full tw-font-['Urbanist'] tw-font-bold tw-text-[11px]" t-att-style="maxTooltipStyle">
-                                <t t-esc="formatK(state.maxK)"/>
+                                <t t-esc="formatK(state.draft.maxK)"/>
                             </div>
-                            <input type="range" id="min-price" min="0" max="5000" t-att-value="state.minK" step="10" class="custom-range-slider" style="position:absolute; top:50%; transform:translateY(-50%); width:100%; height:10px; -webkit-appearance:none; appearance:none; background:transparent; pointer-events:none; z-index:10; margin:0; outline:none;" t-on-input="onMinInput"/>
-                            <input type="range" id="max-price" min="0" max="5000" t-att-value="state.maxK" step="10" class="custom-range-slider" style="position:absolute; top:50%; transform:translateY(-50%); width:100%; height:10px; -webkit-appearance:none; appearance:none; background:transparent; pointer-events:none; z-index:11; margin:0; outline:none;" t-on-input="onMaxInput"/>
-                            <input type="hidden" name="min_price" id="odoo-min-price" t-att-value="state.minK * 1000"/>
-                            <input type="hidden" name="max_price" id="odoo-max-price" t-att-value="state.maxK * 1000"/>
+                            <input type="range" id="min-price" min="0" max="10000" t-att-value="state.draft.minK" step="10" class="custom-range-slider" style="position:absolute; top:50%; transform:translateY(-50%); width:100%; height:10px; -webkit-appearance:none; appearance:none; background:transparent; pointer-events:none; z-index:10; margin:0; outline:none;" t-on-input="onMinInput"/>
+                            <input type="range" id="max-price" min="0" max="10000" t-att-value="state.draft.maxK" step="10" class="custom-range-slider" style="position:absolute; top:50%; transform:translateY(-50%); width:100%; height:10px; -webkit-appearance:none; appearance:none; background:transparent; pointer-events:none; z-index:11; margin:0; outline:none;" t-on-input="onMaxInput"/>
+                            <input type="hidden" name="min_price" id="odoo-min-price" t-att-value="state.draft.minK * 1000"/>
+                            <input type="hidden" name="max_price" id="odoo-max-price" t-att-value="state.draft.maxK * 1000"/>
                         </div>
                         <style>
                             .custom-range-slider::-webkit-slider-runnable-track { background:transparent; height:10px; }
@@ -55,12 +55,12 @@
                             <div t-att-class="pillClass('kondisi', 'baru')" data-group="kondisi" data-value="baru" t-on-click="() => this.togglePill('kondisi', 'baru')">Baru</div>
                             <div t-att-class="pillClass('kondisi', 'bekas')" data-group="kondisi" data-value="bekas" t-on-click="() => this.togglePill('kondisi', 'bekas')">Bekas</div>
                         </div>
-                        <input type="hidden" name="kondisi" id="ut-kondisi-val" t-att-value="state.kondisi"/>
+                        <input type="hidden" name="kondisi" id="ut-kondisi-val" t-att-value="state.draft.kondisi"/>
                     </div>
 
                     <div class="tw-flex tw-items-center tw-gap-3">
-                        <button type="button" t-on-click="applyFilters" t-att-disabled="state.loading" class="tw-flex-1 tw-bg-black tw-text-white tw-py-[12px] tw-rounded-full tw-font-['Urbanist'] tw-font-bold tw-text-[15px] hover:tw-bg-[#333] tw-transition-colors tw-cursor-pointer tw-border-0">Simpan</button>
-                        <button type="button" t-on-click="restoreFromUrl" t-att-disabled="state.loading" class="tw-flex-1 tw-bg-white tw-border tw-border-gray-300 tw-text-[#b3b3b3] tw-py-[12px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[15px] hover:tw-text-black hover:tw-border-black tw-transition-colors tw-cursor-pointer">Batal</button>
+                        <button type="button" t-on-click="applyFilters" t-att-disabled="state.loading || state.loadingMore" class="tw-flex-1 tw-bg-black tw-text-white tw-py-[12px] tw-rounded-full tw-font-['Urbanist'] tw-font-bold tw-text-[15px] hover:tw-bg-[#333] tw-transition-colors tw-cursor-pointer tw-border-0">Simpan</button>
+                        <button type="button" t-on-click="cancelFilters" t-att-disabled="state.loading || state.loadingMore" class="tw-flex-1 tw-bg-white tw-border tw-border-gray-300 tw-text-[#b3b3b3] tw-py-[12px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[15px] hover:tw-text-black hover:tw-border-black tw-transition-colors tw-cursor-pointer">Batal</button>
                     </div>
                 </div>
             </aside>
@@ -77,7 +77,11 @@
                     </div>
                 </div>
 
+                <div t-if="state.loading" class="tw-mb-4 tw-rounded-[12px] tw-border tw-border-gray-200 tw-bg-white tw-px-4 tw-py-3 tw-font-['Urbanist'] tw-text-sm tw-text-gray-500">Memuat produk...</div>
                 <div id="ut-shop-results" t-ref="results" t-on-click="onResultsClick" t-att-class="state.loading ? 'tw-opacity-60 tw-transition-opacity' : 'tw-transition-opacity'"></div>
+                <div t-if="state.loadingMore" class="tw-w-full tw-text-center tw-py-4 tw-font-['Urbanist'] tw-text-sm tw-text-gray-500">Memuat produk berikutnya...</div>
+                <div t-ref="sentinel" class="tw-h-6 tw-w-full"></div>
+                <div t-if="!state.hasMore &amp;&amp; state.searchCount > 0" class="tw-w-full tw-text-center tw-py-4 tw-font-['Urbanist'] tw-text-sm tw-text-gray-400">Semua produk sudah ditampilkan</div>
             </div>
         </div>
     </t>

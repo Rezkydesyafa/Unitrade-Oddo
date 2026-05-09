@@ -1,5 +1,6 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
+from odoo.tools.float_utils import float_compare
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -99,6 +100,86 @@ class ProductTemplateUniTrade(models.Model):
         digits=(5, 2),
         default=0.0,
     )
+    x_listing_fee = fields.Monetary(
+        string='Biaya Listing',
+        currency_field='currency_id',
+        default=0.0,
+        help='Biaya listing yang ditampilkan pada dashboard penjual UniTrade.',
+    )
+    x_listing_expires_at = fields.Datetime(
+        string='Listing Berakhir',
+        help='Tanggal berakhir listing untuk label dashboard penjual. Tidak otomatis unpublish produk.',
+    )
+    x_unitrade_stock_qty = fields.Float(
+        string='Stok UniTrade',
+        compute='_compute_unitrade_stock_qty',
+        inverse='_inverse_unitrade_stock_qty',
+        help='Jumlah stok fisik di warehouse website UniTrade. Mengubah field ini akan membuat inventory adjustment.',
+    )
+    x_unitrade_free_qty = fields.Float(
+        string='Stok Tersedia Checkout',
+        compute='_compute_unitrade_stock_qty',
+        help='Stok yang masih tersedia untuk dijual, setelah memperhitungkan reservasi.',
+    )
+
+    def _unitrade_stock_warehouse(self):
+        company = self.env.company
+        website = self.env['website'].sudo().search([
+            ('company_id', '=', company.id),
+        ], limit=1)
+        warehouse_id = website._get_warehouse_available() if website else False
+        warehouse = self.env['stock.warehouse'].sudo().browse(warehouse_id).exists() if warehouse_id else False
+        if not warehouse:
+            warehouse = self.env['stock.warehouse'].sudo().search([('company_id', '=', company.id)], limit=1)
+        return warehouse
+
+    @api.depends('product_variant_ids.qty_available', 'product_variant_ids.free_qty')
+    def _compute_unitrade_stock_qty(self):
+        warehouse = self._unitrade_stock_warehouse()
+        warehouse_id = warehouse.id if warehouse else False
+        for record in self:
+            if not warehouse_id or not record.product_variant_id:
+                record.x_unitrade_stock_qty = 0
+                record.x_unitrade_free_qty = 0
+                continue
+            variant = record.product_variant_id.with_context(warehouse=warehouse_id)
+            record.x_unitrade_stock_qty = variant.qty_available
+            record.x_unitrade_free_qty = variant.free_qty
+
+    def _inverse_unitrade_stock_qty(self):
+        warehouse = self._unitrade_stock_warehouse()
+        if not warehouse or not warehouse.lot_stock_id:
+            raise ValidationError(_('Warehouse stok UniTrade belum tersedia. Pastikan modul Inventory aktif.'))
+
+        StockQuant = self.env['stock.quant'].sudo().with_context(inventory_mode=True)
+        for record in self:
+            if record.x_unitrade_stock_qty < 0:
+                raise ValidationError(_('Stok UniTrade tidak boleh negatif.'))
+            if len(record.product_variant_ids) != 1:
+                raise ValidationError(_('Stok UniTrade hanya bisa diatur dari form ini untuk produk tanpa varian.'))
+
+            if record.detailed_type != 'product':
+                record.with_context(skip_unitrade_stock_inverse=True).write({'detailed_type': 'product'})
+
+            product = record.product_variant_id
+            current_qty = product.with_context(warehouse=warehouse.id).qty_available
+            rounding = product.uom_id.rounding
+            if float_compare(record.x_unitrade_stock_qty, current_qty, precision_rounding=rounding) == 0:
+                continue
+
+            quant = StockQuant.create({
+                'product_id': product.id,
+                'location_id': warehouse.lot_stock_id.id,
+                'inventory_quantity': record.x_unitrade_stock_qty,
+            })
+            quant.action_apply_inventory()
+            _logger.info(
+                'UniTrade stock adjusted for product %s by %s: %s -> %s',
+                record.display_name,
+                self.env.user.name,
+                current_qty,
+                record.x_unitrade_stock_qty,
+            )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -108,15 +189,26 @@ class ProductTemplateUniTrade(models.Model):
                 vals.setdefault('sale_ok', True)
                 vals.setdefault('website_published', True)
                 if 'detailed_type' in self._fields:
-                    vals.setdefault('detailed_type', 'consu')
+                    vals.setdefault('detailed_type', 'product')
                 elif 'type' in self._fields:
-                    vals.setdefault('type', 'consu')
+                    vals.setdefault('type', 'product')
+                if 'allow_out_of_stock_order' in self._fields:
+                    vals.setdefault('allow_out_of_stock_order', False)
                 self._unitrade_fill_district_coordinates(vals)
         products = super().create(vals_list)
         products._unitrade_autofill_missing_item_coordinates()
         return products
 
     def write(self, vals):
+        if (
+            not self.env.context.get('skip_unitrade_stock_inverse')
+            and vals.get('x_is_marketplace')
+            and 'detailed_type' in self._fields
+            and 'detailed_type' not in vals
+        ):
+            vals = dict(vals, detailed_type='product')
+        if vals.get('x_is_marketplace') and 'allow_out_of_stock_order' in self._fields and 'allow_out_of_stock_order' not in vals:
+            vals = dict(vals, allow_out_of_stock_order=False)
         result = super().write(vals)
         if {
             'x_is_marketplace',
@@ -238,6 +330,7 @@ class ProductTemplateUniTrade(models.Model):
             'x_is_marketplace': True,
             'sale_ok': True,
             'website_published': True,
+            'allow_out_of_stock_order': False,
         })
         _logger.info('Published %s UniTrade product(s) by %s', len(self), self.env.user.name)
 
