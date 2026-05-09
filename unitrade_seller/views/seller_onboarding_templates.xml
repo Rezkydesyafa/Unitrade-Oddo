@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="seller_onboarding_template" name="Seller Onboarding">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="page_title"/>
+            <div id="wrap" class="ut-seller-onboarding tw-bg-[#f5f5f7] tw-font-['Urbanist']" style="background-color: #f5f5f7 !important;">
+                <div class="tw-mx-auto tw-flex tw-min-h-[760px] tw-w-full tw-max-w-[1440px] tw-items-start tw-justify-center tw-px-4 tw-pb-16 tw-pt-16 md:tw-px-8 md:tw-pt-[75px]">
+                    <section class="tw-relative tw-grid tw-w-full tw-max-w-[1121px] tw-overflow-hidden tw-rounded-[55px] tw-border tw-border-solid tw-border-[#e1e7ec] tw-bg-white tw-shadow-[0_8px_25.75px_rgba(0,0,0,0.07)] lg:tw-min-h-[625px] lg:tw-grid-cols-[1fr_397px]">
+                        <div class="tw-col-span-full tw-flex tw-justify-center tw-px-6 tw-pt-8 md:tw-px-10">
+                            <div class="tw-relative tw-grid tw-w-full tw-max-w-[620px] tw-grid-cols-4 tw-items-start tw-text-center tw-text-[11px] tw-font-semibold tw-text-[#6b7280]">
+                                <div class="tw-absolute tw-left-[12.5%] tw-right-[12.5%] tw-top-4 tw-h-px tw-bg-[#d8dde3]"></div>
+                                <div class="tw-relative tw-z-10 tw-flex tw-flex-col tw-items-center tw-gap-2">
+                                    <span class="tw-flex tw-size-8 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#212529] tw-text-white tw-shadow-[0_0_0_4px_#ffffff]">1</span>
+                                    <span class="tw-text-[#212529]">Onboarding</span>
+                                </div>
+                                <div class="tw-relative tw-z-10 tw-flex tw-flex-col tw-items-center tw-gap-2">
+                                    <span class="tw-flex tw-size-8 tw-items-center tw-justify-center tw-rounded-full tw-border tw-border-solid tw-border-[#d8dde3] tw-bg-white tw-text-[#8a929b] tw-shadow-[0_0_0_4px_#ffffff]">2</span>
+                                    <span>OTP</span>
+                                </div>
+                                <div class="tw-relative tw-z-10 tw-flex tw-flex-col tw-items-center tw-gap-2">
+                                    <span class="tw-flex tw-size-8 tw-items-center tw-justify-center tw-rounded-full tw-border tw-border-solid tw-border-[#d8dde3] tw-bg-white tw-text-[#8a929b] tw-shadow-[0_0_0_4px_#ffffff]">3</span>
+                                    <span>Upload KTM</span>
+                                </div>
+                                <div class="tw-relative tw-z-10 tw-flex tw-flex-col tw-items-center tw-gap-2">
+                                    <span class="tw-flex tw-size-8 tw-items-center tw-justify-center tw-rounded-full tw-border tw-border-solid tw-border-[#d8dde3] tw-bg-white tw-text-[#8a929b] tw-shadow-[0_0_0_4px_#ffffff]">4</span>
+                                    <span>Hasil</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tw-flex tw-min-h-[560px] tw-flex-col tw-px-8 tw-pb-10 tw-pt-10 md:tw-px-[43px] lg:tw-pb-[64px]">
+                            <a href="/" aria-label="Kembali" class="tw-flex tw-size-12 tw-items-center tw-justify-center tw-rounded-full tw-bg-black tw-text-white tw-no-underline tw-transition-colors hover:tw-bg-[#212529] hover:tw-text-white hover:tw-no-underline">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </a>
+
+                            <div class="tw-mt-[64px] tw-flex tw-h-[62px] tw-w-[70px] tw-items-center">
+                                <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="" class="tw-h-[62px] tw-w-auto tw-object-contain"/>
+                            </div>
+
+                            <p class="tw-mb-0 tw-mt-6 tw-text-[28px] tw-font-normal tw-leading-tight tw-text-black md:tw-text-[32px]">
+                                Mulai pejalanan bisnismu di
+                            </p>
+                            <h1 class="tw-mb-0 tw-mt-2 tw-text-[58px] tw-font-medium tw-leading-none tw-text-black md:tw-text-[92px]">
+                                UniTrade<span class="tw-font-bold">!</span>
+                            </h1>
+
+                            <p class="tw-mb-0 tw-mt-8 tw-max-w-[560px] tw-text-[16px] tw-font-normal tw-leading-[23px] tw-text-[#555b61]">
+                                Buka toko kampusmu, jangkau lebih banyak pembeli,<br class="tw-hidden sm:tw-block"/>
+                                dan kelola penjualan dengan mudah dalam satu tempat.
+                            </p>
+
+                            <form action="/seller-onboarding/start" method="post" class="tw-mt-[44px]">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <t t-if="error_message">
+                                    <div class="tw-mb-4 tw-rounded-[14px] tw-border tw-border-red-200 tw-bg-red-50 tw-px-4 tw-py-3 tw-text-[13px] tw-font-medium tw-text-red-700">
+                                        <t t-esc="error_message"/>
+                                    </div>
+                                </t>
+                                <button type="submit" class="tw-flex tw-h-12 tw-min-w-[107px] tw-items-center tw-justify-center tw-rounded-full tw-border tw-border-solid tw-border-black tw-bg-white tw-px-7 tw-text-[16px] tw-font-normal tw-text-black tw-transition-colors hover:tw-bg-[#f5f5f7]">
+                                    Lanjut
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="tw-flex tw-items-center tw-justify-center tw-px-8 tw-pb-12 lg:tw-px-0 lg:tw-pb-0 lg:tw-pr-[120px]">
+                            <img src="/unitrade_seller/static/src/img/seller-onboarding-hero.png" alt="Ilustrasi mulai berjualan di UniTrade" class="tw-h-auto tw-w-full tw-max-w-[397px] tw-object-cover tw-shadow-[0_4px_8.9px_rgba(0,0,0,0.07)]"/>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

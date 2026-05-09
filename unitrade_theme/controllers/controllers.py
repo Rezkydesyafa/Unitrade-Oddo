@@ -191,7 +191,19 @@ class UnitradeAuthSignup(OAuthLogin):
         """Generate OTP, send it, store session, and redirect to verify page."""
         try:
             otp_model = request.env['unitrade.otp'].sudo()
-            otp_record = otp_model.generate_otp(user_sudo.id, login_value)
+            limit = otp_model.rate_limit_status(
+                user_sudo.id,
+                purpose=purpose,
+                window_minutes=10,
+                max_attempts=3,
+            )
+            if not limit['allowed']:
+                message = urls.url_quote(_('Terlalu banyak permintaan OTP. Coba lagi dalam 10 menit.'))
+                if purpose == 'seller_onboarding':
+                    return request.redirect('/seller-onboarding?error=otp_rate_limit')
+                return request.redirect('/web/login?error=%s' % message)
+
+            otp_record = otp_model.generate_otp(user_sudo.id, login_value, purpose=purpose)
             otp_code = otp_record.code
 
             is_email_login = _is_email(login_value)
@@ -349,7 +361,16 @@ class UnitradeAuthSignup(OAuthLogin):
         try:
             user = request.env['res.users'].sudo().browse(user_id)
             otp_model = request.env['unitrade.otp'].sudo()
-            otp_record = otp_model.generate_otp(user_id, email)
+            purpose = request.session.get('otp_purpose', 'account_verification')
+            limit = otp_model.rate_limit_status(user_id, purpose=purpose, window_minutes=10, max_attempts=3)
+            if not limit['allowed']:
+                return {'success': False, 'message': 'Terlalu banyak permintaan OTP. Coba lagi dalam 10 menit.'}
+
+            otp_record = otp_model.generate_otp(
+                user_id,
+                email,
+                purpose=purpose,
+            )
 
             self._send_otp_email_direct(email, otp_record.code)
 
@@ -403,11 +424,33 @@ class UnitradeOTPController(http.Controller):
             'is_phone': _is_phone(email),
             'is_email': _is_email(email),
             'otp_code_dev': otp_code_dev,  # Dev only
-            'otp_title': _('Verifikasi Password') if purpose == 'settings_password_reset' else _('Verifikasi Akun'),
-            'otp_submit_label': _('Lanjutkan') if purpose == 'settings_password_reset' else _('Verifikasi akun'),
-            'otp_email_message': _('Kami telah mengirimkan kode OTP 6 digit ke email Anda untuk memverifikasi permintaan ubah password.') if purpose == 'settings_password_reset' else _('Kami telah mengirimkan kode verifikasi 6 digit ke email Anda'),
-            'otp_back_url': '/my/settings' if purpose == 'settings_password_reset' else '/web/login',
-            'otp_back_label': _('Kembali ke pengaturan') if purpose == 'settings_password_reset' else _('Back to login'),
+            'otp_title': (
+                _('Verifikasi Password') if purpose == 'settings_password_reset'
+                else _('Verifikasi Penjual') if purpose == 'seller_onboarding'
+                else _('Verifikasi Akun')
+            ),
+            'otp_submit_label': (
+                _('Lanjutkan') if purpose in ('settings_password_reset', 'seller_onboarding')
+                else _('Verifikasi akun')
+            ),
+            'otp_email_message': (
+                _('Kami telah mengirimkan kode OTP 6 digit ke email Anda untuk memverifikasi permintaan ubah password.')
+                if purpose == 'settings_password_reset'
+                else _('Kami telah mengirimkan kode OTP 6 digit ke email Anda untuk melanjutkan verifikasi penjual.')
+                if purpose == 'seller_onboarding'
+                else _('Kami telah mengirimkan kode verifikasi 6 digit ke email Anda')
+            ),
+            'otp_back_url': (
+                '/my/settings' if purpose == 'settings_password_reset'
+                else '/seller-onboarding' if purpose == 'seller_onboarding'
+                else '/web/login'
+            ),
+            'otp_back_label': (
+                _('Kembali ke pengaturan') if purpose == 'settings_password_reset'
+                else _('Kembali ke onboarding') if purpose == 'seller_onboarding'
+                else _('Back to login')
+            ),
+            'otp_purpose': purpose,
             'error': kw.get('error', ''),
         }
         return request.render('unitrade_theme.verify_otp_page', values)
@@ -428,11 +471,11 @@ class UnitradeOTPController(http.Controller):
         if len(code) != 6:
             return request.redirect('/web/verify-otp?error=Masukkan 6 digit kode verifikasi')
 
+        purpose = request.session.get('otp_purpose', 'account_verification')
         otp_model = request.env['unitrade.otp'].sudo()
-        is_valid = otp_model.verify_otp(user_id, code)
+        is_valid = otp_model.verify_otp(user_id, code, purpose=purpose)
 
         if is_valid:
-            purpose = request.session.get('otp_purpose', 'account_verification')
             if purpose == 'settings_password_reset':
                 user = request.env['res.users'].sudo().browse(user_id)
                 try:
@@ -449,6 +492,20 @@ class UnitradeOTPController(http.Controller):
                 for key in ('otp_user_id', 'otp_email', 'otp_code_dev', 'otp_sent_via', 'otp_purpose'):
                     request.session.pop(key, None)
                 return request.redirect('/web/reset_password')
+
+            if purpose == 'seller_onboarding':
+                user = request.env['res.users'].sudo().browse(user_id)
+                request.session.uid = user_id
+                request.session.login = user.login
+                request.session.db = request.db
+                request.update_env(user=user_id)
+                request.session.session_token = security.compute_session_token(request.session, request.env)
+                request.session.rotate = True
+                request.session['seller_onboarding_otp_verified'] = True
+                request.session['otp_verified'] = True
+                for key in ('otp_user_id', 'otp_email', 'otp_code_dev', 'otp_sent_via', 'otp_purpose'):
+                    request.session.pop(key, None)
+                return request.redirect('/seller-verification')
 
             # Mark user as verified
             try:
@@ -486,7 +543,16 @@ class UnitradeOTPController(http.Controller):
         try:
             user = request.env['res.users'].sudo().browse(user_id)
             otp_model = request.env['unitrade.otp'].sudo()
-            otp_record = otp_model.generate_otp(user_id, email)
+            purpose = request.session.get('otp_purpose', 'account_verification')
+            limit = otp_model.rate_limit_status(user_id, purpose=purpose, window_minutes=10, max_attempts=3)
+            if not limit['allowed']:
+                return {'success': False, 'message': 'Terlalu banyak permintaan OTP. Coba lagi dalam 10 menit.'}
+
+            otp_record = otp_model.generate_otp(
+                user_id,
+                email,
+                purpose=purpose,
+            )
 
             if _is_email(email):
                 signup_ctrl = UnitradeAuthSignup()

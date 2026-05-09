@@ -10,13 +10,13 @@
         <xpath expr="//header" position="replace">
             <header class="tw-w-full tw-z-50 tw-mb-6 md:tw-mb-8 tw-sticky tw-top-0">
                 <!-- Top Bar -->
-                <div class="tw-w-full tw-bg-[#f5f5f7] tw-h-[40px] tw-flex tw-items-center tw-justify-between tw-px-4 md:tw-px-8 tw-text-[#1d1d1f] tw-text-[13px] tw-font-['Urbanist']">
+                <div class="tw-w-full tw-bg-white tw-h-[40px] tw-flex tw-items-center tw-justify-between tw-px-4 md:tw-px-8 tw-text-[#1d1d1f] tw-text-[13px] tw-font-['Urbanist']" style="background-color: #FFFFFF !important;">
                     <!-- Left Section -->
                     <div class="tw-flex tw-items-center tw-gap-3">
                         <span class="tw-font-medium">Gratis Ongkir + Diskon 30%</span>
                         <a href="/shop" class="tw-text-[#1d1d1f] hover:tw-text-[#000000] hover:tw-underline tw-transition-colors tw-no-underline tw-font-bold">Belanja Sekarang &amp;rarr;</a>
                         <span class="tw-text-gray-300 tw-mx-1">|</span>
-                        <a href="/seller/register" class="tw-text-[#1d1d1f] hover:tw-text-[#000000] hover:tw-underline tw-transition-colors tw-no-underline tw-font-bold">Mulai Berjualan</a>
+                        <a href="/seller-onboarding" class="tw-text-[#1d1d1f] hover:tw-text-[#000000] hover:tw-underline tw-transition-colors tw-no-underline tw-font-bold">Mulai Berjualan</a>
                     </div>
                     
                     <!-- Right Section -->
@@ -115,7 +115,7 @@
                                             </a>
                                         </t>
                                         <t t-else="">
-                                            <a href="/seller-verification" class="tw-flex tw-items-center tw-gap-3 tw-px-4 tw-py-2.5 tw-rounded-xl hover:tw-bg-white/10 tw-transition-colors tw-group/item tw-no-underline tw-mt-1">
+                                            <a href="/seller-onboarding" class="tw-flex tw-items-center tw-gap-3 tw-px-4 tw-py-2.5 tw-rounded-xl hover:tw-bg-white/10 tw-transition-colors tw-group/item tw-no-underline tw-mt-1">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-[18px] tw-h-[18px] tw-text-gray-300 group-hover/item:tw-text-[#fffffc]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                                                 <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[15px] tw-text-gray-300 group-hover/item:tw-text-[#fffffc]">Jadilah penjual</span>
                                             </a>
@@ -247,7 +247,7 @@
                             <div class="tw-min-w-0">
                                 <h4 class="tw-font-semibold tw-text-[#212529] tw-mb-6 tw-text-[15px]">Jual</h4>
                                 <ul class="tw-flex tw-flex-col tw-gap-4 tw-text-sm tw-text-gray-500 tw-p-0 tw-m-0 tw-list-none">
-                                    <li class="tw-leading-5"><a href="/unitrade/seller/register" class="tw-block tw-whitespace-nowrap hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Daftar Toko</a></li>
+                                    <li class="tw-leading-5"><a href="/seller-onboarding" class="tw-block tw-whitespace-nowrap hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Daftar Toko</a></li>
                                 </ul>
                             </div>
                             <div class="tw-min-w-0">

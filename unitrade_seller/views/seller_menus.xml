@@ -13,8 +13,27 @@
         <field name="domain">[('status', '=', 'pending')]</field>
     </record>
 
+    <record id="action_unitrade_seller_reported" model="ir.actions.act_window">
+        <field name="name">Seller Dilaporkan</field>
+        <field name="res_model">unitrade.seller</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('report_state', 'in', ('reported', 'under_review'))]</field>
+        <field name="context">{'search_default_filter_reported': 1}</field>
+    </record>
+
+    <record id="action_server_revoke_seller_verification" model="ir.actions.server">
+        <field name="name">Cabut Verifikasi Seller</field>
+        <field name="model_id" ref="model_unitrade_seller"/>
+        <field name="binding_model_id" ref="model_unitrade_seller"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="groups_id" eval="[(4, ref('base.group_system')), (4, ref('unitrade_seller.group_unitrade_admin'))]"/>
+        <field name="state">code</field>
+        <field name="code">records.action_revoke_seller_verification()</field>
+    </record>
+
     <menuitem id="menu_unitrade_root" name="UniTrade" sequence="100" web_icon="unitrade_seller,static/description/icon.png"/>
     <menuitem id="menu_unitrade_sellers" name="Penjual" parent="menu_unitrade_root" sequence="10"/>
     <menuitem id="menu_unitrade_seller_list" name="Daftar Penjual" parent="menu_unitrade_sellers" action="action_unitrade_seller" sequence="10"/>
     <menuitem id="menu_unitrade_seller_pending" name="Menunggu Verifikasi" parent="menu_unitrade_sellers" action="action_unitrade_seller_pending" sequence="20"/>
+    <menuitem id="menu_unitrade_seller_reported" name="Seller Dilaporkan" parent="menu_unitrade_sellers" action="action_unitrade_seller_reported" sequence="25" groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
 </odoo>

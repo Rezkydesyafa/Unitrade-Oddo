@@ -1,19 +1,129 @@
 # -*- coding: utf-8 -*-
 from odoo import http, fields
 from odoo.http import request
+from odoo.addons.unitrade_theme.controllers.controllers import UnitradeAuthSignup
 import logging
 import json
 import base64
 import os
+import io
+from datetime import timedelta
 
 _logger = logging.getLogger(__name__)
 
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png'}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+MIN_IMAGE_WIDTH = 600
+MIN_IMAGE_HEIGHT = 350
+UPLOAD_RATE_LIMIT = 5
+UPLOAD_RATE_WINDOW_MINUTES = 15
 
 
 class SellerVerificationController(http.Controller):
     """Controller for seller KTM verification flow."""
+
+    @staticmethod
+    def _verified_seller_for_current_user():
+        return request.env['unitrade.seller'].sudo().search([
+            ('user_id', '=', request.env.uid),
+            ('status', '=', 'verified'),
+        ], limit=1)
+
+    @staticmethod
+    def _seller_contact_value(user):
+        return (user.email or user.partner_id.email or user.login or '').strip()
+
+    @staticmethod
+    def _seller_otp_verified():
+        return bool(request.session.get('seller_onboarding_otp_verified'))
+
+    @staticmethod
+    def _rejection_message(reason):
+        messages = {
+            'nim_not_extracted': 'NIM tidak terbaca. Pastikan nomor NIM pada KTM terlihat jelas dan tidak terpotong.',
+            'name_token_not_matched': 'Nama tidak cocok. Pastikan KTM yang diupload adalah milik Anda dan nama pada KTM terlihat jelas.',
+            'name_token_low_confidence': 'Nama pada KTM kurang jelas. Pengajuan masuk ke review manual admin.',
+            'nim_not_in_db': 'NIM tidak ditemukan di database mahasiswa UNISA. Pastikan NIM pada KTM terbaca jelas.',
+            'nim_already_used': 'NIM sudah digunakan oleh akun penjual lain.',
+            'ocr_empty': 'KTM buram atau tidak terbaca. Upload ulang foto KTM dengan pencahayaan lebih baik.',
+            'no_ktm_keywords': 'Gambar tidak terlihat seperti KTM. Pastikan seluruh kartu KTM masuk dalam frame.',
+            'image_too_small': 'Resolusi foto terlalu kecil. Upload foto KTM yang lebih jelas.',
+            'vision_api_failed': 'Sistem OCR sedang bermasalah. Coba lagi beberapa saat lagi.',
+        }
+        if reason and reason.startswith('vision_api_failed'):
+            return messages['vision_api_failed']
+        return messages.get(reason, 'Pengajuan ditolak. Pastikan NIM dan nama pada KTM sesuai data mahasiswa UNISA.')
+
+    @staticmethod
+    def _check_upload_rate_limit(verification):
+        now = fields.Datetime.now()
+        window_start = verification.upload_window_start if verification else False
+        if window_start and now - window_start < timedelta(minutes=UPLOAD_RATE_WINDOW_MINUTES):
+            if verification.upload_attempt_count >= UPLOAD_RATE_LIMIT:
+                return False
+            verification.sudo().write({
+                'upload_attempt_count': verification.upload_attempt_count + 1,
+            })
+            return True
+
+        if verification:
+            verification.sudo().write({
+                'upload_window_start': now,
+                'upload_attempt_count': 1,
+            })
+        return True
+
+    @staticmethod
+    def _image_dimensions(file_bytes):
+        try:
+            from PIL import Image
+            image = Image.open(io.BytesIO(file_bytes))
+            image.verify()
+            return image.size
+        except ImportError:
+            _logger.warning('Pillow is not available; skipping KTM image dimension validation.')
+            return None, None
+        except Exception:
+            return 0, 0
+
+    @http.route('/seller-onboarding', type='http', auth='user', website=True, sitemap=False)
+    def seller_onboarding_page(self, **kw):
+        """Render the seller onboarding page before OTP and KTM upload."""
+        if self._verified_seller_for_current_user():
+            return request.redirect('/seller/dashboard')
+
+        error_message = ''
+        if kw.get('error') == 'otp_rate_limit':
+            error_message = 'Terlalu banyak permintaan OTP. Coba lagi dalam 10 menit.'
+
+        return request.render('unitrade_seller.seller_onboarding_template', {
+            'page_title': 'Mulai Berjualan - UniTrade',
+            'error_message': error_message,
+        })
+
+    @http.route('/seller-onboarding/start', type='http', auth='user', website=True, methods=['POST'], csrf=True, sitemap=False)
+    def seller_onboarding_start(self, **kw):
+        """Start a fresh seller OTP challenge, then continue to the shared OTP page."""
+        if self._verified_seller_for_current_user():
+            return request.redirect('/seller/dashboard')
+
+        user = request.env.user.sudo()
+        request.session.pop('seller_onboarding_otp_verified', None)
+        contact = self._seller_contact_value(user)
+        otp_limit = request.env['unitrade.otp'].sudo().rate_limit_status(
+            user.id,
+            purpose='seller_onboarding',
+            window_minutes=10,
+            max_attempts=3,
+        )
+        if not otp_limit['allowed']:
+            return request.redirect('/seller-onboarding?error=otp_rate_limit')
+
+        return UnitradeAuthSignup()._generate_and_redirect_otp(
+            user,
+            contact,
+            purpose='seller_onboarding',
+        )
 
     @http.route('/seller-verification', type='http', auth='user', website=True, sitemap=False)
     def seller_verification_page(self, **kw):
@@ -22,6 +132,11 @@ class SellerVerificationController(http.Controller):
         Render the seller verification page with partner and verification context.
         """
         try:
+            if self._verified_seller_for_current_user():
+                return request.redirect('/seller/dashboard')
+            if not self._seller_otp_verified():
+                return request.redirect('/seller-onboarding')
+
             partner = request.env.user.partner_id
             verification = request.env['unitrade.seller.verification'].sudo().search([
                 ('partner_id', '=', partner.id),
@@ -51,8 +166,26 @@ class SellerVerificationController(http.Controller):
         with full debug info for frontend popup display.
         """
         try:
+            if not self._seller_otp_verified():
+                return self._json_response({
+                    'status': 'otp_required',
+                    'message': 'Verifikasi OTP diperlukan sebelum upload KTM.',
+                    'redirect_url': '/seller-onboarding',
+                })
+
             partner = request.env.user.partner_id
             ktm_file = kw.get('ktm_file')
+            Verification = request.env['unitrade.seller.verification'].sudo()
+            existing = Verification.search([
+                ('partner_id', '=', partner.id),
+            ], limit=1)
+
+            if not self._check_upload_rate_limit(existing):
+                return self._json_response({
+                    'status': 'rate_limited',
+                    'message': 'Terlalu banyak percobaan upload KTM. Coba lagi dalam 15 menit.',
+                    'reason': 'upload_rate_limited',
+                })
 
             # --- File Validation ---
             if not ktm_file:
@@ -77,6 +210,14 @@ class SellerVerificationController(http.Controller):
                     'message': f'Ukuran file terlalu besar ({size_mb:.1f} MB). Maksimal 5 MB.',
                 })
 
+            image_width, image_height = self._image_dimensions(file_bytes)
+            if image_width is not None and (image_width < MIN_IMAGE_WIDTH or image_height < MIN_IMAGE_HEIGHT):
+                return self._json_response({
+                    'status': 'invalid_image',
+                    'message': self._rejection_message('image_too_small'),
+                    'reason': 'image_too_small',
+                })
+
             # --- Step 1: Encode and save as ir.attachment ---
             file_b64 = base64.b64encode(file_bytes)
 
@@ -96,6 +237,24 @@ class SellerVerificationController(http.Controller):
             )
 
             verification_status = ocr_result.get('verification_status', 'rejected')
+            nim = ocr_result.get('nim') or ocr_result.get('student_nim') or ''
+            duplicate_seller = request.env['unitrade.seller'].sudo().browse()
+            if verification_status in ('approved', 'manual_review') and nim:
+                duplicate_seller = request.env['unitrade.seller'].sudo().search([
+                    ('nim', '=', nim),
+                    ('status', '=', 'verified'),
+                    ('user_id', '!=', request.env.uid),
+                ], limit=1)
+                if duplicate_seller:
+                    verification_status = 'rejected'
+                    ocr_result['verification_status'] = 'rejected'
+                    ocr_result['reason'] = 'nim_already_used'
+                    _logger.info(
+                        '[CONTROLLER] Seller verification rejected for user %s: NIM %s already used by seller %s',
+                        request.env.uid,
+                        nim,
+                        duplicate_seller.id,
+                    )
             _logger.info(
                 '[CONTROLLER] OCR result for %s: status=%s, nim=%s, name=%s, reason=%s',
                 partner.name,
@@ -105,34 +264,12 @@ class SellerVerificationController(http.Controller):
                 ocr_result.get('reason'),
             )
 
-            # --- Step 3: Handle "no KTM keywords" → invalid_image popup ---
-            if verification_status == 'invalid_image':
-                return self._json_response({
-                    'status': 'invalid_image',
-                    'message': 'Gambar Tidak Sesuai, coba lagi',
-                    'ocr_text': ocr_result.get('ocr_text', '')[:300],
-                    'nim': None,
-                    'name': None,
-                    'found': False,
-                    'reason': ocr_result.get('reason', ''),
-                })
-
-            # --- Step 4: Handle "no name detected" → no_name popup ---
-            if verification_status == 'no_name':
-                return self._json_response({
-                    'status': 'no_name',
-                    'message': 'Pastikan upload foto KTM',
-                    'ocr_text': ocr_result.get('ocr_text', '')[:300],
-                    'nim': ocr_result.get('nim'),
-                    'name': None,
-                    'found': False,
-                    'reason': ocr_result.get('reason', ''),
-                })
-
-            # --- Step 5: Create or update verification record ---
-            existing = request.env['unitrade.seller.verification'].sudo().search([
-                ('partner_id', '=', partner.id),
-            ], limit=1)
+            reason = ocr_result.get('reason', '')
+            rejected_message = self._rejection_message(reason)
+            record_state = {
+                'approved': 'approved',
+                'manual_review': 'manual_review',
+            }.get(verification_status, 'rejected')
 
             vals = {
                 'partner_id': partner.id,
@@ -143,22 +280,35 @@ class SellerVerificationController(http.Controller):
                 'nim_extracted': ocr_result.get('nim'),
                 'nim_valid': bool(ocr_result.get('nim')),
                 'nim_registered': ocr_result.get('nim_registered', False),
-                'state': 'approved' if verification_status == 'approved' else 'rejected',
+                'student_name': ocr_result.get('student_name') or '',
+                'name_match_token': ocr_result.get('name_match_token') or '',
+                'name_confidence': ocr_result.get('name_match_score') or 0.0,
+                'confidence_flag': 'high' if (ocr_result.get('name_match_score') or 0.0) >= 0.9 else 'low',
+                'duplicate_seller_id': duplicate_seller.id if duplicate_seller else False,
+                'duplicate_warning': bool(duplicate_seller),
+                'image_width': image_width or 0,
+                'image_height': image_height or 0,
+                'rejection_reason': rejected_message if record_state == 'rejected' else False,
+                'review_note': rejected_message if record_state == 'manual_review' else False,
+                'state': record_state,
             }
 
             if existing:
-                existing.sudo().write(vals)
+                verification = existing
+                verification.sudo().write(vals)
             else:
-                request.env['unitrade.seller.verification'].sudo().create(vals)
+                vals.update({
+                    'upload_window_start': fields.Datetime.now(),
+                    'upload_attempt_count': 1,
+                })
+                verification = Verification.create(vals)
 
             # --- Step 6: Return JSON with debug info ---
             if verification_status == 'approved':
                 # Mark user as verified seller
                 user = request.env.user
-                user.sudo().write({'x_is_seller': True})
 
                 # Create or update unitrade.seller record
-                nim = ocr_result.get('nim') or ocr_result.get('student_nim') or ''
                 seller = request.env['unitrade.seller'].sudo().search([
                     ('user_id', '=', user.id),
                 ], limit=1)
@@ -172,8 +322,11 @@ class SellerVerificationController(http.Controller):
                     'ocr_confidence': 100.0,
                     'ocr_nim_match': bool(nim),
                     'ocr_name_match': True,
+                    'ocr_student_name': ocr_result.get('student_name') or '',
+                    'ocr_name_match_token': ocr_result.get('name_match_token') or '',
                     'status': 'verified',
                     'verified_date': fields.Datetime.now(),
+                    'verified_by': request.env.uid,
                 }
 
                 if seller:
@@ -181,12 +334,23 @@ class SellerVerificationController(http.Controller):
                     _logger.info('[CONTROLLER] Updated seller record %s for %s', seller.id, partner.name)
                 else:
                     seller = request.env['unitrade.seller'].sudo().create(seller_vals)
-                    user.sudo().write({'x_seller_id': seller.id})
                     _logger.info('[CONTROLLER] Created seller record %s for %s', seller.id, partner.name)
+
+                user.sudo().write({
+                    'x_is_seller': True,
+                    'x_seller_id': seller.id,
+                })
+                template = request.env.ref(
+                    'unitrade_seller.mail_template_seller_verified',
+                    raise_if_not_found=False,
+                )
+                if template:
+                    template.sudo().send_mail(seller.id, force_send=True)
+                request.session.pop('seller_onboarding_otp_verified', None)
 
                 return self._json_response({
                     'status': 'approved',
-                    'message': 'Verifikasi Berhasil ✅',
+                    'message': 'Verifikasi berhasil. Akun Anda sekarang sudah menjadi penjual.',
                     'ocr_text': ocr_result.get('ocr_text', '')[:300],
                     'nim': ocr_result.get('nim', ''),
                     'name': ocr_result.get('name_detected', ''),
@@ -194,16 +358,30 @@ class SellerVerificationController(http.Controller):
                     'found': True,
                     'reason': ocr_result.get('reason', ''),
                 })
-            else:
+
+            if verification_status == 'manual_review':
+                verification._send_verification_template('unitrade_seller.mail_template_seller_verification_manual_review')
                 return self._json_response({
-                    'status': 'rejected',
-                    'message': 'Pengajuan Ditolak ❌\nPastikan Anda mahasiswa UNISA',
+                    'status': 'manual_review',
+                    'message': 'KTM berhasil dikirim dan masuk review manual admin karena nama kurang jelas.',
                     'ocr_text': ocr_result.get('ocr_text', '')[:300],
                     'nim': ocr_result.get('nim', ''),
                     'name': ocr_result.get('name_detected', ''),
-                    'found': False,
+                    'student_name': ocr_result.get('student_name', ''),
+                    'found': True,
                     'reason': ocr_result.get('reason', ''),
                 })
+
+            verification._send_verification_template('unitrade_seller.mail_template_seller_verification_rejected')
+            return self._json_response({
+                'status': 'invalid_image' if verification_status == 'invalid_image' else 'rejected',
+                'message': rejected_message,
+                'ocr_text': ocr_result.get('ocr_text', '')[:300],
+                'nim': ocr_result.get('nim', ''),
+                'name': ocr_result.get('name_detected', ''),
+                'found': False,
+                'reason': reason,
+            })
 
         except Exception as e:
             _logger.exception('KTM verification failed: %s', e)
@@ -235,6 +413,7 @@ class SellerVerificationController(http.Controller):
             return {
                 'state': record.state,
                 'nim_extracted': record.nim_extracted or '',
+                'reason': record.rejection_reason or record.review_note or '',
             }
 
         except Exception as e:

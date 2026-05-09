@@ -20,6 +20,7 @@
         'data/mail_template.xml',
         'data/demo_students.xml',
         'views/seller_views.xml',
+        'views/seller_onboarding_templates.xml',
         'views/seller_templates.xml',
         'views/seller_menus.xml',
         'views/seller_verification_views.xml',

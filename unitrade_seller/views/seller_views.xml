@@ -10,10 +10,13 @@
         <field name="name">unitrade.seller.tree</field>
         <field name="model">unitrade.seller</field>
         <field name="arch" type="xml">
-            <tree string="Daftar Penjual" decoration-success="status == 'verified'" decoration-danger="status == 'rejected'" decoration-warning="status == 'pending'">
+            <tree string="Daftar Penjual" decoration-success="status == 'verified'" decoration-danger="status in ('rejected', 'revoked')" decoration-warning="status == 'pending' or report_state in ('reported', 'under_review')">
                 <field name="name"/>
                 <field name="nim"/>
-                <field name="status" widget="badge" decoration-success="status == 'verified'" decoration-danger="status == 'rejected'" decoration-warning="status == 'pending'" decoration-info="status == 'draft'"/>
+                <field name="status" widget="badge" decoration-success="status == 'verified'" decoration-danger="status in ('rejected', 'revoked')" decoration-warning="status == 'pending'" decoration-info="status == 'draft'"/>
+                <field name="report_state" widget="badge" decoration-warning="report_state in ('reported', 'under_review')" decoration-success="report_state == 'resolved'" decoration-muted="report_state == 'none'"/>
+                <field name="report_count"/>
+                <field name="last_reported_at"/>
                 <field name="ocr_confidence" widget="progressbar"/>
                 <field name="ocr_nim_match"/>
                 <field name="ocr_name_match"/>
@@ -33,8 +36,11 @@
                     <button name="action_submit_verification" string="Submit Verifikasi" type="object" class="btn-primary" invisible="status != 'draft'"/>
                     <button name="action_verify" string="✅ Approve" type="object" class="btn-success" invisible="status != 'pending'" groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
                     <button name="action_reject" string="❌ Reject" type="object" class="btn-danger" invisible="status != 'pending'" groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
+                    <button name="action_start_report_review" string="Mulai Review Laporan" type="object" class="btn-primary" invisible="report_state != 'reported'" groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
+                    <button name="action_mark_report_resolved" string="Tandai Laporan Selesai" type="object" invisible="report_state not in ('reported', 'under_review')" groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
+                    <button name="action_revoke_seller_verification" string="Cabut Verifikasi Seller" type="object" class="btn-danger" invisible="status != 'verified'" confirm="Cabut verifikasi seller ini? User akan menjadi user biasa lagi dan produk marketplace seller akan dinonaktifkan." groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
                     <button name="action_reset_to_draft" string="Reset ke Draft" type="object" invisible="status not in ('rejected',)" groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
-                    <field name="status" widget="statusbar" statusbar_visible="draft,pending,verified"/>
+                    <field name="status" widget="statusbar" statusbar_visible="draft,pending,verified,rejected,revoked"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -79,6 +85,20 @@
                         <field name="verified_date"/>
                         <field name="verified_by"/>
                     </group>
+                    <group string="Laporan &amp; Moderasi">
+                        <group>
+                            <field name="report_state"/>
+                            <field name="report_count"/>
+                            <field name="last_reported_at"/>
+                            <field name="last_report_reason"/>
+                        </group>
+                        <group>
+                            <field name="report_admin_note" placeholder="Catatan internal admin saat meninjau laporan seller."/>
+                            <field name="revoke_reason" placeholder="Alasan cabut verifikasi. Jika kosong, sistem memakai alasan laporan terakhir."/>
+                            <field name="revoked_date"/>
+                            <field name="revoked_by"/>
+                        </group>
+                    </group>
                     <notebook>
                         <page string="Statistik" name="stats">
                             <group>
@@ -115,10 +135,13 @@
                 <filter name="filter_pending" string="Menunggu Verifikasi" domain="[('status', '=', 'pending')]"/>
                 <filter name="filter_verified" string="Terverifikasi" domain="[('status', '=', 'verified')]"/>
                 <filter name="filter_rejected" string="Ditolak" domain="[('status', '=', 'rejected')]"/>
+                <filter name="filter_revoked" string="Verifikasi Dicabut" domain="[('status', '=', 'revoked')]"/>
+                <filter name="filter_reported" string="Dilaporkan" domain="[('report_state', 'in', ('reported', 'under_review'))]"/>
                 <separator/>
                 <filter name="filter_low_ocr" string="OCR &lt; 70%" domain="[('ocr_confidence', '&lt;', 70)]"/>
                 <group expand="0" string="Group By">
                     <filter name="group_status" string="Status" context="{'group_by': 'status'}"/>
+                    <filter name="group_report_state" string="Status Laporan" context="{'group_by': 'report_state'}"/>
                     <filter name="group_date" string="Tanggal Daftar" context="{'group_by': 'create_date:month'}"/>
                 </group>
             </search>

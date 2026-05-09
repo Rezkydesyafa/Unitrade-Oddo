@@ -621,7 +621,7 @@ class UnitradeSellerController(http.Controller):
             ('status', '=', 'verified'),
         ], limit=1)
         if not seller:
-            return request.redirect('/seller-verification')
+            return request.redirect('/seller-onboarding')
         return request.redirect('/seller-profile/%s' % self._seller_public_ref(seller))
 
     @http.route([
@@ -684,6 +684,12 @@ class UnitradeSellerController(http.Controller):
         body = Markup('Seller dilaporkan oleh %s: %s') % (escape(request.env.user.name), escape(reason))
         if attachments:
             body += Markup('<br/>Media pendukung: %s gambar.') % len(attachments)
+        seller.sudo().write({
+            'report_state': 'reported',
+            'report_count': seller.report_count + 1,
+            'last_reported_at': fields.Datetime.now(),
+            'last_report_reason': reason,
+        })
         seller.message_post(body=body, subtype_xmlid='mail.mt_note', attachments=attachments, body_is_html=True)
         _logger.info(
             'Seller %s reported by user %s with %s media attachment(s)',
@@ -695,13 +701,13 @@ class UnitradeSellerController(http.Controller):
 
     @http.route(['/unitrade/seller/register', '/seller/register'], type='http', auth='user', website=True)
     def seller_register_page(self, **kwargs):
-        """Keep the old seller URL as an alias for the current verification flow."""
-        return request.redirect('/seller-verification')
+        """Keep the old seller URL as an alias for the onboarding flow."""
+        return request.redirect('/seller-onboarding')
 
     @http.route('/unitrade/seller/register/submit', type='http', auth='user', website=True, methods=['POST'], csrf=True)
     def seller_register_submit(self, **kwargs):
         """Keep the old submit URL from creating a second verification path."""
-        return request.redirect('/seller-verification')
+        return request.redirect('/seller-onboarding')
 
     @http.route([
         '/unitrade/seller/dashboard',
@@ -712,7 +718,7 @@ class UnitradeSellerController(http.Controller):
         """Render the standalone seller dashboard app shell."""
         seller = self._dashboard_seller()
         if not seller:
-            return request.redirect('/seller-verification')
+            return request.redirect('/seller-onboarding')
 
         return request.render(
             'unitrade_seller.seller_dashboard_template',

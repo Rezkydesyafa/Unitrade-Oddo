@@ -67,7 +67,9 @@ class ResUsersUniTrade(models.Model):
                 self.x_otp_attempts = 0
 
         otp_record = self.env['unitrade.otp'].sudo().generate_otp(
-            self.id, self.email or self.login
+            self.id,
+            self.email or self.login,
+            purpose='account_verification',
         )
 
         self.write({
@@ -82,7 +84,7 @@ class ResUsersUniTrade(models.Model):
             raise_if_not_found=False,
         )
         if template:
-            template.send_mail(self.id, force_send=True)
+            template.sudo().send_mail(self.id, force_send=True)
             _logger.info('OTP sent to user %s (%s)', self.name, self.email)
             self.write({'x_otp_code': False})
         else:
@@ -101,7 +103,11 @@ class ResUsersUniTrade(models.Model):
         if self.x_otp_expiry and self.x_otp_expiry < fields.Datetime.now():
             raise ValidationError(_('Kode OTP sudah kadaluarsa. Kirim ulang OTP.'))
 
-        if not self.env['unitrade.otp'].sudo().verify_otp(self.id, otp_input):
+        if not self.env['unitrade.otp'].sudo().verify_otp(
+            self.id,
+            otp_input,
+            purpose='account_verification',
+        ):
             raise ValidationError(_('Kode OTP tidak valid. Silakan coba lagi.'))
 
         # OTP verified

@@ -12,6 +12,30 @@
                 <!-- OTP Card -->
                 <div class="tw-w-[448px] tw-max-w-[95vw] tw-bg-white tw-border tw-border-[#e5e5e5] tw-rounded-[8px] tw-shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] tw-p-[32px]">
 
+                    <t t-if="otp_purpose == 'seller_onboarding'">
+                        <div class="tw-mb-8 tw-flex tw-justify-center">
+                            <div class="tw-relative tw-grid tw-w-full tw-max-w-[420px] tw-grid-cols-4 tw-items-start tw-text-center tw-text-[10px] tw-font-semibold tw-text-[#6b7280]">
+                                <div class="tw-absolute tw-left-[12.5%] tw-right-[12.5%] tw-top-4 tw-h-px tw-bg-[#d8dde3]"></div>
+                                <div class="tw-relative tw-z-10 tw-flex tw-flex-col tw-items-center tw-gap-2">
+                                    <span class="tw-flex tw-size-8 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#212529] tw-text-white tw-shadow-[0_0_0_4px_#ffffff]">1</span>
+                                    <span class="tw-text-[#374151]">Onboarding</span>
+                                </div>
+                                <div class="tw-relative tw-z-10 tw-flex tw-flex-col tw-items-center tw-gap-2">
+                                    <span class="tw-flex tw-size-8 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#212529] tw-text-white tw-shadow-[0_0_0_4px_#ffffff]">2</span>
+                                    <span class="tw-text-[#212529]">OTP</span>
+                                </div>
+                                <div class="tw-relative tw-z-10 tw-flex tw-flex-col tw-items-center tw-gap-2">
+                                    <span class="tw-flex tw-size-8 tw-items-center tw-justify-center tw-rounded-full tw-border tw-border-solid tw-border-[#d8dde3] tw-bg-white tw-text-[#8a929b] tw-shadow-[0_0_0_4px_#ffffff]">3</span>
+                                    <span>Upload KTM</span>
+                                </div>
+                                <div class="tw-relative tw-z-10 tw-flex tw-flex-col tw-items-center tw-gap-2">
+                                    <span class="tw-flex tw-size-8 tw-items-center tw-justify-center tw-rounded-full tw-border tw-border-solid tw-border-[#d8dde3] tw-bg-white tw-text-[#8a929b] tw-shadow-[0_0_0_4px_#ffffff]">4</span>
+                                    <span>Hasil</span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+
                     <!-- Icon Circle -->
                     <div class="tw-flex tw-justify-center tw-mb-[16px]">
                         <div class="tw-w-[64px] tw-h-[64px] tw-bg-[#f5f5f5] tw-rounded-full tw-flex tw-items-center tw-justify-center">
