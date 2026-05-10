@@ -11,7 +11,7 @@
                 /* ── Global background ──────────────────────────────── */
                 #wrapwrap,
                 body {
-                    background-color: #ffffff !important;
+                    background-color: #f5f5f7 !important;
                 }
                 body:has(.o_website_sale_checkout) header {
                     --ut-cart-header-offset: 184px;
@@ -28,6 +28,12 @@
                 }
                 .o_website_sale_checkout {
                     background-color: #ffffff !important;
+                    border-radius: 18px !important;
+                    box-shadow: 0 10px 34px rgba(33, 37, 41, 0.04) !important;
+                    margin-top: 32px !important;
+                    margin-bottom: 48px !important;
+                    padding-left: clamp(24px, 3vw, 48px) !important;
+                    padding-right: clamp(24px, 3vw, 48px) !important;
                     padding-top: 32px !important;
                     padding-bottom: 48px !important;
                 }
@@ -40,8 +46,15 @@
                     font-family: 'Urbanist', sans-serif !important;
                     font-weight: 800;
                     font-size: 24px;
-                    color: #111;
+                    color: #212529;
                     margin-bottom: 24px;
+                }
+                .o_website_sale_checkout h1,
+                .o_website_sale_checkout h2,
+                .o_website_sale_checkout h3,
+                .o_website_sale_checkout h4,
+                .o_website_sale_checkout h5 {
+                    color: #212529 !important;
                 }
 
                 /* ── Product rows: container ────────────────────────── */
@@ -99,15 +112,15 @@
                     font-family: 'Urbanist', sans-serif !important;
                     font-weight: 700 !important;
                     font-size: 16px !important;
-                    color: #111 !important;
+                    color: #212529 !important;
                     margin-bottom: 4px !important;
                 }
                 .o_cart_product h6 a,
                 .o_cart_product .h6 a {
-                    color: #111 !important;
+                    color: #212529 !important;
                     text-decoration: none !important;
                 }
-                .o_cart_product h6 a:hover { color: #555 !important; }
+                .o_cart_product h6 a:hover { color: #212529 !important; }
                 .o_cart_product .text-muted { font-size: 13px !important; }
 
                 /* ── Right Section (Price, Delete, Qty) ─────────────── */
@@ -127,7 +140,7 @@
                     font-family: 'Urbanist', sans-serif !important;
                     font-weight: 700 !important;
                     font-size: 16px !important;
-                    color: #111 !important;
+                    color: #212529 !important;
                     text-align: right !important;
                     align-self: start; /* Align to top */
                     margin-bottom: auto !important;
@@ -169,13 +182,13 @@
                     align-items: center !important;
                     justify-content: center !important;
                     padding: 0 !important;
-                    color: #111 !important;
+                    color: #212529 !important;
                     text-decoration: none !important;
                     transition: border-color 0.15s, background-color 0.15s !important;
                 }
                 .o_cart_product .css_quantity .btn-link:hover {
                     background: #f9f9f9 !important;
-                    border-color: #111 !important;
+                    border-color: #212529 !important;
                 }
                 .o_cart_product .css_quantity i.fa { font-size: 11px !important; }
                 .o_cart_product .css_quantity input.js_quantity {
@@ -186,13 +199,13 @@
                     font-family: 'Urbanist', sans-serif !important;
                     font-weight: 600 !important;
                     font-size: 14px !important;
-                    color: #111 !important;
+                    color: #212529 !important;
                     text-align: center !important;
                     width: 40px !important;
                     height: 32px !important;
                     padding: 0 !important;
                 }
-                .o_cart_product .css_quantity input.js_quantity:focus { border-color: #111 !important; outline: none; }
+                .o_cart_product .css_quantity input.js_quantity:focus { border-color: #212529 !important; outline: none; }
 
                 /* ── Cart right-side summary card ───────────────────── */
                 #o_cart_summary {
@@ -223,7 +236,7 @@
                     font-family: 'Urbanist', sans-serif !important;
                     font-weight: 800;
                     font-size: 18px;
-                    color: #111;
+                    color: #212529;
                     display: block;
                     margin-bottom: 20px;
                 }
@@ -234,15 +247,16 @@
                 #o_cart_summary [name="website_sale_cart_summary_line_price"] {
                     font-family: 'Urbanist', sans-serif !important;
                     font-weight: 700 !important;
-                    color: #111 !important;
+                    color: #212529 !important;
                 }
 
                 /* ── Checkout / main navigation button ──────────────── */
                 a[name="website_sale_main_button"].btn-primary,
                 .o_wsale_cart_summary a.btn-primary {
-                    background-color: #111 !important;
-                    border-color: #111 !important;
+                    background-color: #212529 !important;
+                    border-color: #212529 !important;
                     border-radius: 999px !important;
+                    color: #ffffff !important;
                     padding: 14px 24px !important;
                     font-family: 'Urbanist', sans-serif !important;
                     font-weight: 700 !important;
@@ -252,17 +266,23 @@
                     transition: background 0.2s, transform 0.1s !important;
                 }
                 a[name="website_sale_main_button"].btn-primary:hover {
-                    background-color: #333 !important;
-                    border-color: #333 !important;
+                    background-color: #212529 !important;
+                    border-color: #212529 !important;
+                    color: #ffffff !important;
                     transform: translateY(-1px) !important;
                 }
 
                 /* ── Back / secondary navigation link ───────────────── */
                 .o_website_sale_checkout .o_cta_navigation_container a.text-center,
-                a[name="website_sale_main_button"].text-center {
+                a[name="website_sale_main_button"].text-center,
+                .o_website_sale_checkout a.text-center {
                     font-family: 'Urbanist', sans-serif !important;
-                    color: #888 !important;
+                    color: #212529 !important;
                     font-size: 14px !important;
+                    text-decoration: none !important;
+                }
+                .o_website_sale_checkout a.text-center:hover {
+                    color: #212529 !important;
                     text-decoration: none !important;
                 }
 
@@ -284,7 +304,7 @@
                 form[name="coupon_code"] input[name="promo"]:focus { outline: none !important; }
                 form[name="coupon_code"] .btn-secondary,
                 form[name="coupon_code"] .a-submit {
-                    background: #111 !important;
+                    background: #212529 !important;
                     color: #fff !important;
                     border: none !important;
                     border-radius: 0 !important;
@@ -295,7 +315,7 @@
                     transition: background 0.15s !important;
                 }
                 form[name="coupon_code"] .btn-secondary:hover,
-                form[name="coupon_code"] .a-submit:hover { background: #333 !important; }
+                form[name="coupon_code"] .a-submit:hover { background: #212529 !important; }
 
                 /* ── Empty cart state ───────────────────────────────── */
                 .js_cart_lines.alert.alert-info {
@@ -344,6 +364,12 @@
 
                 /* ── Responsive: mobile stack ───────────────────────── */
                 @media (max-width: 767px) {
+                    .o_website_sale_checkout {
+                        border-radius: 14px !important;
+                        margin-top: 20px !important;
+                        padding-left: 18px !important;
+                        padding-right: 18px !important;
+                    }
                     .o_cart_product {
                         flex-direction: column !important;
                         align-items: flex-start !important;
@@ -447,6 +473,29 @@
     </template>
 
     <!-- ================================================================
+         2b. CART TEXTS — Indonesian labels for cart lines and suggestions
+    ================================================================ -->
+    <template id="unitrade_cart_lines_indonesian" inherit_id="website_sale.cart_lines" name="UniTrade Cart Lines Indonesian">
+        <xpath expr="//div[hasclass('js_cart_lines') and hasclass('alert-info')]" position="replace">
+            <div t-if="not website_sale_order or not website_sale_order.website_order_line" class="js_cart_lines alert alert-info">
+                Keranjang Anda kosong.
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('alert-warning')]/strong" position="replace">
+            <strong>Peringatan!</strong>
+        </xpath>
+    </template>
+
+    <template id="unitrade_suggested_products_indonesian" inherit_id="website_sale.suggested_products_list" name="UniTrade Suggested Products Indonesian">
+        <xpath expr="//h5" position="replace">
+            <h5 t-attf-class="mt32 mb-3" t-if="suggested_products">Rekomendasi Tambahan</h5>
+        </xpath>
+        <xpath expr="//a[hasclass('js_add_suggested_products')]/span[hasclass('d-none')]" position="replace">
+            <span class="d-none d-md-inline">Tambah ke Keranjang</span>
+        </xpath>
+    </template>
+
+    <!-- ================================================================
          3. CART SUMMARY SIDEBAR — Inject "Ringkasan Pesanan" title at TOP
     ================================================================ -->
     <template id="unitrade_cart_summary_title" inherit_id="website_sale.checkout_layout" name="UniTrade Cart Summary Title">
@@ -455,6 +504,43 @@
             <span class="unitrade-summary-title">Ringkasan Pesanan</span>
             <a href="/help#terms" class="tw-mb-4 tw-inline-flex tw-text-[12px] tw-font-medium tw-text-gray-500 tw-no-underline hover:tw-text-black hover:tw-underline">
                 Syarat &amp; Kebijakan Transaksi
+            </a>
+        </xpath>
+    </template>
+
+    <template id="unitrade_cart_total_indonesian" inherit_id="website_sale.total" name="UniTrade Cart Total Indonesian">
+        <xpath expr="//tr[@id='order_total_taxes']/td[1]" position="replace">
+            <td colspan="2" class="text-muted border-0 ps-0 pt-0 pb-3">Pajak</td>
+        </xpath>
+    </template>
+
+    <template id="unitrade_coupon_form_indonesian" inherit_id="website_sale.coupon_form" name="UniTrade Coupon Form Indonesian">
+        <xpath expr="//input[@name='promo']" position="attributes">
+            <attribute name="placeholder">Kode voucher...</attribute>
+        </xpath>
+        <xpath expr="//a[hasclass('a-submit')]" position="replace">
+            <a href="#" role="button" class="btn btn-secondary a-submit ps-2">Terapkan</a>
+        </xpath>
+        <xpath expr="//t[@name='code_not_available']/div" position="replace">
+            <div class="alert alert-danger text-start" role="alert">Kode promo ini tidak tersedia.</div>
+        </xpath>
+    </template>
+
+    <template id="unitrade_navigation_buttons_indonesian" inherit_id="website_sale.navigation_buttons" name="UniTrade Navigation Buttons Indonesian">
+        <xpath expr="//a[@name='website_sale_main_button']/t[1]" position="replace">
+            <t t-if="xmlid == 'website_sale.extra_info'">Lanjut Checkout</t>
+            <t t-elif="step_specific_values['main_button_href'].startswith('/shop/checkout')">Checkout</t>
+            <t t-else=""><t t-out="step_specific_values['main_button']"/></t>
+        </xpath>
+        <xpath expr="//div/span[normalize-space(text())='or']" position="replace">
+            <span class="px-3">atau</span>
+        </xpath>
+        <xpath expr="//a[hasclass('text-center') and @t-att-href]" position="replace">
+            <a t-att-href="step_specific_values['back_button_href']" class="text-center ut-cart-continue-shopping">
+                <i class="fa fa-angle-left me-2 fw-light"/>
+                <t t-if="step_specific_values['back_button_href'] == '/shop'">Lanjut Belanja</t>
+                <t t-elif="step_specific_values['back_button_href'] == '/shop/checkout'">Kembali ke Pengiriman</t>
+                <t t-else=""><t t-out="step_specific_values['back_button']"/></t>
             </a>
         </xpath>
     </template>
@@ -475,10 +561,10 @@
                             <path d="M12 16v-4"></path>
                             <circle cx="12" cy="16" r="0.5" fill="currentColor"></circle>
                         </svg>
-                        <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[14px]">Home</span>
+                        <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[14px]">Beranda</span>
                     </a>
                     <span class="tw-text-gray-300">/</span>
-                    <a href="/shop" class="tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-gray-500 hover:tw-text-[#0f172a] tw-no-underline tw-transition-colors">Shop</a>
+                    <a href="/shop" class="tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-gray-500 hover:tw-text-[#0f172a] tw-no-underline tw-transition-colors">Belanja</a>
                     <t t-foreach="wizard_step" t-as="step">
                         <t t-set="is_current_step" t-value="xmlid in step[0]"/>
                         <t t-if="is_current_step">

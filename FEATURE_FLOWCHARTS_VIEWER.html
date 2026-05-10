@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flowchart Fitur UniTrade</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --paper: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --accent: #111827;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+    }
+    .bar {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 750;
+      letter-spacing: 0;
+    }
+    .hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    button, .file-label {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--paper);
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 650;
+      padding: 9px 12px;
+    }
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    input[type="file"] { display: none; }
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 28px 24px 64px;
+    }
+    .notice {
+      border: 1px solid #fde68a;
+      background: #fffbeb;
+      color: #92400e;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+    .paper {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 28px;
+      box-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
+    }
+    h1 {
+      font-size: 32px;
+      line-height: 1.2;
+      margin: 0 0 12px;
+    }
+    h2 {
+      border-top: 1px solid var(--line);
+      padding-top: 28px;
+      margin: 36px 0 16px;
+      font-size: 22px;
+      line-height: 1.25;
+    }
+    h2:first-child {
+      border-top: 0;
+      padding-top: 0;
+      margin-top: 0;
+    }
+    p, ul { margin: 0 0 14px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 24px;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #f9fafb;
+      font-weight: 750;
+    }
+    .diagram {
+      overflow: auto;
+      margin: 16px 0 28px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #ffffff;
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+      min-width: 720px;
+    }
+    code {
+      background: #f3f4f6;
+      border-radius: 6px;
+      padding: 2px 5px;
+      font-size: 0.94em;
+    }
+    @media print {
+      header, .notice { display: none; }
+      body { background: #fff; }
+      main { max-width: none; padding: 0; }
+      .paper { border: 0; box-shadow: none; padding: 0; }
+      h2 { break-after: avoid; }
+      .diagram { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <div>
+        <h1 class="title">Flowchart Fitur UniTrade</h1>
+        <p class="hint">Viewer ini otomatis membaca Mermaid dari FEATURE_FLOWCHARTS.md.</p>
+      </div>
+      <div class="actions">
+        <label class="file-label" for="mdFile">Pilih file Markdown</label>
+        <input id="mdFile" type="file" accept=".md,text/markdown,text/plain" />
+        <button type="button" id="reloadBtn">Muat ulang</button>
+        <button type="button" class="primary" onclick="window.print()">Print / Save PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="notice" class="notice" hidden></div>
+    <article id="content" class="paper">Memuat flowchart...</article>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    const contentEl = document.getElementById("content");
+    const noticeEl = document.getElementById("notice");
+    const fileInput = document.getElementById("mdFile");
+    const reloadBtn = document.getElementById("reloadBtn");
+
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: "default",
+      flowchart: { useMaxWidth: true, htmlLabels: true },
+    });
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function inlineMarkdown(value) {
+      return escapeHtml(value)
+        .replace(/`([^`]+)`/g, "<code>$1</code>")
+        .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    }
+
+    function renderTable(lines, start) {
+      const rows = [];
+      let index = start;
+      while (index < lines.length && /^\s*\|/.test(lines[index])) {
+        rows.push(lines[index]);
+        index += 1;
+      }
+      if (rows.length < 2) {
+        return { html: "", next: start };
+      }
+      const cells = (row) => row.trim().slice(1, -1).split("|").map((cell) => inlineMarkdown(cell.trim()));
+      const head = cells(rows[0]).map((cell) => `<th>${cell}</th>`).join("");
+      const bodyRows = rows.slice(2).map((row) => {
+        return `<tr>${cells(row).map((cell) => `<td>${cell}</td>`).join("")}</tr>`;
+      }).join("");
+      return {
+        html: `<table><thead><tr>${head}</tr></thead><tbody>${bodyRows}</tbody></table>`,
+        next: index,
+      };
+    }
+
+    function renderMarkdown(markdown) {
+      const lines = markdown.replace(/\r\n/g, "\n").split("\n");
+      const html = [];
+      let paragraph = [];
+      let list = [];
+
+      const flushParagraph = () => {
+        if (paragraph.length) {
+          html.push(`<p>${inlineMarkdown(paragraph.join(" "))}</p>`);
+          paragraph = [];
+        }
+      };
+      const flushList = () => {
+        if (list.length) {
+          html.push(`<ul>${list.map((item) => `<li>${inlineMarkdown(item)}</li>`).join("")}</ul>`);
+          list = [];
+        }
+      };
+
+      for (let i = 0; i < lines.length; i += 1) {
+        const line = lines[i];
+        if (line.startsWith("```mermaid")) {
+          flushParagraph();
+          flushList();
+          const diagram = [];
+          i += 1;
+          while (i < lines.length && lines[i] !== "```") {
+            diagram.push(lines[i]);
+            i += 1;
+          }
+          html.push(`<div class="diagram"><pre class="mermaid">${escapeHtml(diagram.join("\n"))}</pre></div>`);
+          continue;
+        }
+        if (line.startsWith("# ")) {
+          flushParagraph();
+          flushList();
+          html.push(`<h1>${inlineMarkdown(line.slice(2).trim())}</h1>`);
+          continue;
+        }
+        if (line.startsWith("## ")) {
+          flushParagraph();
+          flushList();
+          html.push(`<h2>${inlineMarkdown(line.slice(3).trim())}</h2>`);
+          continue;
+        }
+        if (/^\s*\|/.test(line)) {
+          flushParagraph();
+          flushList();
+          const table = renderTable(lines, i);
+          if (table.html) {
+            html.push(table.html);
+            i = table.next - 1;
+            continue;
+          }
+        }
+        if (/^\s*-\s+/.test(line)) {
+          flushParagraph();
+          list.push(line.replace(/^\s*-\s+/, ""));
+          continue;
+        }
+        if (!line.trim()) {
+          flushParagraph();
+          flushList();
+          continue;
+        }
+        paragraph.push(line.trim());
+      }
+
+      flushParagraph();
+      flushList();
+      return html.join("\n");
+    }
+
+    async function displayMarkdown(markdown) {
+      noticeEl.hidden = true;
+      contentEl.innerHTML = renderMarkdown(markdown);
+      await mermaid.run({ querySelector: ".mermaid" });
+    }
+
+    async function loadDefaultMarkdown() {
+      try {
+        const response = await fetch("FEATURE_FLOWCHARTS.md", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        await displayMarkdown(await response.text());
+      } catch (error) {
+        contentEl.innerHTML = "Pilih file FEATURE_FLOWCHARTS.md lewat tombol di kanan atas.";
+        noticeEl.textContent = "Browser memblokir pembacaan file lokal otomatis. Pilih FEATURE_FLOWCHARTS.md lewat tombol 'Pilih file Markdown', atau buka viewer ini lewat local server.";
+        noticeEl.hidden = false;
+      }
+    }
+
+    fileInput.addEventListener("change", async () => {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) {
+        return;
+      }
+      await displayMarkdown(await file.text());
+    });
+
+    reloadBtn.addEventListener("click", loadDefaultMarkdown);
+    loadDefaultMarkdown();
+  </script>
+</body>
+</html>

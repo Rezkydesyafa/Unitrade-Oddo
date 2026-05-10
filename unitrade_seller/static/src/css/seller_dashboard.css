@@ -781,7 +781,10 @@ body:has(.ut-seller-dashboard-page) {
     flex: 0 0 auto;
     border: 1px solid var(--ut-dash-border);
     border-radius: 16px;
-    object-fit: cover;
+    object-fit: contain;
+    object-position: center;
+    padding: 6px;
+    background: var(--ut-dash-soft);
 }
 
 .ut-dash-product-item small {
