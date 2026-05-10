@@ -18,7 +18,7 @@
                             </div>
                             <div class="tw-p-4">
                                 <h3 class="tw-font-semibold tw-text-sm tw-text-gray-900 tw-line-clamp-2"><t t-esc="product.name"/></h3>
-                                <p class="tw-text-indigo-600 tw-font-bold tw-text-lg">Rp <t t-esc="'{:,.0f}'.format(product.list_price)"/></p>
+                                <p class="tw-text-indigo-600 tw-font-bold tw-text-lg">Rp <t t-esc="'{:,.0f}'.format(product.list_price).replace(',', '.')"/></p>
                                 <span class="tw-text-xs tw-text-gray-500 tw-flex tw-items-center"><i class="fa fa-map-marker tw-mr-1"></i> <t t-esc="product.x_seller_location or 'Yogyakarta'"/></span>
                             </div>
                         </a>
@@ -38,7 +38,7 @@
                     </div>
                     <div>
                         <h1 class="tw-text-3xl tw-font-bold tw-text-gray-900 tw-mb-4"><t t-esc="product.name"/></h1>
-                        <p class="tw-text-3xl tw-font-bold tw-text-indigo-600 tw-mb-6">Rp <t t-esc="'{:,.0f}'.format(product.list_price)"/></p>
+                        <p class="tw-text-3xl tw-font-bold tw-text-indigo-600 tw-mb-6">Rp <t t-esc="'{:,.0f}'.format(product.list_price).replace(',', '.')"/></p>
                         <div class="tw-flex tw-gap-3 tw-mb-6">
                             <t t-if="product.x_condition">
                                 <span t-attf-class="unitrade-badge #{product.x_condition == 'new' and 'unitrade-badge-new' or 'unitrade-badge-used'}">

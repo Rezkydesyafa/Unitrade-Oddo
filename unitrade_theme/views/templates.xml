@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
 
+    <template id="unitrade_money" name="UniTrade Money Without Decimals">
+        <t t-set="ut_money_symbol" t-value="ut_money_currency.symbol or 'Rp'"/>
+        <t t-set="ut_money_value" t-value="('{:,.0f}'.format(ut_money_amount or 0.0)).replace(',', '.')"/>
+        <t t-if="ut_money_currency.position == 'after'">
+            <t t-esc="'%s %s' % (ut_money_value, ut_money_symbol)"/>
+        </t>
+        <t t-else="">
+            <t t-esc="'%s %s' % (ut_money_symbol, ut_money_value)"/>
+        </t>
+    </template>
+
     <!-- ============================================
          UniTrade Base Layout — extends website.layout
          ============================================ -->

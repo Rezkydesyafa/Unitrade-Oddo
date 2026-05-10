@@ -35,7 +35,11 @@
 
                 <div class="ut-product-card-bottom tw-flex tw-justify-between tw-items-center tw-mt-auto tw-gap-2">
                     <div class="ut-product-card-price tw-font-bold tw-text-[#212529] tw-text-[14px]" itemprop="offers" itemscope="itemscope" itemtype="http://schema.org/Offer">
-                        <span t-field="ut_card_product.list_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                        <span>
+                            <t t-set="ut_money_amount" t-value="ut_card_product.list_price"/>
+                            <t t-set="ut_money_currency" t-value="website.currency_id"/>
+                            <t t-call="unitrade_theme.unitrade_money"/>
+                        </span>
                         <span itemprop="price" style="display:none;" t-esc="ut_card_product.list_price"/>
                         <span itemprop="priceCurrency" style="display:none;" t-esc="website.currency_id.name"/>
                     </div>
