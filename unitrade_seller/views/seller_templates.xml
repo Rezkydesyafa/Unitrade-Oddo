@@ -618,7 +618,11 @@
                     </p>
                     <div class="tw-mt-auto tw-flex tw-items-center tw-justify-between tw-gap-2">
                         <strong class="tw-min-w-0 tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[16px] tw-font-extrabold tw-leading-6">
-                            <span t-field="product.list_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                            <span>
+                                <t t-set="ut_money_amount" t-value="product.list_price"/>
+                                <t t-set="ut_money_currency" t-value="website.currency_id"/>
+                                <t t-call="unitrade_theme.unitrade_money"/>
+                            </span>
                         </strong>
                         <span class="tw-flex tw-items-center tw-gap-1 tw-text-[12px] tw-text-black/25">
                             <i class="fa fa-star tw-text-[#ffb000]"></i>

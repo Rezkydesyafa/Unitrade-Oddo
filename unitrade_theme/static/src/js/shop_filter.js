@@ -7,6 +7,7 @@ import { jsonrpc } from "@web/core/network/rpc_service";
 
 const MAX_PRICE_K = 10000;
 const MIN_GAP_K = 10;
+const AUTO_APPLY_DELAY_MS = 500;
 const DEFAULT_LAT = -7.7956;
 const DEFAULT_LON = 110.3695;
 const SORT_KEYS = new Set(["terkait", "terlaris", "terbaru", "termurah", "termahal"]);
@@ -79,6 +80,7 @@ export class UnitradeShopFilter extends Component {
         this.requestSeq = 0;
         this.basePath = this._basePathFromLocation();
         this.observer = null;
+        this.autoApplyTimer = null;
         this.onPopState = () => this.restoreFromUrl({ load: true });
 
         const currentFilters = this._filterStateFromCurrentUrl();
@@ -108,6 +110,7 @@ export class UnitradeShopFilter extends Component {
 
         onWillUnmount(() => {
             window.removeEventListener("popstate", this.onPopState);
+            this._clearAutoApplyTimer();
             if (this.observer) {
                 this.observer.disconnect();
             }
@@ -259,6 +262,32 @@ export class UnitradeShopFilter extends Component {
         return `${base} tw-font-medium tw-text-gray-600 hover:tw-bg-gray-100 hover:tw-text-black`;
     }
 
+    _clearAutoApplyTimer() {
+        if (this.autoApplyTimer) {
+            window.clearTimeout(this.autoApplyTimer);
+            this.autoApplyTimer = null;
+        }
+    }
+
+    _scheduleAutoApply() {
+        this._clearAutoApplyTimer();
+        this.autoApplyTimer = window.setTimeout(() => {
+            this.autoApplyTimer = null;
+            this._autoApplyFilters({ replace: true });
+        }, AUTO_APPLY_DELAY_MS);
+    }
+
+    async _autoApplyFilters(options = {}) {
+        this._clearAutoApplyTimer();
+        return this.loadResults({
+            filterState: cloneFilterState(this.state.draft),
+            page: 1,
+            replace: options.replace !== false,
+            commitApplied: true,
+            syncDraft: true,
+        });
+    }
+
     async togglePill(group, value) {
         this.state.draft[group] = this.state.draft[group] === value ? "" : value;
         if (group === "lokasi" && this.state.draft.lokasi === "terdekat") {
@@ -266,6 +295,7 @@ export class UnitradeShopFilter extends Component {
             this.state.draft.userLat = position.lat;
             this.state.draft.userLon = position.lon;
         }
+        await this._autoApplyFilters({ replace: true });
     }
 
     onMinInput(ev) {
@@ -274,6 +304,8 @@ export class UnitradeShopFilter extends Component {
             value = Math.max(0, this.state.draft.maxK - MIN_GAP_K);
         }
         this.state.draft.minK = value;
+        ev.target.value = value;
+        this._scheduleAutoApply();
     }
 
     onMaxInput(ev) {
@@ -282,46 +314,42 @@ export class UnitradeShopFilter extends Component {
             value = Math.min(MAX_PRICE_K, this.state.draft.minK + MIN_GAP_K);
         }
         this.state.draft.maxK = value;
+        ev.target.value = value;
+        this._scheduleAutoApply();
     }
 
     async changeSort(sortKey) {
-        const nextApplied = cloneFilterState({ ...this.state.applied, sort: sortKey });
+        this._clearAutoApplyTimer();
+        const nextApplied = cloneFilterState({ ...this.state.draft, sort: sortKey });
         const success = await this.loadResults({
             filterState: nextApplied,
             page: 1,
+            replace: true,
             commitApplied: true,
+            syncDraft: true,
         });
         if (success) {
             this.state.draft.sort = sortKey;
         }
     }
 
-    async applyFilters(ev) {
-        if (ev) {
-            ev.preventDefault();
-        }
-        await this.loadResults({
-            filterState: cloneFilterState(this.state.draft),
-            page: 1,
-            commitApplied: true,
-            syncDraft: true,
-        });
-    }
-
     async resetFilters(ev) {
         if (ev) {
             ev.preventDefault();
         }
+        this._clearAutoApplyTimer();
         const defaults = this._defaultFilterState();
         await this.loadResults({
             filterState: defaults,
             page: 1,
+            replace: true,
             commitApplied: true,
             syncDraft: true,
         });
     }
 
     async restoreFromUrl(options = {}) {
+        this._clearAutoApplyTimer();
         const next = this._filterStateFromCurrentUrl();
         this.basePath = this._basePathFromLocation();
         this._setDraft(next);
@@ -335,13 +363,6 @@ export class UnitradeShopFilter extends Component {
                 syncDraft: true,
             });
         }
-    }
-
-    cancelFilters(ev) {
-        if (ev) {
-            ev.preventDefault();
-        }
-        this._setDraft(this.state.applied);
     }
 
     async requestGeolocation(options = {}) {
@@ -433,10 +454,7 @@ export class UnitradeShopFilter extends Component {
 
     async loadResults(options = {}) {
         const append = Boolean(options.append);
-        if ((append && this.state.loadingMore) || (!append && this.state.loading)) {
-            return false;
-        }
-        if (append && (this.state.loading || !this.state.hasMore || !this.state.nextPage)) {
+        if (append && (this.state.loadingMore || this.state.loading || !this.state.hasMore || !this.state.nextPage)) {
             return false;
         }
 

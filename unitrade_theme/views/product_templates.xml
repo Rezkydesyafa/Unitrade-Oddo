@@ -203,12 +203,18 @@
                                 <t t-if="ut_has_discount">
                                     <div style="display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 12px;">
                                         <span style="font-size:30px; line-height:36px; color:#121212; font-weight:600;">
-                                            <span t-esc="ut_discounted_price"
-                                                t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                                            <span>
+                                                <t t-set="ut_money_amount" t-value="ut_discounted_price"/>
+                                                <t t-set="ut_money_currency" t-value="website.currency_id"/>
+                                                <t t-call="unitrade_theme.unitrade_money"/>
+                                            </span>
                                         </span>
                                         <span style="font-size:18px; line-height:24px; color:var(--ut-color-text-subtle); text-decoration:line-through; font-weight:500;">
-                                            <span t-esc="ut_original_price"
-                                                t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                                            <span>
+                                                <t t-set="ut_money_amount" t-value="ut_original_price"/>
+                                                <t t-set="ut_money_currency" t-value="website.currency_id"/>
+                                                <t t-call="unitrade_theme.unitrade_money"/>
+                                            </span>
                                         </span>
                                         <span style="display:inline-flex; align-items:center; height:24px; padding:0 8px; border-radius:4px; background:#fff1f0; color:#f04438; font-size:13px; font-weight:700;">
                                             -<t t-esc="'{:,.0f}'.format(ut_discount_percent)"/>%
@@ -217,8 +223,11 @@
                                 </t>
                                 <t t-else="">
                                     <div style="font-size:30px; line-height:36px; color:#121212; font-weight:400;">
-                                        <span t-field="product.list_price"
-                                            t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                                        <span>
+                                            <t t-set="ut_money_amount" t-value="product.list_price"/>
+                                            <t t-set="ut_money_currency" t-value="website.currency_id"/>
+                                            <t t-call="unitrade_theme.unitrade_money"/>
+                                        </span>
                                     </div>
                                 </t>
                             </div>
@@ -472,9 +481,9 @@
                     <!-- Related Products -->
                     <div class="tw-mb-8">
                         <h2 style="font-size:32px; font-weight:600; color:var(--ut-color-heading); margin-bottom:32px;">Pilihan lainnya untukmu</h2>
-                        <div t-if="ut_recommended_products" class="tw-flex tw-gap-[30px] tw-overflow-x-auto tw-pt-5 tw-pb-6 tw-px-2">
+                        <div t-if="ut_recommended_products" class="ut-related-products-row tw-flex tw-gap-4 tw-overflow-x-auto tw-pt-5 tw-pb-6 tw-px-2">
                             <t t-foreach="ut_recommended_products" t-as="p">
-                                <div class="oe_product tw-w-[188px] tw-min-w-[188px] tw-shrink-0 tw-h-full">
+                                <div class="oe_product ut-related-product-item tw-shrink-0 tw-h-full">
                                     <t t-set="ut_card_product" t-value="p"/>
                                     <t t-set="ut_card_href" t-value="p.website_url"/>
                                     <t t-set="ut_card_class" t-value="'tw-bg-white tw-border tw-border-solid tw-border-gray-200 tw-rounded-[14px] tw-overflow-hidden tw-shadow-sm hover:tw-shadow-md hover:-tw-translate-y-1 tw-transition-all tw-duration-300 tw-flex tw-flex-col tw-h-full tw-no-underline tw-group'"/>

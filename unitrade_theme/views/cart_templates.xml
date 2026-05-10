@@ -466,6 +466,38 @@
             </div>
         </xpath>
 
+        <xpath expr="//div[@name='website_sale_cart_line_price']" position="replace">
+            <div class="mb-0 h6 fw-bold text-end" name="website_sale_cart_line_price">
+                <t t-if="line.discount">
+                    <del t-attf-class="#{'text-danger mr8'}" style="white-space: nowrap;">
+                        <t t-set="ut_money_amount" t-value="line._get_displayed_unit_price() * line.product_uom_qty"/>
+                        <t t-set="ut_money_currency" t-value="website.currency_id"/>
+                        <t t-call="unitrade_theme.unitrade_money"/>
+                    </del>
+                </t>
+                <t t-if="website.show_line_subtotals_tax_selection == 'tax_excluded'"
+                   t-set="product_price"
+                   t-value="line.price_subtotal"/>
+                <t t-else=""
+                   t-set="product_price"
+                   t-value="line.price_total"/>
+                <span style="white-space: nowrap;">
+                    <t t-set="ut_money_amount" t-value="product_price"/>
+                    <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
+                    <t t-call="unitrade_theme.unitrade_money"/>
+                </span>
+                <small t-if="not line._is_not_sellable_line() and line.product_id.base_unit_price"
+                       class="cart_product_base_unit_price d-block text-muted"
+                       groups="website_sale.group_show_uom_price">
+                    <t t-call="website_sale.base_unit_price">
+                        <t t-set="product" t-value="line.product_id"/>
+                        <t t-set="combination_info"
+                           t-value="{'base_unit_price': product._get_base_unit_price(product_price/line.product_uom_qty)}"/>
+                    </t>
+                </small>
+            </div>
+        </xpath>
+
         <xpath expr="//i[hasclass('fa-warning')]" position="attributes">
             <attribute name="t-att-title">line._get_shop_warning()</attribute>
         </xpath>
@@ -493,12 +525,55 @@
         <xpath expr="//a[hasclass('js_add_suggested_products')]/span[hasclass('d-none')]" position="replace">
             <span class="d-none d-md-inline">Tambah ke Keranjang</span>
         </xpath>
+        <xpath expr="//div[@name='website_sale_suggested_product_price']" position="replace">
+            <div class="mb-0 h-6 fw-bold text-end d-flex"
+                 name="website_sale_suggested_product_price">
+                <t t-set="combination_info"
+                   t-value="product._get_combination_info_variant()"/>
+                <del t-attf-class="text-danger mr8 {{'' if combination_info['has_discounted_price'] else 'd-none'}}"
+                     style="white-space: nowrap;">
+                    <t t-set="ut_money_amount" t-value="combination_info['list_price']"/>
+                    <t t-set="ut_money_currency" t-value="website.currency_id"/>
+                    <t t-call="unitrade_theme.unitrade_money"/>
+                </del>
+                <span style="white-space: nowrap;">
+                    <t t-set="ut_money_amount" t-value="combination_info['price']"/>
+                    <t t-set="ut_money_currency" t-value="website.currency_id"/>
+                    <t t-call="unitrade_theme.unitrade_money"/>
+                </span>
+            </div>
+        </xpath>
     </template>
 
     <!-- ================================================================
          3. CART SUMMARY SIDEBAR — Inject "Ringkasan Pesanan" title at TOP
     ================================================================ -->
     <template id="unitrade_cart_summary_title" inherit_id="website_sale.checkout_layout" name="UniTrade Cart Summary Title">
+        <xpath expr="//span[@id='amount_total_summary']" position="replace">
+            <span id="amount_total_summary" class="monetary_field ms-1">
+                <t t-set="ut_money_amount" t-value="website_sale_order.amount_total"/>
+                <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
+                <t t-call="unitrade_theme.unitrade_money"/>
+            </span>
+        </xpath>
+
+        <xpath expr="//td[@name='website_sale_cart_summary_line_price']" position="replace">
+            <td t-attf-class="#{o_cart_sum_padding_top} td-price pe-0 text-end"
+                name="website_sale_cart_summary_line_price">
+                <t t-if="website.show_line_subtotals_tax_selection == 'tax_excluded'"
+                   t-set="unitrade_summary_line_price"
+                   t-value="line.price_subtotal"/>
+                <t t-else=""
+                   t-set="unitrade_summary_line_price"
+                   t-value="line.price_total"/>
+                <span style="white-space: nowrap;">
+                    <t t-set="ut_money_amount" t-value="unitrade_summary_line_price"/>
+                    <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
+                    <t t-call="unitrade_theme.unitrade_money"/>
+                </span>
+            </td>
+        </xpath>
+
         <!-- Inject before the total table inside the summary card -->
         <xpath expr="//div[@id='o_cart_summary']//t[@t-call='website_sale.total']" position="before">
             <span class="unitrade-summary-title">Ringkasan Pesanan</span>
@@ -509,8 +584,29 @@
     </template>
 
     <template id="unitrade_cart_total_indonesian" inherit_id="website_sale.total" name="UniTrade Cart Total Indonesian">
+        <xpath expr="//tr[@id='order_total_untaxed']//span[hasclass('monetary_field')]" position="replace">
+            <span class="monetary_field" style="white-space: nowrap;">
+                <t t-set="ut_money_amount" t-value="website_sale_order.amount_untaxed"/>
+                <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
+                <t t-call="unitrade_theme.unitrade_money"/>
+            </span>
+        </xpath>
         <xpath expr="//tr[@id='order_total_taxes']/td[1]" position="replace">
             <td colspan="2" class="text-muted border-0 ps-0 pt-0 pb-3">Pajak</td>
+        </xpath>
+        <xpath expr="//tr[@id='order_total_taxes']//span[hasclass('monetary_field')]" position="replace">
+            <span class="monetary_field" style="white-space: nowrap;">
+                <t t-set="ut_money_amount" t-value="website_sale_order.amount_tax"/>
+                <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
+                <t t-call="unitrade_theme.unitrade_money"/>
+            </span>
+        </xpath>
+        <xpath expr="//tr[@id='order_total']//strong[hasclass('monetary_field')]" position="replace">
+            <strong class="monetary_field text-end p-0">
+                <t t-set="ut_money_amount" t-value="website_sale_order.amount_total"/>
+                <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
+                <t t-call="unitrade_theme.unitrade_money"/>
+            </strong>
         </xpath>
     </template>
 
