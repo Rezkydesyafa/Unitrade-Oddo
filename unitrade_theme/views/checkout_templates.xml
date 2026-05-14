@@ -1,0 +1,1155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="unitrade_checkout_page" name="UniTrade Checkout">
+        <t t-call="website.layout">
+            <t t-set="no_footer" t-value="0"/>
+            <style type="text/css">
+                #wrapwrap,
+                body {
+                    background: #f5f5f7 !important;
+                }
+                .ut-checkout-page {
+                    background: #f5f5f7;
+                    color: #212529;
+                    font-family: 'Urbanist', Inter, sans-serif;
+                    min-height: 100vh;
+                }
+                .ut-checkout-shell {
+                    max-width: 1440px;
+                    margin: 0 auto;
+                    padding: 48px 50px 64px;
+                }
+                .ut-checkout-header {
+                    margin-bottom: 28px;
+                }
+                .ut-checkout-title {
+                    margin: 0 0 8px;
+                    color: #0c1014;
+                    font-size: 30px;
+                    line-height: 36px;
+                    font-weight: 700;
+                    letter-spacing: 0;
+                }
+                .ut-checkout-subtitle {
+                    margin: 0 0 30px;
+                    color: #5d6470;
+                    font-size: 16px;
+                    line-height: 24px;
+                    font-weight: 400;
+                }
+                .ut-checkout-breadcrumb {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    color: #5d6470;
+                    font-size: 14px;
+                    line-height: 20px;
+                    font-weight: 500;
+                }
+                .ut-checkout-breadcrumb a {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    color: #5d6470;
+                    text-decoration: none;
+                    transition: color .15s ease;
+                }
+                .ut-checkout-breadcrumb a:hover {
+                    color: #0c1014;
+                    text-decoration: none;
+                }
+                .ut-checkout-breadcrumb .is-active {
+                    color: #0c1014;
+                    font-weight: 600;
+                }
+                .ut-checkout-layout {
+                    display: grid;
+                    grid-template-columns: minmax(0, 1fr) 420px;
+                    gap: 69px;
+                    align-items: start;
+                }
+                .ut-checkout-left {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 32px;
+                    min-width: 0;
+                }
+                .ut-checkout-card {
+                    width: 100%;
+                    border: 1px solid #f0f0f0;
+                    border-radius: 16px;
+                    background: #fff;
+                    box-shadow: 0 4px 10px rgba(0, 0, 0, .03);
+                    padding: 33px;
+                }
+                .ut-checkout-card-head {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 24px;
+                    margin-bottom: 20px;
+                }
+                .ut-checkout-section-title {
+                    margin: 0;
+                    color: #0c1014;
+                    font-size: 20px;
+                    line-height: 28px;
+                    font-weight: 700;
+                    letter-spacing: 0;
+                }
+                .ut-checkout-section-eyebrow {
+                    color: #6b7280;
+                    font-size: 12px;
+                    line-height: 16px;
+                    font-weight: 700;
+                    letter-spacing: .6px;
+                    text-transform: uppercase;
+                }
+                .ut-checkout-edit {
+                    border: 0;
+                    background: transparent;
+                    padding: 0;
+                    color: #0c1014;
+                    cursor: pointer;
+                    font-family: inherit;
+                    font-size: 14px;
+                    line-height: 20px;
+                    font-weight: 600;
+                    text-decoration: none;
+                    white-space: nowrap;
+                }
+                .ut-checkout-edit:hover {
+                    color: #0c1014;
+                    text-decoration: underline;
+                }
+                .ut-checkout-address {
+                    display: flex;
+                    gap: 12px;
+                    align-items: flex-start;
+                }
+                .ut-checkout-address-icon {
+                    width: 24px;
+                    min-width: 24px;
+                    padding-top: 3px;
+                    color: #0c1014;
+                }
+                .ut-checkout-address-name {
+                    margin: 0 0 5px;
+                    color: #0c1014;
+                    font-size: 16px;
+                    line-height: 22px;
+                    font-weight: 600;
+                }
+                .ut-checkout-address-name strong {
+                    font-weight: 600;
+                }
+                .ut-checkout-address-line {
+                    margin: 0;
+                    color: #5d6470;
+                    font-size: 14px;
+                    line-height: 23px;
+                    font-weight: 400;
+                }
+                .ut-checkout-seller {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin: 28px 0;
+                    color: #5d6470;
+                    font-size: 14px;
+                    line-height: 20px;
+                    font-weight: 500;
+                }
+                .ut-checkout-seller-dot {
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 999px;
+                    background: #e0e0e0;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #5d6470;
+                    overflow: hidden;
+                    flex: 0 0 auto;
+                }
+                .ut-checkout-seller-dot img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    display: block;
+                }
+                .ut-checkout-product {
+                    display: grid;
+                    grid-template-columns: 112px minmax(0, 1fr);
+                    gap: 20px;
+                    align-items: center;
+                }
+                .ut-checkout-product-image {
+                    width: 112px;
+                    height: 112px;
+                    border-radius: 12px;
+                    background: #eeeef0;
+                    overflow: hidden;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .ut-checkout-product-image img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    display: block;
+                }
+                .ut-checkout-product-main {
+                    min-width: 0;
+                }
+                .ut-checkout-product-title {
+                    margin: 0 0 10px;
+                    color: #0c1014;
+                    font-size: 18px;
+                    line-height: 26px;
+                    font-weight: 700;
+                    letter-spacing: 0;
+                }
+                .ut-checkout-product-desc {
+                    margin: 0;
+                    color: #5d6470;
+                    font-size: 14px;
+                    line-height: 23px;
+                    font-weight: 400;
+                    max-width: 620px;
+                }
+                .ut-checkout-product-bottom {
+                    display: flex;
+                    align-items: flex-end;
+                    justify-content: space-between;
+                    gap: 20px;
+                    margin-top: 20px;
+                }
+                .ut-checkout-product-price {
+                    color: #0c1014;
+                    font-size: 18px;
+                    line-height: 26px;
+                    font-weight: 700;
+                    white-space: nowrap;
+                }
+                .ut-checkout-product-qty {
+                    color: #5d6470;
+                    font-size: 14px;
+                    line-height: 20px;
+                    font-weight: 500;
+                    white-space: nowrap;
+                }
+                .ut-checkout-note-wrap {
+                    margin-top: 34px;
+                    padding-top: 27px;
+                    border-top: 1px solid #f0f0f0;
+                }
+                .ut-checkout-label {
+                    display: block;
+                    margin: 0 0 12px;
+                    color: #0c1014;
+                    font-size: 14px;
+                    line-height: 20px;
+                    font-weight: 600;
+                }
+                .ut-checkout-note {
+                    width: 100%;
+                    min-height: 64px;
+                    resize: vertical;
+                    border: 1px solid #c5c6ca;
+                    border-radius: 12px;
+                    background: #f9f9fb;
+                    padding: 17px;
+                    color: #212529;
+                    font-family: inherit;
+                    font-size: 14px;
+                    line-height: 22px;
+                    font-weight: 400;
+                    box-shadow: none;
+                    outline: none;
+                }
+                .ut-checkout-note:focus {
+                    border-color: #212529;
+                    background: #fff;
+                }
+                .ut-payment-option {
+                    display: flex;
+                    align-items: center;
+                    gap: 20px;
+                    width: 100%;
+                    border: 1px solid #f0f0f0;
+                    border-radius: 12px;
+                    background: #f9f9fb;
+                    padding: 17px;
+                }
+                .ut-payment-icon {
+                    width: 48px;
+                    height: 48px;
+                    border: 1px solid #f0f0f0;
+                    border-radius: 8px;
+                    background: #fff;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                    color: #212529;
+                    flex: 0 0 auto;
+                }
+                .ut-payment-title {
+                    margin: 0 0 2px;
+                    color: #0c1014;
+                    font-size: 16px;
+                    line-height: 22px;
+                    font-weight: 600;
+                }
+                .ut-payment-desc {
+                    margin: 0;
+                    color: #5d6470;
+                    font-size: 14px;
+                    line-height: 20px;
+                    font-weight: 400;
+                }
+                .ut-payment-radio {
+                    width: 20px;
+                    height: 20px;
+                    border: 5px solid #212529;
+                    border-radius: 999px;
+                    background: #fff;
+                    flex: 0 0 auto;
+                    margin-left: auto;
+                }
+                .ut-checkout-summary {
+                    position: sticky;
+                    top: 112px;
+                    border: 1px solid #f0f0f0;
+                    border-radius: 16px;
+                    background: #fff;
+                    box-shadow: 0 8px 15px rgba(0, 0, 0, .04);
+                    padding: 33px;
+                }
+                .ut-summary-title {
+                    margin: 0 0 26px;
+                    color: #0c1014;
+                    font-size: 20px;
+                    line-height: 28px;
+                    font-weight: 700;
+                }
+                .ut-summary-lines {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 16px;
+                    margin-bottom: 28px;
+                }
+                .ut-summary-row {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 20px;
+                    color: #5d6470;
+                    font-size: 16px;
+                    line-height: 24px;
+                    font-weight: 400;
+                }
+                .ut-summary-row span:last-child {
+                    color: #212529;
+                    font-weight: 500;
+                }
+                .ut-summary-divider {
+                    height: 2px;
+                    width: 100%;
+                    background: #f0f0f0;
+                    margin: 0 0 26px;
+                }
+                .ut-summary-total {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 20px;
+                    margin-bottom: 30px;
+                }
+                .ut-summary-total-label {
+                    color: #0c1014;
+                    font-size: 16px;
+                    line-height: 24px;
+                    font-weight: 600;
+                }
+                .ut-summary-total-value {
+                    color: #0c1014;
+                    font-size: 24px;
+                    line-height: 32px;
+                    font-weight: 700;
+                    white-space: nowrap;
+                }
+                .ut-voucher-row {
+                    display: grid;
+                    grid-template-columns: minmax(0, 1fr) auto;
+                    gap: 12px;
+                    align-items: center;
+                    margin-bottom: 30px;
+                }
+                .ut-voucher-row input {
+                    width: 100%;
+                    height: 48px;
+                    border: 1px solid #c5c6ca;
+                    border-radius: 12px;
+                    background: #fff;
+                    padding: 0 17px;
+                    color: #212529;
+                    font-family: inherit;
+                    font-size: 14px;
+                    font-weight: 400;
+                    outline: none;
+                }
+                .ut-voucher-row input:focus {
+                    border-color: #212529;
+                }
+                .ut-voucher-row button {
+                    height: 48px;
+                    border: 1px solid #444;
+                    border-radius: 12px;
+                    background: #f5f5f7;
+                    color: #0c1014;
+                    padding: 0 20px;
+                    font-family: inherit;
+                    font-size: 14px;
+                    font-weight: 600;
+                    transition: background .15s ease;
+                }
+                .ut-voucher-row button:hover {
+                    background: #e8e8eb;
+                }
+                .ut-pay-form {
+                    width: 100%;
+                    margin: 0 0 26px;
+                }
+                .ut-pay-button {
+                    width: 100%;
+                    height: 58px;
+                    border: 0;
+                    border-radius: 999px;
+                    background: #0c1014;
+                    color: #fff;
+                    font-family: inherit;
+                    font-size: 16px;
+                    line-height: 22px;
+                    font-weight: 600;
+                    box-shadow: 0 12px 22px rgba(12, 16, 20, .18);
+                    transition: transform .15s ease, background .15s ease;
+                }
+                .ut-pay-button:hover {
+                    background: #000;
+                    transform: translateY(-1px);
+                }
+                .ut-secure-note {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    color: #5d6470;
+                    font-size: 12px;
+                    line-height: 18px;
+                    font-weight: 500;
+                    text-align: center;
+                    margin-bottom: 31px;
+                }
+                .ut-back-cart {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                    color: #5d6470;
+                    font-size: 14px;
+                    line-height: 20px;
+                    font-weight: 600;
+                    text-decoration: none;
+                }
+                .ut-back-cart:hover {
+                    color: #0c1014;
+                    text-decoration: none;
+                }
+                .ut-payment-modal {
+                    position: fixed;
+                    inset: 0;
+                    z-index: 1060;
+                    display: none;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 24px;
+                    font-family: 'Urbanist', Inter, sans-serif;
+                }
+                .ut-payment-modal.is-open {
+                    display: flex;
+                }
+                .ut-payment-modal-backdrop {
+                    position: absolute;
+                    inset: 0;
+                    background: rgba(0, 0, 0, .56);
+                    backdrop-filter: blur(3px);
+                }
+                .ut-payment-dialog {
+                    position: relative;
+                    z-index: 1;
+                    width: min(400px, calc(100vw - 32px));
+                    max-height: calc(100vh - 48px);
+                    overflow: auto;
+                    border-radius: 12px;
+                    background: #fff;
+                    box-shadow: 0 24px 70px rgba(0, 0, 0, .22);
+                    color: #212529;
+                }
+                .ut-payment-modal-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 18px;
+                    padding: 18px 18px 14px;
+                    border-bottom: 1px solid #f0f0f0;
+                }
+                .ut-payment-modal-header h2 {
+                    margin: 0;
+                    font-size: 16px;
+                    line-height: 22px;
+                    font-weight: 700;
+                    color: #0c1014;
+                }
+                .ut-payment-close {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 28px;
+                    height: 28px;
+                    border: 0;
+                    border-radius: 999px;
+                    background: transparent;
+                    color: #212529;
+                    cursor: pointer;
+                    padding: 0;
+                }
+                .ut-payment-close:hover {
+                    background: #f5f5f7;
+                }
+                .ut-payment-modal-body {
+                    padding: 18px;
+                }
+                .ut-payment-group + .ut-payment-group {
+                    margin-top: 18px;
+                }
+                .ut-payment-group-title {
+                    margin: 0 0 10px;
+                    color: #6b7280;
+                    font-size: 11px;
+                    line-height: 14px;
+                    font-weight: 700;
+                    letter-spacing: .5px;
+                    text-transform: uppercase;
+                }
+                .ut-payment-method-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+                .ut-payment-method-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    gap: 8px;
+                }
+                .ut-payment-method {
+                    display: flex;
+                    align-items: center;
+                    gap: 9px;
+                    min-height: 42px;
+                    border: 1px solid #e4e4e7;
+                    border-radius: 8px;
+                    background: #fff;
+                    color: #212529;
+                    cursor: pointer;
+                    font-family: inherit;
+                    font-size: 12px;
+                    line-height: 16px;
+                    font-weight: 500;
+                    padding: 0 10px;
+                    text-align: left;
+                    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+                }
+                .ut-payment-method svg {
+                    width: 16px;
+                    height: 16px;
+                    flex: 0 0 16px;
+                    color: #212529;
+                }
+                .ut-payment-method.is-active {
+                    border-color: #0c1014;
+                    box-shadow: 0 0 0 1px #0c1014 inset;
+                }
+                .ut-payment-method:hover {
+                    border-color: #9ca3af;
+                    background: #fafafa;
+                }
+                .ut-payment-method-radio {
+                    width: 14px;
+                    height: 14px;
+                    margin-left: auto;
+                    border: 1px solid #9ca3af;
+                    border-radius: 999px;
+                    background: #fff;
+                    box-shadow: inset 0 0 0 3px #fff;
+                    flex: 0 0 14px;
+                }
+                .ut-payment-method.is-active .ut-payment-method-radio {
+                    border-color: #0c1014;
+                    background: #0c1014;
+                }
+                .ut-payment-apply {
+                    width: 100%;
+                    height: 44px;
+                    margin-top: 22px;
+                    border: 0;
+                    border-radius: 999px;
+                    background: #0c1014;
+                    color: #fff;
+                    cursor: pointer;
+                    font-family: inherit;
+                    font-size: 13px;
+                    line-height: 18px;
+                    font-weight: 700;
+                }
+                .ut-payment-apply:hover {
+                    background: #000;
+                }
+                body.ut-payment-modal-open {
+                    overflow: hidden;
+                }
+                @media (max-width: 991px) {
+                    .ut-checkout-shell {
+                        padding: 32px 20px 48px;
+                    }
+                    .ut-checkout-layout {
+                        grid-template-columns: 1fr;
+                        gap: 32px;
+                    }
+                    .ut-checkout-summary {
+                        position: static;
+                    }
+                }
+                @media (max-width: 640px) {
+                    .ut-checkout-shell {
+                        padding-left: 16px;
+                        padding-right: 16px;
+                    }
+                    .ut-checkout-card,
+                    .ut-checkout-summary {
+                        padding: 24px;
+                    }
+                    .ut-checkout-product {
+                        grid-template-columns: 88px minmax(0, 1fr);
+                    }
+                    .ut-checkout-product-image {
+                        width: 88px;
+                        height: 88px;
+                    }
+                    .ut-checkout-product-bottom,
+                    .ut-summary-total {
+                        align-items: flex-start;
+                        flex-direction: column;
+                        gap: 8px;
+                    }
+                    .ut-voucher-row,
+                    .ut-payment-method-grid {
+                        grid-template-columns: 1fr;
+                    }
+                }
+            </style>
+
+            <div class="ut-checkout-page ut-checkout-address-widget">
+                <div class="ut-checkout-shell">
+                    <header class="ut-checkout-header">
+                        <h1 class="ut-checkout-title">Checkout</h1>
+                        <p class="ut-checkout-subtitle">Selesaikan pembayaran untuk pesanan Anda.</p>
+                        <nav class="ut-checkout-breadcrumb" aria-label="Breadcrumb">
+                            <a href="/">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                    <path d="M12 16v-4"/>
+                                    <circle cx="12" cy="16" r="0.5" fill="currentColor"/>
+                                </svg>
+                                <span>Beranda</span>
+                            </a>
+                            <span>/</span>
+                            <a href="/shop/cart">Keranjang</a>
+                            <span>/</span>
+                            <span class="is-active">Checkout</span>
+                        </nav>
+                    </header>
+
+                    <div class="ut-checkout-layout">
+                        <main class="ut-checkout-left">
+                            <section class="ut-checkout-card">
+                                <div class="ut-checkout-card-head">
+                                    <div class="ut-checkout-section-eyebrow">Alamat Pembeli</div>
+                                    <button type="button" class="ut-checkout-edit" data-address-open="1">Ubah</button>
+                                </div>
+                                <div class="ut-checkout-address">
+                                    <div class="ut-checkout-address-icon">
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                            <circle cx="12" cy="10" r="3"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="ut-checkout-address-name">
+                                            <strong data-address-summary-label="1">
+                                                <t t-esc="address_summary.get('label') or 'Rumah'"/>
+                                            </strong>
+                                            <t t-if="order.partner_shipping_id and order.partner_shipping_id.phone"> &#8226; <t t-esc="order.partner_shipping_id.phone"/></t>
+                                        </p>
+                                        <p class="ut-checkout-address-line" data-address-summary-line="1">
+                                            <t t-if="address_summary.get('line')">
+                                                <t t-esc="address_summary.get('line')"/>
+                                            </t>
+                                            <t t-else="">Belum ada alamat tersimpan.</t>
+                                        </p>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="ut-checkout-card">
+                                <h2 class="ut-checkout-section-title">Produk Dibeli</h2>
+                                <t t-foreach="order.order_line" t-as="line">
+                                    <div t-if="not line.display_type and line.product_id and line.product_id.id != unitrade_service_fee_product_id">
+                                        <t t-set="ut_product_template" t-value="line.product_id.product_tmpl_id.sudo()"/>
+                                        <t t-set="ut_seller" t-value="ut_product_template.x_seller_id if 'x_seller_id' in ut_product_template._fields else False"/>
+                                        <t t-set="ut_seller_safe" t-value="ut_seller.sudo() if ut_seller else False"/>
+                                        <div class="ut-checkout-seller">
+                                            <span class="ut-checkout-seller-dot">
+                                                <img t-if="ut_seller_safe and ut_seller_safe.x_avatar_128" t-att-src="image_data_uri(ut_seller_safe.x_avatar_128)" alt="Avatar penjual"/>
+                                                <svg t-else="" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                                    <circle cx="12" cy="7" r="4"/>
+                                                </svg>
+                                            </span>
+                                            <span>
+                                                <t t-if="ut_seller_safe">
+                                                    <t t-esc="ut_seller_safe.name"/>
+                                                </t>
+                                                <t t-else="">Penjual UniTrade</t>
+                                            </span>
+                                        </div>
+                                        <div class="ut-checkout-product">
+                                            <div class="ut-checkout-product-image">
+                                                <img t-att-src="'/web/image/product.product/%s/image_128' % line.product_id.id" t-att-alt="line.name_short"/>
+                                            </div>
+                                            <div class="ut-checkout-product-main">
+                                                <h3 class="ut-checkout-product-title" t-esc="line.name_short"/>
+                                                <p class="ut-checkout-product-desc" t-esc="line.product_id.description_sale or 'Kondisi barang sesuai deskripsi penjual dan siap diproses untuk transaksi.'"/>
+                                                <div class="ut-checkout-product-bottom">
+                                                    <div class="ut-checkout-product-price">
+                                                        <t t-set="ut_money_amount" t-value="line.price_reduce_taxinc"/>
+                                                        <t t-set="ut_money_currency" t-value="order.currency_id"/>
+                                                        <t t-call="unitrade_theme.unitrade_money"/>
+                                                    </div>
+                                                    <div class="ut-checkout-product-qty">Qty: <t t-esc="int(line.product_uom_qty)"/></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="ut-checkout-note-wrap">
+                                            <label class="ut-checkout-label" t-att-for="'unitrade_seller_notes_%s' % line.id">Catatan untuk seller (Opsional)</label>
+                                            <textarea t-att-id="'unitrade_seller_notes_%s' % line.id" name="seller_notes" class="ut-checkout-note" placeholder="Contoh: tolong dipacking kayu ya" rows="2"></textarea>
+                                        </div>
+                                    </div>
+                                </t>
+                            </section>
+
+                            <section class="ut-checkout-card">
+                                <div class="ut-checkout-card-head">
+                                    <h2 class="ut-checkout-section-title">Metode Pembayaran</h2>
+                                    <button type="button" class="ut-checkout-edit" data-payment-open="1">Ubah</button>
+                                </div>
+                                <div class="ut-payment-option">
+                                    <div class="ut-payment-icon">
+                                        <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <rect x="2" y="5" width="20" height="14" rx="2"/>
+                                            <line x1="2" y1="10" x2="22" y2="10"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="ut-payment-title" data-payment-label="1">BCA Virtual Account</p>
+                                        <p class="ut-payment-desc">Terpilih sebagai metode pembayaran saat ini</p>
+                                    </div>
+                                    <div class="ut-payment-radio" aria-hidden="true"/>
+                                </div>
+                            </section>
+                        </main>
+
+                        <aside class="ut-checkout-summary">
+                            <h2 class="ut-summary-title">Ringkasan Pesanan</h2>
+                            <div class="ut-summary-lines">
+                                <div class="ut-summary-row">
+                                    <span>Subtotal (<t t-esc="int(unitrade_checkout_amounts.get('item_quantity') or 0)"/> Barang)</span>
+                                    <span>
+                                        <t t-set="ut_money_amount" t-value="unitrade_checkout_amounts.get('item_subtotal')"/>
+                                        <t t-set="ut_money_currency" t-value="order.currency_id"/>
+                                        <t t-call="unitrade_theme.unitrade_money"/>
+                                    </span>
+                                </div>
+                                <div class="ut-summary-row">
+                                    <span>Biaya Layanan (2,5%)</span>
+                                    <span>
+                                        <t t-set="ut_money_amount" t-value="unitrade_checkout_amounts.get('service_fee')"/>
+                                        <t t-set="ut_money_currency" t-value="order.currency_id"/>
+                                        <t t-call="unitrade_theme.unitrade_money"/>
+                                    </span>
+                                </div>
+                                <div class="ut-summary-row">
+                                    <span>Pajak</span>
+                                    <span>
+                                        <t t-set="ut_money_amount" t-value="unitrade_checkout_amounts.get('tax')"/>
+                                        <t t-set="ut_money_currency" t-value="order.currency_id"/>
+                                        <t t-call="unitrade_theme.unitrade_money"/>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="ut-summary-divider"/>
+                            <div class="ut-summary-total">
+                                <span class="ut-summary-total-label">Total Pembayaran</span>
+                                <span class="ut-summary-total-value">
+                                    <t t-set="ut_money_amount" t-value="unitrade_checkout_amounts.get('total')"/>
+                                    <t t-set="ut_money_currency" t-value="order.currency_id"/>
+                                    <t t-call="unitrade_theme.unitrade_money"/>
+                                </span>
+                            </div>
+                            <div class="ut-voucher-row">
+                                <input type="text" placeholder="Kode Voucher"/>
+                                <button type="button">Terapkan</button>
+                            </div>
+                            <form action="/unitrade/checkout/pay" method="post" class="ut-pay-form">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <input type="hidden" name="payment_method" value="bca_va" data-payment-method-input="1"/>
+                                <button type="submit" class="ut-pay-button">Bayar Sekarang</button>
+                            </form>
+                            <div class="ut-secure-note">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                                <span>Pembayaran diproses aman melalui Unitrade</span>
+                            </div>
+                            <a href="/shop/cart" class="ut-back-cart">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="19" y1="12" x2="5" y2="12"/>
+                                    <polyline points="12 19 5 12 12 5"/>
+                                </svg>
+                                <span>Kembali ke Keranjang</span>
+                            </a>
+                        </aside>
+                    </div>
+
+                    <div class="ut-address-modal" data-unitrade-address-modal="1" t-att-data-address-initial="address_payload_json" aria-hidden="true">
+                        <div class="ut-address-modal-backdrop" data-address-close="1"></div>
+                        <section class="ut-address-dialog" role="dialog" aria-modal="true" aria-labelledby="ut_checkout_address_modal_title">
+                            <div class="ut-address-dialog-scroll">
+                                <header class="ut-address-header">
+                                    <h2 id="ut_checkout_address_modal_title">Atur Alamat</h2>
+                                    <button type="button" class="ut-address-icon-btn" data-address-close="1" aria-label="Tutup modal alamat">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M18 6 6 18"/>
+                                            <path d="m6 6 12 12"/>
+                                        </svg>
+                                    </button>
+                                </header>
+
+                                <div class="ut-address-search-wrap">
+                                    <label class="tw-sr-only" for="ut_checkout_address_search">Cari alamat</label>
+                                    <input id="ut_checkout_address_search" type="search" class="ut-address-input ut-address-search" placeholder="Cari alamat di Indonesia, contoh: UNISA Yogyakarta" autocomplete="off" data-address-search="1"/>
+                                    <div class="ut-address-suggestions" data-address-suggestions="1"></div>
+                                </div>
+
+                                <div class="ut-address-map-wrap">
+                                    <div class="ut-address-map" data-address-map="1"></div>
+                                    <button type="button" class="ut-address-current-btn" data-address-use-current="1">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="3"/>
+                                            <path d="M12 2v3"/>
+                                            <path d="M12 19v3"/>
+                                            <path d="M2 12h3"/>
+                                            <path d="M19 12h3"/>
+                                        </svg>
+                                        Gunakan lokasi saya saat ini
+                                    </button>
+                                </div>
+
+                                <div class="ut-address-form-grid">
+                                    <label class="ut-address-field ut-address-field-wide">
+                                        <span>Provinsi</span>
+                                        <input type="text" class="ut-address-input" data-address-field="province" placeholder="DI Yogyakarta"/>
+                                    </label>
+                                    <label class="ut-address-field">
+                                        <span>Kota/Kabupaten</span>
+                                        <input type="text" class="ut-address-input" data-address-field="city" placeholder="Kota Yogyakarta"/>
+                                    </label>
+                                    <label class="ut-address-field">
+                                        <span>Kecamatan</span>
+                                        <input type="text" class="ut-address-input" data-address-field="district" placeholder="Ngampilan"/>
+                                    </label>
+                                    <label class="ut-address-field">
+                                        <span>Kelurahan</span>
+                                        <input type="text" class="ut-address-input" data-address-field="village" placeholder="Notoprajan"/>
+                                    </label>
+                                    <label class="ut-address-field">
+                                        <span>Kode Pos</span>
+                                        <input type="text" class="ut-address-input" inputmode="numeric" maxlength="10" data-address-field="zip" placeholder="55262"/>
+                                    </label>
+                                    <label class="ut-address-field ut-address-field-wide">
+                                        <span>Nama Jalan, Gedung, No. Rumah</span>
+                                        <input type="text" class="ut-address-input" data-address-field="street" placeholder="Jl. Ringroad Barat No. 63"/>
+                                    </label>
+                                    <label class="ut-address-field ut-address-field-wide">
+                                        <span>Detail lainnya</span>
+                                        <input type="text" class="ut-address-input" data-address-field="street2" placeholder="Cth: Blok/Unit, patokan, nama kos"/>
+                                    </label>
+                                </div>
+
+                                <div class="ut-address-coordinate-row">
+                                    <label>
+                                        <span>Latitude</span>
+                                        <input type="text" readonly="readonly" data-address-field="latitude"/>
+                                    </label>
+                                    <label>
+                                        <span>Longitude</span>
+                                        <input type="text" readonly="readonly" data-address-field="longitude"/>
+                                    </label>
+                                </div>
+
+                                <div class="ut-address-label-group">
+                                    <p>Tandai Sebagai</p>
+                                    <div class="ut-address-label-row" role="radiogroup" aria-label="Label alamat">
+                                        <button type="button" class="ut-address-label is-active" data-address-label="home">Rumah</button>
+                                        <button type="button" class="ut-address-label" data-address-label="office">Kantor</button>
+                                        <button type="button" class="ut-address-label" data-address-label="school">Sekolah</button>
+                                        <button type="button" class="ut-address-label" data-address-label="other">Lainnya</button>
+                                    </div>
+                                </div>
+
+                                <div class="ut-address-error" data-address-error="1" role="alert"></div>
+                            </div>
+                            <footer class="ut-address-footer">
+                                <button type="button" class="ut-address-cancel" data-address-close="1">Batal</button>
+                                <button type="button" class="ut-address-save" data-address-save="1">Simpan</button>
+                            </footer>
+                        </section>
+                    </div>
+
+                    <div class="ut-payment-modal" data-payment-modal="1" aria-hidden="true">
+                        <div class="ut-payment-modal-backdrop" data-payment-close="1"></div>
+                        <section class="ut-payment-dialog" role="dialog" aria-modal="true" aria-labelledby="ut_payment_modal_title">
+                            <header class="ut-payment-modal-header">
+                                <h2 id="ut_payment_modal_title">Pilih Metode Pembayaran</h2>
+                                <button type="button" class="ut-payment-close" data-payment-close="1" aria-label="Tutup modal pembayaran">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M18 6 6 18"/>
+                                        <path d="m6 6 12 12"/>
+                                    </svg>
+                                </button>
+                            </header>
+                            <div class="ut-payment-modal-body">
+                                <div class="ut-payment-group">
+                                    <p class="ut-payment-group-title">Transfer Virtual Account</p>
+                                    <div class="ut-payment-method-list">
+                                        <button type="button" class="ut-payment-method is-active" data-payment-choice="1" data-payment-value="bca_va" data-payment-label-value="BCA Virtual Account">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M3 10h18"/>
+                                                <path d="M5 10v9"/>
+                                                <path d="M19 10v9"/>
+                                                <path d="M12 4 3 10h18L12 4Z"/>
+                                                <path d="M4 19h16"/>
+                                            </svg>
+                                            <span>BCA Virtual Account</span>
+                                            <span class="ut-payment-method-radio" aria-hidden="true"></span>
+                                        </button>
+                                        <button type="button" class="ut-payment-method" data-payment-choice="1" data-payment-value="mandiri_va" data-payment-label-value="Mandiri Virtual Account">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M3 10h18"/>
+                                                <path d="M5 10v9"/>
+                                                <path d="M19 10v9"/>
+                                                <path d="M12 4 3 10h18L12 4Z"/>
+                                                <path d="M4 19h16"/>
+                                            </svg>
+                                            <span>Mandiri Virtual Account</span>
+                                            <span class="ut-payment-method-radio" aria-hidden="true"></span>
+                                        </button>
+                                        <button type="button" class="ut-payment-method" data-payment-choice="1" data-payment-value="bni_va" data-payment-label-value="BNI Virtual Account">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M3 10h18"/>
+                                                <path d="M5 10v9"/>
+                                                <path d="M19 10v9"/>
+                                                <path d="M12 4 3 10h18L12 4Z"/>
+                                                <path d="M4 19h16"/>
+                                            </svg>
+                                            <span>BNI Virtual Account</span>
+                                            <span class="ut-payment-method-radio" aria-hidden="true"></span>
+                                        </button>
+                                        <button type="button" class="ut-payment-method" data-payment-choice="1" data-payment-value="bri_va" data-payment-label-value="BRI Virtual Account">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M3 10h18"/>
+                                                <path d="M5 10v9"/>
+                                                <path d="M19 10v9"/>
+                                                <path d="M12 4 3 10h18L12 4Z"/>
+                                                <path d="M4 19h16"/>
+                                            </svg>
+                                            <span>BRI Virtual Account</span>
+                                            <span class="ut-payment-method-radio" aria-hidden="true"></span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="ut-payment-group">
+                                    <p class="ut-payment-group-title">E-Wallet &amp; QRIS</p>
+                                    <div class="ut-payment-method-grid">
+                                        <button type="button" class="ut-payment-method" data-payment-choice="1" data-payment-value="qris" data-payment-label-value="QRIS">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                                <path d="M4 4h6v6H4z"/>
+                                                <path d="M14 4h6v6h-6z"/>
+                                                <path d="M4 14h6v6H4z"/>
+                                                <path d="M14 14h2v2h-2z"/>
+                                                <path d="M18 14h2v6h-6v-2"/>
+                                            </svg>
+                                            <span>QRIS</span>
+                                        </button>
+                                        <button type="button" class="ut-payment-method" data-payment-choice="1" data-payment-value="gopay" data-payment-label-value="GoPay">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="4" y="5" width="16" height="14" rx="3"/>
+                                                <path d="M8 12h8"/>
+                                            </svg>
+                                            <span>GoPay</span>
+                                        </button>
+                                        <button type="button" class="ut-payment-method" data-payment-choice="1" data-payment-value="ovo" data-payment-label-value="OVO">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="4" y="5" width="16" height="14" rx="3"/>
+                                                <path d="M8 12h8"/>
+                                            </svg>
+                                            <span>OVO</span>
+                                        </button>
+                                        <button type="button" class="ut-payment-method" data-payment-choice="1" data-payment-value="dana" data-payment-label-value="Dana">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="4" y="5" width="16" height="14" rx="3"/>
+                                                <path d="M8 12h8"/>
+                                            </svg>
+                                            <span>Dana</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="ut-payment-group">
+                                    <p class="ut-payment-group-title">Kartu Kredit/Debit</p>
+                                    <div class="ut-payment-method-list">
+                                        <button type="button" class="ut-payment-method" data-payment-choice="1" data-payment-value="card" data-payment-label-value="Visa / Mastercard / JCB">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="3" y="5" width="18" height="14" rx="2"/>
+                                                <path d="M3 10h18"/>
+                                            </svg>
+                                            <span>Visa / Mastercard / JCB</span>
+                                            <span class="ut-payment-method-radio" aria-hidden="true"></span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button type="button" class="ut-payment-apply" data-payment-apply="1">Pilih Metode</button>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+
+            <script type="text/javascript">
+                <![CDATA[
+                (function () {
+                    function initPaymentModal() {
+                        var root = document.querySelector(".ut-checkout-page");
+                        if (!root) {
+                            return;
+                        }
+
+                        var modal = root.querySelector("[data-payment-modal]");
+                        var openButtons = root.querySelectorAll("[data-payment-open]");
+                        var closeButtons = root.querySelectorAll("[data-payment-close]");
+                        var choices = root.querySelectorAll("[data-payment-choice]");
+                        var applyButton = root.querySelector("[data-payment-apply]");
+                        var hiddenInput = root.querySelector("[data-payment-method-input]");
+                        var visibleLabel = root.querySelector("[data-payment-label]");
+                        var selectedValue = hiddenInput ? hiddenInput.value : "bca_va";
+                        var selectedLabel = visibleLabel ? visibleLabel.textContent.trim() : "BCA Virtual Account";
+
+                        function openModal(ev) {
+                            if (ev) {
+                                ev.preventDefault();
+                            }
+                            if (!modal) {
+                                return;
+                            }
+                            modal.classList.add("is-open");
+                            modal.setAttribute("aria-hidden", "false");
+                            document.body.classList.add("ut-payment-modal-open");
+                        }
+
+                        function closeModal(ev) {
+                            if (ev) {
+                                ev.preventDefault();
+                            }
+                            if (!modal) {
+                                return;
+                            }
+                            modal.classList.remove("is-open");
+                            modal.setAttribute("aria-hidden", "true");
+                            document.body.classList.remove("ut-payment-modal-open");
+                        }
+
+                        function selectChoice(button) {
+                            choices.forEach(function (choice) {
+                                choice.classList.toggle("is-active", choice === button);
+                            });
+                            selectedValue = button.dataset.paymentValue || selectedValue;
+                            selectedLabel = button.dataset.paymentLabelValue || selectedLabel;
+                        }
+
+                        openButtons.forEach(function (button) {
+                            button.addEventListener("click", openModal);
+                        });
+                        closeButtons.forEach(function (button) {
+                            button.addEventListener("click", closeModal);
+                        });
+                        choices.forEach(function (button) {
+                            button.addEventListener("click", function (ev) {
+                                ev.preventDefault();
+                                selectChoice(button);
+                            });
+                        });
+                        if (applyButton) {
+                            applyButton.addEventListener("click", function (ev) {
+                                ev.preventDefault();
+                                if (hiddenInput) {
+                                    hiddenInput.value = selectedValue;
+                                }
+                                if (visibleLabel) {
+                                    visibleLabel.textContent = selectedLabel;
+                                }
+                                closeModal();
+                            });
+                        }
+                        document.addEventListener("keydown", function (ev) {
+                            if (ev.key === "Escape" && modal && modal.classList.contains("is-open")) {
+                                closeModal(ev);
+                            }
+                        });
+                    }
+
+                    if (document.readyState === "loading") {
+                        document.addEventListener("DOMContentLoaded", initPaymentModal);
+                    } else {
+                        initPaymentModal();
+                    }
+                }());
+                ]]>
+            </script>
+        </t>
+    </template>
+</odoo>

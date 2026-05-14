@@ -6,9 +6,78 @@ from odoo.tools.float_utils import float_compare
 
 _logger = logging.getLogger(__name__)
 
+UNITRADE_SERVICE_FEE_RATE = 0.025
+
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
+
+    def _unitrade_service_fee_product(self):
+        product = self.env.ref('unitrade_theme.product_unitrade_service_fee', raise_if_not_found=False)
+        if product:
+            return product.sudo()
+
+        product = self.env['product.product'].sudo().create({
+            'name': 'Biaya Layanan UniTrade',
+            'detailed_type': 'service',
+            'sale_ok': True,
+            'purchase_ok': False,
+            'list_price': 0.0,
+            'taxes_id': [(6, 0, [])],
+        })
+        self.env['ir.model.data'].sudo().create({
+            'module': 'unitrade_theme',
+            'name': 'product_unitrade_service_fee',
+            'model': 'product.product',
+            'res_id': product.id,
+            'noupdate': True,
+        })
+        return product
+
+    def _unitrade_checkout_amounts(self, sync_fee=False):
+        self.ensure_one()
+        fee_product = self._unitrade_service_fee_product()
+        fee_lines = self.order_line.filtered(lambda line: line.product_id == fee_product)
+        product_lines = self.order_line.filtered(
+            lambda line: not line.display_type and line.product_id and line.product_id != fee_product
+        )
+        subtotal = sum(product_lines.mapped('price_subtotal'))
+        tax = sum(product_lines.mapped('price_tax'))
+        service_fee = self.currency_id.round(subtotal * UNITRADE_SERVICE_FEE_RATE)
+
+        if sync_fee and self.state == 'draft':
+            if service_fee:
+                fee_values = {
+                    'order_id': self.id,
+                    'product_id': fee_product.id,
+                    'product_uom_qty': 1.0,
+                    'price_unit': service_fee,
+                    'name': fee_product.display_name,
+                    'tax_id': [(6, 0, [])],
+                }
+                if fee_lines:
+                    (fee_lines[0]).sudo().write({
+                        'product_uom_qty': 1.0,
+                        'price_unit': service_fee,
+                        'tax_id': [(6, 0, [])],
+                    })
+                    stale_lines = fee_lines - fee_lines[0]
+                    if stale_lines:
+                        stale_lines.sudo().unlink()
+                else:
+                    self.env['sale.order.line'].sudo().create(fee_values)
+            elif fee_lines:
+                fee_lines.sudo().unlink()
+            self.invalidate_recordset(['order_line', 'amount_untaxed', 'amount_tax', 'amount_total'])
+
+        return {
+            'service_fee_product_id': fee_product.id,
+            'item_subtotal': subtotal,
+            'service_fee': service_fee,
+            'tax': tax,
+            'total': subtotal + tax + service_fee,
+            'item_quantity': sum(product_lines.mapped('product_uom_qty')),
+        }
 
     def _unitrade_is_stock_warning_message(self, message):
         message = message or ''

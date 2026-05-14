@@ -16,6 +16,7 @@
     'data': [
         'security/ir.model.access.csv',
         'data/oauth_provider.xml',
+        'data/checkout_fee_product.xml',
         'views/templates.xml',
         'views/navbar_templates.xml',
         'views/product_card_templates.xml',
@@ -30,6 +31,7 @@
         'views/profile_templates.xml',
         'views/seller_verification.xml',
         'views/cart_templates.xml',
+        'views/checkout_templates.xml',
     ],
     'assets': {
         'web.assets_frontend': [

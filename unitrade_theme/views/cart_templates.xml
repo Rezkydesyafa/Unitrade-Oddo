@@ -123,6 +123,52 @@
                 .o_cart_product h6 a:hover { color: #212529 !important; }
                 .o_cart_product .text-muted { font-size: 13px !important; }
 
+                /* Suggested products */
+                #cart_products > h5 {
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-weight: 800 !important;
+                    color: #212529 !important;
+                }
+                #suggested_products {
+                    color: #212529 !important;
+                }
+                #suggested_products .o_cart_suggested_product_name a,
+                #suggested_products .o_cart_suggested_product_name strong {
+                    color: #212529 !important;
+                    text-decoration: none !important;
+                }
+                #suggested_products .o_cart_suggested_product_name a:hover,
+                #suggested_products .o_cart_suggested_product_name a:hover strong {
+                    color: #000000 !important;
+                    text-decoration: none !important;
+                }
+                #suggested_products .o_cart_suggested_product_name .text-muted {
+                    color: #4b5563 !important;
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-size: 14px !important;
+                }
+                #suggested_products [name="website_sale_suggested_product_price"] {
+                    color: #212529 !important;
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-weight: 700 !important;
+                }
+                #suggested_products .js_add_suggested_products.btn-outline-primary {
+                    color: #212529 !important;
+                    border-color: #212529 !important;
+                    background: #ffffff !important;
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-weight: 600 !important;
+                    border-radius: 8px !important;
+                    transition: background 0.15s, border-color 0.15s, color 0.15s !important;
+                }
+                #suggested_products .js_add_suggested_products.btn-outline-primary:hover,
+                #suggested_products .js_add_suggested_products.btn-outline-primary:focus {
+                    color: #ffffff !important;
+                    border-color: #212529 !important;
+                    background: #212529 !important;
+                    box-shadow: none !important;
+                }
+
                 /* ── Right Section (Price, Delete, Qty) ─────────────── */
                 .o_cart_product > div.d-flex.flex-column.align-items-end {
                     display: grid !important;

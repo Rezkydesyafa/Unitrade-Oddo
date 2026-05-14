@@ -113,7 +113,7 @@ publicWidget.registry.UnitradeUserProfileForm = publicWidget.Widget.extend({
 });
 
 publicWidget.registry.UnitradeAddressModal = publicWidget.Widget.extend({
-    selector: ".ut-user-profile-card",
+    selector: ".ut-user-profile-card, .ut-checkout-address-widget",
     events: {
         "click [data-address-open]": "_onOpen",
         "click [data-address-close]": "_onClose",
