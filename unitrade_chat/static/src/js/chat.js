@@ -38,10 +38,14 @@ export class UnitradeChatApp extends Component {
     static template = "unitrade_chat.ChatApp";
     static props = {
         initialConversationId: { type: Number, optional: true },
+        role: { type: String, optional: true },
+        basePath: { type: String, optional: true },
         busService: { type: Object, optional: true },
     };
     static defaultProps = {
         initialConversationId: 0,
+        role: "buyer",
+        basePath: "/unitrade/chat",
         busService: null,
     };
 
@@ -136,8 +140,22 @@ export class UnitradeChatApp extends Component {
     }
 
     get sidebarTitle() {
-        const active = this.activeConversation;
-        return (active && active.is_seller_view) || this.state.isSellerView ? "Chat Pembeli" : "Chat Penjual";
+        return this.chatRole === "seller" ? "Chat Pembeli" : "Chat Penjual";
+    }
+
+    get chatRole() {
+        return this.props.role === "seller" ? "seller" : "buyer";
+    }
+
+    get basePath() {
+        return this.props.basePath || (this.chatRole === "seller" ? "/unitrade/seller/chat" : "/unitrade/chat");
+    }
+
+    rpcPayload(payload = {}) {
+        return {
+            role: this.chatRole,
+            ...payload,
+        };
     }
 
     get reportFormValid() {
@@ -201,9 +219,9 @@ export class UnitradeChatApp extends Component {
         this.state.loading = true;
         this.state.error = "";
         try {
-            const result = await jsonrpc("/unitrade/chat/bootstrap", {
+            const result = await jsonrpc("/unitrade/chat/bootstrap", this.rpcPayload({
                 conversation_id: this.state.activeConversationId || false,
-            });
+            }));
             if (!result.success) {
                 throw new Error(result.message || "Chat gagal dimuat.");
             }
@@ -371,7 +389,7 @@ export class UnitradeChatApp extends Component {
         this.state.messagesLoading = true;
         this.state.error = "";
         try {
-            const result = await jsonrpc("/unitrade/chat/conversation", { conversation_id: conversationId });
+            const result = await jsonrpc("/unitrade/chat/conversation", this.rpcPayload({ conversation_id: conversationId }));
             if (!result.success) {
                 throw new Error(result.message || "Percakapan gagal dimuat.");
             }
@@ -383,7 +401,7 @@ export class UnitradeChatApp extends Component {
             this.state.hasMoreMessages = Boolean(result.has_more);
             this.state.products = result.products || [];
             this.subscribe(conversation.conversation_channel || conversation.bus_channel);
-            window.history.replaceState({}, "", `/unitrade/chat?conversation_id=${conversation.id}`);
+            window.history.replaceState({}, "", `${this.basePath}?conversation_id=${conversation.id}`);
             this.scheduleVisibleReadReceipt();
         } catch (error) {
             console.error("[UniTrade] Chat conversation:", error);
@@ -403,10 +421,10 @@ export class UnitradeChatApp extends Component {
         }
         const lastMessage = [...this.state.messages].reverse().find((message) => !message.pending && Number.isFinite(Number(message.id)));
         try {
-            const result = await jsonrpc("/unitrade/chat/messages", {
+            const result = await jsonrpc("/unitrade/chat/messages", this.rpcPayload({
                 conversation_id: this.state.activeConversationId,
                 after_id: lastMessage ? lastMessage.id : 0,
-            });
+            }));
             if (!result.success) {
                 return;
             }
@@ -443,11 +461,11 @@ export class UnitradeChatApp extends Component {
         const previousHeight = el ? el.scrollHeight : 0;
         this.state.loadingOlder = true;
         try {
-            const result = await jsonrpc("/unitrade/chat/messages", {
+            const result = await jsonrpc("/unitrade/chat/messages", this.rpcPayload({
                 conversation_id: this.state.activeConversationId,
                 before_id: firstMessage.id,
                 limit: 40,
-            });
+            }));
             if (!result.success) {
                 return;
             }
@@ -481,9 +499,9 @@ export class UnitradeChatApp extends Component {
             return;
         }
         try {
-            const result = await jsonrpc("/unitrade/chat/presence", {
+            const result = await jsonrpc("/unitrade/chat/presence", this.rpcPayload({
                 conversation_id: this.state.activeConversationId,
-            });
+            }));
             if (result.success && result.conversation) {
                 upsertById(this.state.conversations, this.normalizeConversation(result.conversation));
             }
@@ -545,14 +563,14 @@ export class UnitradeChatApp extends Component {
             return;
         }
         try {
-            const result = await jsonrpc("/unitrade/chat/read", {
+            const result = await jsonrpc("/unitrade/chat/read", this.rpcPayload({
                 conversation_id: this.state.activeConversationId,
                 active_conversation_id: this.state.activeConversationId,
                 receiver_id: this.state.currentUserId,
                 last_seen_message_id: lastSeenMessageId,
                 page_visible: document.visibilityState === "visible",
                 window_focused: document.hasFocus(),
-            });
+            }));
             if (result.success && result.conversation) {
                 this.lastReadSentByConversation.set(this.state.activeConversationId, lastSeenMessageId);
                 upsertById(this.state.conversations, this.normalizeConversation(result.conversation));
@@ -585,10 +603,10 @@ export class UnitradeChatApp extends Component {
         }
         this.typingTimer = window.setTimeout(async () => {
             try {
-                await jsonrpc("/unitrade/chat/typing", {
+                await jsonrpc("/unitrade/chat/typing", this.rpcPayload({
                     conversation_id: this.state.activeConversationId,
                     typing: isTyping,
-                });
+                }));
             } catch (error) {
                 console.warn("[UniTrade] Chat typing failed:", error);
             }
@@ -734,7 +752,7 @@ export class UnitradeChatApp extends Component {
         this.state.reportError = "";
         this.state.reportSuccess = "";
         try {
-            const result = await jsonrpc("/unitrade/chat/report", {
+            const result = await jsonrpc("/unitrade/chat/report", this.rpcPayload({
                 conversation_id: this.state.activeConversationId,
                 reason: this.state.reportReason.trim(),
                 proof_images: this.state.reportProofs.map((proof) => ({
@@ -742,7 +760,7 @@ export class UnitradeChatApp extends Component {
                     filename: proof.filename,
                     mimetype: proof.mimetype,
                 })),
-            });
+            }));
             if (!result.success) {
                 throw new Error(result.message || "Laporan gagal dikirim.");
             }
@@ -802,11 +820,11 @@ export class UnitradeChatApp extends Component {
         }
         this.state.error = "";
         try {
-            const result = await jsonrpc("/unitrade/chat/cart/add", {
+            const result = await jsonrpc("/unitrade/chat/cart/add", this.rpcPayload({
                 conversation_id: this.state.activeConversationId,
                 product_id: productId,
                 checkout,
-            });
+            }));
             if (!result.success) {
                 throw new Error(result.message || "Produk gagal ditambahkan ke keranjang.");
             }
@@ -871,10 +889,10 @@ export class UnitradeChatApp extends Component {
         this.state.sending = true;
         this.state.error = "";
         try {
-            const result = await jsonrpc("/unitrade/chat/send", {
+            const result = await jsonrpc("/unitrade/chat/send", this.rpcPayload({
                 conversation_id: this.state.activeConversationId,
                 ...payload,
-            });
+            }));
             if (!result.success) {
                 throw new Error(result.message || "Pesan gagal dikirim.");
             }
@@ -1022,10 +1040,28 @@ publicWidget.registry.UnitradeChatApp = publicWidget.Widget.extend({
         const services = (Component.env && Component.env.services) || {};
         const props = {
             initialConversationId: intOrDefault(this.el.dataset.initialConversationId),
+            role: this.el.dataset.chatRole === "seller" ? "seller" : "buyer",
+            basePath: this.el.dataset.basePath || "/unitrade/chat",
             busService: services.bus_service || null,
         };
-        this.el.innerHTML = "";
-        this.component = await mount(UnitradeChatApp, this.el, { props, templates });
+        const fallbackNodes = Array.from(this.el.childNodes);
+        const mountTarget = document.createElement("div");
+        mountTarget.className = "ut-chat-owl-mount-host";
+        this.el.appendChild(mountTarget);
+        try {
+            this.component = await mount(UnitradeChatApp, mountTarget, { props, templates });
+            fallbackNodes.forEach((node) => node.remove());
+        } catch (error) {
+            mountTarget.remove();
+            console.error("[UniTrade] Chat mount:", error);
+            this.el.classList.add("ut-chat-mount-failed");
+            if (!this.el.querySelector(".ut-chat-mount-error")) {
+                const fallback = document.createElement("div");
+                fallback.className = "ut-chat-mount-error";
+                fallback.textContent = "Chat belum bisa dimuat. Muat ulang halaman setelah modul di-upgrade.";
+                this.el.appendChild(fallback);
+            }
+        }
         return superPromise;
     },
 

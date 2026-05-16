@@ -93,21 +93,24 @@ class UnitradeChatConversation(models.Model):
         return ['|', ('buyer_user_id', '=', user.id), ('seller_user_id', '=', user.id)]
 
     @api.model
-    def nav_unread_count(self, user=None):
+    def _role_domain(self, user=None, role='buyer'):
+        user = user or self.env.user
+        role = role if role in ('buyer', 'seller') else 'buyer'
+        field_name = 'seller_user_id' if role == 'seller' else 'buyer_user_id'
+        return [(field_name, '=', user.id)]
+
+    @api.model
+    def nav_unread_count(self, user=None, role='buyer'):
         user = (user or self.env.user).sudo()
         if not user or user._is_public():
             return 0
-        conversations = self.sudo().search([
-            ('active', '=', True),
-            '|',
-            ('buyer_user_id', '=', user.id),
-            ('seller_user_id', '=', user.id),
-        ])
+        role = role if role in ('buyer', 'seller') else 'buyer'
+        conversations = self.sudo().search([('active', '=', True)] + self._role_domain(user, role=role))
         unread_count = 0
         for conversation in conversations:
-            if conversation.buyer_user_id.id == user.id:
+            if role == 'buyer' and conversation.buyer_user_id.id == user.id:
                 unread_count += conversation.buyer_unread_count
-            elif conversation.seller_user_id.id == user.id:
+            elif role == 'seller' and conversation.seller_user_id.id == user.id:
                 unread_count += conversation.seller_unread_count
         return unread_count
 
@@ -121,7 +124,9 @@ class UnitradeChatConversation(models.Model):
             except (TypeError, ValueError):
                 seller = Seller.browse()
         elif profile_ref:
-            seller = Seller.search([('x_profile_uuid', '=', profile_ref)], limit=1)
+            seller = Seller.search([('x_store_slug', '=', profile_ref)], limit=1)
+            if not seller:
+                seller = Seller.search([('x_profile_uuid', '=', profile_ref)], limit=1)
             if not seller and str(profile_ref).isdigit():
                 seller = Seller.browse(int(profile_ref)).exists()
         if not seller or seller.status != 'verified':
