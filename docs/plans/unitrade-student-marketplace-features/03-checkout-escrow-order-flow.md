@@ -10,22 +10,21 @@ Checkout website menjadi jalur resmi yang dilindungi UniTrade. Dana buyer ditaha
 ## Status Saat Ini
 
 - Cart dan checkout dasar Odoo ada.
-- Midtrans model dan webhook ada sebagian.
-- Belum ada frontend Snap/checkout payment flow penuh.
-- Belum ada escrow ledger.
-- Belum ada order state khusus UniTrade.
+- Xendit payment intent dan webhook menjadi flow aktif.
+- Escrow ledger internal sudah dipakai untuk menahan dana seller.
+- Order state khusus UniTrade dipakai untuk membedakan payment, processing, completed, dan cancelled.
 
 ## Scope MVP
 
 - Buyer membayar order lewat website.
 - Payment intent dibuat untuk order checkout.
-- Setelah payment success, order masuk status `paid_escrow`.
+- Setelah payment success dari webhook Xendit valid, order masuk status `processing`.
 - Dana dicatat sebagai tertahan.
 - Seller melihat order masuk.
-- Seller upload bukti serah/kirim.
-- Buyer klik pesanan selesai.
-- Jika buyer tidak klik selesai dalam 24 jam, cron auto complete.
-- Dana pindah ke saldo siap payout seller.
+- Seller klik konfirmasi barang sudah diserahkan.
+- Buyer klik barang diterima.
+- Order baru menjadi `completed` jika buyer dan seller sama-sama konfirmasi.
+- Dana pindah ke saldo siap payout seller setelah escrow ledger menjadi `releasable`.
 
 ## Data Model
 
@@ -40,8 +39,9 @@ Model baru:
   - `sale_order_id`
   - `product_template_id`
   - `seller_id`
-  - `midtrans_transaction_id`
-  - `midtrans_snap_token`
+  - `xendit_reference_id`
+  - `xendit_payment_request_id`
+  - `payment_method_code`
 
 - `unitrade.escrow.ledger`
   - `order_id`
@@ -49,8 +49,12 @@ Model baru:
   - `buyer_id`
   - `amount_total`
   - `amount_platform_fee`
+  - `amount_gateway_fee`
   - `amount_seller`
   - `state`: held, releasable, released, disputed, refunded
+  - `buyer_confirmed_at`
+  - `seller_confirmed_at`
+  - `completed_at`
   - `released_at`
   - `payout_id`
 
@@ -58,17 +62,13 @@ Tambahan field di `sale.order`:
 
 - `x_unitrade_order_state`
 - `x_escrow_state`
-- `x_buyer_confirmed_at`
-- `x_auto_complete_at`
-- `x_seller_handoff_at`
+- `x_cancel_deadline_at`
+- `x_completed_at`
 
 ## Order State
 
 - `payment_pending`
-- `paid_escrow`
 - `processing`
-- `handoff_uploaded`
-- `buyer_confirmation_pending`
 - `completed`
 - `cancelled`
 - `dispute_open`
@@ -80,19 +80,18 @@ Tambahan field di `sale.order`:
 - Webhook payment sukses membuat escrow ledger.
 - Seller dashboard menampilkan order yang harus diproses.
 - Dana tidak masuk payout sebelum order completed.
-- Buyer bisa klik selesai setelah seller upload bukti.
-- Cron menyelesaikan order otomatis 24 jam setelah bukti seller jika tidak ada dispute.
+- Buyer bisa klik barang diterima.
+- Seller bisa klik konfirmasi diserahkan.
+- Order selesai hanya setelah buyer dan seller sama-sama konfirmasi.
 - Jika dispute aktif, auto complete dan payout tertahan.
 
 ## Urutan Implementasi
 
 1. Buat payment intent.
-2. Integrasikan Midtrans Snap dari checkout website.
-3. Extend webhook Midtrans untuk order checkout.
+2. Integrasikan Xendit Payment Requests dari checkout website.
+3. Extend webhook Xendit untuk order checkout.
 4. Buat escrow ledger.
 5. Tambah state order UniTrade.
-6. Tambah seller order detail.
-7. Tambah buyer order detail dan tombol selesai.
-8. Buat cron auto complete.
-9. Test checkout, webhook, auto complete, dan status pesanan.
-
+6. Tambah seller order detail dan tombol konfirmasi diserahkan.
+7. Tambah buyer order detail dan tombol barang diterima.
+8. Test checkout, webhook, dua pihak konfirmasi, dan status pesanan.
