@@ -6,11 +6,345 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='payment_term_id']" position="after">
-                <field name="x_payment_status" widget="badge" decoration-success="x_payment_status == 'paid'" decoration-danger="x_payment_status in ('failed', 'expired')" decoration-warning="x_payment_status == 'pending'"/>
-                <field name="x_midtrans_transaction_id" readonly="1"/>
+                <field name="x_payment_provider" readonly="1"/>
+                <field name="x_payment_status" widget="badge" decoration-success="x_payment_status == 'paid'" decoration-danger="x_payment_status in ('failed', 'expired', 'cancelled')" decoration-warning="x_payment_status == 'pending'"/>
+                <field name="x_unitrade_order_state" widget="badge" decoration-success="x_unitrade_order_state == 'completed'" decoration-info="x_unitrade_order_state == 'processing'" decoration-warning="x_unitrade_order_state == 'payment_pending'" decoration-danger="x_unitrade_order_state in ('cancelled', 'refunded')"/>
+                <field name="x_escrow_state" widget="badge" decoration-success="x_escrow_state in ('held', 'releasable', 'released')" decoration-danger="x_escrow_state in ('disputed', 'refunded', 'cancelled')"/>
                 <field name="x_payment_method" readonly="1"/>
+                <field name="x_payment_intent_id" readonly="1"/>
+                <field name="x_midtrans_order_id" readonly="1"/>
+                <field name="x_midtrans_transaction_id" readonly="1"/>
+                <field name="x_midtrans_payment_type" readonly="1"/>
+                <field name="x_xendit_reference_id" readonly="1"/>
+                <field name="x_xendit_payment_request_id" readonly="1"/>
+                <field name="x_xendit_payment_url" widget="url" readonly="1"/>
+                <field name="x_xendit_channel_code" readonly="1"/>
                 <field name="x_paid_at" readonly="1"/>
+                <field name="x_cancel_deadline_at" readonly="1"/>
+                <field name="x_cancelled_by_id" readonly="1"/>
+                <field name="x_cancelled_at" readonly="1"/>
+                <field name="x_cancel_reason" readonly="1"/>
+                <field name="x_completed_at" readonly="1"/>
             </xpath>
         </field>
     </record>
+
+    <record id="view_unitrade_payment_intent_tree" model="ir.ui.view">
+        <field name="name">unitrade.payment.intent.tree</field>
+        <field name="model">unitrade.payment.intent</field>
+        <field name="arch" type="xml">
+            <tree string="Payment Intents" create="false" delete="false">
+                <field name="create_date"/>
+                <field name="name"/>
+                <field name="provider"/>
+                <field name="state" widget="badge" decoration-success="state == 'paid'" decoration-warning="state == 'pending'" decoration-danger="state in ('failed', 'expired', 'cancelled')"/>
+                <field name="sale_order_id"/>
+                <field name="partner_id"/>
+                <field name="seller_id"/>
+                <field name="payment_method_label"/>
+                <field name="amount"/>
+                <field name="amount_gateway_fee"/>
+                <field name="midtrans_order_id"/>
+                <field name="midtrans_transaction_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_unitrade_payment_intent_form" model="ir.ui.view">
+        <field name="name">unitrade.payment.intent.form</field>
+        <field name="model">unitrade.payment.intent</field>
+        <field name="arch" type="xml">
+            <form string="Payment Intent" create="false" delete="false">
+                <header>
+                    <button name="action_seed_sandbox_payment_details" string="Seed Sandbox Data" type="object" invisible="provider not in ['midtrans', 'xendit'] or state == 'paid'"/>
+                    <button name="action_simulate_midtrans_paid" string="Simulate Paid" type="object" class="btn-primary" invisible="provider not in ['midtrans', 'xendit'] or state == 'paid'"/>
+                    <button name="action_simulate_midtrans_expired" string="Simulate Expired" type="object" invisible="provider not in ['midtrans', 'xendit'] or state in ['paid', 'expired']"/>
+                    <button name="action_simulate_midtrans_failed" string="Simulate Failed" type="object" invisible="provider not in ['midtrans', 'xendit'] or state in ['paid', 'failed']"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,pending,paid,expired,failed,cancelled"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="provider" readonly="1"/>
+                            <field name="intent_type" readonly="1"/>
+                            <field name="state" widget="badge" readonly="1"/>
+                            <field name="amount" readonly="1"/>
+                            <field name="currency_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="sale_order_id" readonly="1"/>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="seller_id" readonly="1"/>
+                            <field name="paid_at" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Midtrans">
+                        <group>
+                            <field name="payment_method_code" readonly="1"/>
+                            <field name="payment_method_label" readonly="1"/>
+                            <field name="midtrans_order_id" readonly="1"/>
+                            <field name="midtrans_transaction_id" readonly="1"/>
+                            <field name="midtrans_payment_type" readonly="1"/>
+                            <field name="midtrans_bank" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="payment_reference" readonly="1"/>
+                            <field name="payment_url" widget="url" readonly="1"/>
+                            <field name="deeplink_url" widget="url" readonly="1"/>
+                            <field name="amount_gateway_fee" readonly="1"/>
+                            <field name="expires_at" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Legacy Xendit">
+                        <group>
+                            <field name="payment_method_code" readonly="1"/>
+                            <field name="payment_method_label" readonly="1"/>
+                            <field name="xendit_reference_id" readonly="1"/>
+                            <field name="xendit_payment_request_id" readonly="1"/>
+                            <field name="xendit_latest_payment_id" readonly="1"/>
+                            <field name="xendit_channel_code" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="payment_reference" readonly="1"/>
+                            <field name="payment_url" widget="url" readonly="1"/>
+                            <field name="deeplink_url" widget="url" readonly="1"/>
+                            <field name="amount_gateway_fee" readonly="1"/>
+                            <field name="expires_at" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Resolved Payment Data">
+                        <group>
+                            <field name="payment_reference" readonly="1"/>
+                            <field name="payment_url" widget="url" readonly="1"/>
+                            <field name="deeplink_url" widget="url" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="qr_string" readonly="1"/>
+                            <field name="midtrans_actions" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Request">
+                            <field name="raw_request" readonly="1"/>
+                        </page>
+                        <page string="Response">
+                            <field name="raw_response" readonly="1"/>
+                        </page>
+                        <page string="Midtrans Actions">
+                            <field name="midtrans_actions" readonly="1"/>
+                        </page>
+                        <page string="Legacy Xendit Actions">
+                            <field name="xendit_actions" readonly="1"/>
+                        </page>
+                        <page string="QR String">
+                            <field name="qr_string" readonly="1"/>
+                        </page>
+                        <page string="Error">
+                            <field name="error_message" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_unitrade_payment_intent_search" model="ir.ui.view">
+        <field name="name">unitrade.payment.intent.search</field>
+        <field name="model">unitrade.payment.intent</field>
+        <field name="arch" type="xml">
+            <search string="Payment Intents">
+                <field name="name"/>
+                <field name="midtrans_order_id"/>
+                <field name="midtrans_transaction_id"/>
+                <field name="xendit_reference_id"/>
+                <field name="xendit_payment_request_id"/>
+                <field name="sale_order_id"/>
+                <field name="partner_id"/>
+                <filter name="pending" string="Pending" domain="[('state','=','pending')]"/>
+                <filter name="paid" string="Paid" domain="[('state','=','paid')]"/>
+                <filter name="failed" string="Failed" domain="[('state','in',('failed','expired','cancelled'))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="State" context="{'group_by':'state'}"/>
+                    <filter name="group_provider" string="Provider" context="{'group_by':'provider'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_unitrade_escrow_ledger_tree" model="ir.ui.view">
+        <field name="name">unitrade.escrow.ledger.tree</field>
+        <field name="model">unitrade.escrow.ledger</field>
+        <field name="arch" type="xml">
+            <tree string="Escrow Ledger" create="false" delete="false">
+                <field name="create_date"/>
+                <field name="name"/>
+                <field name="state" widget="badge" decoration-success="state in ('held', 'releasable', 'released')" decoration-danger="state in ('disputed', 'refunded', 'cancelled')"/>
+                <field name="order_id"/>
+                <field name="payment_intent_id"/>
+                <field name="buyer_id"/>
+                <field name="seller_id"/>
+                <field name="amount_total"/>
+                <field name="amount_platform_fee"/>
+                <field name="amount_gateway_fee"/>
+                <field name="amount_seller"/>
+                <field name="buyer_confirmed_at"/>
+                <field name="seller_confirmed_at"/>
+                <field name="seller_handoff_filename"/>
+                <field name="seller_handoff_location"/>
+                <field name="buyer_received_filename"/>
+                <field name="completed_at"/>
+                <field name="payout_status" widget="badge" decoration-success="payout_status == 'succeeded'" decoration-warning="payout_status in ('pending', 'processing')" decoration-danger="payout_status == 'failed'"/>
+                <field name="released_at"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_unitrade_escrow_ledger_form" model="ir.ui.view">
+        <field name="name">unitrade.escrow.ledger.form</field>
+        <field name="model">unitrade.escrow.ledger</field>
+        <field name="arch" type="xml">
+            <form string="Escrow Ledger" create="false" delete="false">
+                <header>
+                    <button name="action_mark_releasable" string="Tandai Releasable" type="object" class="btn-primary" invisible="state != 'held'"/>
+                    <button name="action_create_xendit_payout" string="Buat Payout Xendit (Legacy)" type="object" class="btn-primary" invisible="1"/>
+                    <button name="action_mark_released" string="Tandai Released Manual" type="object" invisible="state != 'releasable'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="held,releasable,released"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group string="Konfirmasi Transaksi">
+                        <group>
+                            <field name="buyer_confirmed_at" readonly="1"/>
+                            <field name="seller_confirmed_at" readonly="1"/>
+                            <field name="completed_at" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="state" widget="badge" readonly="1"/>
+                            <field name="payout_status" widget="badge" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Bukti Serah Terima">
+                        <group>
+                            <field name="seller_handoff_filename" readonly="1"/>
+                            <field name="seller_handoff_location" readonly="1"/>
+                            <field name="seller_handoff_image" widget="image" readonly="1" options="{'size': [160, 160]}"/>
+                        </group>
+                        <group>
+                            <field name="buyer_received_filename" readonly="1"/>
+                            <field name="buyer_received_image" widget="image" readonly="1" options="{'size': [160, 160]}"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="order_id" readonly="1"/>
+                            <field name="payment_intent_id" readonly="1"/>
+                            <field name="buyer_id" readonly="1"/>
+                            <field name="seller_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" readonly="1"/>
+                            <field name="amount_total" readonly="1"/>
+                            <field name="amount_platform_fee" readonly="1"/>
+                            <field name="amount_gateway_fee" readonly="1"/>
+                            <field name="amount_seller" readonly="1"/>
+                            <field name="released_at" readonly="1"/>
+                            <field name="payout_reference"/>
+                            <field name="xendit_payout_id" readonly="1"/>
+                            <field name="payout_status" readonly="1"/>
+                            <field name="payout_requested_at" readonly="1"/>
+                            <field name="payout_completed_at" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Payout Error" invisible="not payout_failure_reason">
+                        <field name="payout_failure_reason" nolabel="1" readonly="1"/>
+                    </group>
+                    <group string="Catatan">
+                        <field name="note" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_unitrade_payment_event_tree" model="ir.ui.view">
+        <field name="name">unitrade.payment.event.tree</field>
+        <field name="model">unitrade.payment.event</field>
+        <field name="arch" type="xml">
+            <tree string="Payment Events" create="false" delete="false">
+                <field name="create_date"/>
+                <field name="provider"/>
+                <field name="state" widget="badge" decoration-success="state == 'processed'" decoration-danger="state == 'failed'"/>
+                <field name="event_key"/>
+                <field name="request_id"/>
+                <field name="payment_intent_id"/>
+                <field name="order_id"/>
+                <field name="payload_hash"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_unitrade_payment_event_form" model="ir.ui.view">
+        <field name="name">unitrade.payment.event.form</field>
+        <field name="model">unitrade.payment.event</field>
+        <field name="arch" type="xml">
+            <form string="Payment Event" create="false" delete="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="provider" readonly="1"/>
+                            <field name="state" readonly="1"/>
+                            <field name="event_key" readonly="1"/>
+                            <field name="request_id" readonly="1"/>
+                            <field name="payload_hash" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="payment_intent_id" readonly="1"/>
+                            <field name="order_id" readonly="1"/>
+                            <field name="error_message" readonly="1"/>
+                        </group>
+                    </group>
+                    <field name="payload_json" readonly="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_unitrade_payment_intent" model="ir.actions.act_window">
+        <field name="name">Payment Intent</field>
+        <field name="res_model">unitrade.payment.intent</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_unitrade_payment_intent_search"/>
+    </record>
+
+    <record id="action_unitrade_escrow_ledger" model="ir.actions.act_window">
+        <field name="name">Escrow Ledger</field>
+        <field name="res_model">unitrade.escrow.ledger</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_unitrade_payment_event" model="ir.actions.act_window">
+        <field name="name">Payment Event</field>
+        <field name="res_model">unitrade.payment.event</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_unitrade_cleanup_draft_fee_lines" model="ir.actions.server">
+        <field name="name">Bersihkan Fee Lines Draft Cart</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_unitrade_cleanup_draft_fee_lines()</field>
+    </record>
+
+    <menuitem id="menu_unitrade_payment_root" name="UniTrade Payment" parent="sale.sale_menu_root" sequence="90"/>
+    <menuitem id="menu_unitrade_payment_intent" name="Payment Intents" parent="menu_unitrade_payment_root" action="action_unitrade_payment_intent" sequence="10"/>
+    <menuitem id="menu_unitrade_escrow_ledger" name="Escrow Ledger" parent="menu_unitrade_payment_root" action="action_unitrade_escrow_ledger" sequence="20"/>
+    <menuitem id="menu_unitrade_payment_event" name="Payment Events" parent="menu_unitrade_payment_root" action="action_unitrade_payment_event" sequence="30"/>
 </odoo>

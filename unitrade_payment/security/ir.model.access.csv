@@ -1,1 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_unitrade_payment_intent_system,unitrade.payment.intent system,model_unitrade_payment_intent,base.group_system,1,1,1,1
+access_unitrade_payment_intent_sale_manager,unitrade.payment.intent sale manager,model_unitrade_payment_intent,sales_team.group_sale_manager,1,1,1,0
+access_unitrade_escrow_ledger_system,unitrade.escrow.ledger system,model_unitrade_escrow_ledger,base.group_system,1,1,1,1
+access_unitrade_escrow_ledger_sale_manager,unitrade.escrow.ledger sale manager,model_unitrade_escrow_ledger,sales_team.group_sale_manager,1,1,1,0
+access_unitrade_payment_event_system,unitrade.payment.event system,model_unitrade_payment_event,base.group_system,1,1,1,1
+access_unitrade_payment_event_sale_manager,unitrade.payment.event sale manager,model_unitrade_payment_event,sales_team.group_sale_manager,1,1,1,0

@@ -1,13 +1,2289 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <template id="payment_finish_template" name="Payment Finish">
+    <template id="unitrade_payment_instructions" name="UniTrade Payment Instructions">
         <t t-call="website.layout">
-            <t t-set="title">Status Pembayaran</t>
-            <div class="tw-max-w-lg tw-mx-auto tw-px-4 tw-py-16 tw-text-center">
-                <div class="tw-text-5xl tw-mb-6">✅</div>
-                <h1 class="tw-text-2xl tw-font-bold tw-text-gray-900 tw-mb-4">Terima Kasih!</h1>
-                <p class="tw-text-gray-500 tw-mb-8">Pembayaran Anda sedang diproses. Anda akan menerima konfirmasi melalui email.</p>
-                <a href="/my/orders" class="unitrade-btn-primary">Lihat Pesanan Saya</a>
+            <t t-set="title"><t t-esc="page_title"/></t>
+            <style>
+                .ut-pay-page {
+                    min-height: 100vh;
+                    background: #f9f9fb;
+                    color: #0c1014;
+                    font-family: 'Plus Jakarta Sans', 'Urbanist', Inter, sans-serif;
+                }
+                .ut-pay-shell {
+                    width: min(672px, calc(100% - 32px));
+                    margin: 0 auto;
+                    padding: 56px 0 72px;
+                }
+                .ut-pay-stack {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 24px;
+                }
+                .ut-pay-status {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    border-radius: 8px;
+                    background: #fef3c7;
+                    color: #92400e;
+                    padding: 16px 24px;
+                }
+                .ut-pay-status.is-success {
+                    background: #dcfce7;
+                    color: #166534;
+                }
+                .ut-pay-status.is-danger {
+                    background: #fee2e2;
+                    color: #991b1b;
+                }
+                .ut-pay-status svg {
+                    width: 20px;
+                    height: 20px;
+                    flex: 0 0 auto;
+                }
+                .ut-pay-status-title {
+                    margin: 0 0 4px;
+                    font-size: 14px;
+                    line-height: 17px;
+                    font-weight: 600;
+                }
+                .ut-pay-status-copy {
+                    margin: 0;
+                    font-size: 14px;
+                    line-height: 21px;
+                    font-weight: 400;
+                }
+                .ut-pay-card {
+                    border: 1px solid #e5e7eb;
+                    border-radius: 12px;
+                    background: #fff;
+                    box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                    padding: 25px;
+                }
+                .ut-pay-total-card {
+                    border-color: #dfe3ea;
+                }
+                .ut-pay-total {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 8px;
+                    text-align: center;
+                }
+                .ut-pay-total-label {
+                    margin: 0;
+                    color: #585f6c;
+                    font-size: 14px;
+                    line-height: 21px;
+                    font-weight: 400;
+                }
+                .ut-pay-total-value {
+                    margin: 0;
+                    color: #0c1014;
+                    font-size: 32px;
+                    line-height: 38px;
+                    font-weight: 700;
+                    letter-spacing: 0;
+                }
+                .ut-pay-method-head {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 16px;
+                    margin-bottom: 24px;
+                }
+                .ut-pay-method-title {
+                    margin: 0;
+                    color: #0c1014;
+                    font-size: 20px;
+                    line-height: 28px;
+                    font-weight: 600;
+                }
+                .ut-pay-method-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-width: 64px;
+                    height: 32px;
+                    border-radius: 4px;
+                    background: #e8e8ea;
+                    color: #585f6c;
+                    padding: 0 10px;
+                    font-size: 10px;
+                    line-height: 15px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                }
+                .ut-pay-method-logo {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 88px;
+                    height: 40px;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 8px;
+                    background: #fff;
+                    padding: 7px 9px;
+                    overflow: hidden;
+                    flex: 0 0 auto;
+                }
+                .ut-pay-method-logo img {
+                    display: block;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                }
+                .ut-pay-reference {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 16px;
+                    border: 1px dashed #c5c6ca;
+                    border-radius: 8px;
+                    background: #fff;
+                    padding: 17px;
+                }
+                .ut-pay-reference-label {
+                    margin: 0 0 4px;
+                    color: #585f6c;
+                    font-size: 14px;
+                    line-height: 21px;
+                    font-weight: 400;
+                }
+                .ut-pay-reference-value {
+                    margin: 0;
+                    color: #0c1014;
+                    font-size: 20px;
+                    line-height: 28px;
+                    font-weight: 600;
+                    letter-spacing: 2px;
+                    word-break: break-word;
+                }
+                .ut-pay-qr {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 12px;
+                    margin-bottom: 18px;
+                    border: 1px solid #f0f0f0;
+                    border-radius: 12px;
+                    background: #fff;
+                    padding: 18px;
+                    text-align: center;
+                }
+                .ut-pay-qr[hidden] {
+                    display: none;
+                }
+                .ut-pay-qr-image {
+                    width: 224px;
+                    height: 224px;
+                    max-width: 100%;
+                    border-radius: 8px;
+                    background: #fff;
+                    object-fit: contain;
+                }
+                .ut-pay-qr-title {
+                    margin: 0;
+                    color: #0c1014;
+                    font-size: 16px;
+                    line-height: 22px;
+                    font-weight: 600;
+                }
+                .ut-pay-qr-copy {
+                    margin: 0;
+                    color: #585f6c;
+                    font-size: 13px;
+                    line-height: 20px;
+                    font-weight: 400;
+                }
+                .ut-pay-copy,
+                .ut-pay-open-link {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    min-height: 36px;
+                    border: 1px solid #f0f0f0;
+                    border-radius: 999px;
+                    background: #fff;
+                    color: #0c1014;
+                    padding: 9px 17px;
+                    font-family: inherit;
+                    font-size: 14px;
+                    line-height: 17px;
+                    font-weight: 600;
+                    text-decoration: none;
+                    cursor: pointer;
+                    white-space: nowrap;
+                }
+                .ut-pay-copy:hover,
+                .ut-pay-open-link:hover {
+                    border-color: #c5c6ca;
+                    color: #0c1014;
+                    text-decoration: none;
+                }
+                .ut-pay-note {
+                    margin: 12px 0 0;
+                    color: #585f6c;
+                    font-size: 13px;
+                    line-height: 19px;
+                }
+                .ut-pay-note .ut-pay-open-link {
+                    margin-left: 8px;
+                }
+                .ut-pay-section-title {
+                    margin: 0;
+                    color: #0c1014;
+                    font-size: 14px;
+                    line-height: 17px;
+                    font-weight: 600;
+                }
+                .ut-pay-section-title-lg {
+                    margin: 0;
+                    color: #0c1014;
+                    font-size: 20px;
+                    line-height: 28px;
+                    font-weight: 600;
+                }
+                .ut-pay-divider-head {
+                    border-bottom: 1px solid #f0f0f0;
+                    padding-bottom: 13px;
+                    margin-bottom: 16px;
+                }
+                .ut-pay-product {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 16px;
+                }
+                .ut-pay-product + .ut-pay-product {
+                    margin-top: 16px;
+                    padding-top: 16px;
+                    border-top: 1px solid #f0f0f0;
+                }
+                .ut-pay-product-image {
+                    width: 80px;
+                    height: 80px;
+                    flex: 0 0 80px;
+                    overflow: hidden;
+                    border-radius: 8px;
+                    background: #f3f3f5;
+                }
+                .ut-pay-product-image img {
+                    display: block;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                .ut-pay-product-title {
+                    margin: 0;
+                    color: #0c1014;
+                    font-size: 16px;
+                    line-height: 26px;
+                    font-weight: 600;
+                }
+                .ut-pay-product-meta {
+                    margin: 4px 0 0;
+                    color: #585f6c;
+                    font-size: 14px;
+                    line-height: 21px;
+                    font-weight: 400;
+                }
+                .ut-pay-accordion {
+                    border-top: 1px solid #f0f0f0;
+                }
+                .ut-pay-accordion-item {
+                    border-bottom: 1px solid #f0f0f0;
+                }
+                .ut-pay-accordion-button {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    width: 100%;
+                    border: 0;
+                    background: transparent;
+                    color: #0c1014;
+                    padding: 17px 0 16px;
+                    font-family: inherit;
+                    font-size: 14px;
+                    line-height: 17px;
+                    font-weight: 600;
+                    text-align: left;
+                    cursor: pointer;
+                }
+                .ut-pay-accordion-button svg {
+                    width: 12px;
+                    height: 8px;
+                    transition: transform .18s ease;
+                }
+                .ut-pay-accordion-item.is-open .ut-pay-accordion-button svg {
+                    transform: rotate(180deg);
+                }
+                .ut-pay-accordion-panel {
+                    display: none;
+                    padding: 0 0 16px;
+                }
+                .ut-pay-accordion-item.is-open .ut-pay-accordion-panel {
+                    display: block;
+                }
+                .ut-pay-steps {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    margin: 0;
+                    padding: 0 0 0 16px;
+                    color: #44474a;
+                    font-size: 14px;
+                    line-height: 21px;
+                    font-weight: 400;
+                }
+                .ut-pay-actions {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                    padding-top: 16px;
+                }
+                .ut-pay-primary,
+                .ut-pay-secondary {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 100%;
+                    min-height: 52px;
+                    border-radius: 999px;
+                    padding: 16px 22px;
+                    font-size: 14px;
+                    line-height: 17px;
+                    font-weight: 600;
+                    text-align: center;
+                    text-decoration: none;
+                }
+                .ut-pay-primary {
+                    border: 1px solid #212529;
+                    background: #212529;
+                    color: #fff;
+                }
+                .ut-pay-primary:hover {
+                    background: #0c1014;
+                    color: #fff;
+                    text-decoration: none;
+                }
+                .ut-pay-secondary {
+                    border: 1px solid #212529;
+                    background: #fff;
+                    color: #212529;
+                }
+                .ut-pay-secondary:hover {
+                    color: #212529;
+                    text-decoration: none;
+                    background: #f9f9fb;
+                }
+                @media (max-width: 640px) {
+                    .ut-pay-shell {
+                        width: min(calc(100% - 24px), 672px);
+                        padding-top: 32px;
+                    }
+                    .ut-pay-status,
+                    .ut-pay-card {
+                        padding: 18px;
+                    }
+                    .ut-pay-status {
+                        align-items: flex-start;
+                    }
+                    .ut-pay-total-value {
+                        font-size: 28px;
+                        line-height: 34px;
+                    }
+                    .ut-pay-method-head,
+                    .ut-pay-reference {
+                        align-items: flex-start;
+                        flex-direction: column;
+                    }
+                    .ut-pay-product-title,
+                    .ut-pay-reference-value {
+                        white-space: normal;
+                    }
+                }
+            </style>
+
+            <div class="ut-pay-page" t-att-data-payment-status-url="payment_status_url" t-att-data-payment-status="payment_status">
+                <main class="ut-pay-shell">
+                    <div class="ut-pay-stack">
+                        <section
+                            t-attf-class="ut-pay-status is-#{payment_status_content.get('tone')}"
+                            t-att-data-expired-at="payment_expired_iso or ''"
+                            t-att-data-expires-in-seconds="payment_expires_in_seconds or 0"
+                            data-payment-status-bar="1">
+                            <svg t-if="payment_status == 'paid'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M20 6 9 17l-5-5"/>
+                            </svg>
+                            <svg t-elif="payment_status in ('expired', 'failed', 'cancelled')" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="m15 9-6 6"/>
+                                <path d="m9 9 6 6"/>
+                            </svg>
+                            <svg t-else="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="12" cy="12" r="9"/>
+                                <path d="M12 7v5l3 2"/>
+                            </svg>
+                            <div>
+                                <p class="ut-pay-status-title" data-payment-status-title="1" t-esc="payment_status_content.get('title')"/>
+                                <p class="ut-pay-status-copy" data-payment-status-copy="1" data-payment-countdown="1" t-esc="payment_status_content.get('message')"/>
+                            </div>
+                        </section>
+
+                        <section class="ut-pay-card ut-pay-total ut-pay-total-card">
+                            <p class="ut-pay-total-label">Total Pembayaran</p>
+                            <h1 class="ut-pay-total-value" t-esc="payment_total"/>
+                        </section>
+
+                        <section class="ut-pay-card">
+                            <div class="ut-pay-method-head">
+                                <h2 class="ut-pay-method-title" t-esc="payment_method_meta.get('title')"/>
+                                <span t-if="payment_method_meta.get('logo')" class="ut-pay-method-logo">
+                                    <img t-att-src="payment_method_meta.get('logo')" t-att-alt="payment_method_meta.get('title')"/>
+                                </span>
+                                <span t-else="" class="ut-pay-method-badge" t-esc="payment_method_meta.get('badge')"/>
+                            </div>
+                            <div class="ut-pay-qr" data-payment-qr="1" t-att-hidden="'hidden' if not payment_qr_src else None">
+                                <img class="ut-pay-qr-image" data-payment-qr-image="1" t-att-src="payment_qr_src or ''" alt="Kode QR pembayaran"/>
+                                <div>
+                                    <p class="ut-pay-qr-title">Scan QRIS untuk Membayar</p>
+                                    <p class="ut-pay-qr-copy">Gunakan aplikasi mobile banking atau e-wallet yang mendukung QRIS.</p>
+                                </div>
+                            </div>
+                            <div class="ut-pay-reference">
+                                <div>
+                                    <p class="ut-pay-reference-label" data-payment-reference-label="1" t-esc="payment_method_meta.get('reference_label') if payment_has_direct_reference else 'Order ID Midtrans'"/>
+                                    <p class="ut-pay-reference-value" data-payment-reference-value="1" t-esc="payment_reference"/>
+                                </div>
+                                <button type="button" class="ut-pay-copy" data-copy-button="1" t-att-data-copy-value="payment_reference_raw">
+                                    <span>Salin</span>
+                                    <svg width="12" height="14" viewBox="0 0 12 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <rect x="4" y="1" width="7" height="9" rx="1"/>
+                                        <path d="M2 4H1.5C.7 4 0 4.7 0 5.5v7C0 13.3.7 14 1.5 14h6c.8 0 1.5-.7 1.5-1.5V12"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </section>
+
+                        <section class="ut-pay-card">
+                            <div class="ut-pay-divider-head">
+                                <h2 class="ut-pay-section-title">Detail Pesanan</h2>
+                            </div>
+                            <t t-if="payment_lines">
+                                <article t-foreach="payment_lines" t-as="line" class="ut-pay-product">
+                                    <div class="ut-pay-product-image">
+                                        <img t-att-src="line.get('image_url')" t-att-alt="line.get('name')"/>
+                                    </div>
+                                    <div>
+                                        <h3 class="ut-pay-product-title" t-esc="line.get('name')"/>
+                                        <p class="ut-pay-product-meta">Penjual: <t t-esc="line.get('seller_name')"/></p>
+                                        <p class="ut-pay-product-meta">Harga : <t t-esc="line.get('price')"/></p>
+                                    </div>
+                                </article>
+                            </t>
+                            <p t-else="" class="ut-pay-product-meta">Detail pesanan belum tersedia.</p>
+                        </section>
+
+                        <section class="ut-pay-card">
+                            <div class="ut-pay-divider-head">
+                                <h2 class="ut-pay-section-title-lg">Cara Pembayaran</h2>
+                            </div>
+                            <div class="ut-pay-accordion" data-payment-accordion="1">
+                                <div t-foreach="payment_method_meta.get('instructions')" t-as="instruction" t-attf-class="ut-pay-accordion-item #{'is-open' if instruction.get('open') else ''}">
+                                    <button type="button" class="ut-pay-accordion-button" data-payment-accordion-button="1">
+                                        <span t-esc="instruction.get('title')"/>
+                                        <svg viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M1 1.5 6 6.5l5-5"/>
+                                        </svg>
+                                    </button>
+                                    <div class="ut-pay-accordion-panel">
+                                        <ol class="ut-pay-steps">
+                                            <li t-foreach="instruction.get('steps')" t-as="step"><t t-esc="step"/></li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <div class="ut-pay-actions">
+                            <a t-att-href="payment_primary_url" class="ut-pay-primary" data-payment-primary="1" t-esc="payment_primary_label"/>
+                            <a href="/" class="ut-pay-secondary">Kembali ke Beranda</a>
+                        </div>
+                    </div>
+                </main>
+            </div>
+
+            <script type="text/javascript">
+                <![CDATA[
+                (function () {
+                    function initPaymentPage() {
+                        var page = document.querySelector(".ut-pay-page");
+                        var statusBar = document.querySelector("[data-payment-status-bar]");
+                        var statusTitle = document.querySelector("[data-payment-status-title]");
+                        var statusCopy = document.querySelector("[data-payment-status-copy]");
+                        var referenceLabel = document.querySelector("[data-payment-reference-label]");
+                        var referenceValue = document.querySelector("[data-payment-reference-value]");
+                        var copyButton = document.querySelector("[data-copy-button]");
+                        var qrBlock = document.querySelector("[data-payment-qr]");
+                        var qrImage = document.querySelector("[data-payment-qr-image]");
+                        var xenditNote = document.querySelector("[data-payment-xendit-note]");
+                        var xenditLink = document.querySelector("[data-payment-xendit-link]");
+                        var primaryAction = document.querySelector("[data-payment-primary]");
+                        var countdownTimer = null;
+                        var pollTimer = null;
+
+                        function writeClipboard(value) {
+                            if (navigator.clipboard && navigator.clipboard.writeText) {
+                                return navigator.clipboard.writeText(value);
+                            }
+                            var textarea = document.createElement("textarea");
+                            textarea.value = value;
+                            textarea.setAttribute("readonly", "readonly");
+                            textarea.style.position = "absolute";
+                            textarea.style.left = "-9999px";
+                            document.body.appendChild(textarea);
+                            textarea.select();
+                            document.execCommand("copy");
+                            document.body.removeChild(textarea);
+                            return Promise.resolve();
+                        }
+
+                        document.querySelectorAll("[data-copy-value]").forEach(function (button) {
+                            button.addEventListener("click", function () {
+                                var value = button.getAttribute("data-copy-value") || "";
+                                if (!value) {
+                                    return;
+                                }
+                                writeClipboard(value).then(function () {
+                                    var label = button.querySelector("span");
+                                    if (!label) {
+                                        return;
+                                    }
+                                    var original = label.textContent;
+                                    label.textContent = "Tersalin";
+                                    window.setTimeout(function () {
+                                        label.textContent = original;
+                                    }, 1400);
+                                });
+                            });
+                        });
+
+                        document.querySelectorAll("[data-payment-accordion-button]").forEach(function (button) {
+                            button.addEventListener("click", function () {
+                                var item = button.closest(".ut-pay-accordion-item");
+                                if (item) {
+                                    item.classList.toggle("is-open");
+                                }
+                            });
+                        });
+
+                        function setTone(tone) {
+                            if (!statusBar) {
+                                return;
+                            }
+                            statusBar.classList.remove("is-pending", "is-success", "is-danger");
+                            statusBar.classList.add("is-" + (tone || "pending"));
+                        }
+
+                        function stopCountdown() {
+                            if (countdownTimer) {
+                                window.clearInterval(countdownTimer);
+                                countdownTimer = null;
+                            }
+                        }
+
+                        function startCountdown() {
+                            var countdown = document.querySelector("[data-payment-countdown]");
+                            if (!statusBar || !countdown || !statusBar.dataset.expiredAt) {
+                                return;
+                            }
+                            var initialSeconds = parseInt(statusBar.dataset.expiresInSeconds || "0", 10) || 0;
+                            var expiry = initialSeconds > 0
+                                ? Date.now() + (initialSeconds * 1000)
+                                : new Date(statusBar.dataset.expiredAt.replace(" ", "T") + "Z").getTime();
+                            if (!expiry || Number.isNaN(expiry)) {
+                                return;
+                            }
+                            function tick() {
+                                if (page && page.dataset.paymentStatus !== "pending") {
+                                    stopCountdown();
+                                    return;
+                                }
+                                var remaining = Math.max(0, expiry - Date.now());
+                                var totalSeconds = Math.floor(remaining / 1000);
+                                var hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+                                var minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+                                var seconds = String(totalSeconds % 60).padStart(2, "0");
+                                countdown.textContent = "Selesaikan pembayaran sebelum " + hours + ":" + minutes + ":" + seconds + " untuk memproses pesanan Anda.";
+                            }
+                            tick();
+                            countdownTimer = window.setInterval(tick, 1000);
+                        }
+
+                        function applyStatus(data) {
+                            if (!data || !data.status) {
+                                return;
+                            }
+                            if (data.status === "paid" && data.success_url) {
+                                window.location.href = data.success_url;
+                                return;
+                            }
+                            if (page) {
+                                page.dataset.paymentStatus = data.status;
+                            }
+                            setTone(data.tone);
+                            if (statusTitle && data.title) {
+                                statusTitle.textContent = data.title;
+                            }
+                            if (statusCopy && data.status !== "pending") {
+                                stopCountdown();
+                                statusCopy.textContent = data.message || "";
+                            } else if (statusCopy && !countdownTimer && data.message) {
+                                statusCopy.textContent = data.message;
+                            }
+                            if (referenceLabel && data.reference_label) {
+                                referenceLabel.textContent = data.reference_label;
+                            }
+                            if (referenceValue && data.reference) {
+                                referenceValue.textContent = data.reference;
+                            }
+                            if (copyButton && data.reference_raw) {
+                                copyButton.setAttribute("data-copy-value", data.reference_raw);
+                            }
+                            if (qrBlock && qrImage) {
+                                if (data.qr_image_url) {
+                                    qrImage.src = data.qr_image_url;
+                                    qrBlock.hidden = false;
+                                } else {
+                                    qrBlock.hidden = true;
+                                }
+                            }
+                            if (xenditNote) {
+                                xenditNote.hidden = Boolean(data.has_direct_reference) || Boolean(data.qr_image_url) || data.status !== "pending" || !data.payment_url;
+                            }
+                            if (xenditLink && data.payment_url) {
+                                xenditLink.href = data.payment_url;
+                            }
+                            if (primaryAction) {
+                                if (data.status === "paid") {
+                                    primaryAction.textContent = "Lihat Pesanan";
+                                    primaryAction.href = data.order_url || "/my/orders";
+                                } else if (["expired", "failed", "cancelled"].indexOf(data.status) !== -1) {
+                                    primaryAction.textContent = "Kembali ke Checkout";
+                                    primaryAction.href = "/shop/checkout";
+                                }
+                            }
+                            if (["paid", "expired", "failed", "cancelled"].indexOf(data.status) !== -1 && pollTimer) {
+                                window.clearInterval(pollTimer);
+                                pollTimer = null;
+                            }
+                        }
+
+                        function pollStatus() {
+                            if (!page || !page.dataset.paymentStatusUrl) {
+                                return;
+                            }
+                            fetch(page.dataset.paymentStatusUrl, {
+                                method: "GET",
+                                credentials: "same-origin",
+                                headers: {"Accept": "application/json"},
+                            }).then(function (response) {
+                                if (!response.ok) {
+                                    throw new Error("Payment status request failed");
+                                }
+                                return response.json();
+                            }).then(applyStatus).catch(function () {});
+                        }
+
+                        if (page && page.dataset.paymentStatus === "pending") {
+                            startCountdown();
+                            if (page.dataset.paymentStatusUrl) {
+                                window.setTimeout(pollStatus, 1500);
+                                pollTimer = window.setInterval(pollStatus, 7000);
+                            }
+                        }
+                    }
+
+                    if (document.readyState === "loading") {
+                        document.addEventListener("DOMContentLoaded", initPaymentPage);
+                    } else {
+                        initPaymentPage();
+                    }
+                }());
+                ]]>
+            </script>
+        </t>
+    </template>
+
+    <template id="unitrade_order_status" name="UniTrade Order Status">
+        <t t-call="website.layout">
+            <t t-set="title">Status Pesanan</t>
+            <style>
+                .ut-order-status-page {
+                    min-height: 100vh;
+                    background: #f9f9fb;
+                    color: #0c1014;
+                    font-family: 'Plus Jakarta Sans', 'Urbanist', Inter, sans-serif;
+                }
+                .ut-order-status-shell {
+                    width: min(960px, calc(100% - 32px));
+                    margin: 0 auto;
+                    padding: 56px 0 72px;
+                }
+                .ut-order-status-title {
+                    margin: 0 0 8px;
+                    color: #0c1014;
+                    font-size: 32px;
+                    line-height: 39px;
+                    font-weight: 700;
+                    letter-spacing: 0;
+                }
+                .ut-order-status-subtitle {
+                    margin: 0 0 28px;
+                    color: #585f6c;
+                    font-size: 15px;
+                    line-height: 23px;
+                    font-weight: 400;
+                }
+                .ut-order-status-grid {
+                    display: grid;
+                    grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+                    gap: 24px;
+                    align-items: start;
+                }
+                .ut-order-status-main,
+                .ut-order-status-side {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 20px;
+                }
+                .ut-order-status-card {
+                    border: 1px solid #f0f0f0;
+                    border-radius: 12px;
+                    background: #fff;
+                    box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                    padding: 24px;
+                }
+                .ut-order-status-alert {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 10px;
+                    margin: 0 0 18px;
+                    border: 1px solid #dbeafe;
+                    border-radius: 12px;
+                    background: #eff6ff;
+                    color: #1e40af;
+                    padding: 13px 15px;
+                    font-size: 13px;
+                    line-height: 20px;
+                    font-weight: 500;
+                }
+                .ut-order-status-alert.is-error {
+                    border-color: #fecaca;
+                    background: #fef2f2;
+                    color: #b42318;
+                }
+                .ut-order-status-card-title {
+                    margin: 0 0 16px;
+                    color: #0c1014;
+                    font-size: 18px;
+                    line-height: 26px;
+                    font-weight: 600;
+                }
+                .ut-order-status-banners {
+                    display: grid;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    gap: 16px;
+                    margin-bottom: 20px;
+                }
+                .ut-order-status-banner {
+                    border: 1px solid #f0f0f0;
+                    border-radius: 10px;
+                    background: #fff;
+                    padding: 16px;
+                }
+                .ut-order-status-banner.is-paid,
+                .ut-order-status-banner.is-held,
+                .ut-order-status-banner.is-releasable,
+                .ut-order-status-banner.is-released {
+                    border-color: #bbf7d0;
+                    background: #f0fdf4;
+                }
+                .ut-order-status-banner.is-failed,
+                .ut-order-status-banner.is-expired,
+                .ut-order-status-banner.is-cancelled,
+                .ut-order-status-banner.is-disputed,
+                .ut-order-status-banner.is-refunded {
+                    border-color: #fecaca;
+                    background: #fef2f2;
+                }
+                .ut-order-status-banner-label {
+                    margin: 0 0 8px;
+                    color: #777e8b;
+                    font-size: 12px;
+                    line-height: 16px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: .04em;
+                }
+                .ut-order-status-banner-title {
+                    margin: 0 0 6px;
+                    color: #0c1014;
+                    font-size: 16px;
+                    line-height: 22px;
+                    font-weight: 600;
+                }
+                .ut-order-status-banner-copy {
+                    margin: 0;
+                    color: #585f6c;
+                    font-size: 13px;
+                    line-height: 20px;
+                    font-weight: 400;
+                }
+                .ut-order-status-row {
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 20px;
+                    padding: 11px 0;
+                    color: #585f6c;
+                    font-size: 14px;
+                    line-height: 20px;
+                    font-weight: 400;
+                }
+                .ut-order-status-row strong {
+                    color: #0c1014;
+                    font-weight: 600;
+                    text-align: right;
+                }
+                .ut-order-status-row.is-total {
+                    margin-top: 8px;
+                    border-top: 1px solid #f0f0f0;
+                    padding-top: 18px;
+                    color: #0c1014;
+                    font-size: 16px;
+                    line-height: 22px;
+                    font-weight: 600;
+                }
+                .ut-order-status-row.is-total strong {
+                    font-size: 22px;
+                    line-height: 28px;
+                }
+                .ut-order-status-product {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 16px;
+                }
+                .ut-order-status-product + .ut-order-status-product {
+                    margin-top: 16px;
+                    border-top: 1px solid #f0f0f0;
+                    padding-top: 16px;
+                }
+                .ut-order-status-product-image {
+                    width: 84px;
+                    height: 84px;
+                    flex: 0 0 84px;
+                    overflow: hidden;
+                    border-radius: 8px;
+                    background: #f3f3f5;
+                }
+                .ut-order-status-product-image img {
+                    display: block;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                .ut-order-status-product-name {
+                    margin: 0 0 6px;
+                    color: #0c1014;
+                    font-size: 16px;
+                    line-height: 23px;
+                    font-weight: 600;
+                }
+                .ut-order-status-meta {
+                    margin: 0 0 4px;
+                    color: #585f6c;
+                    font-size: 13px;
+                    line-height: 20px;
+                    font-weight: 400;
+                }
+                .ut-order-status-kv {
+                    display: grid;
+                    grid-template-columns: 130px minmax(0, 1fr);
+                    gap: 10px;
+                    padding: 9px 0;
+                    color: #585f6c;
+                    font-size: 13px;
+                    line-height: 19px;
+                    border-bottom: 1px solid #f3f3f5;
+                }
+                .ut-order-status-kv:last-child {
+                    border-bottom: 0;
+                }
+                .ut-order-status-kv strong {
+                    color: #0c1014;
+                    font-weight: 600;
+                    word-break: break-word;
+                }
+                .ut-order-status-ledger {
+                    display: grid;
+                    grid-template-columns: minmax(0, 1fr) auto;
+                    align-items: start;
+                    gap: 18px;
+                    border-top: 1px solid #f0f0f0;
+                    padding-top: 14px;
+                    margin-top: 14px;
+                    color: #585f6c;
+                    font-size: 13px;
+                    line-height: 20px;
+                }
+                .ut-order-status-ledger:first-child {
+                    border-top: 0;
+                    padding-top: 0;
+                    margin-top: 0;
+                }
+                .ut-order-status-ledger strong {
+                    color: #0c1014;
+                    font-weight: 600;
+                }
+                .ut-order-status-proof-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    margin-top: 10px;
+                }
+                .ut-order-status-proof {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 12px;
+                    border: 1px solid #eceff3;
+                    border-radius: 12px;
+                    background: #f9fafb;
+                    padding: 10px 12px;
+                }
+                .ut-order-status-proof span {
+                    color: #585f6c;
+                    font-size: 12px;
+                    line-height: 18px;
+                    font-weight: 500;
+                }
+                .ut-order-status-proof b {
+                    color: #0c1014;
+                    font-size: 12px;
+                    line-height: 18px;
+                    font-weight: 700;
+                }
+                .ut-order-status-proof.is-done {
+                    border-color: #bbf7d0;
+                    background: #f0fdf4;
+                }
+                .ut-order-status-chip {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 999px;
+                    background: #f5f5f7;
+                    color: #585f6c;
+                    padding: 6px 10px;
+                    font-size: 12px;
+                    line-height: 16px;
+                    font-weight: 700;
+                    white-space: nowrap;
+                }
+                .ut-order-status-chip.is-done {
+                    background: #dcfce7;
+                    color: #166534;
+                }
+                .ut-order-status-progress {
+                    display: grid;
+                    grid-template-columns: repeat(4, minmax(0, 1fr));
+                    gap: 10px;
+                    margin-bottom: 20px;
+                }
+                .ut-order-status-step {
+                    border: 1px solid #eceff3;
+                    border-radius: 10px;
+                    background: #fff;
+                    padding: 12px;
+                    color: #777e8b;
+                    font-size: 12px;
+                    line-height: 17px;
+                    font-weight: 600;
+                }
+                .ut-order-status-step.is-done {
+                    border-color: #bbf7d0;
+                    background: #f0fdf4;
+                    color: #166534;
+                }
+                .ut-order-status-step.is-active {
+                    border-color: #c7d2fe;
+                    background: #eef2ff;
+                    color: #3730a3;
+                }
+                .ut-order-status-actions {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                }
+                .ut-order-status-action-form {
+                    margin: 0;
+                }
+                .ut-order-status-upload {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 7px;
+                    margin-bottom: 10px;
+                }
+                .ut-order-status-upload span {
+                    color: #0c1014;
+                    font-size: 13px;
+                    line-height: 18px;
+                    font-weight: 600;
+                }
+                .ut-order-status-upload input {
+                    width: 100%;
+                    border: 1px dashed #c5c6ca;
+                    border-radius: 12px;
+                    background: #f9f9fb;
+                    color: #585f6c;
+                    padding: 11px;
+                    font-size: 12px;
+                    line-height: 18px;
+                }
+                .ut-order-status-upload small {
+                    color: #777e8b;
+                    font-size: 12px;
+                    line-height: 17px;
+                }
+                .ut-order-status-primary,
+                .ut-order-status-secondary,
+                .ut-order-status-danger {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 100%;
+                    min-height: 48px;
+                    border-radius: 999px;
+                    border: 1px solid #212529;
+                    padding: 14px 20px;
+                    font-size: 14px;
+                    line-height: 17px;
+                    font-weight: 600;
+                    text-align: center;
+                    text-decoration: none;
+                    cursor: pointer;
+                }
+                .ut-order-status-primary {
+                    background: #212529;
+                    color: #fff;
+                }
+                .ut-order-status-primary:hover {
+                    background: #0c1014;
+                    color: #fff;
+                    text-decoration: none;
+                }
+                .ut-order-status-secondary {
+                    background: #fff;
+                    color: #212529;
+                }
+                .ut-order-status-secondary:hover {
+                    background: #f9f9fb;
+                    color: #212529;
+                    text-decoration: none;
+                }
+                .ut-order-status-danger {
+                    border-color: #fecaca;
+                    background: #fff;
+                    color: #b42318;
+                }
+                .ut-order-status-danger:hover {
+                    background: #fef2f2;
+                }
+                @media (max-width: 900px) {
+                    .ut-order-status-grid,
+                    .ut-order-status-banners,
+                    .ut-order-status-progress {
+                        grid-template-columns: 1fr;
+                    }
+                }
+                @media (max-width: 520px) {
+                    .ut-order-status-shell {
+                        width: min(calc(100% - 24px), 960px);
+                        padding-top: 36px;
+                    }
+                    .ut-order-status-card {
+                        padding: 18px;
+                    }
+                    .ut-order-status-product {
+                        flex-direction: column;
+                    }
+                    .ut-order-status-kv {
+                        grid-template-columns: 1fr;
+                        gap: 4px;
+                    }
+                }
+            </style>
+
+            <div class="ut-order-status-page">
+                <main class="ut-order-status-shell">
+                    <h1 class="ut-order-status-title">Status Pesanan</h1>
+                    <p class="ut-order-status-subtitle">Pantau pembayaran, proses serah terima, dan ringkasan transaksi UniTrade Anda.</p>
+                    <div t-if="request.params.get('order_error')" class="ut-order-status-alert is-error" role="alert">
+                        <t t-esc="request.params.get('order_error')"/>
+                    </div>
+                    <div t-if="request.params.get('order_notice') == 'buyer_confirmed'" class="ut-order-status-alert" role="status">
+                        Konfirmasi barang diterima berhasil dikirim.
+                    </div>
+
+                    <div class="ut-order-status-banners">
+                        <section t-attf-class="ut-order-status-banner is-#{order.x_payment_status or 'pending'}">
+                            <p class="ut-order-status-banner-label">Status Pesanan</p>
+                            <h2 class="ut-order-status-banner-title" t-esc="order_status_payment_title"/>
+                            <p class="ut-order-status-banner-copy" t-esc="order_status_payment_copy"/>
+                        </section>
+                        <section t-attf-class="ut-order-status-banner is-#{order.x_escrow_state or 'none'}">
+                            <p class="ut-order-status-banner-label">Serah Terima</p>
+                            <h2 class="ut-order-status-banner-title" t-esc="order_status_process_title"/>
+                            <p class="ut-order-status-banner-copy" t-esc="order_status_process_copy"/>
+                        </section>
+                    </div>
+
+                    <div class="ut-order-status-progress" aria-label="Progress pesanan">
+                        <div t-foreach="order_status_progress_steps" t-as="step"
+                            t-att-class="'ut-order-status-step %s %s' % ('is-done' if step.get('done') else '', 'is-active' if step.get('active') else '')">
+                            <t t-esc="step.get('label')"/>
+                        </div>
+                    </div>
+
+                    <div class="ut-order-status-grid">
+                        <div class="ut-order-status-main">
+                            <section class="ut-order-status-card">
+                                <h2 class="ut-order-status-card-title">Detail Pesanan</h2>
+                                <t t-if="order_status_lines">
+                                    <article t-foreach="order_status_lines" t-as="line" class="ut-order-status-product">
+                                        <div class="ut-order-status-product-image">
+                                            <img t-att-src="line.get('image_url')" t-att-alt="line.get('name')"/>
+                                        </div>
+                                        <div>
+                                            <h3 class="ut-order-status-product-name" t-esc="line.get('name')"/>
+                                            <p class="ut-order-status-meta">Qty: <t t-esc="line.get('qty')"/></p>
+                                            <p class="ut-order-status-meta">Harga: <t t-esc="line.get('price')"/></p>
+                                        </div>
+                                    </article>
+                                </t>
+                                <p t-else="" class="ut-order-status-meta">Detail produk belum tersedia.</p>
+                            </section>
+
+                            <section class="ut-order-status-card">
+                                <h2 class="ut-order-status-card-title">Detail Pembayaran</h2>
+                                <div class="ut-order-status-kv">
+                                    <span>Nomor Order</span>
+                                    <strong t-esc="order.name"/>
+                                </div>
+                                <div class="ut-order-status-kv">
+                                    <span>Metode</span>
+                                    <strong t-esc="payment_intent.payment_method_label if payment_intent else (order.x_payment_method or '-')"/>
+                                </div>
+                                <div class="ut-order-status-kv" t-if="payment_intent">
+                                    <span>Reference</span>
+                                    <strong t-esc="payment_intent.midtrans_order_id or payment_intent.xendit_reference_id or payment_intent.name"/>
+                                </div>
+                                <div class="ut-order-status-kv" t-if="payment_intent and payment_intent.payment_reference">
+                                    <span>Kode/VA</span>
+                                    <strong t-esc="payment_intent.payment_reference"/>
+                                </div>
+                                <div class="ut-order-status-kv" t-if="payment_intent and (payment_intent.midtrans_transaction_id or payment_intent.xendit_payment_request_id)">
+                                    <span>ID Transaksi</span>
+                                    <strong t-esc="payment_intent.midtrans_transaction_id or payment_intent.xendit_payment_request_id"/>
+                                </div>
+                                <div class="ut-order-status-kv" t-if="order.x_paid_at">
+                                    <span>Dibayar Pada</span>
+                                    <strong t-esc="order.x_paid_at"/>
+                                </div>
+                            </section>
+
+                            <section class="ut-order-status-card" t-if="order_status_ledgers">
+                                <h2 class="ut-order-status-card-title">Konfirmasi Barang</h2>
+                                <div t-foreach="order_status_ledgers" t-as="ledger" class="ut-order-status-ledger">
+                                    <div>
+                                        <strong t-esc="ledger.get('name')"/>
+                                        <p class="ut-order-status-meta">Serah terima selesai setelah seller dan buyer sama-sama mengunggah bukti foto.</p>
+                                        <div class="ut-order-status-proof-list">
+                                            <div t-att-class="'ut-order-status-proof %s' % ('is-done' if ledger.get('seller_confirmed') else '')">
+                                                <span>Penjual menyerahkan barang</span>
+                                                <b t-esc="ledger.get('seller_filename') or ('Sudah upload bukti' if ledger.get('seller_evidence') else 'Menunggu bukti')"/>
+                                            </div>
+                                            <div t-att-class="'ut-order-status-proof %s' % ('is-done' if ledger.get('buyer_confirmed') else '')">
+                                                <span>Buyer menerima barang</span>
+                                                <b t-esc="ledger.get('buyer_filename') or ('Sudah upload bukti' if ledger.get('buyer_evidence') else 'Belum dikonfirmasi')"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span t-att-class="'ut-order-status-chip %s' % ('is-done' if ledger.get('completed') else '')">
+                                        <t t-esc="'Selesai' if ledger.get('completed') else 'Di Proses'"/>
+                                    </span>
+                                </div>
+                            </section>
+                        </div>
+
+                        <aside class="ut-order-status-side">
+                            <section class="ut-order-status-card">
+                                <h2 class="ut-order-status-card-title">Ringkasan</h2>
+                                <div class="ut-order-status-row">
+                                    <span>Subtotal Produk</span>
+                                    <strong t-esc="order_status_subtotal"/>
+                                </div>
+                                <div class="ut-order-status-row">
+                                    <span>Biaya Layanan UniTrade</span>
+                                    <strong t-esc="order_status_service_fee"/>
+                                </div>
+                                <div class="ut-order-status-row">
+                                    <span>Biaya Payment</span>
+                                    <strong t-esc="order_status_payment_fee"/>
+                                </div>
+                                <div class="ut-order-status-row is-total">
+                                    <span>Total Pembayaran</span>
+                                    <strong t-esc="order_status_total"/>
+                                </div>
+                            </section>
+
+                            <section class="ut-order-status-card">
+                                <div class="ut-order-status-actions">
+                                    <a t-if="payment_intent and payment_intent.state == 'pending'" t-att-href="'/unitrade/payment/instructions/%s' % (payment_intent.midtrans_order_id or payment_intent.xendit_reference_id or payment_intent.name)" class="ut-order-status-primary">Lanjutkan Pembayaran</a>
+                                    <form t-if="order_status_can_confirm_received" t-att-action="order_status_confirm_received_url" method="post" enctype="multipart/form-data" class="ut-order-status-action-form">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <label class="ut-order-status-upload">
+                                            <span>Upload foto barang diterima</span>
+                                            <input type="file" name="buyer_evidence" accept="image/jpeg,image/png,image/webp" required="required"/>
+                                            <small>JPG, PNG, atau WebP. Maksimal 5 MB.</small>
+                                        </label>
+                                        <button type="submit" class="ut-order-status-primary">Barang Diterima</button>
+                                    </form>
+                                    <form t-if="order_status_can_cancel" t-att-action="order_status_cancel_url" method="post" class="ut-order-status-action-form">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <input type="hidden" name="reason" value="Buyer direct cancel"/>
+                                        <button type="submit" class="ut-order-status-danger">Batalkan Pesanan</button>
+                                    </form>
+                                    <a href="/shop" class="ut-order-status-secondary">Kembali Belanja</a>
+                                    <a href="/" class="ut-order-status-secondary">Kembali ke Beranda</a>
+                                </div>
+                            </section>
+                        </aside>
+                    </div>
+                </main>
+            </div>
+        </t>
+    </template>
+
+    <template id="unitrade_order_status_figma_refresh" inherit_id="unitrade_payment.unitrade_order_status" name="UniTrade Order Status Figma Refresh">
+        <xpath expr="//style[1]" position="after">
+            <style>
+                .ut-order-status-page {
+                    min-height: 100vh;
+                    background: rgba(245, 245, 247, .98);
+                    color: #0a0a0a;
+                    font-family: Inter, 'Plus Jakarta Sans', Urbanist, sans-serif;
+                    padding: 88px 0 92px;
+                }
+                .ut-order-status-shell {
+                    width: min(1179px, calc(100% - 48px));
+                    margin: 0 auto;
+                    border-radius: 21px;
+                    background: #fff;
+                    padding: 39px 16px 54px;
+                    box-shadow: none;
+                }
+                .ut-order-status-title {
+                    margin: 0;
+                    color: #0a0a0a;
+                    font-size: 30px;
+                    line-height: 36px;
+                    font-weight: 800;
+                    letter-spacing: 0;
+                }
+                .ut-order-status-subtitle {
+                    margin: 8px 0 30px;
+                    color: #6a7282;
+                    font-size: 16px;
+                    line-height: 24px;
+                    font-weight: 400;
+                }
+                .ut-order-status-alert {
+                    margin: 0 0 20px;
+                    border-radius: 12px;
+                    padding: 12px 14px;
+                }
+                .ut-order-status-grid {
+                    display: grid;
+                    grid-template-columns: minmax(0, 756.8px) minmax(316px, 366.4px);
+                    gap: 24px;
+                    align-items: start;
+                }
+                .ut-order-status-main,
+                .ut-order-status-side {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 24px;
+                }
+                .ut-order-status-card {
+                    border: .8px solid rgba(0, 0, 0, .1);
+                    border-radius: 14px;
+                    background: #fff;
+                    box-shadow: none;
+                    padding: 24.8px;
+                }
+                .ut-order-status-card-title {
+                    margin: 0 0 44px;
+                    color: #0a0a0a;
+                    font-size: 20px;
+                    line-height: 28px;
+                    font-weight: 700;
+                }
+                .ut-order-status-progress-card {
+                    min-height: 141.5px;
+                    padding: 23.6px 24.2px;
+                }
+                .ut-order-status-progress {
+                    position: relative;
+                    display: grid;
+                    grid-template-columns: repeat(4, minmax(0, 1fr));
+                    gap: 0;
+                    margin: 0;
+                    padding-top: 0;
+                }
+                .ut-order-status-step {
+                    position: relative;
+                    z-index: 1;
+                    display: grid;
+                    justify-items: center;
+                    gap: 8px;
+                    min-height: 92px;
+                    border: 0;
+                    border-radius: 0;
+                    background: transparent;
+                    padding: 0;
+                    color: #0a0a0a;
+                    text-align: center;
+                    font-size: 12px;
+                    line-height: 16px;
+                    font-weight: 600;
+                }
+                .ut-order-status-step:not(:last-child)::after {
+                    content: "";
+                    position: absolute;
+                    z-index: -1;
+                    left: 50%;
+                    right: -50%;
+                    top: 12px;
+                    height: 2px;
+                    background: #e5e7eb;
+                }
+                .ut-order-status-step.is-done:not(:last-child)::after {
+                    background: #0a0a0a;
+                }
+                .ut-order-status-dot {
+                    position: relative;
+                    display: inline-flex;
+                    width: 24px;
+                    height: 24px;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 999px;
+                    background: #e5e7eb;
+                }
+                .ut-order-status-step.is-done .ut-order-status-dot {
+                    background: #202020;
+                }
+                .ut-order-status-step.is-active .ut-order-status-dot {
+                    border: 1.6px solid #2b2b2b;
+                    background: #fff;
+                }
+                .ut-order-status-step.is-active .ut-order-status-dot::after {
+                    content: "";
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 999px;
+                    background: #212529;
+                }
+                .ut-order-status-step-label {
+                    margin-top: 4px;
+                    color: #0a0a0a;
+                    white-space: nowrap;
+                }
+                .ut-order-status-step-status {
+                    color: #99a1af;
+                    font-weight: 600;
+                }
+                .ut-order-status-step.is-done .ut-order-status-step-status {
+                    color: #096;
+                }
+                .ut-order-status-step.is-active .ut-order-status-step-status {
+                    color: #212529;
+                }
+                .ut-order-status-product {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                    padding: 0;
+                }
+                .ut-order-status-product + .ut-order-status-product {
+                    margin-top: 18px;
+                    border-top: 1px solid #f0f0f0;
+                    padding-top: 18px;
+                }
+                .ut-order-status-product-image {
+                    width: 80px;
+                    height: 80px;
+                    flex: 0 0 80px;
+                    overflow: hidden;
+                    border-radius: 10px;
+                    background: #f3f4f6;
+                }
+                .ut-order-status-product-image img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                .ut-order-status-product-name {
+                    margin: 0 0 8px;
+                    color: #0a0a0a;
+                    font-size: 18px;
+                    line-height: 27px;
+                    font-weight: 700;
+                }
+                .ut-order-status-meta {
+                    margin: 0 0 4px;
+                    color: #99a1af;
+                    font-size: 14px;
+                    line-height: 20px;
+                    font-weight: 400;
+                }
+                .ut-order-status-payment-card {
+                    min-height: 369.6px;
+                }
+                .ut-order-status-kv {
+                    display: grid;
+                    grid-template-columns: 126px minmax(0, 1fr);
+                    gap: 18px;
+                    border: 0;
+                    padding: 0;
+                    margin: 0 0 20px;
+                    color: #99a1af;
+                    font-size: 16px;
+                    line-height: 24px;
+                    font-weight: 400;
+                }
+                .ut-order-status-kv:last-child {
+                    margin-bottom: 0;
+                }
+                .ut-order-status-kv strong {
+                    color: #0a0a0a;
+                    font-size: 16px;
+                    line-height: 24px;
+                    font-weight: 700;
+                    word-break: break-word;
+                }
+                .ut-order-status-confirm-card {
+                    min-height: 336.6px;
+                }
+                .ut-order-status-ledger {
+                    display: block;
+                    border-top: 0;
+                    padding-top: 0;
+                    margin-top: 0;
+                }
+                .ut-order-status-ledger-head {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 16px;
+                    margin: 8px 0 34px;
+                }
+                .ut-order-status-ledger-head strong {
+                    color: #0a0a0a;
+                    font-size: 16px;
+                    line-height: 24px;
+                    font-weight: 600;
+                }
+                .ut-order-status-ledger-copy {
+                    margin: 0 0 34px;
+                    color: #4a5565;
+                    font-size: 14px;
+                    line-height: 20px;
+                }
+                .ut-order-status-proof-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                    margin-top: 0;
+                }
+                .ut-order-status-proof {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 12px;
+                    min-height: 44px;
+                    border: 0;
+                    border-radius: 10px;
+                    background: #f9fafb;
+                    padding: 12px 16px;
+                }
+                .ut-order-status-proof span {
+                    color: #364153;
+                    font-size: 14px;
+                    line-height: 20px;
+                    font-weight: 400;
+                }
+                .ut-order-status-proof b {
+                    color: #0a0a0a;
+                    font-size: 14px;
+                    line-height: 20px;
+                    font-weight: 700;
+                    text-align: right;
+                }
+                .ut-order-status-proof.is-done {
+                    border: 0;
+                    background: #f0fdf4;
+                }
+                .ut-order-status-chip {
+                    display: inline-flex;
+                    min-height: 22px;
+                    align-items: center;
+                    justify-content: center;
+                    border: .8px solid #bedbff;
+                    border-radius: 8px;
+                    background: #eff6ff;
+                    color: #1447e6;
+                    padding: 2px 9px;
+                    font-size: 12px;
+                    line-height: 16px;
+                    font-weight: 600;
+                    white-space: nowrap;
+                    text-decoration: none;
+                }
+                .ut-order-status-chip.is-done {
+                    border-color: #bbf7d0;
+                    background: #ecfdf5;
+                    color: #008236;
+                }
+                .ut-order-status-summary-card {
+                    min-height: 290.6px;
+                }
+                .ut-order-status-summary-card .ut-order-status-card-title {
+                    margin-bottom: 44px;
+                }
+                .ut-order-status-row {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 20px;
+                    padding: 0;
+                    margin: 0 0 16px;
+                    color: #99a1af;
+                    font-size: 16px;
+                    line-height: 24px;
+                    font-weight: 400;
+                }
+                .ut-order-status-row strong {
+                    color: #0a0a0a;
+                    font-size: 16px;
+                    line-height: 24px;
+                    font-weight: 700;
+                    text-align: right;
+                    white-space: nowrap;
+                }
+                .ut-order-status-row.is-total {
+                    margin: 0;
+                    border-top: 1px solid rgba(0, 0, 0, .1);
+                    padding-top: 16px;
+                    color: #0a0a0a;
+                    font-size: 18px;
+                    line-height: 28px;
+                    font-weight: 700;
+                }
+                .ut-order-status-row.is-total strong {
+                    font-size: 18px;
+                    line-height: 28px;
+                    font-weight: 800;
+                }
+                .ut-order-status-actions-card {
+                    min-height: 181.6px;
+                    padding: 24.8px;
+                }
+                .ut-order-status-actions {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                }
+                .ut-order-status-action-form {
+                    margin: 0;
+                }
+                .ut-order-status-upload {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 7px;
+                    margin-bottom: 12px;
+                }
+                .ut-order-status-upload span {
+                    color: #0a0a0a;
+                    font-size: 13px;
+                    line-height: 18px;
+                    font-weight: 700;
+                }
+                .ut-order-status-upload input {
+                    width: 100%;
+                    border: 1px dashed #c5c6ca;
+                    border-radius: 8px;
+                    background: #f9fafb;
+                    color: #4a5565;
+                    padding: 10px;
+                    font-size: 12px;
+                }
+                .ut-order-status-upload small {
+                    color: #6a7282;
+                    font-size: 12px;
+                    line-height: 17px;
+                }
+                .ut-order-status-primary,
+                .ut-order-status-secondary,
+                .ut-order-status-danger {
+                    display: inline-flex;
+                    width: 100%;
+                    min-height: 36px;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 8px;
+                    padding: 8px 13px;
+                    font-size: 14px;
+                    line-height: 20px;
+                    font-weight: 700;
+                    text-align: center;
+                    text-decoration: none !important;
+                    cursor: pointer;
+                }
+                .ut-order-status-primary {
+                    border: .8px solid #212529;
+                    background: #212529;
+                    color: #fff !important;
+                }
+                .ut-order-status-secondary {
+                    border: .8px solid rgba(0, 0, 0, .1);
+                    background: #fff;
+                    color: #0a0a0a !important;
+                }
+                .ut-order-status-danger {
+                    border: .8px solid #e7000b;
+                    background: #fff;
+                    color: #e7000b !important;
+                }
+                .ut-order-status-help-card {
+                    min-height: 220.6px;
+                    border-color: #a4f4cf;
+                    background: #ecfdf5;
+                }
+                .ut-order-status-help-card h2 {
+                    margin: 0 0 38px;
+                    color: #0a0a0a;
+                    font-size: 18px;
+                    line-height: 27px;
+                    font-weight: 700;
+                }
+                .ut-order-status-help-card p {
+                    margin: 0 0 35px;
+                    color: #364153;
+                    font-size: 14px;
+                    line-height: 20px;
+                }
+                .ut-order-status-help-card .ut-order-status-secondary {
+                    min-height: 32px;
+                    padding-top: 6px;
+                    padding-bottom: 6px;
+                    background: #fff;
+                }
+                @media (max-width: 980px) {
+                    .ut-order-status-page {
+                        padding-top: 40px;
+                    }
+                    .ut-order-status-shell {
+                        width: min(calc(100% - 24px), 1179px);
+                        padding: 28px 14px 36px;
+                    }
+                    .ut-order-status-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    .ut-order-status-side {
+                        order: 2;
+                    }
+                    .ut-order-status-step-label,
+                    .ut-order-status-step-status {
+                        white-space: normal;
+                    }
+                }
+                @media (max-width: 620px) {
+                    .ut-order-status-title {
+                        font-size: 26px;
+                        line-height: 32px;
+                    }
+                    .ut-order-status-progress {
+                        grid-template-columns: 1fr;
+                        gap: 16px;
+                    }
+                    .ut-order-status-step {
+                        grid-template-columns: 24px minmax(0, 1fr);
+                        justify-items: start;
+                        align-items: center;
+                        text-align: left;
+                        min-height: auto;
+                    }
+                    .ut-order-status-step:not(:last-child)::after {
+                        left: 12px;
+                        right: auto;
+                        top: 24px;
+                        bottom: -16px;
+                        width: 2px;
+                        height: auto;
+                    }
+                    .ut-order-status-step-label {
+                        margin-top: 0;
+                    }
+                    .ut-order-status-product {
+                        align-items: flex-start;
+                    }
+                    .ut-order-status-kv {
+                        grid-template-columns: 1fr;
+                        gap: 4px;
+                    }
+                    .ut-order-status-proof {
+                        align-items: flex-start;
+                        flex-direction: column;
+                    }
+                }
+            </style>
+        </xpath>
+        <xpath expr="//div[hasclass('ut-order-status-page')]" position="replace">
+            <div class="ut-order-status-page">
+                <main class="ut-order-status-shell">
+                    <h1 class="ut-order-status-title">Status Pesanan</h1>
+                    <p class="ut-order-status-subtitle">Pantau pembayaran, proses serah terima, dan ringkasan transaksi UniTrade Anda</p>
+
+                    <div t-if="request.params.get('order_error')" class="ut-order-status-alert is-error" role="alert">
+                        <t t-esc="request.params.get('order_error')"/>
+                    </div>
+                    <div t-if="request.params.get('order_notice') == 'buyer_confirmed'" class="ut-order-status-alert" role="status">
+                        Konfirmasi barang diterima berhasil dikirim.
+                    </div>
+
+                    <div class="ut-order-status-grid">
+                        <div class="ut-order-status-main">
+                            <section class="ut-order-status-card ut-order-status-progress-card">
+                                <div class="ut-order-status-progress" aria-label="Progress pesanan">
+                                    <div t-foreach="order_status_progress_steps" t-as="step"
+                                        t-att-class="'ut-order-status-step %s %s' % ('is-done' if step.get('done') else '', 'is-active' if step.get('active') else '')">
+                                        <span class="ut-order-status-dot"></span>
+                                        <span class="ut-order-status-step-label" t-esc="step.get('label')"/>
+                                        <span class="ut-order-status-step-status" t-esc="step.get('status')"/>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="ut-order-status-card">
+                                <h2 class="ut-order-status-card-title">Detail Pesanan</h2>
+                                <t t-if="order_status_lines">
+                                    <article t-foreach="order_status_lines" t-as="line" class="ut-order-status-product">
+                                        <div class="ut-order-status-product-image">
+                                            <img t-att-src="line.get('image_url')" t-att-alt="line.get('name')"/>
+                                        </div>
+                                        <div>
+                                            <h3 class="ut-order-status-product-name" t-esc="line.get('name')"/>
+                                            <p class="ut-order-status-meta">Qty <t t-esc="line.get('qty')"/></p>
+                                            <p class="ut-order-status-meta">Harga <t t-esc="line.get('price')"/></p>
+                                        </div>
+                                    </article>
+                                </t>
+                                <p t-else="" class="ut-order-status-meta">Detail produk belum tersedia.</p>
+                            </section>
+
+                            <section class="ut-order-status-card ut-order-status-payment-card">
+                                <h2 class="ut-order-status-card-title">Detail Pembayaran</h2>
+                                <div class="ut-order-status-kv">
+                                    <span>Nomor Order</span>
+                                    <strong t-esc="order.name"/>
+                                </div>
+                                <div class="ut-order-status-kv">
+                                    <span>Metode</span>
+                                    <strong t-esc="payment_intent.payment_method_label if payment_intent else (order.x_payment_method or '-')"/>
+                                </div>
+                                <div class="ut-order-status-kv" t-if="payment_intent">
+                                    <span>Reference</span>
+                                    <strong t-esc="payment_intent.midtrans_order_id or payment_intent.xendit_reference_id or payment_intent.name"/>
+                                </div>
+                                <div class="ut-order-status-kv" t-if="payment_intent and payment_intent.payment_reference">
+                                    <span>Kode/VA</span>
+                                    <strong t-esc="payment_intent.payment_reference"/>
+                                </div>
+                                <div class="ut-order-status-kv" t-if="payment_intent and (payment_intent.midtrans_transaction_id or payment_intent.xendit_payment_request_id)">
+                                    <span>ID Transaksi</span>
+                                    <strong t-esc="payment_intent.midtrans_transaction_id or payment_intent.xendit_payment_request_id"/>
+                                </div>
+                                <div class="ut-order-status-kv" t-if="order.x_paid_at">
+                                    <span>Dibayar Pada</span>
+                                    <strong t-esc="order.x_paid_at"/>
+                                </div>
+                            </section>
+
+                            <section class="ut-order-status-card ut-order-status-confirm-card" t-if="order_status_ledgers">
+                                <h2 class="ut-order-status-card-title">Konfirmasi Barang</h2>
+                                <div t-foreach="order_status_ledgers" t-as="ledger" class="ut-order-status-ledger">
+                                    <div class="ut-order-status-ledger-head">
+                                        <strong t-esc="ledger.get('name')"/>
+                                        <span t-att-class="'ut-order-status-chip %s' % ('is-done' if ledger.get('completed') else '')">
+                                            <t t-esc="'Selesai' if ledger.get('completed') else 'Di Proses'"/>
+                                        </span>
+                                    </div>
+                                    <p class="ut-order-status-ledger-copy">Serah terima selesai setelah seller dan buyer sama-sama mengunggah bukti foto</p>
+                                    <div class="ut-order-status-proof-list">
+                                        <div t-att-class="'ut-order-status-proof %s' % ('is-done' if ledger.get('seller_confirmed') else '')">
+                                            <span>Penjual menyerahkan barang</span>
+                                            <b t-esc="ledger.get('seller_filename') or ('Sudah upload bukti' if ledger.get('seller_evidence') else 'Menunggu bukti')"/>
+                                        </div>
+                                        <div t-att-class="'ut-order-status-proof %s' % ('is-done' if ledger.get('buyer_confirmed') else '')">
+                                            <span>Buyer menerima barang</span>
+                                            <b t-esc="ledger.get('buyer_filename') or ('Sudah upload bukti' if ledger.get('buyer_evidence') else 'Belum dikonfirmasi')"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+
+                        <aside class="ut-order-status-side">
+                            <section class="ut-order-status-card ut-order-status-summary-card">
+                                <h2 class="ut-order-status-card-title">Ringkasan</h2>
+                                <div class="ut-order-status-row">
+                                    <span>Subtotal Produk</span>
+                                    <strong t-esc="order_status_subtotal"/>
+                                </div>
+                                <div class="ut-order-status-row">
+                                    <span>Biaya Layanan UniTrade</span>
+                                    <strong t-esc="order_status_service_fee"/>
+                                </div>
+                                <div class="ut-order-status-row">
+                                    <span>Biaya Payment</span>
+                                    <strong t-esc="order_status_payment_fee"/>
+                                </div>
+                                <div class="ut-order-status-row is-total">
+                                    <span>Total Pembayaran</span>
+                                    <strong t-esc="order_status_total"/>
+                                </div>
+                            </section>
+
+                            <section class="ut-order-status-card ut-order-status-actions-card">
+                                <div class="ut-order-status-actions">
+                                    <a t-if="payment_intent and payment_intent.state == 'pending'" t-att-href="'/unitrade/payment/instructions/%s' % (payment_intent.midtrans_order_id or payment_intent.xendit_reference_id or payment_intent.name)" class="ut-order-status-primary">Lanjutkan Pembayaran</a>
+                                    <form t-if="order_status_can_confirm_received" t-att-action="order_status_confirm_received_url" method="post" enctype="multipart/form-data" class="ut-order-status-action-form">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <label class="ut-order-status-upload">
+                                            <span>Upload foto barang diterima</span>
+                                            <input type="file" name="buyer_evidence" accept="image/jpeg,image/png,image/webp" required="required"/>
+                                            <small>JPG, PNG, atau WebP. Maksimal 5 MB.</small>
+                                        </label>
+                                        <button type="submit" class="ut-order-status-primary">Barang Diterima</button>
+                                    </form>
+                                    <form t-if="order_status_can_cancel" t-att-action="order_status_cancel_url" method="post" class="ut-order-status-action-form">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <input type="hidden" name="reason" value="Buyer direct cancel"/>
+                                        <button type="submit" class="ut-order-status-danger">Batalkan Pesanan</button>
+                                    </form>
+                                    <a href="/shop" class="ut-order-status-secondary">Kembali Belanja</a>
+                                    <a href="/" class="ut-order-status-secondary">Kembali ke Beranda</a>
+                                </div>
+                            </section>
+
+                            <section class="ut-order-status-card ut-order-status-help-card">
+                                <h2>Butuh Bantuan?</h2>
+                                <p>Hubungi customer service kami untuk bantuan lebih lanjut</p>
+                                <a href="/contactus" class="ut-order-status-secondary">Hubungi CS</a>
+                            </section>
+                        </aside>
+                    </div>
+                </main>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="unitrade_payment_success" name="UniTrade Payment Success">
+        <t t-call="website.layout">
+            <t t-set="title">Pembayaran Berhasil</t>
+            <style>
+                .ut-success-page {
+                    min-height: 100vh;
+                    background: #f9f9fb;
+                    color: #0c1014;
+                    font-family: 'Plus Jakarta Sans', 'Urbanist', Inter, sans-serif;
+                }
+                .ut-success-main {
+                    width: min(600px, calc(100% - 32px));
+                    margin: 0 auto;
+                    padding: 72px 0 40px;
+                }
+                .ut-success-card {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 32px;
+                    border: 1px solid #f0f0f0;
+                    border-radius: 12px;
+                    background: #fff;
+                    box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                    padding: 25px;
+                }
+                .ut-success-hero {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 24px;
+                    text-align: center;
+                }
+                .ut-success-icon {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 96px;
+                    height: 96px;
+                    border-radius: 999px;
+                    background: #f3f3f5;
+                    color: #0c1014;
+                }
+                .ut-success-icon svg {
+                    width: 42px;
+                    height: 42px;
+                }
+                .ut-success-title {
+                    margin: 0 0 10px;
+                    color: #0c1014;
+                    font-size: 32px;
+                    line-height: 38px;
+                    font-weight: 700;
+                    letter-spacing: 0;
+                }
+                .ut-success-transaction {
+                    margin: 0;
+                    color: #585f6c;
+                    font-size: 14px;
+                    line-height: 21px;
+                    font-weight: 400;
+                }
+                .ut-success-transaction strong {
+                    color: #0c1014;
+                    font-weight: 600;
+                }
+                .ut-success-divider {
+                    height: 1px;
+                    background: #f0f0f0;
+                    margin: 0;
+                    border: 0;
+                }
+                .ut-success-next {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 25px;
+                    border: 1px solid #f0f0f0;
+                    border-radius: 8px;
+                    background: #f9f9fb;
+                    padding: 25px;
+                }
+                .ut-success-next-title {
+                    margin: 0 0 8px;
+                    color: #0c1014;
+                    font-size: 20px;
+                    line-height: 28px;
+                    font-weight: 600;
+                }
+                .ut-success-next-copy {
+                    margin: 0;
+                    color: #585f6c;
+                    font-size: 14px;
+                    line-height: 21px;
+                    font-weight: 400;
+                }
+                .ut-success-seller {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 16px;
+                }
+                .ut-success-seller-profile {
+                    display: flex;
+                    align-items: center;
+                    min-width: 0;
+                    gap: 12px;
+                }
+                .ut-success-avatar {
+                    width: 48px;
+                    height: 48px;
+                    flex: 0 0 48px;
+                    overflow: hidden;
+                    border-radius: 999px;
+                    background: #e8e8ea;
+                }
+                .ut-success-avatar img {
+                    display: block;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                .ut-success-seller-name {
+                    margin: 0 0 4px;
+                    color: #0c1014;
+                    font-size: 14px;
+                    line-height: 17px;
+                    font-weight: 600;
+                }
+                .ut-success-seller-rating {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 4px;
+                    margin: 0;
+                    color: #585f6c;
+                    font-size: 12px;
+                    line-height: 16px;
+                    font-weight: 400;
+                }
+                .ut-success-seller-rating svg {
+                    width: 14px;
+                    height: 14px;
+                    color: #facc15;
+                }
+                .ut-success-chat {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 36px;
+                    border: 1px solid #212529;
+                    border-radius: 999px;
+                    background: #fff;
+                    color: #212529;
+                    padding: 9px 16px;
+                    font-size: 13px;
+                    line-height: 16px;
+                    font-weight: 600;
+                    text-decoration: none;
+                    white-space: nowrap;
+                }
+                .ut-success-chat:hover {
+                    background: #f3f3f5;
+                    color: #212529;
+                    text-decoration: none;
+                }
+                .ut-success-steps {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 16px;
+                    margin: 0;
+                    padding: 0;
+                    list-style: none;
+                }
+                .ut-success-step {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 12px;
+                    color: #0c1014;
+                    font-size: 14px;
+                    line-height: 21px;
+                    font-weight: 500;
+                }
+                .ut-success-step-number {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 24px;
+                    height: 24px;
+                    flex: 0 0 24px;
+                    border-radius: 999px;
+                    background: #212529;
+                    color: #fff;
+                    font-size: 12px;
+                    line-height: 14px;
+                    font-weight: 600;
+                }
+                .ut-success-actions {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                }
+                .ut-success-primary,
+                .ut-success-secondary {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 100%;
+                    min-height: 52px;
+                    border-radius: 999px;
+                    padding: 16px 22px;
+                    font-size: 14px;
+                    line-height: 17px;
+                    font-weight: 600;
+                    text-align: center;
+                    text-decoration: none;
+                }
+                .ut-success-primary {
+                    border: 1px solid #212529;
+                    background: #212529;
+                    color: #fff;
+                }
+                .ut-success-primary:hover {
+                    background: #0c1014;
+                    color: #fff;
+                    text-decoration: none;
+                }
+                .ut-success-secondary {
+                    border: 1px solid #212529;
+                    background: #fff;
+                    color: #212529;
+                }
+                .ut-success-secondary:hover {
+                    background: #f9f9fb;
+                    color: #212529;
+                    text-decoration: none;
+                }
+                .ut-success-recommendations {
+                    width: min(1216px, calc(100% - 32px));
+                    margin: 0 auto;
+                    padding: 0 0 72px;
+                }
+                .ut-success-recommendations-title {
+                    margin: 0 0 24px;
+                    color: #0c1014;
+                    font-size: 24px;
+                    line-height: 31px;
+                    font-weight: 600;
+                }
+                .ut-success-recommendations-grid {
+                    display: grid;
+                    grid-template-columns: repeat(6, minmax(0, 1fr));
+                    gap: 30px;
+                }
+                .ut-success-product-card {
+                    min-width: 0;
+                }
+                @media (max-width: 1180px) {
+                    .ut-success-recommendations-grid {
+                        grid-template-columns: repeat(4, minmax(0, 1fr));
+                        gap: 20px;
+                    }
+                }
+                @media (max-width: 820px) {
+                    .ut-success-main {
+                        padding-top: 40px;
+                    }
+                    .ut-success-recommendations-grid {
+                        grid-template-columns: repeat(2, minmax(0, 1fr));
+                    }
+                    .ut-success-seller {
+                        align-items: flex-start;
+                        flex-direction: column;
+                    }
+                    .ut-success-chat {
+                        width: 100%;
+                    }
+                }
+                @media (max-width: 520px) {
+                    .ut-success-main,
+                    .ut-success-recommendations {
+                        width: min(calc(100% - 24px), 600px);
+                    }
+                    .ut-success-card,
+                    .ut-success-next {
+                        padding: 18px;
+                    }
+                    .ut-success-title {
+                        font-size: 28px;
+                        line-height: 34px;
+                    }
+                    .ut-success-recommendations-grid {
+                        grid-template-columns: 1fr;
+                    }
+                }
+            </style>
+
+            <div class="ut-success-page">
+                <main class="ut-success-main">
+                    <section class="ut-success-card">
+                        <div class="ut-success-hero">
+                            <div class="ut-success-icon" aria-hidden="true">
+                                <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M40 12 18 34 8 24"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h1 class="ut-success-title">Pembayaran Berhasil!</h1>
+                                <p class="ut-success-transaction">
+                                    ID Transaksi:
+                                    <strong t-esc="success_transaction_id"/>
+                                </p>
+                            </div>
+                        </div>
+
+                        <hr class="ut-success-divider"/>
+
+                        <div class="ut-success-next">
+                            <div>
+                                <h2 class="ut-success-next-title">Langkah Selanjutnya</h2>
+                                <p class="ut-success-next-copy">Transaksi kamu sudah aman. Sekarang tunggu prosesnya hingga selesai.</p>
+                            </div>
+
+                            <div class="ut-success-seller">
+                                <div class="ut-success-seller-profile">
+                                    <div class="ut-success-avatar">
+                                        <img t-att-src="success_seller.get('avatar_url')" t-att-alt="success_seller.get('name')"/>
+                                    </div>
+                                    <div>
+                                        <p class="ut-success-seller-name" t-esc="success_seller.get('name')"/>
+                                        <p class="ut-success-seller-rating">
+                                            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.07 3.29c.13.4.5.69.95.69h3.46c.97 0 1.37 1.24.59 1.81l-2.8 2.03c-.36.26-.51.72-.37 1.12l1.07 3.29c.3.92-.75 1.69-1.54 1.12l-2.8-2.03a1 1 0 0 0-1.18 0l-2.8 2.03c-.78.57-1.84-.2-1.54-1.12l1.07-3.29a1 1 0 0 0-.36-1.12l-2.8-2.03c-.78-.57-.38-1.81.59-1.81h3.46a1 1 0 0 0 .95-.69l1.08-3.29Z"/>
+                                            </svg>
+                                            <span t-esc="success_seller.get('rating')"/>
+                                        </p>
+                                    </div>
+                                </div>
+                                <a t-att-href="success_seller.get('chat_url') or '#'" class="ut-success-chat">Chat Seller</a>
+                            </div>
+
+                            <ol class="ut-success-steps">
+                                <li class="ut-success-step">
+                                    <span class="ut-success-step-number">1</span>
+                                    <span>Tunggu barang diproses</span>
+                                </li>
+                                <li class="ut-success-step">
+                                    <span class="ut-success-step-number">2</span>
+                                    <span>Cek kondisi barang langsung</span>
+                                </li>
+                                <li class="ut-success-step">
+                                    <span class="ut-success-step-number">3</span>
+                                    <span>Konfirmasi pesanan selesai di aplikasi</span>
+                                </li>
+                            </ol>
+                        </div>
+
+                        <div class="ut-success-actions">
+                            <a t-att-href="status_url" class="ut-success-primary">Lihat Status Pesanan</a>
+                            <a href="/" class="ut-success-secondary">Kembali ke Beranda</a>
+                        </div>
+                    </section>
+                </main>
+
+                <section t-if="success_recommended_products" class="ut-success-recommendations">
+                    <h2 class="ut-success-recommendations-title">Mungkin Anda tertarik</h2>
+                    <div class="ut-success-recommendations-grid">
+                        <t t-foreach="success_recommended_products" t-as="product">
+                            <t t-set="ut_card_product" t-value="product"/>
+                            <t t-set="ut_card_href" t-value="product.website_url or ('/shop/product/%s' % product.id)"/>
+                            <t t-set="ut_card_class" t-value="'ut-success-product-card'"/>
+                            <t t-call="unitrade_theme.unitrade_product_card"/>
+                        </t>
+                    </div>
+                </section>
             </div>
         </t>
     </template>
