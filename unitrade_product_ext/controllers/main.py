@@ -40,10 +40,18 @@ class UnitradeProductController(http.Controller):
     def product_catalog(self, **kwargs):
         """Marketplace product catalog with filters"""
         Product = request.env['product.template'].sudo()
+        Category = request.env['product.category'].sudo()
+        selected_category = Category.browse()
+        try:
+            category_id = int(kwargs.get('category') or 0)
+        except (TypeError, ValueError):
+            category_id = 0
+        if category_id:
+            selected_category = Category.browse(category_id).exists()
 
         products = Product._search_marketplace_products(
             keyword=kwargs.get('search'),
-            category_id=kwargs.get('category'),
+            category_id=selected_category.id if selected_category else None,
             condition=kwargs.get('condition'),
             min_price=kwargs.get('min_price'),
             max_price=kwargs.get('max_price'),
@@ -51,12 +59,13 @@ class UnitradeProductController(http.Controller):
             sort_by=kwargs.get('sort', 'create_date desc'),
         )
 
-        categories = request.env['product.category'].sudo().search([])
+        categories = Category.search([])
 
         values = {
             'products': products,
             'categories': categories,
             'search': kwargs.get('search', ''),
+            'selected_category': selected_category,
             'page_title': 'Katalog Produk — UniTrade',
         }
         return request.render('unitrade_product_ext.product_catalog_template', values)
@@ -104,14 +113,11 @@ class UnitradeWebsiteSale(WebsiteSale):
         map_lat = item_lat or seller_lat
         map_lng = item_lng or seller_lng
         seller = _safe_get(product, 'x_seller_id', False)
-        discount_percent = max(_safe_get(product, 'x_discount_percent', 0) or 0, 0)
-        original_price = product.list_price or 0.0
-        has_discount = bool(discount_percent and original_price > 0)
-        discounted_price = (
-            original_price * (100 - min(discount_percent, 100)) / 100
-            if has_discount
-            else original_price
-        )
+        price_info = product.sudo()._unitrade_price_info()
+        discount_percent = price_info.get('discount_percent')
+        original_price = price_info.get('original_price')
+        has_discount = price_info.get('has_discount')
+        discounted_price = price_info.get('discounted_price')
 
         # Reviews — compute from actual review records (same pattern as unitrade_review._summary)
         reviews = request.env['unitrade.review']
@@ -279,6 +285,7 @@ class UnitradeWebsiteSale(WebsiteSale):
         return {
             'page': max(self._unitrade_int(page, 1), 1),
             'category': category,
+            'ut_category': max(self._unitrade_int(post.get('ut_category'), 0), 0),
             'search': (search or post.get('search') or '').strip(),
             'ppg': ppg or post.get('ppg') or False,
             'lokasi': post.get('lokasi') if post.get('lokasi') in ('terdekat', 'kabupaten', 'diy') else '',
@@ -292,6 +299,8 @@ class UnitradeWebsiteSale(WebsiteSale):
 
     def _unitrade_filter_domain(self, values):
         domain = []
+        if values['ut_category']:
+            domain.append(('categ_id', 'child_of', values['ut_category']))
         if values['kondisi']:
             domain.append(('x_condition', '=', values['kondisi']))
         if values['ut_min_price']:
@@ -349,6 +358,8 @@ class UnitradeWebsiteSale(WebsiteSale):
             args['kondisi'] = values['kondisi']
         if values['sort'] and values['sort'] != 'terkait':
             args['sort'] = values['sort']
+        if values['ut_category']:
+            args['ut_category'] = str(values['ut_category'])
         if values['ut_min_price']:
             args['ut_min_price'] = str(values['ut_min_price'])
         if values['ut_max_price']:
@@ -428,6 +439,7 @@ class UnitradeWebsiteSale(WebsiteSale):
             'ut_lokasi': values['lokasi'],
             'ut_kondisi': values['kondisi'],
             'ut_sort': values['sort'],
+            'ut_category': values['ut_category'],
             'ut_min_price': values['ut_min_price'],
             'ut_max_price': values['ut_max_price'],
             'ut_lat': values['lat'],

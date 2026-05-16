@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="product_category_unitrade_food" model="product.category">
+        <field name="name">Makanan &amp; Minuman</field>
+        <field name="parent_id" ref="product.product_category_all"/>
+    </record>
+
+    <record id="product_category_unitrade_fashion" model="product.category">
+        <field name="name">Fashion</field>
+        <field name="parent_id" ref="product.product_category_all"/>
+    </record>
+
+    <record id="product_category_unitrade_other" model="product.category">
+        <field name="name">Lainnya</field>
+        <field name="parent_id" ref="product.product_category_all"/>
+    </record>
+</odoo>
