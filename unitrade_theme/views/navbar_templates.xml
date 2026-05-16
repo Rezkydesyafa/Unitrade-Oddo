@@ -46,8 +46,9 @@
                         <span class="tw-whitespace-nowrap tw-text-[13px] tw-font-semibold tw-leading-none tw-text-[#212529]" style="text-decoration: none !important;">UniTrade</span>
                     </a>
 
-                    <form action="/shop" method="get" class="tw-relative tw-hidden tw-h-[48px] tw-min-w-[220px] tw-max-w-[760px] tw-flex-[1_1_560px] tw-rounded-full tw-border tw-border-[#DADADA] tw-bg-[#F9F9F9] tw-transition-colors focus-within:tw-border-[#212529] focus-within:tw-shadow-[0_0_0_2px_rgba(33,37,41,0.08)] lg:tw-block xl:tw-max-w-[820px]">
-                        <input type="text" name="search" class="unitrade-search tw-h-full tw-w-full tw-appearance-none tw-rounded-full tw-border-0 tw-bg-transparent tw-py-0 tw-pl-5 tw-pr-[58px] tw-text-[14px] tw-font-normal tw-text-[#212529] tw-shadow-none tw-outline-none placeholder:tw-text-[#8c8c8c] focus:tw-border-0 focus:tw-shadow-none focus:tw-outline-none focus:tw-ring-0" placeholder="Cari produk di UniTrade"/>
+                    <form action="/shop" method="get" role="search" aria-label="Cari produk UniTrade" class="tw-relative tw-hidden tw-h-[48px] tw-min-w-[220px] tw-max-w-[760px] tw-flex-[1_1_560px] tw-rounded-full tw-border tw-border-[#DADADA] tw-bg-[#F9F9F9] tw-transition-colors focus-within:tw-border-[#212529] focus-within:tw-shadow-[0_0_0_2px_rgba(33,37,41,0.08)] lg:tw-block xl:tw-max-w-[820px]">
+                        <label for="unitrade_search_desktop" class="tw-sr-only">Cari produk di UniTrade</label>
+                        <input id="unitrade_search_desktop" type="search" name="search" aria-label="Cari produk di UniTrade" autocomplete="off" class="unitrade-search tw-h-full tw-w-full tw-appearance-none tw-rounded-full tw-border-0 tw-bg-transparent tw-py-0 tw-pl-5 tw-pr-[58px] tw-text-[14px] tw-font-normal tw-text-[#212529] tw-shadow-none tw-outline-none placeholder:tw-text-[#8c8c8c] focus:tw-border-0 focus:tw-shadow-none focus:tw-outline-none focus:tw-ring-0" placeholder="Cari produk di UniTrade"/>
                         <button type="submit" aria-label="Cari produk" class="tw-absolute tw-right-[5px] tw-top-1/2 tw-flex tw-size-[38px] tw--translate-y-1/2 tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-[#212529] tw-p-0 tw-text-white tw-transition-colors hover:tw-bg-black">
                             <svg xmlns="http://www.w3.org/2000/svg" class="tw-size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="11" cy="11" r="6"></circle>
@@ -74,7 +75,7 @@
                             <span class="tw-hidden tw-h-[38.5px] tw-w-px tw-bg-[#c3c3c3] md:tw-block"></span>
 
                             <t t-set="is_unitrade_seller" t-value="'x_is_seller' in current_user._fields and current_user.x_is_seller"/>
-                            <a t-att-href="'/seller/dashboard' if is_unitrade_seller else '/seller-onboarding'" t-att-title="'Dashboard Penjual' if is_unitrade_seller else 'Mulai Berjualan'" t-att-aria-label="'Dashboard Penjual' if is_unitrade_seller else 'Mulai Berjualan'" class="tw-hidden tw-size-[38px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#212529] tw-text-white tw-no-underline tw-transition-colors hover:tw-bg-black md:tw-flex">
+                            <a t-att-href="'/unitrade/seller/dashboard' if is_unitrade_seller else '/seller-onboarding'" t-att-title="'Dashboard Penjual' if is_unitrade_seller else 'Mulai Berjualan'" t-att-aria-label="'Dashboard Penjual' if is_unitrade_seller else 'Mulai Berjualan'" class="tw-hidden tw-size-[38px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#212529] tw-text-white tw-no-underline tw-transition-colors hover:tw-bg-black md:tw-flex">
                                 <img src="/unitrade_theme/static/src/img/navbar-seller.svg" alt="" class="tw-size-6"/>
                             </a>
 
@@ -93,7 +94,7 @@
                                         <a href="/my/account" class="tw-flex tw-items-center tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-medium tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Profil Saya</a>
                                         <a href="/my/orders" class="tw-flex tw-items-center tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-medium tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Pesanan Saya</a>
                                         <a href="/my/wishlist" class="tw-flex tw-items-center tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-medium tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Wishlist</a>
-                                        <a t-att-href="'/seller/dashboard' if is_unitrade_seller else '/seller-onboarding'" class="tw-flex tw-items-center tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-medium tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">
+                                        <a t-att-href="'/unitrade/seller/dashboard' if is_unitrade_seller else '/seller-onboarding'" class="tw-flex tw-items-center tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-medium tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">
                                             <t t-esc="'Dashboard Penjual' if is_unitrade_seller else 'Mulai Berjualan'"/>
                                         </a>
                                         <a href="/my/settings" class="tw-flex tw-items-center tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-medium tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Pengaturan</a>
@@ -120,8 +121,9 @@
 
                 <div id="unitrade-mobile-menu" class="tw-hidden tw-mx-auto tw-mt-3 tw-max-w-[1376px] tw-rounded-[28px] tw-bg-white tw-p-4 tw-shadow-[0_12px_32px_rgba(0,0,0,0.12)] md:tw-hidden" t-nocache="Mobile navigation">
                     <t t-set="current_user" t-value="request.env.user"/>
-                    <form action="/shop" method="get" class="tw-relative tw-mb-3 tw-h-[46px] tw-rounded-full tw-border tw-border-[#DADADA] tw-bg-[#F9F9F9] tw-transition-colors focus-within:tw-border-[#212529] focus-within:tw-shadow-[0_0_0_2px_rgba(33,37,41,0.08)]">
-                        <input type="text" name="search" class="unitrade-search tw-h-full tw-w-full tw-appearance-none tw-rounded-full tw-border-0 tw-bg-transparent tw-px-5 tw-pr-12 tw-text-[14px] tw-text-[#212529] tw-shadow-none tw-outline-none focus:tw-border-0 focus:tw-shadow-none focus:tw-outline-none focus:tw-ring-0" placeholder="Cari produk di UniTrade"/>
+                    <form action="/shop" method="get" role="search" aria-label="Cari produk UniTrade" class="tw-relative tw-mb-3 tw-h-[46px] tw-rounded-full tw-border tw-border-[#DADADA] tw-bg-[#F9F9F9] tw-transition-colors focus-within:tw-border-[#212529] focus-within:tw-shadow-[0_0_0_2px_rgba(33,37,41,0.08)]">
+                        <label for="unitrade_search_mobile" class="tw-sr-only">Cari produk di UniTrade</label>
+                        <input id="unitrade_search_mobile" type="search" name="search" aria-label="Cari produk di UniTrade" autocomplete="off" class="unitrade-search tw-h-full tw-w-full tw-appearance-none tw-rounded-full tw-border-0 tw-bg-transparent tw-px-5 tw-pr-12 tw-text-[14px] tw-text-[#212529] tw-shadow-none tw-outline-none focus:tw-border-0 focus:tw-shadow-none focus:tw-outline-none focus:tw-ring-0" placeholder="Cari produk di UniTrade"/>
                         <button type="submit" aria-label="Cari produk" class="tw-absolute tw-right-1 tw-top-1/2 tw-flex tw-size-[38px] tw--translate-y-1/2 tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-[#212529] tw-p-0 tw-text-white">
                             <svg xmlns="http://www.w3.org/2000/svg" class="tw-size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="11" cy="11" r="6"></circle>

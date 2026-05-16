@@ -24,6 +24,7 @@ export class UserOrdersTabs extends Component {
         this.tabs = [
             { key: "all", label: "Semua" },
             { key: "unpaid", label: "Belum di bayar" },
+            { key: "processing", label: "Di Proses" },
             { key: "done", label: "Selesai" },
             { key: "cancel", label: "Dibatalkan" },
         ];
@@ -97,6 +98,45 @@ publicWidget.registry.UnitradeUserOrdersTabs = publicWidget.Widget.extend({
         if (this._super) {
             this._super.apply(this, arguments);
         }
+    },
+});
+
+publicWidget.registry.UnitradeUserOrderCards = publicWidget.Widget.extend({
+    selector: ".ut-user-orders-list",
+    events: {
+        "click .ut-user-order-card": "_onCardClick",
+        "keydown .ut-user-order-card": "_onCardKeydown",
+    },
+
+    _isInteractiveTarget(target) {
+        return Boolean(target.closest(
+            "a, button, input, textarea, select, label, form, .ut-user-order-actions, [data-review-open]"
+        ));
+    },
+
+    _openCard(card) {
+        const url = card && card.dataset.orderUrl;
+        if (url) {
+            window.location.href = url;
+        }
+    },
+
+    _onCardClick(ev) {
+        if (this._isInteractiveTarget(ev.target)) {
+            return;
+        }
+        this._openCard(ev.currentTarget);
+    },
+
+    _onCardKeydown(ev) {
+        if (ev.key !== "Enter" && ev.key !== " ") {
+            return;
+        }
+        if (this._isInteractiveTarget(ev.target)) {
+            return;
+        }
+        ev.preventDefault();
+        this._openCard(ev.currentTarget);
     },
 });
 

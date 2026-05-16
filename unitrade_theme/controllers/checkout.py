@@ -4,21 +4,69 @@ import json
 from odoo import http
 from odoo.http import request
 from odoo.addons.website_sale.controllers.main import WebsiteSale
+from odoo.exceptions import UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
 class UnitradeCheckout(WebsiteSale):
+    def _unitrade_checkout_address_message(self):
+        return 'Tambahkan alamat terlebih dahulu sebelum melanjutkan pembayaran.'
+
+    def _unitrade_partner_has_checkout_address(self, partner):
+        summary = self._unitrade_partner_address_summary(partner)
+        return bool(summary.get('has_address'))
+
+    def _unitrade_prepare_checkout_or_error(self, order, post=None):
+        post = dict(post or {})
+        payment_method = (post.get('payment_method') or 'bca_va').strip()
+        try:
+            if hasattr(order, '_unitrade_prepare_checkout_server_state'):
+                try:
+                    order.sudo()._unitrade_prepare_checkout_server_state(payment_method)
+                except TypeError:
+                    order.sudo()._unitrade_prepare_checkout_server_state()
+        except (UserError, ValidationError) as error:
+            post['checkout_error_message'] = error.args[0] if error.args else str(error)
+        return post
+
     def _unitrade_checkout_values(self, order, post=None):
+        post = dict(post or {})
         values = self.checkout_values(order, **(post or {}))
         partner = request.env.user.partner_id
-        amounts = order._unitrade_checkout_amounts(sync_fee=False)
+        selected_payment_method = (post.get('payment_method') or 'bca_va').strip()
+        try:
+            amounts = order._unitrade_checkout_amounts(sync_fee=False, payment_method=selected_payment_method)
+        except TypeError:
+            amounts = order._unitrade_checkout_amounts(sync_fee=False)
+        payment_method_groups = (
+            order._unitrade_midtrans_checkout_methods(amounts.get('item_subtotal', 0.0) + amounts.get('service_fee', 0.0))
+            if hasattr(order, '_unitrade_midtrans_checkout_methods')
+            else order._unitrade_xendit_checkout_methods(amounts.get('item_subtotal', 0.0) + amounts.get('service_fee', 0.0))
+            if hasattr(order, '_unitrade_xendit_checkout_methods')
+            else []
+        )
+        selected_payment_method_data = {}
+        for group in payment_method_groups:
+            for method in group.get('methods', []):
+                if method.get('key') == selected_payment_method:
+                    selected_payment_method_data = method
+                    break
+            if selected_payment_method_data:
+                break
         values.update({
             'order': order,
             'website_sale_order': order,
             'unitrade_checkout_amounts': amounts,
             'unitrade_service_fee_product_id': amounts['service_fee_product_id'],
+            'unitrade_payment_fee_product_id': amounts.get('payment_fee_product_id'),
+            'unitrade_selected_payment_method': selected_payment_method,
+            'unitrade_selected_payment_method_data': selected_payment_method_data,
+            'unitrade_payment_method_groups': payment_method_groups,
             'address_payload_json': json.dumps(self._unitrade_partner_address_payload(partner)),
             'address_summary': self._unitrade_partner_address_summary(partner),
+            'checkout_address_missing': not self._unitrade_partner_has_checkout_address(partner),
+            'checkout_address_missing_message': self._unitrade_checkout_address_message(),
+            'checkout_error_message': (post or {}).get('checkout_error_message'),
         })
         return values
 
@@ -79,6 +127,7 @@ class UnitradeCheckout(WebsiteSale):
         if post.get('xhr'):
             return 'ok'
 
+        post = self._unitrade_prepare_checkout_or_error(order, post)
         values = self._unitrade_checkout_values(order, post)
         return request.render("unitrade_theme.unitrade_checkout_page", values)
 
@@ -88,6 +137,7 @@ class UnitradeCheckout(WebsiteSale):
         if not order:
             return request.redirect('/shop')
 
+        post = self._unitrade_prepare_checkout_or_error(order, post)
         values = self._unitrade_checkout_values(order, post)
         return request.render("unitrade_theme.unitrade_checkout_page", values)
 
@@ -101,14 +151,41 @@ class UnitradeCheckout(WebsiteSale):
         if not order.partner_shipping_id:
             order.partner_shipping_id = order.partner_id.id
 
-        order._unitrade_checkout_amounts(sync_fee=True)
         selected_payment_method = (post.get('payment_method') or '').strip()
-        if selected_payment_method and 'x_payment_method' in order._fields:
-            order.sudo().write({'x_payment_method': selected_payment_method})
-            
-        # Standard Odoo confirm order
-        order.action_confirm()
-        
-        # Ideally this redirects to Midtrans. Since we don't have Midtrans snap here,
-        # redirect to the payment finish page.
-        return request.redirect('/unitrade/payment/finish')
+        partner = request.env.user.partner_id
+        if not self._unitrade_partner_has_checkout_address(partner):
+            values = self._unitrade_checkout_values(order, {
+                **post,
+                'checkout_error_message': self._unitrade_checkout_address_message(),
+            })
+            return request.render("unitrade_theme.unitrade_checkout_page", values)
+
+        try:
+            payment_result = order.sudo().action_create_midtrans_payment(selected_payment_method)
+        except (UserError, ValidationError) as error:
+            values = self._unitrade_checkout_values(order, {
+                **post,
+                'checkout_error_message': error.args[0] if error.args else str(error),
+            })
+            return request.render("unitrade_theme.unitrade_checkout_page", values)
+        except Exception:
+            _logger.exception('Failed to create Midtrans checkout for order %s', order.name)
+            values = self._unitrade_checkout_values(order, {
+                **post,
+                'checkout_error_message': 'Checkout Midtrans belum bisa dibuat. Coba lagi beberapa saat lagi.',
+            })
+            return request.render("unitrade_theme.unitrade_checkout_page", values)
+
+        payment_url = payment_result.get('payment_url') if payment_result else False
+        if not payment_url:
+            values = self._unitrade_checkout_values(order, {
+                **post,
+                'checkout_error_message': 'Midtrans tidak mengembalikan data pembayaran.',
+            })
+            return request.render("unitrade_theme.unitrade_checkout_page", values)
+
+        request.session['sale_last_order_id'] = order.id
+        payment_intent = payment_result.get('payment_intent') if payment_result else False
+        if payment_intent and (payment_intent.midtrans_order_id or payment_intent.xendit_reference_id):
+            return request.redirect('/unitrade/payment/instructions/%s' % (payment_intent.midtrans_order_id or payment_intent.xendit_reference_id))
+        return request.redirect(payment_url)

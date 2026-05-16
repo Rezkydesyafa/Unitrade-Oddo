@@ -681,59 +681,82 @@
                             <t t-if="order_items">
                                 <t t-foreach="order_items" t-as="item">
                                     <article t-att-data-order-status="item.get('status')"
+                                        t-att-data-order-url="item.get('order_status_url')"
+                                        t-att-aria-label="'Buka detail pesanan %s' % item.get('order').name"
+                                        role="link"
+                                        tabindex="0"
                                         t-att-class="'ut-user-order-card %s' % ('ut-is-hidden' if active_order_status != 'all' and item.get('status') != active_order_status else '')">
                                         <header class="ut-user-order-seller">
-                                            <a t-att-href="item.get('seller_url')" class="ut-user-order-seller-link">
+                                            <div class="ut-user-order-seller-link">
                                                 <img t-att-src="item.get('seller_avatar_url')" alt="Avatar penjual" class="ut-user-order-seller-avatar"/>
                                                 <span t-esc="item.get('seller_name')"/>
-                                            </a>
+                                            </div>
                                             <span t-att-class="'ut-user-order-status ut-status-%s' % item.get('status')">
-                                                <t t-if="item.get('status') == 'unpaid'">Belum di bayar</t>
-                                                <t t-elif="item.get('status') == 'cancel'">Dibatalkan</t>
-                                                <t t-else="">Selesai</t>
+                                                <t t-esc="item.get('status_label')"/>
                                             </span>
                                         </header>
                                         <div class="ut-user-order-body">
-                                            <a t-att-href="item.get('product_url')" class="ut-user-order-image-wrap">
+                                            <div class="ut-user-order-image-wrap">
                                                 <img t-att-src="item.get('image_url')" alt="Produk pesanan" class="ut-user-order-image"/>
-                                            </a>
+                                            </div>
                                             <div class="ut-user-order-info">
-                                                <a t-att-href="item.get('product_url')" class="ut-user-order-product-name" t-esc="item.get('product').name"/>
+                                                <span class="ut-user-order-product-name" t-esc="item.get('product').name"/>
                                                 <p>Kategori : <t t-esc="item.get('category')"/></p>
                                                 <p>Jumlah : <t t-esc="item.get('quantity')"/></p>
                                                 <div class="ut-user-order-rating">
                                                     <i class="fa fa-star"></i>
                                                     <span t-esc="item.get('rating')"/>
                                                 </div>
+                                                <p t-if="item.get('status_note')" class="ut-user-order-status-note" t-esc="item.get('status_note')"/>
                                             </div>
                                             <div class="ut-user-order-price" t-esc="item.get('price')"/>
                                         </div>
                                         <footer class="ut-user-order-actions">
-                                            <button t-if="item.get('can_review')" type="button"
-                                                class="ut-user-order-btn ut-user-order-btn-primary"
-                                                data-review-open="1"
-                                                t-att-data-review-product-id="item.get('product').id"
-                                                t-att-data-review-order-id="item.get('order').id"
-                                                t-att-data-review-product-name="item.get('product').name"
-                                                t-att-data-review-seller-name="item.get('seller_name')"
-                                                t-att-data-review-image-url="item.get('image_url')">
-                                                Beri Ulasan
-                                            </button>
-                                            <button t-elif="item.get('review_exists')" type="button"
-                                                class="ut-user-order-btn ut-user-order-btn-disabled"
-                                                disabled="disabled"
-                                                aria-disabled="true">
-                                                Sudah Ulasan
-                                            </button>
-                                            <button t-else="" type="button"
-                                                class="ut-user-order-btn ut-user-order-btn-disabled"
-                                                disabled="disabled"
-                                                aria-disabled="true">
-                                                Beri Ulasan
-                                            </button>
+                                            <t t-if="item.get('status') == 'processing'">
+                                                <form t-if="item.get('can_confirm_received')" t-att-action="item.get('confirm_received_url')" method="post" enctype="multipart/form-data" class="ut-user-order-action-form ut-user-order-proof-form">
+                                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                    <input t-if="item.get('ledger')" type="hidden" name="ledger_id" t-att-value="item.get('ledger').id"/>
+                                                    <label class="ut-user-order-proof-upload">
+                                                        <span>Foto barang diterima</span>
+                                                        <input type="file" name="buyer_evidence" accept="image/jpeg,image/png,image/webp" required="required"/>
+                                                    </label>
+                                                    <button type="submit" class="ut-user-order-btn ut-user-order-btn-primary">Konfirmasi Barang</button>
+                                                </form>
+                                                <span t-elif="item.get('buyer_confirmed')" class="ut-user-order-btn ut-user-order-btn-disabled">
+                                                    Sudah Dikonfirmasi
+                                                </span>
+                                                <span t-else="" class="ut-user-order-btn ut-user-order-btn-disabled" title="Aktif setelah penjual mengunggah bukti serah barang.">
+                                                    Konfirmasi Barang
+                                                </span>
+                                            </t>
+                                            <t t-if="item.get('status') == 'done'">
+                                                <button t-if="item.get('can_review')" type="button"
+                                                    class="ut-user-order-btn ut-user-order-btn-primary"
+                                                    data-review-open="1"
+                                                    t-att-data-review-product-id="item.get('product').id"
+                                                    t-att-data-review-order-id="item.get('order').id"
+                                                    t-att-data-review-product-name="item.get('product').name"
+                                                    t-att-data-review-seller-name="item.get('seller_name')"
+                                                    t-att-data-review-image-url="item.get('image_url')">
+                                                    Beri Ulasan
+                                                </button>
+                                                <button t-elif="item.get('review_exists')" type="button"
+                                                    class="ut-user-order-btn ut-user-order-btn-disabled"
+                                                    disabled="disabled"
+                                                    aria-disabled="true">
+                                                    Sudah Ulasan
+                                                </button>
+                                            </t>
+                                            <form t-if="item.get('can_cancel_order')" t-att-action="item.get('cancel_url')" method="post" class="ut-user-order-action-form">
+                                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                <input type="hidden" name="reason" value="Buyer direct cancel"/>
+                                                <button type="submit" class="ut-user-order-btn ut-user-order-btn-danger">Batalkan</button>
+                                            </form>
                                             <a t-att-href="item.get('seller_chat_url')" class="ut-user-order-btn ut-user-order-btn-outline">Chat Penjual</a>
-                                            <a t-if="item.get('can_buy_again')" t-att-href="item.get('buy_again_url')" class="ut-user-order-btn ut-user-order-btn-outline">Beli Lagi</a>
-                                            <span t-else="" class="ut-user-order-btn ut-user-order-btn-disabled" title="Produk tidak tersedia">Beli Lagi</span>
+                                            <t t-if="item.get('status') == 'done'">
+                                                <a t-if="item.get('can_buy_again')" t-att-href="item.get('buy_again_url')" class="ut-user-order-btn ut-user-order-btn-outline">Beli Lagi</a>
+                                                <span t-else="" class="ut-user-order-btn ut-user-order-btn-disabled" title="Produk tidak tersedia">Beli Lagi</span>
+                                            </t>
                                         </footer>
                                     </article>
                                 </t>

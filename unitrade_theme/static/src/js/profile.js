@@ -138,6 +138,7 @@ publicWidget.registry.UnitradeAddressModal = publicWidget.Widget.extend({
             this._fillFields(this.addressState);
             this._syncLabelButtons();
         }
+        this._syncCheckoutAddressState(this.el.dataset.checkoutAddressComplete === "1");
 
         this._onKeydown = this._onKeydown.bind(this);
         document.addEventListener("keydown", this._onKeydown);
@@ -586,6 +587,42 @@ publicWidget.registry.UnitradeAddressModal = publicWidget.Widget.extend({
         }
         if (preview) {
             preview.classList.toggle("is-empty", !summary.line);
+        }
+        this._syncCheckoutAddressState(Boolean(summary.has_address || summary.line));
+    },
+
+    _syncCheckoutAddressState(hasAddress) {
+        if (!this.el.classList.contains("ut-checkout-address-widget")) {
+            return;
+        }
+        this.el.dataset.checkoutAddressComplete = hasAddress ? "1" : "0";
+
+        const addressCard = this.el.querySelector(".ut-checkout-address-card");
+        if (addressCard) {
+            addressCard.classList.toggle("is-missing", !hasAddress);
+        }
+
+        const warning = this.el.querySelector("[data-checkout-address-warning]");
+        if (warning) {
+            warning.hidden = hasAddress;
+        }
+
+        const editButton = this.el.querySelector(".ut-checkout-address-card [data-address-open]");
+        if (editButton) {
+            editButton.textContent = hasAddress ? "Ubah" : "Tambah";
+        }
+
+        const payButton = this.el.querySelector("[data-checkout-pay-button]");
+        if (!payButton) {
+            return;
+        }
+        payButton.type = hasAddress ? "submit" : "button";
+        payButton.classList.toggle("is-address-missing", !hasAddress);
+        payButton.textContent = hasAddress ? "Bayar Sekarang" : "Tambahkan Alamat Terlebih Dahulu";
+        if (hasAddress) {
+            payButton.removeAttribute("data-address-open");
+        } else {
+            payButton.setAttribute("data-address-open", "1");
         }
     },
 

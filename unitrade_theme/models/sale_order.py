@@ -6,9 +6,6 @@ from odoo.tools.float_utils import float_compare
 
 _logger = logging.getLogger(__name__)
 
-UNITRADE_SERVICE_FEE_RATE = 0.025
-
-
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
@@ -34,50 +31,145 @@ class SaleOrder(models.Model):
         })
         return product
 
+    def _unitrade_service_fee_amount(self, subtotal):
+        self.ensure_one()
+        subtotal = subtotal or 0.0
+        if subtotal <= 0:
+            return 0.0
+        if subtotal < 50000:
+            fee = 1000
+        elif subtotal <= 150000:
+            fee = 1500
+        elif subtotal <= 500000:
+            fee = 2000
+        elif subtotal <= 1000000:
+            fee = 3000
+        else:
+            fee = 4000
+        return self.currency_id.round(fee)
+
     def _unitrade_checkout_amounts(self, sync_fee=False):
         self.ensure_one()
         fee_product = self._unitrade_service_fee_product()
+        payment_fee_product = self.env.ref('unitrade_payment.product_unitrade_payment_fee', raise_if_not_found=False)
         fee_lines = self.order_line.filtered(lambda line: line.product_id == fee_product)
+        payment_fee_lines = self.order_line.filtered(lambda line: payment_fee_product and line.product_id == payment_fee_product)
         product_lines = self.order_line.filtered(
-            lambda line: not line.display_type and line.product_id and line.product_id != fee_product
+            lambda line: (
+                not line.display_type
+                and line.product_id
+                and line.product_id != fee_product
+                and (not payment_fee_product or line.product_id != payment_fee_product)
+            )
         )
-        subtotal = sum(product_lines.mapped('price_subtotal'))
-        tax = sum(product_lines.mapped('price_tax'))
-        service_fee = self.currency_id.round(subtotal * UNITRADE_SERVICE_FEE_RATE)
-
         if sync_fee and self.state == 'draft':
-            if service_fee:
-                fee_values = {
-                    'order_id': self.id,
-                    'product_id': fee_product.id,
-                    'product_uom_qty': 1.0,
-                    'price_unit': service_fee,
-                    'name': fee_product.display_name,
-                    'tax_id': [(6, 0, [])],
-                }
-                if fee_lines:
-                    (fee_lines[0]).sudo().write({
-                        'product_uom_qty': 1.0,
-                        'price_unit': service_fee,
-                        'tax_id': [(6, 0, [])],
-                    })
-                    stale_lines = fee_lines - fee_lines[0]
-                    if stale_lines:
-                        stale_lines.sudo().unlink()
-                else:
-                    self.env['sale.order.line'].sudo().create(fee_values)
-            elif fee_lines:
-                fee_lines.sudo().unlink()
-            self.invalidate_recordset(['order_line', 'amount_untaxed', 'amount_tax', 'amount_total'])
+            stale_fee_lines = fee_lines | payment_fee_lines
+            if stale_fee_lines:
+                stale_fee_lines.sudo().unlink()
+                self.invalidate_recordset(['order_line', 'amount_untaxed', 'amount_tax', 'amount_total'])
+                fee_lines = self.order_line.filtered(lambda line: line.product_id == fee_product)
+                product_lines = self.order_line.filtered(
+                    lambda line: (
+                        not line.display_type
+                        and line.product_id
+                        and line.product_id != fee_product
+                        and (not payment_fee_product or line.product_id != payment_fee_product)
+                    )
+                )
+
+            taxed_lines = product_lines.filtered(lambda line: line.tax_id)
+            if taxed_lines:
+                taxed_lines.sudo().write({'tax_id': [(6, 0, [])]})
+                self.invalidate_recordset(['order_line', 'amount_untaxed', 'amount_tax', 'amount_total'])
+                product_lines = self.order_line.filtered(
+                    lambda line: (
+                        not line.display_type
+                        and line.product_id
+                        and line.product_id != fee_product
+                        and (not payment_fee_product or line.product_id != payment_fee_product)
+                    )
+                )
+
+        subtotal = sum(product_lines.mapped('price_subtotal'))
+        service_fee = self._unitrade_service_fee_amount(subtotal)
 
         return {
             'service_fee_product_id': fee_product.id,
             'item_subtotal': subtotal,
             'service_fee': service_fee,
-            'tax': tax,
-            'total': subtotal + tax + service_fee,
+            'tax': 0.0,
+            'total': subtotal + service_fee,
             'item_quantity': sum(product_lines.mapped('product_uom_qty')),
         }
+
+    def _unitrade_product_lines_for_checkout(self):
+        self.ensure_one()
+        fee_product = self._unitrade_service_fee_product()
+        payment_fee_product = self.env.ref('unitrade_payment.product_unitrade_payment_fee', raise_if_not_found=False)
+        return self.order_line.filtered(
+            lambda line: (
+                not line.display_type
+                and line.product_id
+                and line.product_id != fee_product
+                and (not payment_fee_product or line.product_id != payment_fee_product)
+            )
+        )
+
+    def _unitrade_sync_checkout_product_prices(self):
+        self.ensure_one()
+        if self.state != 'draft':
+            return
+
+        currency = self.currency_id
+        product_lines = self._unitrade_product_lines_for_checkout()
+        empty_lines = product_lines.filtered(lambda line: line.product_uom_qty <= 0)
+        if empty_lines:
+            empty_lines.sudo().unlink()
+            self.invalidate_recordset(['order_line', 'amount_untaxed', 'amount_tax', 'amount_total'])
+            product_lines = self._unitrade_product_lines_for_checkout()
+
+        for line in product_lines:
+            product = line.product_id.sudo()
+            if hasattr(product, '_unitrade_discounted_price'):
+                price_unit = currency.round(product._unitrade_discounted_price())
+            else:
+                price_unit = currency.round(product.lst_price or 0.0)
+            values = {}
+            if float_compare(line.price_unit, price_unit, precision_rounding=currency.rounding) != 0:
+                values['price_unit'] = price_unit
+            if line.discount:
+                values['discount'] = 0.0
+            if line.tax_id:
+                values['tax_id'] = [(6, 0, [])]
+            if values:
+                line.sudo().write(values)
+
+        self.invalidate_recordset(['order_line', 'amount_untaxed', 'amount_tax', 'amount_total'])
+
+    def _unitrade_prepare_checkout_server_state(self):
+        """Recalculate cart server-side before checkout/payment intent creation."""
+        self.ensure_one()
+        if self.state != 'draft':
+            return self._unitrade_checkout_amounts(sync_fee=False)
+
+        self._unitrade_sync_checkout_product_prices()
+        product_lines = self._unitrade_product_lines_for_checkout()
+        if not product_lines:
+            raise ValidationError(_('Keranjang masih kosong.'))
+
+        unavailable_lines = product_lines.filtered(lambda line: not line.product_id.sudo().sale_ok)
+        if unavailable_lines:
+            product_names = ', '.join(unavailable_lines.mapped('product_id.display_name'))
+            raise ValidationError(_('Produk berikut sudah tidak tersedia untuk dibeli: %s') % product_names)
+
+        stock_issues = self._unitrade_get_cart_stock_issues()
+        if stock_issues:
+            raise ValidationError(' '.join(issue['message'] for issue in stock_issues))
+
+        amounts = self._unitrade_checkout_amounts(sync_fee=True)
+        if float_compare(amounts.get('item_subtotal', 0.0), 0.0, precision_rounding=self.currency_id.rounding) <= 0:
+            raise ValidationError(_('Total produk di keranjang tidak valid.'))
+        return amounts
 
     def _unitrade_is_stock_warning_message(self, message):
         message = message or ''

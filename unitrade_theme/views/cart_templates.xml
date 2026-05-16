@@ -122,6 +122,15 @@
                 }
                 .o_cart_product h6 a:hover { color: #212529 !important; }
                 .o_cart_product .text-muted { font-size: 13px !important; }
+                .o_cart_product .flex-grow-1 .text-muted:not(.cart_product_base_unit_price) {
+                    display: -webkit-box !important;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    white-space: normal !important;
+                    line-height: 1.45 !important;
+                    max-width: 520px;
+                }
 
                 /* Suggested products */
                 #cart_products > h5 {
@@ -287,13 +296,40 @@
                     margin-bottom: 20px;
                 }
 
-                /* ── Totals text (subtotal, tax, total) ─────────────── */
+                /* ── Totals text (subtotal and total) ─────────────── */
                 #o_cart_summary .o_total { font-family: 'Urbanist', sans-serif !important; }
                 #o_cart_summary .monetary_field,
                 #o_cart_summary [name="website_sale_cart_summary_line_price"] {
                     font-family: 'Urbanist', sans-serif !important;
                     font-weight: 700 !important;
                     color: #212529 !important;
+                }
+                .ut-cart-service-fee-row td {
+                    padding-top: 10px !important;
+                    padding-bottom: 10px !important;
+                    color: #6a7282 !important;
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-size: 15px !important;
+                    vertical-align: middle !important;
+                }
+                .ut-cart-service-fee-label {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    color: #6a7282;
+                    font-weight: 500;
+                    white-space: nowrap;
+                }
+                .ut-cart-service-fee-label::before {
+                    width: 7px;
+                    height: 7px;
+                    border-radius: 999px;
+                    background: #d1d5db;
+                    content: "";
+                }
+                .ut-cart-service-fee-row .monetary_field {
+                    color: #212529 !important;
+                    font-weight: 700 !important;
                 }
 
                 /* ── Checkout / main navigation button ──────────────── */
@@ -514,19 +550,7 @@
 
         <xpath expr="//div[@name='website_sale_cart_line_price']" position="replace">
             <div class="mb-0 h6 fw-bold text-end" name="website_sale_cart_line_price">
-                <t t-if="line.discount">
-                    <del t-attf-class="#{'text-danger mr8'}" style="white-space: nowrap;">
-                        <t t-set="ut_money_amount" t-value="line._get_displayed_unit_price() * line.product_uom_qty"/>
-                        <t t-set="ut_money_currency" t-value="website.currency_id"/>
-                        <t t-call="unitrade_theme.unitrade_money"/>
-                    </del>
-                </t>
-                <t t-if="website.show_line_subtotals_tax_selection == 'tax_excluded'"
-                   t-set="product_price"
-                   t-value="line.price_subtotal"/>
-                <t t-else=""
-                   t-set="product_price"
-                   t-value="line.price_total"/>
+                <t t-set="product_price" t-value="line.price_subtotal"/>
                 <span style="white-space: nowrap;">
                     <t t-set="ut_money_amount" t-value="product_price"/>
                     <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
@@ -574,16 +598,9 @@
         <xpath expr="//div[@name='website_sale_suggested_product_price']" position="replace">
             <div class="mb-0 h-6 fw-bold text-end d-flex"
                  name="website_sale_suggested_product_price">
-                <t t-set="combination_info"
-                   t-value="product._get_combination_info_variant()"/>
-                <del t-attf-class="text-danger mr8 {{'' if combination_info['has_discounted_price'] else 'd-none'}}"
-                     style="white-space: nowrap;">
-                    <t t-set="ut_money_amount" t-value="combination_info['list_price']"/>
-                    <t t-set="ut_money_currency" t-value="website.currency_id"/>
-                    <t t-call="unitrade_theme.unitrade_money"/>
-                </del>
+                <t t-set="unitrade_suggested_price_info" t-value="product._unitrade_price_info()"/>
                 <span style="white-space: nowrap;">
-                    <t t-set="ut_money_amount" t-value="combination_info['price']"/>
+                    <t t-set="ut_money_amount" t-value="unitrade_suggested_price_info.get('discounted_price')"/>
                     <t t-set="ut_money_currency" t-value="website.currency_id"/>
                     <t t-call="unitrade_theme.unitrade_money"/>
                 </span>
@@ -597,7 +614,8 @@
     <template id="unitrade_cart_summary_title" inherit_id="website_sale.checkout_layout" name="UniTrade Cart Summary Title">
         <xpath expr="//span[@id='amount_total_summary']" position="replace">
             <span id="amount_total_summary" class="monetary_field ms-1">
-                <t t-set="ut_money_amount" t-value="website_sale_order.amount_total"/>
+                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_checkout_amounts(sync_fee=False) if website_sale_order else {}"/>
+                <t t-set="ut_money_amount" t-value="unitrade_cart_amounts.get('total') or website_sale_order.amount_untaxed"/>
                 <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
                 <t t-call="unitrade_theme.unitrade_money"/>
             </span>
@@ -606,12 +624,7 @@
         <xpath expr="//td[@name='website_sale_cart_summary_line_price']" position="replace">
             <td t-attf-class="#{o_cart_sum_padding_top} td-price pe-0 text-end"
                 name="website_sale_cart_summary_line_price">
-                <t t-if="website.show_line_subtotals_tax_selection == 'tax_excluded'"
-                   t-set="unitrade_summary_line_price"
-                   t-value="line.price_subtotal"/>
-                <t t-else=""
-                   t-set="unitrade_summary_line_price"
-                   t-value="line.price_total"/>
+                <t t-set="unitrade_summary_line_price" t-value="line.price_subtotal"/>
                 <span style="white-space: nowrap;">
                     <t t-set="ut_money_amount" t-value="unitrade_summary_line_price"/>
                     <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
@@ -632,24 +645,32 @@
     <template id="unitrade_cart_total_indonesian" inherit_id="website_sale.total" name="UniTrade Cart Total Indonesian">
         <xpath expr="//tr[@id='order_total_untaxed']//span[hasclass('monetary_field')]" position="replace">
             <span class="monetary_field" style="white-space: nowrap;">
-                <t t-set="ut_money_amount" t-value="website_sale_order.amount_untaxed"/>
+                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_checkout_amounts(sync_fee=False) if website_sale_order else {}"/>
+                <t t-set="ut_money_amount" t-value="unitrade_cart_amounts.get('item_subtotal') or website_sale_order.amount_untaxed"/>
                 <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
                 <t t-call="unitrade_theme.unitrade_money"/>
             </span>
         </xpath>
-        <xpath expr="//tr[@id='order_total_taxes']/td[1]" position="replace">
-            <td colspan="2" class="text-muted border-0 ps-0 pt-0 pb-3">Pajak</td>
+        <xpath expr="//tr[@id='order_total_untaxed']" position="after">
+            <tr t-if="website_sale_order" class="ut-cart-service-fee-row">
+                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_checkout_amounts(sync_fee=False)"/>
+                <td colspan="2">
+                    <span class="ut-cart-service-fee-label">Biaya Layanan</span>
+                </td>
+                <td class="text-end">
+                    <span class="monetary_field" style="white-space: nowrap;">
+                        <t t-set="ut_money_amount" t-value="unitrade_cart_amounts.get('service_fee')"/>
+                        <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
+                        <t t-call="unitrade_theme.unitrade_money"/>
+                    </span>
+                </td>
+            </tr>
         </xpath>
-        <xpath expr="//tr[@id='order_total_taxes']//span[hasclass('monetary_field')]" position="replace">
-            <span class="monetary_field" style="white-space: nowrap;">
-                <t t-set="ut_money_amount" t-value="website_sale_order.amount_tax"/>
-                <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
-                <t t-call="unitrade_theme.unitrade_money"/>
-            </span>
-        </xpath>
+        <xpath expr="//tr[@id='order_total_taxes']" position="replace"/>
         <xpath expr="//tr[@id='order_total']//strong[hasclass('monetary_field')]" position="replace">
             <strong class="monetary_field text-end p-0">
-                <t t-set="ut_money_amount" t-value="website_sale_order.amount_total"/>
+                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_checkout_amounts(sync_fee=False) if website_sale_order else {}"/>
+                <t t-set="ut_money_amount" t-value="unitrade_cart_amounts.get('total') or website_sale_order.amount_untaxed"/>
                 <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
                 <t t-call="unitrade_theme.unitrade_money"/>
             </strong>

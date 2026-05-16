@@ -62,6 +62,26 @@
                     color: #0c1014;
                     font-weight: 600;
                 }
+                .ut-checkout-alert {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 10px;
+                    margin-top: 24px;
+                    border: 1px solid #f2c9c9;
+                    border-radius: 14px;
+                    background: #fff7f7;
+                    color: #9b1c1c;
+                    padding: 14px 16px;
+                    font-size: 14px;
+                    line-height: 20px;
+                    font-weight: 500;
+                }
+                .ut-checkout-alert svg {
+                    width: 18px;
+                    height: 18px;
+                    flex: 0 0 auto;
+                    margin-top: 1px;
+                }
                 .ut-checkout-layout {
                     display: grid;
                     grid-template-columns: minmax(0, 1fr) 420px;
@@ -81,6 +101,10 @@
                     background: #fff;
                     box-shadow: 0 4px 10px rgba(0, 0, 0, .03);
                     padding: 33px;
+                }
+                .ut-checkout-address-card.is-missing {
+                    border-color: #f3c5c5;
+                    background: #fffafa;
                 }
                 .ut-checkout-card-head {
                     display: flex;
@@ -150,6 +174,24 @@
                     line-height: 23px;
                     font-weight: 400;
                 }
+                .ut-checkout-address-warning {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-top: 18px;
+                    border-radius: 12px;
+                    background: #fff0f0;
+                    color: #9b1c1c;
+                    padding: 11px 13px;
+                    font-size: 13px;
+                    line-height: 18px;
+                    font-weight: 600;
+                }
+                .ut-checkout-address-warning svg {
+                    width: 16px;
+                    height: 16px;
+                    flex: 0 0 auto;
+                }
                 .ut-checkout-seller {
                     display: flex;
                     align-items: center;
@@ -218,6 +260,11 @@
                     line-height: 23px;
                     font-weight: 400;
                     max-width: 620px;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    white-space: normal;
                 }
                 .ut-checkout-product-bottom {
                     display: flex;
@@ -284,7 +331,7 @@
                     padding: 17px;
                 }
                 .ut-payment-icon {
-                    width: 48px;
+                    width: 58px;
                     height: 48px;
                     border: 1px solid #f0f0f0;
                     border-radius: 8px;
@@ -295,6 +342,52 @@
                     box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
                     color: #212529;
                     flex: 0 0 auto;
+                }
+                .ut-payment-logo {
+                    width: 74px;
+                    min-width: 74px;
+                    height: 42px;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 8px;
+                    background: #fff;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 6px 8px;
+                    overflow: hidden;
+                    flex: 0 0 auto;
+                }
+                .ut-payment-logo img {
+                    display: block;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                }
+                .ut-payment-logo-stack {
+                    width: 112px;
+                    min-width: 112px;
+                    gap: 5px;
+                }
+                .ut-payment-logo-stack img {
+                    width: auto;
+                    max-width: 30px;
+                    height: auto;
+                    max-height: 22px;
+                }
+                .ut-payment-logo-fallback {
+                    display: none;
+                    color: #111827;
+                    font-size: 10px;
+                    line-height: 1;
+                    font-weight: 700;
+                    letter-spacing: 0;
+                    white-space: nowrap;
+                }
+                .ut-payment-logo.is-broken img {
+                    display: none;
+                }
+                .ut-payment-logo.is-broken .ut-payment-logo-fallback {
+                    display: inline-flex;
                 }
                 .ut-payment-title {
                     margin: 0 0 2px;
@@ -441,6 +534,16 @@
                     background: #000;
                     transform: translateY(-1px);
                 }
+                .ut-pay-button.is-address-missing {
+                    border: 1px solid #212529;
+                    background: #fff;
+                    color: #212529;
+                    box-shadow: none;
+                }
+                .ut-pay-button.is-address-missing:hover {
+                    background: #f5f5f7;
+                    transform: none;
+                }
                 .ut-secure-note {
                     display: flex;
                     align-items: center;
@@ -475,6 +578,7 @@
                     display: none;
                     align-items: center;
                     justify-content: center;
+                    overflow: hidden;
                     padding: 24px;
                     font-family: 'Urbanist', Inter, sans-serif;
                 }
@@ -490,12 +594,14 @@
                 .ut-payment-dialog {
                     position: relative;
                     z-index: 1;
-                    width: min(400px, calc(100vw - 32px));
+                    display: flex;
+                    flex-direction: column;
+                    width: min(560px, calc(100vw - 32px));
                     max-height: calc(100vh - 48px);
-                    overflow: auto;
-                    border-radius: 12px;
+                    overflow: hidden;
+                    border-radius: 18px;
                     background: #fff;
-                    box-shadow: 0 24px 70px rgba(0, 0, 0, .22);
+                    box-shadow: 0 28px 80px rgba(0, 0, 0, .24);
                     color: #212529;
                 }
                 .ut-payment-modal-header {
@@ -503,13 +609,14 @@
                     align-items: center;
                     justify-content: space-between;
                     gap: 18px;
-                    padding: 18px 18px 14px;
+                    padding: 20px 24px 17px;
                     border-bottom: 1px solid #f0f0f0;
+                    flex: 0 0 auto;
                 }
                 .ut-payment-modal-header h2 {
                     margin: 0;
-                    font-size: 16px;
-                    line-height: 22px;
+                    font-size: 18px;
+                    line-height: 24px;
                     font-weight: 700;
                     color: #0c1014;
                 }
@@ -530,13 +637,37 @@
                     background: #f5f5f7;
                 }
                 .ut-payment-modal-body {
-                    padding: 18px;
+                    overflow-y: auto;
+                    padding: 16px 24px 24px;
                 }
                 .ut-payment-group + .ut-payment-group {
-                    margin-top: 18px;
+                    margin-top: 10px;
+                }
+                .ut-payment-group {
+                    border: 1px solid #e5e7eb;
+                    border-radius: 12px;
+                    background: #fff;
+                    overflow: hidden;
+                }
+                .ut-payment-group-toggle {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 14px;
+                    width: 100%;
+                    min-height: 46px;
+                    border: 0;
+                    background: #fff;
+                    cursor: pointer;
+                    font-family: inherit;
+                    padding: 14px 16px;
+                    text-align: left;
+                }
+                .ut-payment-group-toggle:hover {
+                    background: #f9fafb;
                 }
                 .ut-payment-group-title {
-                    margin: 0 0 10px;
+                    margin: 0;
                     color: #6b7280;
                     font-size: 11px;
                     line-height: 14px;
@@ -544,47 +675,83 @@
                     letter-spacing: .5px;
                     text-transform: uppercase;
                 }
+                .ut-payment-group-chevron {
+                    width: 18px;
+                    height: 18px;
+                    color: #6b7280;
+                    transition: transform .16s ease;
+                    flex: 0 0 18px;
+                }
+                .ut-payment-group.is-open .ut-payment-group-chevron {
+                    transform: rotate(180deg);
+                }
+                .ut-payment-group-panel {
+                    display: none;
+                    padding: 0 12px 12px;
+                }
+                .ut-payment-group.is-open .ut-payment-group-panel {
+                    display: block;
+                }
                 .ut-payment-method-list {
                     display: flex;
                     flex-direction: column;
-                    gap: 8px;
+                    gap: 10px;
                 }
                 .ut-payment-method-grid {
                     display: grid;
                     grid-template-columns: repeat(2, minmax(0, 1fr));
-                    gap: 8px;
+                    gap: 10px;
                 }
                 .ut-payment-method {
                     display: flex;
                     align-items: center;
-                    gap: 9px;
-                    min-height: 42px;
+                    gap: 12px;
+                    min-height: 70px;
                     border: 1px solid #e4e4e7;
-                    border-radius: 8px;
+                    border-radius: 10px;
                     background: #fff;
                     color: #212529;
                     cursor: pointer;
                     font-family: inherit;
-                    font-size: 12px;
-                    line-height: 16px;
+                    font-size: 14px;
+                    line-height: 19px;
                     font-weight: 500;
-                    padding: 0 10px;
+                    padding: 12px 14px;
                     text-align: left;
-                    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+                    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease, transform .15s ease;
                 }
-                .ut-payment-method svg {
-                    width: 16px;
-                    height: 16px;
-                    flex: 0 0 16px;
-                    color: #212529;
+                .ut-payment-method-text {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2px;
+                    min-width: 0;
+                    flex: 1 1 auto;
+                    color: #111827;
+                    font-weight: 600;
                 }
                 .ut-payment-method.is-active {
                     border-color: #0c1014;
-                    box-shadow: 0 0 0 1px #0c1014 inset;
+                    box-shadow: 0 0 0 1px #0c1014 inset, 0 10px 24px rgba(12, 16, 20, .08);
                 }
                 .ut-payment-method:hover {
                     border-color: #9ca3af;
                     background: #fafafa;
+                    transform: translateY(-1px);
+                }
+                .ut-payment-method.is-disabled {
+                    cursor: not-allowed;
+                    opacity: .5;
+                    background: #f8fafc;
+                }
+                .ut-payment-method.is-disabled:hover {
+                    border-color: #e5e7eb;
+                    background: #f8fafc;
+                }
+                .ut-payment-method-fee {
+                    display: block;
+                    color: #6b7280;
+                    font-size: 12px;
+                    line-height: 16px;
                 }
                 .ut-payment-method-radio {
                     width: 14px;
@@ -602,17 +769,20 @@
                 }
                 .ut-payment-apply {
                     width: 100%;
-                    height: 44px;
-                    margin-top: 22px;
+                    height: 52px;
+                    position: sticky;
+                    bottom: 0;
+                    margin-top: 24px;
                     border: 0;
                     border-radius: 999px;
                     background: #0c1014;
                     color: #fff;
                     cursor: pointer;
                     font-family: inherit;
-                    font-size: 13px;
-                    line-height: 18px;
+                    font-size: 14px;
+                    line-height: 20px;
                     font-weight: 700;
+                    box-shadow: 0 -12px 24px rgba(255, 255, 255, .92), 0 12px 24px rgba(12, 16, 20, .14);
                 }
                 .ut-payment-apply:hover {
                     background: #000;
@@ -633,6 +803,12 @@
                     }
                 }
                 @media (max-width: 640px) {
+                    .ut-payment-modal {
+                        padding: 16px;
+                    }
+                    .ut-payment-dialog {
+                        max-height: calc(100vh - 32px);
+                    }
                     .ut-checkout-shell {
                         padding-left: 16px;
                         padding-right: 16px;
@@ -661,7 +837,9 @@
                 }
             </style>
 
-            <div class="ut-checkout-page ut-checkout-address-widget">
+            <div class="ut-checkout-page ut-checkout-address-widget"
+                 t-att-data-checkout-address-complete="'1' if not checkout_address_missing else '0'"
+                 t-att-data-payment-base-total="int(round((unitrade_checkout_amounts.get('total') or 0) - (unitrade_checkout_amounts.get('payment_fee') or 0)))">
                 <div class="ut-checkout-shell">
                     <header class="ut-checkout-header">
                         <h1 class="ut-checkout-title">Checkout</h1>
@@ -680,14 +858,25 @@
                             <span>/</span>
                             <span class="is-active">Checkout</span>
                         </nav>
+                        <div t-if="checkout_error_message" class="ut-checkout-alert" role="alert">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 8v4"/>
+                                <path d="M12 16h.01"/>
+                            </svg>
+                            <span t-esc="checkout_error_message"/>
+                        </div>
                     </header>
 
                     <div class="ut-checkout-layout">
                         <main class="ut-checkout-left">
-                            <section class="ut-checkout-card">
+                            <section t-att-class="'ut-checkout-card ut-checkout-address-card %s' % ('is-missing' if checkout_address_missing else '')">
                                 <div class="ut-checkout-card-head">
                                     <div class="ut-checkout-section-eyebrow">Alamat Pembeli</div>
-                                    <button type="button" class="ut-checkout-edit" data-address-open="1">Ubah</button>
+                                    <button type="button" class="ut-checkout-edit" data-address-open="1">
+                                        <t t-if="checkout_address_missing">Tambah</t>
+                                        <t t-else="">Ubah</t>
+                                    </button>
                                 </div>
                                 <div class="ut-checkout-address">
                                     <div class="ut-checkout-address-icon">
@@ -711,18 +900,27 @@
                                         </p>
                                     </div>
                                 </div>
+                                <div t-if="checkout_address_missing" class="ut-checkout-address-warning" data-checkout-address-warning="1" role="alert">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 8v4"/>
+                                        <path d="M12 16h.01"/>
+                                    </svg>
+                                    <span t-esc="checkout_address_missing_message"/>
+                                </div>
                             </section>
 
                             <section class="ut-checkout-card">
                                 <h2 class="ut-checkout-section-title">Produk Dibeli</h2>
                                 <t t-foreach="order.order_line" t-as="line">
-                                    <div t-if="not line.display_type and line.product_id and line.product_id.id != unitrade_service_fee_product_id">
+                                    <div t-if="not line.display_type and line.product_id and line.product_id.id != unitrade_service_fee_product_id and line.product_id.id != unitrade_payment_fee_product_id">
                                         <t t-set="ut_product_template" t-value="line.product_id.product_tmpl_id.sudo()"/>
                                         <t t-set="ut_seller" t-value="ut_product_template.x_seller_id if 'x_seller_id' in ut_product_template._fields else False"/>
                                         <t t-set="ut_seller_safe" t-value="ut_seller.sudo() if ut_seller else False"/>
+                                        <t t-set="ut_seller_avatar" t-value="ut_seller_safe and (ut_seller_safe.x_avatar_128 or (ut_seller_safe.user_id.avatar_128 if ut_seller_safe.user_id else False) or (ut_seller_safe.partner_id.image_128 if ut_seller_safe.partner_id else False))"/>
                                         <div class="ut-checkout-seller">
                                             <span class="ut-checkout-seller-dot">
-                                                <img t-if="ut_seller_safe and ut_seller_safe.x_avatar_128" t-att-src="image_data_uri(ut_seller_safe.x_avatar_128)" alt="Avatar penjual"/>
+                                                <img t-if="ut_seller_avatar" t-att-src="image_data_uri(ut_seller_avatar)" alt="Avatar penjual"/>
                                                 <svg t-else="" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                                                     <circle cx="12" cy="7" r="4"/>
@@ -744,7 +942,7 @@
                                                 <p class="ut-checkout-product-desc" t-esc="line.product_id.description_sale or 'Kondisi barang sesuai deskripsi penjual dan siap diproses untuk transaksi.'"/>
                                                 <div class="ut-checkout-product-bottom">
                                                     <div class="ut-checkout-product-price">
-                                                        <t t-set="ut_money_amount" t-value="line.price_reduce_taxinc"/>
+                                                        <t t-set="ut_money_amount" t-value="line.price_subtotal"/>
                                                         <t t-set="ut_money_currency" t-value="order.currency_id"/>
                                                         <t t-call="unitrade_theme.unitrade_money"/>
                                                     </div>
@@ -767,13 +965,13 @@
                                 </div>
                                 <div class="ut-payment-option">
                                     <div class="ut-payment-icon">
-                                        <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <rect x="2" y="5" width="20" height="14" rx="2"/>
-                                            <line x1="2" y1="10" x2="22" y2="10"/>
-                                        </svg>
+                                        <span class="ut-payment-logo" data-payment-logo-current="1">
+                                            <img t-if="unitrade_selected_payment_method_data.get('logo')" t-att-src="unitrade_selected_payment_method_data.get('logo')" t-att-alt="unitrade_selected_payment_method_data.get('label')"/>
+                                            <span class="ut-payment-logo-fallback" t-esc="unitrade_selected_payment_method_data.get('channel_code') or 'Midtrans'"/>
+                                        </span>
                                     </div>
                                     <div>
-                                        <p class="ut-payment-title" data-payment-label="1">BCA Virtual Account</p>
+                                        <p class="ut-payment-title" data-payment-label="1" t-esc="unitrade_selected_payment_method_data.get('label') or 'BCA Virtual Account'"/>
                                         <p class="ut-payment-desc">Terpilih sebagai metode pembayaran saat ini</p>
                                     </div>
                                     <div class="ut-payment-radio" aria-hidden="true"/>
@@ -793,7 +991,7 @@
                                     </span>
                                 </div>
                                 <div class="ut-summary-row">
-                                    <span>Biaya Layanan (2,5%)</span>
+                                    <span>Biaya Layanan</span>
                                     <span>
                                         <t t-set="ut_money_amount" t-value="unitrade_checkout_amounts.get('service_fee')"/>
                                         <t t-set="ut_money_currency" t-value="order.currency_id"/>
@@ -801,9 +999,9 @@
                                     </span>
                                 </div>
                                 <div class="ut-summary-row">
-                                    <span>Pajak</span>
-                                    <span>
-                                        <t t-set="ut_money_amount" t-value="unitrade_checkout_amounts.get('tax')"/>
+                                    <span>Biaya Payment</span>
+                                    <span data-payment-fee-summary="1">
+                                        <t t-set="ut_money_amount" t-value="unitrade_checkout_amounts.get('payment_fee')"/>
                                         <t t-set="ut_money_currency" t-value="order.currency_id"/>
                                         <t t-call="unitrade_theme.unitrade_money"/>
                                     </span>
@@ -812,7 +1010,7 @@
                             <div class="ut-summary-divider"/>
                             <div class="ut-summary-total">
                                 <span class="ut-summary-total-label">Total Pembayaran</span>
-                                <span class="ut-summary-total-value">
+                                <span class="ut-summary-total-value" data-payment-total-summary="1">
                                     <t t-set="ut_money_amount" t-value="unitrade_checkout_amounts.get('total')"/>
                                     <t t-set="ut_money_currency" t-value="order.currency_id"/>
                                     <t t-call="unitrade_theme.unitrade_money"/>
@@ -824,15 +1022,21 @@
                             </div>
                             <form action="/unitrade/checkout/pay" method="post" class="ut-pay-form">
                                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                <input type="hidden" name="payment_method" value="bca_va" data-payment-method-input="1"/>
-                                <button type="submit" class="ut-pay-button">Bayar Sekarang</button>
+                                <input type="hidden" name="payment_method" t-att-value="unitrade_selected_payment_method" data-payment-method-input="1"/>
+                                <button t-att-type="'button' if checkout_address_missing else 'submit'"
+                                    t-att-data-address-open="'1' if checkout_address_missing else None"
+                                    data-checkout-pay-button="1"
+                                    t-att-class="'ut-pay-button %s' % ('is-address-missing' if checkout_address_missing else '')">
+                                    <t t-if="checkout_address_missing">Tambahkan Alamat Terlebih Dahulu</t>
+                                    <t t-else="">Bayar Sekarang</t>
+                                </button>
                             </form>
                             <div class="ut-secure-note">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                                 </svg>
-                                <span>Pembayaran diproses aman melalui Unitrade</span>
+                                <span>Pembayaran diproses aman melalui Midtrans</span>
                             </div>
                             <a href="/shop/cart" class="ut-back-cart">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -952,106 +1156,62 @@
                                 </button>
                             </header>
                             <div class="ut-payment-modal-body">
-                                <div class="ut-payment-group">
-                                    <p class="ut-payment-group-title">Transfer Virtual Account</p>
-                                    <div class="ut-payment-method-list">
-                                        <button type="button" class="ut-payment-method is-active" data-payment-choice="1" data-payment-value="bca_va" data-payment-label-value="BCA Virtual Account">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M3 10h18"/>
-                                                <path d="M5 10v9"/>
-                                                <path d="M19 10v9"/>
-                                                <path d="M12 4 3 10h18L12 4Z"/>
-                                                <path d="M4 19h16"/>
+                                <t t-foreach="unitrade_payment_method_groups" t-as="payment_group">
+                                    <t t-set="payment_group_panel_id" t-value="'ut_payment_group_%s' % payment_group_index"/>
+                                    <t t-set="payment_group_open" t-value="payment_group_index == 0"/>
+                                    <div
+                                        t-att-class="'ut-payment-group%s' % (' is-open' if payment_group_open else '')"
+                                        data-payment-group="1"
+                                        t-att-data-payment-group-name="payment_group.get('name')">
+                                        <button
+                                            type="button"
+                                            class="ut-payment-group-toggle"
+                                            data-payment-group-toggle="1"
+                                            t-att-aria-expanded="'true' if payment_group_open else 'false'"
+                                            t-att-aria-controls="payment_group_panel_id">
+                                            <span class="ut-payment-group-title" t-esc="payment_group.get('name')"/>
+                                            <svg class="ut-payment-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                                <path d="m6 9 6 6 6-6"/>
                                             </svg>
-                                            <span>BCA Virtual Account</span>
-                                            <span class="ut-payment-method-radio" aria-hidden="true"></span>
                                         </button>
-                                        <button type="button" class="ut-payment-method" data-payment-choice="1" data-payment-value="mandiri_va" data-payment-label-value="Mandiri Virtual Account">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M3 10h18"/>
-                                                <path d="M5 10v9"/>
-                                                <path d="M19 10v9"/>
-                                                <path d="M12 4 3 10h18L12 4Z"/>
-                                                <path d="M4 19h16"/>
-                                            </svg>
-                                            <span>Mandiri Virtual Account</span>
-                                            <span class="ut-payment-method-radio" aria-hidden="true"></span>
-                                        </button>
-                                        <button type="button" class="ut-payment-method" data-payment-choice="1" data-payment-value="bni_va" data-payment-label-value="BNI Virtual Account">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M3 10h18"/>
-                                                <path d="M5 10v9"/>
-                                                <path d="M19 10v9"/>
-                                                <path d="M12 4 3 10h18L12 4Z"/>
-                                                <path d="M4 19h16"/>
-                                            </svg>
-                                            <span>BNI Virtual Account</span>
-                                            <span class="ut-payment-method-radio" aria-hidden="true"></span>
-                                        </button>
-                                        <button type="button" class="ut-payment-method" data-payment-choice="1" data-payment-value="bri_va" data-payment-label-value="BRI Virtual Account">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M3 10h18"/>
-                                                <path d="M5 10v9"/>
-                                                <path d="M19 10v9"/>
-                                                <path d="M12 4 3 10h18L12 4Z"/>
-                                                <path d="M4 19h16"/>
-                                            </svg>
-                                            <span>BRI Virtual Account</span>
-                                            <span class="ut-payment-method-radio" aria-hidden="true"></span>
-                                        </button>
+                                        <div
+                                            t-att-id="payment_group_panel_id"
+                                            class="ut-payment-group-panel">
+                                            <div t-att-class="'ut-payment-method-grid' if payment_group.get('name') in ('E-Wallet &amp; QRIS', 'Transfer Virtual Account') else 'ut-payment-method-list'">
+                                                <t t-foreach="payment_group.get('methods')" t-as="method">
+                                                    <button
+                                                        type="button"
+                                                        t-att-class="'ut-payment-method%s%s' % (' is-active' if method.get('key') == unitrade_selected_payment_method and method.get('enabled') else '', ' is-disabled' if not method.get('enabled') else '')"
+                                                        data-payment-choice="1"
+                                                        t-att-disabled="'disabled' if not method.get('enabled') else None"
+                                                        t-att-title="method.get('disabled_reason') if not method.get('enabled') else ''"
+                                                        t-att-data-payment-value="method.get('key')"
+                                                        t-att-data-payment-label-value="method.get('label')"
+                                                        t-att-data-payment-fee="method.get('fee')"
+                                                        t-att-data-payment-enabled="'1' if method.get('enabled') else '0'">
+                                                        <span t-att-class="'ut-payment-logo ut-payment-logo-stack' if method.get('key') == 'card' else 'ut-payment-logo'">
+                                                            <t t-if="method.get('key') == 'card'">
+                                                                <img src="/unitrade_theme/static/src/img/payment/visa.svg" alt="Visa"/>
+                                                                <img src="/unitrade_theme/static/src/img/payment/mastercard.svg" alt="Mastercard"/>
+                                                                <img src="/unitrade_theme/static/src/img/payment/jcb.svg" alt="JCB"/>
+                                                                <span class="ut-payment-logo-fallback">Card</span>
+                                                            </t>
+                                                            <t t-else="">
+                                                                <img t-if="method.get('logo')" t-att-src="method.get('logo')" t-att-alt="method.get('label')"/>
+                                                                <span class="ut-payment-logo-fallback" t-esc="method.get('channel_code')"/>
+                                                            </t>
+                                                        </span>
+                                                        <span class="ut-payment-method-text">
+                                                            <span t-esc="method.get('label')"/>
+                                                            <span class="ut-payment-method-fee" t-if="not method.get('enabled')">Belum aktif</span>
+                                                        </span>
+                                                        <span class="ut-payment-method-radio" aria-hidden="true"></span>
+                                                    </button>
+                                                </t>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-
-                                <div class="ut-payment-group">
-                                    <p class="ut-payment-group-title">E-Wallet &amp; QRIS</p>
-                                    <div class="ut-payment-method-grid">
-                                        <button type="button" class="ut-payment-method" data-payment-choice="1" data-payment-value="qris" data-payment-label-value="QRIS">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                                <path d="M4 4h6v6H4z"/>
-                                                <path d="M14 4h6v6h-6z"/>
-                                                <path d="M4 14h6v6H4z"/>
-                                                <path d="M14 14h2v2h-2z"/>
-                                                <path d="M18 14h2v6h-6v-2"/>
-                                            </svg>
-                                            <span>QRIS</span>
-                                        </button>
-                                        <button type="button" class="ut-payment-method" data-payment-choice="1" data-payment-value="gopay" data-payment-label-value="GoPay">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                                <rect x="4" y="5" width="16" height="14" rx="3"/>
-                                                <path d="M8 12h8"/>
-                                            </svg>
-                                            <span>GoPay</span>
-                                        </button>
-                                        <button type="button" class="ut-payment-method" data-payment-choice="1" data-payment-value="ovo" data-payment-label-value="OVO">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                                <rect x="4" y="5" width="16" height="14" rx="3"/>
-                                                <path d="M8 12h8"/>
-                                            </svg>
-                                            <span>OVO</span>
-                                        </button>
-                                        <button type="button" class="ut-payment-method" data-payment-choice="1" data-payment-value="dana" data-payment-label-value="Dana">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                                <rect x="4" y="5" width="16" height="14" rx="3"/>
-                                                <path d="M8 12h8"/>
-                                            </svg>
-                                            <span>Dana</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="ut-payment-group">
-                                    <p class="ut-payment-group-title">Kartu Kredit/Debit</p>
-                                    <div class="ut-payment-method-list">
-                                        <button type="button" class="ut-payment-method" data-payment-choice="1" data-payment-value="card" data-payment-label-value="Visa / Mastercard / JCB">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                                <rect x="3" y="5" width="18" height="14" rx="2"/>
-                                                <path d="M3 10h18"/>
-                                            </svg>
-                                            <span>Visa / Mastercard / JCB</span>
-                                            <span class="ut-payment-method-radio" aria-hidden="true"></span>
-                                        </button>
-                                    </div>
-                                </div>
+                                </t>
 
                                 <button type="button" class="ut-payment-apply" data-payment-apply="1">Pilih Metode</button>
                             </div>
@@ -1073,11 +1233,60 @@
                         var openButtons = root.querySelectorAll("[data-payment-open]");
                         var closeButtons = root.querySelectorAll("[data-payment-close]");
                         var choices = root.querySelectorAll("[data-payment-choice]");
+                        var paymentGroups = root.querySelectorAll("[data-payment-group]");
+                        var paymentGroupToggles = root.querySelectorAll("[data-payment-group-toggle]");
                         var applyButton = root.querySelector("[data-payment-apply]");
+                        var paymentGroupPriority = {
+                            "E-Wallet & QRIS": 10,
+                            "Transfer Virtual Account": 20
+                        };
                         var hiddenInput = root.querySelector("[data-payment-method-input]");
                         var visibleLabel = root.querySelector("[data-payment-label]");
+                        var visibleLogo = root.querySelector("[data-payment-logo-current]");
+                        var feeSummary = root.querySelector("[data-payment-fee-summary]");
+                        var totalSummary = root.querySelector("[data-payment-total-summary]");
+                        var baseTotal = parseInt(root.dataset.paymentBaseTotal || "0", 10) || 0;
                         var selectedValue = hiddenInput ? hiddenInput.value : "bca_va";
                         var selectedLabel = visibleLabel ? visibleLabel.textContent.trim() : "BCA Virtual Account";
+                        var selectedLogoClass = visibleLogo ? visibleLogo.className : "ut-payment-logo";
+                        var selectedLogoMarkup = visibleLogo ? visibleLogo.innerHTML : "";
+                        var selectedFee = 0;
+
+                        function formatRupiah(value) {
+                            return "Rp " + (parseInt(value || 0, 10) || 0).toLocaleString("id-ID");
+                        }
+
+                        function bindLogoFallback(scope) {
+                            var container = scope || root;
+                            var logoImages = container.querySelectorAll(".ut-payment-logo img");
+                            logoImages.forEach(function (image) {
+                                if (image._unitradeLogoFallbackBound) {
+                                    return;
+                                }
+                                image._unitradeLogoFallbackBound = true;
+                                image.addEventListener("error", function () {
+                                    var holder = image.closest(".ut-payment-logo");
+                                    if (holder) {
+                                        holder.classList.add("is-broken");
+                                    }
+                                });
+                                image.addEventListener("load", function () {
+                                    var holder = image.closest(".ut-payment-logo");
+                                    if (holder) {
+                                        holder.classList.remove("is-broken");
+                                    }
+                                });
+                            });
+                        }
+
+                        function updateVisibleLogo() {
+                            if (!visibleLogo) {
+                                return;
+                            }
+                            visibleLogo.className = selectedLogoClass;
+                            visibleLogo.innerHTML = selectedLogoMarkup;
+                            bindLogoFallback(visibleLogo);
+                        }
 
                         function openModal(ev) {
                             if (ev) {
@@ -1103,21 +1312,80 @@
                             document.body.classList.remove("ut-payment-modal-open");
                         }
 
+                        function setPaymentGroupOpen(group, shouldOpen) {
+                            var toggle = group ? group.querySelector("[data-payment-group-toggle]") : null;
+                            group.classList.toggle("is-open", shouldOpen);
+                            if (toggle) {
+                                toggle.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+                            }
+                        }
+
+                        function togglePaymentGroup(group) {
+                            var shouldOpen = !group.classList.contains("is-open");
+                            paymentGroups.forEach(function (item) {
+                                setPaymentGroupOpen(item, item === group ? shouldOpen : false);
+                            });
+                        }
+
+                        function reorderPaymentGroups() {
+                            var groups = Array.prototype.slice.call(paymentGroups);
+                            if (!groups.length || !applyButton || !applyButton.parentNode) {
+                                return;
+                            }
+                            groups.sort(function (left, right) {
+                                var leftName = left.dataset.paymentGroupName || "";
+                                var rightName = right.dataset.paymentGroupName || "";
+                                var leftPriority = paymentGroupPriority[leftName] || 90;
+                                var rightPriority = paymentGroupPriority[rightName] || 90;
+                                if (leftPriority !== rightPriority) {
+                                    return leftPriority - rightPriority;
+                                }
+                                return leftName.localeCompare(rightName);
+                            });
+                            groups.forEach(function (group, index) {
+                                applyButton.parentNode.insertBefore(group, applyButton);
+                                setPaymentGroupOpen(group, index === 0);
+                            });
+                        }
+
                         function selectChoice(button) {
+                            if (button.dataset.paymentEnabled === "0" || button.disabled) {
+                                return;
+                            }
                             choices.forEach(function (choice) {
                                 choice.classList.toggle("is-active", choice === button);
                             });
                             selectedValue = button.dataset.paymentValue || selectedValue;
                             selectedLabel = button.dataset.paymentLabelValue || selectedLabel;
+                            selectedFee = parseInt(button.dataset.paymentFee || "0", 10) || 0;
+                            var buttonLogo = button.querySelector(".ut-payment-logo");
+                            if (buttonLogo) {
+                                selectedLogoClass = buttonLogo.className.replace(/\bis-broken\b/g, "").trim();
+                                selectedLogoMarkup = buttonLogo.innerHTML;
+                            }
                         }
 
+                        reorderPaymentGroups();
+                        bindLogoFallback(root);
                         openButtons.forEach(function (button) {
                             button.addEventListener("click", openModal);
                         });
                         closeButtons.forEach(function (button) {
                             button.addEventListener("click", closeModal);
                         });
+                        paymentGroupToggles.forEach(function (button) {
+                            button.addEventListener("click", function (ev) {
+                                ev.preventDefault();
+                                var group = button.closest("[data-payment-group]");
+                                if (group) {
+                                    togglePaymentGroup(group);
+                                }
+                            });
+                        });
                         choices.forEach(function (button) {
+                            if (button.classList.contains("is-active")) {
+                                selectedFee = parseInt(button.dataset.paymentFee || "0", 10) || 0;
+                            }
                             button.addEventListener("click", function (ev) {
                                 ev.preventDefault();
                                 selectChoice(button);
@@ -1132,6 +1400,13 @@
                                 if (visibleLabel) {
                                     visibleLabel.textContent = selectedLabel;
                                 }
+                                if (feeSummary) {
+                                    feeSummary.textContent = formatRupiah(selectedFee);
+                                }
+                                if (totalSummary) {
+                                    totalSummary.textContent = formatRupiah(baseTotal + selectedFee);
+                                }
+                                updateVisibleLogo();
                                 closeModal();
                             });
                         }

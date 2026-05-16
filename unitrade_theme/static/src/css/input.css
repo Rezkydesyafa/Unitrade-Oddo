@@ -102,6 +102,149 @@
   color: #dc2626 !important;
 }
 
+.ut-logout-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  font-family: 'Urbanist', Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.ut-logout-modal.is-open {
+  display: flex;
+}
+
+.ut-logout-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.42);
+  backdrop-filter: blur(7px);
+}
+
+.ut-logout-dialog {
+  position: relative;
+  display: flex;
+  width: min(670px, 100%);
+  min-height: 514px;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 40px;
+  background: #ffffff;
+  box-shadow: 0 34px 110px rgba(15, 23, 42, 0.24);
+  padding: 83px 56px 45px;
+  transform: translateY(16px) scale(0.98);
+  opacity: 0;
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ut-logout-modal.is-open .ut-logout-dialog {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.ut-logout-icon-wrap {
+  display: flex;
+  width: 116px;
+  height: 116px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #ffe0e0;
+  color: #ff0000;
+}
+
+.ut-logout-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.ut-logout-title {
+  margin: 57px 0 0;
+  color: #212529;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 48px;
+  text-align: center;
+}
+
+.ut-logout-copy {
+  margin: 11px 0 0;
+  color: #525252;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.ut-logout-actions {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  gap: 30px;
+  margin-top: auto;
+}
+
+.ut-logout-button {
+  display: inline-flex;
+  width: 203px;
+  height: 51px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 16px;
+  text-transform: uppercase;
+  transition: transform 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+
+.ut-logout-button:hover {
+  transform: translateY(-1px);
+}
+
+.ut-logout-button-back {
+  border: 2px solid #1a1a1a;
+  background: #ffffff;
+  color: #1a1a1a;
+}
+
+.ut-logout-button-confirm {
+  border: 2px solid #1a1a1a;
+  background: #1a1a1a;
+  color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .ut-logout-dialog {
+    min-height: 430px;
+    border-radius: 32px;
+    padding: 56px 24px 28px;
+  }
+
+  .ut-logout-icon-wrap {
+    width: 96px;
+    height: 96px;
+  }
+
+  .ut-logout-title {
+    margin-top: 42px;
+    font-size: 28px;
+    line-height: 36px;
+  }
+
+  .ut-logout-actions {
+    flex-direction: column-reverse;
+    gap: 12px;
+  }
+
+  .ut-logout-button {
+    width: 100%;
+  }
+}
+
 /* ============================================
    UniTrade — Elegant Hover Effects
    ============================================ */
@@ -2501,6 +2644,18 @@ body:has(.ut-user-profile-page) .ut-user-profile-form {
   display: grid;
   grid-template-rows: auto 1fr auto;
   box-shadow: 0 10px 30px rgba(29, 29, 31, 0.03);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.ut-user-order-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 38px rgba(29, 29, 31, 0.07);
+}
+
+.ut-user-order-card:focus-visible {
+  outline: 2px solid #212529;
+  outline-offset: 4px;
 }
 
 .ut-user-order-card.ut-is-hidden {
@@ -2555,6 +2710,11 @@ body:has(.ut-user-profile-page) .ut-user-profile-form {
 .ut-user-order-status.ut-status-unpaid {
   background: #fff7e5;
   color: #8f5d00;
+}
+
+.ut-user-order-status.ut-status-processing {
+  background: #eef2ff;
+  color: #3730a3;
 }
 
 .ut-user-order-status.ut-status-cancel {
@@ -2630,6 +2790,12 @@ body:has(.ut-user-profile-page) .ut-user-profile-form {
   font-size: 14px;
 }
 
+.ut-user-order-status-note {
+  margin-top: 8px !important;
+  color: #3730a3 !important;
+  font-weight: 600 !important;
+}
+
 .ut-user-order-price {
   min-width: 110px;
   padding-top: 5px;
@@ -2646,7 +2812,42 @@ body:has(.ut-user-profile-page) .ut-user-profile-form {
   display: flex;
   justify-content: flex-end;
   gap: 14px;
-  margin-top: -34px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  cursor: default;
+}
+
+.ut-user-order-action-form {
+  margin: 0;
+}
+
+.ut-user-order-proof-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ut-user-order-proof-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px dashed #c5c6ca;
+  border-radius: 999px;
+  background: #f9f9fb;
+  color: #525252;
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.ut-user-order-proof-upload input {
+  max-width: 150px;
+  color: #525252;
+  font-size: 11px;
 }
 
 .ut-user-order-btn {
@@ -2676,6 +2877,13 @@ body:has(.ut-user-profile-page) .ut-user-profile-form {
   border: 1px solid #212529;
   background: #fff;
   color: #212529 !important;
+}
+
+.ut-user-order-btn-danger {
+  border: 1px solid #fecaca;
+  background: #fff;
+  color: #b42318 !important;
+  cursor: pointer;
 }
 
 .ut-user-order-btn-muted {

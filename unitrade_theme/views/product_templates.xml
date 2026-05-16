@@ -209,13 +209,6 @@
                                                 <t t-call="unitrade_theme.unitrade_money"/>
                                             </span>
                                         </span>
-                                        <span style="font-size:18px; line-height:24px; color:var(--ut-color-text-subtle); text-decoration:line-through; font-weight:500;">
-                                            <span>
-                                                <t t-set="ut_money_amount" t-value="ut_original_price"/>
-                                                <t t-set="ut_money_currency" t-value="website.currency_id"/>
-                                                <t t-call="unitrade_theme.unitrade_money"/>
-                                            </span>
-                                        </span>
                                         <span style="display:inline-flex; align-items:center; height:24px; padding:0 8px; border-radius:4px; background:#fff1f0; color:#f04438; font-size:13px; font-weight:700;">
                                             -<t t-esc="'{:,.0f}'.format(ut_discount_percent)"/>%
                                         </span>
@@ -238,6 +231,7 @@
                                 <t t-if="product.x_free_shipping"> • Gratis Ongkir</t>
                             </p>
 
+                            <t t-set="ut_is_out_of_stock" t-value="not ut_allow_out_of_stock_order and (ut_available_qty or 0) &lt;= 0"/>
                             <!-- Add to cart form -->
                             <form t-if="product._is_add_to_cart_possible()" action="/shop/cart/update" method="POST" class="tw-my-2" data-unitrade-stock-form="1">
                                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" t-nocache="csrf"/>
@@ -303,10 +297,13 @@
                                         </t>
                                         <t t-else="">
                                             <button id="add_to_cart" type="submit"
+                                                t-att-disabled="ut_is_out_of_stock and 'disabled' or None"
+                                                t-att-data-stock-blocked="ut_is_out_of_stock and '1' or '0'"
                                                 class="tw-flex-1 tw-flex tw-items-center tw-justify-center tw-gap-2"
-                                                style="background:var(--ut-color-button-bg); color:var(--ut-color-button-text); height:48px; border-radius:24px; border:none; font-size:16px; cursor:pointer; width:100%;">
-                                                <i class="fa fa-shopping-cart"></i>
-                                                Belanja
+                                                t-att-style="'background:var(--ut-color-button-bg); color:var(--ut-color-button-text); height:48px; border-radius:24px; border:none; font-size:16px; cursor:%s; width:100%; opacity:%s;' % ('not-allowed' if ut_is_out_of_stock else 'pointer', '0.62' if ut_is_out_of_stock else '1')">
+                                                <i t-att-class="'fa fa-ban' if ut_is_out_of_stock else 'fa fa-shopping-cart'"></i>
+                                                <t t-if="ut_is_out_of_stock">Stok Habis</t>
+                                                <t t-else="">Belanja</t>
                                             </button>
                                             <button type="button"
                                                 t-att-class="'ut-product-wishlist-direct is-active' if ut_is_in_wishlist else 'ut-product-wishlist-direct'"

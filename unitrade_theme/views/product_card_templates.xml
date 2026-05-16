@@ -5,6 +5,7 @@
             t-att-class="'ut-product-card-link ' + ut_card_class"
             itemscope="itemscope"
             itemtype="http://schema.org/Product">
+            <t t-set="ut_card_price_info" t-value="ut_card_product._unitrade_price_info()"/>
             <div class="tw-shrink-0">
                 <div class="ut-product-card-image-wrap tw-rounded-t-[14px]">
                     <img t-attf-src="/web/image/product.template/#{ut_card_product.id}/image_1024"
@@ -12,9 +13,9 @@
                         class="ut-product-card-image"
                         loading="lazy"
                         itemprop="image"/>
-                    <t t-if="ut_card_product.x_discount_percent">
+                    <t t-if="ut_card_price_info.get('has_discount')">
                         <span class="tw-absolute tw-top-2 tw-left-2 tw-bg-black tw-text-white tw-rounded-full tw-px-2 tw-py-1 tw-font-['Urbanist'] tw-font-bold tw-text-[10px]">
-                            -<t t-esc="'{:,.0f}'.format(ut_card_product.x_discount_percent)"/>%
+                            -<t t-esc="'{:,.0f}'.format(ut_card_price_info.get('discount_percent'))"/>%
                         </span>
                     </t>
                 </div>
@@ -34,13 +35,13 @@
                 </p>
 
                 <div class="ut-product-card-bottom tw-flex tw-justify-between tw-items-center tw-mt-auto tw-gap-2">
-                    <div class="ut-product-card-price tw-font-bold tw-text-[#212529] tw-text-[14px]" itemprop="offers" itemscope="itemscope" itemtype="http://schema.org/Offer">
+                    <div class="ut-product-card-price tw-flex tw-min-w-0 tw-flex-col tw-font-bold tw-text-[#212529] tw-text-[14px]" itemprop="offers" itemscope="itemscope" itemtype="http://schema.org/Offer">
                         <span>
-                            <t t-set="ut_money_amount" t-value="ut_card_product.list_price"/>
+                            <t t-set="ut_money_amount" t-value="ut_card_price_info.get('discounted_price')"/>
                             <t t-set="ut_money_currency" t-value="website.currency_id"/>
                             <t t-call="unitrade_theme.unitrade_money"/>
                         </span>
-                        <span itemprop="price" style="display:none;" t-esc="ut_card_product.list_price"/>
+                        <span itemprop="price" style="display:none;" t-esc="ut_card_price_info.get('discounted_price')"/>
                         <span itemprop="priceCurrency" style="display:none;" t-esc="website.currency_id.name"/>
                     </div>
 
