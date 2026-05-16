@@ -90,7 +90,7 @@ class SellerVerificationController(http.Controller):
     def seller_onboarding_page(self, **kw):
         """Render the seller onboarding page before OTP and KTM upload."""
         if self._verified_seller_for_current_user():
-            return request.redirect('/seller/dashboard')
+            return request.redirect('/unitrade/seller/dashboard')
 
         error_message = ''
         if kw.get('error') == 'otp_rate_limit':
@@ -105,7 +105,7 @@ class SellerVerificationController(http.Controller):
     def seller_onboarding_start(self, **kw):
         """Start a fresh seller OTP challenge, then continue to the shared OTP page."""
         if self._verified_seller_for_current_user():
-            return request.redirect('/seller/dashboard')
+            return request.redirect('/unitrade/seller/dashboard')
 
         user = request.env.user.sudo()
         request.session.pop('seller_onboarding_otp_verified', None)
@@ -133,7 +133,7 @@ class SellerVerificationController(http.Controller):
         """
         try:
             if self._verified_seller_for_current_user():
-                return request.redirect('/seller/dashboard')
+                return request.redirect('/unitrade/seller/dashboard')
             if not self._seller_otp_verified():
                 return request.redirect('/seller-onboarding')
 

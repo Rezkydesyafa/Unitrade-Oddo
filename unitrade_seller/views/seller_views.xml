@@ -53,6 +53,8 @@
                             <field name="nim" readonly="status != 'draft'"/>
                             <field name="x_profile_location"/>
                             <field name="x_profile_uuid" readonly="1"/>
+                            <field name="x_store_slug"/>
+                            <field name="x_store_active"/>
                         </group>
                         <group string="KTM Verification">
                             <field name="ktm_image" widget="image" readonly="status != 'draft'"/>
@@ -63,9 +65,23 @@
                         <field name="x_avatar_128" widget="image" readonly="1"/>
                         <field name="x_profile_description" placeholder="Tuliskan deskripsi singkat toko atau gaya jualan penjual."/>
                         <field name="x_profile_address" placeholder="Contoh: Kec. Depok, Kab. Sleman, DI Yogyakarta"/>
+                        <field name="x_store_province"/>
+                        <field name="x_store_city"/>
+                        <field name="x_store_address_detail"/>
                         <group string="Koordinat Map">
                             <field name="x_profile_latitude"/>
                             <field name="x_profile_longitude"/>
+                        </group>
+                    </group>
+                    <group string="Payout Xendit">
+                        <group>
+                            <field name="x_payout_channel_code"/>
+                            <field name="x_payout_account_number"/>
+                            <field name="x_payout_account_name"/>
+                        </group>
+                        <group>
+                            <field name="x_payout_ready" readonly="1"/>
+                            <field name="x_payout_note" placeholder="Catatan internal admin terkait tujuan payout seller."/>
                         </group>
                     </group>
                     <group string="Hasil OCR" invisible="not ocr_result">
@@ -95,6 +111,8 @@
                         <group>
                             <field name="report_admin_note" placeholder="Catatan internal admin saat meninjau laporan seller."/>
                             <field name="revoke_reason" placeholder="Alasan cabut verifikasi. Jika kosong, sistem memakai alasan laporan terakhir."/>
+                            <field name="x_delete_requested"/>
+                            <field name="x_delete_requested_at"/>
                             <field name="revoked_date"/>
                             <field name="revoked_by"/>
                         </group>

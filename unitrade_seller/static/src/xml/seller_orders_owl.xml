@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="unitrade_seller.SellerOrders">
+        <div t-att-class="rootClass">
+            <t t-if="!state.ready || state.loading">
+                <t t-call="unitrade_seller.SellerOrdersSkeleton"/>
+            </t>
+            <t t-else="">
+                <div class="ut-dash-stage ut-orders-stage">
+                    <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px] tw-text-[12px] tw-leading-6 tw-text-black">
+                        <div class="tw-flex tw-items-center tw-gap-[18px]">
+                            <span>Gratis Ongkir + Diskon 30%</span>
+                            <a href="/shop" class="tw-font-semibold tw-text-black tw-no-underline">Belanja Sekarang +</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <a href="/seller-onboarding" class="tw-font-semibold tw-text-black tw-no-underline">Mulai Berjualan</a>
+                        </div>
+                        <div class="tw-flex tw-items-center tw-gap-[18px]">
+                            <a href="/help" class="tw-text-black tw-no-underline">Bantuan</a>
+                            <a href="/contactus" class="tw-text-black tw-no-underline">Kontak</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <span>Ikuti kami :</span>
+                            <span class="tw-flex tw-gap-2 tw-text-[12px]">
+                                <i class="fa fa-instagram"></i>
+                                <i class="fa fa-facebook-official"></i>
+                                <i class="fa fa-music"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                        <a href="/" class="tw-flex tw-h-[52px] tw-w-[129px] tw-items-center tw-gap-2 tw-rounded-full tw-px-[15px] tw-text-black tw-no-underline">
+                            <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="UniTrade" class="tw-h-[37px] tw-w-[41px] tw-object-contain"/>
+                            <span class="tw-text-[12px] tw-font-bold">UniTrade</span>
+                        </a>
+                        <div class="tw-ml-[25px] tw-flex tw-h-12 tw-flex-1 tw-max-w-[658px] tw-items-center tw-rounded-[22.5px] tw-bg-[#f9f9f9] tw-pl-8 tw-pr-[5px]">
+                            <input t-model="state.query" type="search" class="tw-min-w-0 tw-flex-1 tw-border-0 tw-bg-transparent tw-text-[12px] tw-text-[#212529] tw-outline-none placeholder:tw-text-[#939393]" placeholder="Cari pesanan di toko"/>
+                            <button type="button" class="tw-flex tw-size-[38px] tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-[#212529] tw-text-white" aria-label="Cari pesanan">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="tw-ml-auto tw-flex tw-items-center tw-gap-[25px]">
+                            <a href="/unitrade/seller/chat" class="ut-dash-nav-round tw-relative" aria-label="Chat Pembeli">
+                                <i class="fa fa-commenting-o"></i>
+                                <t t-if="stats.unread_chat_count">
+                                    <span class="ut-dash-navbar-dot" t-esc="stats.unread_chat_count"></span>
+                                </t>
+                            </a>
+                            <a href="/shop/cart" class="ut-dash-nav-round" aria-label="Keranjang">
+                                <i class="fa fa-shopping-cart"></i>
+                            </a>
+                            <a href="/unitrade/seller/orders" class="ut-dash-nav-round tw-relative" aria-label="Notifikasi pesanan">
+                                <i class="fa fa-bell-o"></i>
+                                <t t-if="stats.notification_count">
+                                    <span class="ut-dash-navbar-dot" t-esc="stats.notification_count"></span>
+                                </t>
+                            </a>
+                            <span class="tw-h-[38.5px] tw-w-px tw-bg-[#e5e7eb]"></span>
+                            <a href="/unitrade/seller/dashboard" class="ut-dash-nav-round" aria-label="Dashboard seller">
+                                <i class="fa fa-truck"></i>
+                            </a>
+                            <img t-att-src="seller.avatar_url" alt="Avatar penjual" class="tw-size-[45px] tw-rounded-full tw-object-cover"/>
+                            <span class="tw-mr-5 tw-max-w-[150px] tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[16px] tw-font-medium tw-leading-6 tw-text-[#212529]" t-esc="seller.name"></span>
+                        </div>
+                        <button type="button" class="ut-dash-mobile-menu tw-hidden tw-border-0 tw-bg-transparent tw-text-[24px]" t-on-click="toggleSidebar" aria-label="Buka navigasi">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                    </header>
+
+                    <div class="ut-dash-mobile-scrim" t-on-click="closeSidebar"></div>
+                    <t t-call="unitrade_seller.SellerSidebar"/>
+
+                    <main class="ut-orders-main tw-absolute tw-left-[180px] tw-right-[67px] tw-top-[173px] tw-pb-10">
+                        <section class="tw-mb-[38px]">
+                            <h1 class="tw-m-0 tw-text-[40px] tw-font-normal tw-leading-none tw-text-black">Pesanan</h1>
+                            <p class="tw-m-0 tw-mt-[7px] tw-text-[16px] tw-leading-6 tw-text-[#6a7282]">Here's what's happening with your store today</p>
+                        </section>
+
+                        <section class="ut-orders-card tw-overflow-hidden tw-rounded-[16px] tw-border tw-border-[#e5e7eb] tw-bg-white tw-shadow-[0_1px_1.5px_rgba(0,0,0,0.1),0_1px_1px_rgba(0,0,0,0.1)]">
+                            <div class="ut-orders-tabs tw-flex tw-min-h-[53px] tw-items-center tw-gap-[58px] tw-overflow-x-auto tw-border-b tw-border-[#e5e7eb] tw-px-6">
+                                <t t-foreach="tabs" t-as="tab" t-key="tab.key">
+                                    <button type="button" t-att-class="tabClass(tab.key)" t-on-click="() => this.setTab(tab.key)">
+                                        <span t-esc="tab.label"></span>
+                                        <span class="ut-orders-tab-count" t-esc="count(tab.key)"></span>
+                                    </button>
+                                </t>
+                            </div>
+
+                            <div t-if="state.error" class="tw-m-6 tw-rounded-[16px] tw-border tw-border-red-200 tw-bg-red-50 tw-px-5 tw-py-4 tw-text-[14px] tw-font-semibold tw-text-red-700" t-esc="state.error"></div>
+                            <div t-elif="filteredOrders.length" class="tw-overflow-x-auto">
+                                <table class="ut-orders-table tw-w-full tw-min-w-[1060px]">
+                                    <thead>
+                                        <tr>
+                                            <th>ORDER ID</th>
+                                            <th>PELANGGAN</th>
+                                            <th>PRODUK</th>
+                                            <th>TOTAL HARGA</th>
+                                            <th>STATUS</th>
+                                            <th>TANGGAL ORDER</th>
+                                            <th>AKSI</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="filteredOrders" t-as="order" t-key="orderKey(order)">
+                                            <tr>
+                                                <td>
+                                                    <strong class="tw-block tw-max-w-[86px] tw-whitespace-normal tw-text-[14px] tw-font-semibold tw-leading-5 tw-text-[#101828]" t-esc="order.order_name"></strong>
+                                                </td>
+                                                <td>
+                                                    <span class="tw-flex tw-items-center tw-gap-3">
+                                                        <img t-att-src="order.customer_avatar_url" alt="" class="tw-size-10 tw-rounded-full tw-bg-[#e5e7eb] tw-object-cover"/>
+                                                        <span class="tw-max-w-[110px] tw-whitespace-normal tw-text-[14px] tw-font-medium tw-leading-5 tw-text-[#101828]" t-esc="order.customer_name"></span>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="tw-flex tw-items-center tw-gap-3">
+                                                        <img t-att-src="order.product_image_url" alt="" class="tw-size-12 tw-rounded-[10px] tw-border tw-border-[#e5e7eb] tw-object-cover"/>
+                                                        <span class="tw-min-w-0">
+                                                            <strong class="tw-block tw-max-w-[145px] tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[14px] tw-font-medium tw-leading-5 tw-text-[#101828]" t-esc="order.product_name"></strong>
+                                                            <span class="tw-block tw-text-[12px] tw-leading-4 tw-text-[#6a7282]">Qty: <t t-esc="order.product_qty"/></span>
+                                                        </span>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <strong class="tw-text-[14px] tw-font-semibold tw-leading-5 tw-text-[#101828]" t-esc="order.total_label"></strong>
+                                                </td>
+                                                <td>
+                                                    <span t-att-class="statusClass(order.status_key)" t-esc="order.status_label"></span>
+                                                </td>
+                                                <td>
+                                                    <span class="tw-text-[14px] tw-leading-5 tw-text-[#4a5565]" t-esc="order.date_label"></span>
+                                                </td>
+                                                <td>
+                                                    <span class="tw-flex tw-items-center tw-gap-8">
+                                                        <a t-att-href="order.order_status_url" class="ut-orders-action" aria-label="Lihat detail pesanan">
+                                                            <i class="fa fa-eye"></i>
+                                                        </a>
+                                                        <a t-att-href="order.action_url" class="ut-orders-action" aria-label="Aksi pesanan">
+                                                            <i class="fa fa-ellipsis-v"></i>
+                                                        </a>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div t-else="" class="tw-m-6 tw-rounded-[18px] tw-border tw-border-dashed tw-border-[#d8dce4] tw-bg-[#fbfbfc] tw-p-8 tw-text-center tw-text-[14px] tw-font-semibold tw-text-[#6a7282]">
+                                Belum ada pesanan pada filter ini.
+                            </div>
+                        </section>
+                    </main>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="unitrade_seller.SellerOrdersSkeleton">
+        <div class="ut-dash-stage ut-orders-stage ut-dash-skeleton-stage">
+            <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
+            </div>
+            <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-flex-1 tw-max-w-[658px] tw-rounded-[22px]"></span>
+                <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+            </header>
+            <aside class="ut-dash-sidebar ut-orders-sidebar ut-dash-skeleton-sidebar">
+                <div class="ut-dash-sidebar-brand">
+                    <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
+                </div>
+                <div class="ut-dash-sidebar-nav">
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                </div>
+                <div class="ut-dash-sidebar-footer">
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                </div>
+            </aside>
+            <main class="ut-orders-main tw-absolute tw-left-[180px] tw-right-[67px] tw-top-[173px] tw-pb-10">
+                <section class="tw-mb-[38px]">
+                    <span class="ut-dash-skeleton-line tw-h-11 tw-w-[210px] tw-rounded-[16px]"></span>
+                    <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
+                </section>
+                <section class="ut-dash-skeleton-card tw-h-[457px] tw-p-0">
+                    <div class="tw-flex tw-h-[53px] tw-items-center tw-gap-[58px] tw-border-b tw-border-[#e5e7eb] tw-px-6">
+                        <span class="ut-dash-skeleton-line tw-h-5 tw-w-[135px]"></span>
+                        <span class="ut-dash-skeleton-line tw-h-5 tw-w-[60px]"></span>
+                        <span class="ut-dash-skeleton-line tw-h-5 tw-w-[92px]"></span>
+                        <span class="ut-dash-skeleton-line tw-h-5 tw-w-[80px]"></span>
+                        <span class="ut-dash-skeleton-line tw-h-5 tw-w-[90px]"></span>
+                    </div>
+                    <div class="tw-p-6">
+                        <span class="ut-dash-skeleton-block tw-h-[56px] tw-w-full tw-rounded-[12px]"></span>
+                        <span class="ut-dash-skeleton-row tw-mt-5"></span>
+                        <span class="ut-dash-skeleton-row tw-mt-5"></span>
+                        <span class="ut-dash-skeleton-row tw-mt-5"></span>
+                        <span class="ut-dash-skeleton-row tw-mt-5"></span>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </t>
+</templates>

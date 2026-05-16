@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="unitrade_seller.SellerSidebar">
+        <aside t-att-class="'ut-dash-sidebar ut-seller-shared-sidebar ' + (sidebarClass || '')" aria-label="Menu dashboard penjual">
+            <div class="ut-dash-sidebar-brand">
+                <span class="ut-dash-sidebar-brand-icon">
+                    <img src="/unitrade_seller/static/src/img/dashboard-icon-brand.svg" alt=""/>
+                </span>
+                <span class="ut-dash-sidebar-brand-label">UniTrade</span>
+            </div>
+            <nav class="ut-dash-sidebar-nav">
+                <t t-foreach="sidebarItems" t-as="item" t-key="item.key">
+                    <a t-att-href="item.href" t-att-class="sidebarItemClass(item)" t-att-aria-label="item.label" t-on-click="onSidebarNavClick">
+                        <span class="ut-dash-sidebar-icon">
+                            <img t-att-src="item.iconUrl" alt=""/>
+                        </span>
+                        <span class="ut-dash-sidebar-label" t-esc="item.label"></span>
+                        <t t-if="item.badge">
+                            <span class="ut-dash-side-badge" t-esc="item.badge"></span>
+                        </t>
+                    </a>
+                </t>
+            </nav>
+            <div class="ut-dash-sidebar-footer">
+                <button type="button" class="ut-dash-sidebar-toggle" t-on-click="toggleSidebar" t-att-aria-expanded="state.sidebarOpen ? 'true' : 'false'" aria-label="Buka atau tutup sidebar">
+                    <i t-att-class="state.sidebarOpen ? 'fa fa-angle-left' : 'fa fa-angle-right'"></i>
+                </button>
+            </div>
+        </aside>
+    </t>
+</templates>
