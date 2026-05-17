@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 from odoo import _, fields, models
 from odoo.exceptions import UserError
 
@@ -80,6 +82,20 @@ class SaleOrderUniTradeDispute(models.Model):
             return self.currency_id.round(order_line.price_subtotal)
         return self.currency_id.round(self.amount_total)
 
+    @staticmethod
+    def _unitrade_is_google_drive_url(url):
+        try:
+            parsed = urlparse(url or '')
+        except ValueError:
+            return False
+        host = (parsed.netloc or '').lower()
+        return parsed.scheme in ('http', 'https') and (
+            host == 'drive.google.com'
+            or host.endswith('.drive.google.com')
+            or host == 'docs.google.com'
+            or host.endswith('.docs.google.com')
+        )
+
     def action_unitrade_create_refund(
         self,
         partner=None,
@@ -97,13 +113,19 @@ class SaleOrderUniTradeDispute(models.Model):
                 raise UserError(blocker)
             reason_note = (reason_note or '').strip()
             if len(reason_note) < 20:
-                raise UserError(_('Catatan refund minimal 20 karakter.'))
+                raise UserError(_('Catatan pengembalian minimal 20 karakter.'))
             if not evidence_items:
-                raise UserError(_('Upload minimal satu bukti refund.'))
-            unboxing_required = reason_code in ('not_as_described', 'damaged', 'wrong_item')
-            has_unboxing = any(item.get('evidence_type') == 'unboxing_video' for item in evidence_items)
-            if unboxing_required and not has_unboxing:
-                raise UserError(_('Video unboxing wajib untuk alasan refund ini.'))
+                raise UserError(_('Upload minimal satu bukti pengembalian.'))
+            drive_required = reason_code in ('not_as_described', 'damaged', 'wrong_item')
+            drive_urls = [
+                item.get('url')
+                for item in evidence_items
+                if item.get('evidence_type') == 'google_drive_url' and item.get('url')
+            ]
+            if drive_required and not any(self._unitrade_is_google_drive_url(url) for url in drive_urls):
+                raise UserError(_('Link Google Drive video unboxing wajib untuk alasan pengembalian ini.'))
+            if any(url and not self._unitrade_is_google_drive_url(url) for url in drive_urls):
+                raise UserError(_('Link Google Drive harus menggunakan domain drive.google.com atau docs.google.com.'))
 
             ledger = ledger.sudo() if ledger else order._unitrade_escrow_ledgers()[:1]
             amount = requested_amount or order._unitrade_refund_requested_amount(ledger=ledger, order_line=order_line)
@@ -125,7 +147,7 @@ class SaleOrderUniTradeDispute(models.Model):
                 attachment_id = item.get('attachment_id') or False
                 if not attachment_id and item.get('datas'):
                     attachment = self.env['ir.attachment'].sudo().create({
-                        'name': item.get('name') or 'bukti-refund',
+                        'name': item.get('name') or 'bukti-pengembalian',
                         'datas': item.get('datas'),
                         'mimetype': item.get('mimetype') or False,
                         'res_model': 'unitrade.dispute',
