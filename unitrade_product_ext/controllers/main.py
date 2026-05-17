@@ -23,6 +23,7 @@ UNITRADE_SORT_MAP = {
     'terbaru': 'create_date desc',
     'termurah': 'list_price asc',
     'termahal': 'list_price desc',
+    'promo': 'x_discount_percent desc, create_date desc',
 }
 
 
