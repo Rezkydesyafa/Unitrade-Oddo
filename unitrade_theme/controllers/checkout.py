@@ -1,7 +1,7 @@
 import logging
 import json
 
-from odoo import http
+from odoo import http, _
 from odoo.http import request
 from odoo.addons.website_sale.controllers.main import WebsiteSale
 from odoo.exceptions import UserError, ValidationError
@@ -9,6 +9,27 @@ from odoo.exceptions import UserError, ValidationError
 _logger = logging.getLogger(__name__)
 
 class UnitradeCheckout(WebsiteSale):
+    def _unitrade_format_money(self, amount, currency):
+        symbol = currency.symbol or 'Rp'
+        formatted = ('{:,.0f}'.format(amount or 0.0)).replace(',', '.')
+        if currency.position == 'after':
+            return '%s %s' % (formatted, symbol)
+        return '%s %s' % (symbol, formatted)
+
+    def _unitrade_voucher_payload(self, order, amounts, message='', success=True):
+        currency = order.currency_id
+        return {
+            'success': success,
+            'message': message,
+            'voucher_code': amounts.get('voucher_code') or '',
+            'voucher_discount': amounts.get('voucher_discount') or 0.0,
+            'voucher_discount_label': self._unitrade_format_money(amounts.get('voucher_discount') or 0.0, currency),
+            'total': amounts.get('total') or 0.0,
+            'total_label': self._unitrade_format_money(amounts.get('total') or 0.0, currency),
+            'payment_fee': amounts.get('payment_fee') or 0.0,
+            'payment_fee_label': self._unitrade_format_money(amounts.get('payment_fee') or 0.0, currency),
+        }
+
     def _unitrade_checkout_address_message(self):
         return 'Tambahkan alamat terlebih dahulu sebelum melanjutkan pembayaran.'
 
@@ -38,10 +59,16 @@ class UnitradeCheckout(WebsiteSale):
             amounts = order._unitrade_checkout_amounts(sync_fee=False, payment_method=selected_payment_method)
         except TypeError:
             amounts = order._unitrade_checkout_amounts(sync_fee=False)
+        payment_base_amount = max(
+            amounts.get('item_subtotal', 0.0)
+            + amounts.get('service_fee', 0.0)
+            - amounts.get('voucher_discount', 0.0),
+            0.0,
+        )
         payment_method_groups = (
-            order._unitrade_midtrans_checkout_methods(amounts.get('item_subtotal', 0.0) + amounts.get('service_fee', 0.0))
+            order._unitrade_midtrans_checkout_methods(payment_base_amount)
             if hasattr(order, '_unitrade_midtrans_checkout_methods')
-            else order._unitrade_xendit_checkout_methods(amounts.get('item_subtotal', 0.0) + amounts.get('service_fee', 0.0))
+            else order._unitrade_xendit_checkout_methods(payment_base_amount)
             if hasattr(order, '_unitrade_xendit_checkout_methods')
             else []
         )
@@ -69,6 +96,44 @@ class UnitradeCheckout(WebsiteSale):
             'checkout_error_message': (post or {}).get('checkout_error_message'),
         })
         return values
+
+    @http.route('/unitrade/checkout/voucher/apply', type='json', auth='public', website=True, methods=['POST'])
+    def unitrade_checkout_voucher_apply(self, code=None, payment_method=None, **kwargs):
+        order = request.website.sale_get_order()
+        if not order or order.state != 'draft':
+            return {'success': False, 'message': _('Keranjang tidak tersedia.')}
+        if not request.env.user._is_public() and order.partner_id.commercial_partner_id != request.env.user.partner_id.commercial_partner_id:
+            return {'success': False, 'message': _('Anda tidak memiliki akses ke keranjang ini.')}
+        try:
+            order.sudo()._unitrade_apply_voucher_code(code)
+            try:
+                amounts = order.sudo()._unitrade_checkout_amounts(sync_fee=False, payment_method=(payment_method or 'bca_va'))
+            except TypeError:
+                amounts = order.sudo()._unitrade_checkout_amounts(sync_fee=False)
+            return self._unitrade_voucher_payload(order, amounts, _('Voucher berhasil diterapkan.'))
+        except (UserError, ValidationError) as error:
+            return {'success': False, 'message': error.args[0] if error.args else str(error)}
+        except Exception:
+            _logger.exception('Failed applying voucher to order %s', order.name)
+            return {'success': False, 'message': _('Voucher belum bisa diterapkan. Coba lagi.')}
+
+    @http.route('/unitrade/checkout/voucher/remove', type='json', auth='public', website=True, methods=['POST'])
+    def unitrade_checkout_voucher_remove(self, payment_method=None, **kwargs):
+        order = request.website.sale_get_order()
+        if not order or order.state != 'draft':
+            return {'success': False, 'message': _('Keranjang tidak tersedia.')}
+        if not request.env.user._is_public() and order.partner_id.commercial_partner_id != request.env.user.partner_id.commercial_partner_id:
+            return {'success': False, 'message': _('Anda tidak memiliki akses ke keranjang ini.')}
+        try:
+            order.sudo()._unitrade_remove_voucher()
+            try:
+                amounts = order.sudo()._unitrade_checkout_amounts(sync_fee=False, payment_method=(payment_method or 'bca_va'))
+            except TypeError:
+                amounts = order.sudo()._unitrade_checkout_amounts(sync_fee=False)
+            return self._unitrade_voucher_payload(order, amounts, _('Voucher dihapus.'))
+        except Exception:
+            _logger.exception('Failed removing voucher from order %s', order.name)
+            return {'success': False, 'message': _('Voucher belum bisa dihapus. Coba lagi.')}
 
     def _unitrade_partner_address_payload(self, partner):
         return {

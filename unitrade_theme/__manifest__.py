@@ -14,9 +14,12 @@
     'category': 'Website/Theme',
     'depends': ['website', 'website_sale', 'website_sale_stock', 'portal', 'auth_signup', 'auth_oauth'],
     'data': [
+        'security/security.xml',
         'security/ir.model.access.csv',
+        'data/unitrade_config.xml',
         'data/oauth_provider.xml',
         'data/checkout_fee_product.xml',
+        'views/sponsorship_views.xml',
         'views/templates.xml',
         'views/navbar_templates.xml',
         'views/product_card_templates.xml',
@@ -32,6 +35,7 @@
         'views/seller_verification.xml',
         'views/cart_templates.xml',
         'views/checkout_templates.xml',
+        'views/sponsorship_templates.xml',
     ],
     'assets': {
         'web.assets_frontend': [
