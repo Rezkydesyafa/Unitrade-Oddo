@@ -30,17 +30,36 @@
             </div>
 
             <div t-if="state.loading &amp;&amp; state.tab === 'reviews'" class="ut-review-loading">
-                <div class="ut-review-skeleton-avatar"></div>
-                <div class="ut-review-skeleton-body">
-                    <div class="ut-review-skeleton-line ut-review-skeleton-name"></div>
-                    <div class="ut-review-skeleton-line ut-review-skeleton-date"></div>
-                    <div class="ut-review-skeleton-line ut-review-skeleton-text"></div>
-                    <div class="ut-review-skeleton-line ut-review-skeleton-text ut-review-skeleton-text-short"></div>
-                    <div class="ut-review-skeleton-actions">
+                <div class="ut-review-skeleton-summary">
+                    <div class="ut-review-skeleton-chip-row">
+                        <span></span>
                         <span></span>
                         <span></span>
                     </div>
+                    <div class="ut-review-skeleton-score"></div>
                 </div>
+                <t t-foreach="[1, 2]" t-as="item" t-key="item">
+                    <div class="ut-review-skeleton-item">
+                        <div class="ut-review-skeleton-avatar"></div>
+                        <div class="ut-review-skeleton-body">
+                            <div class="ut-review-skeleton-line ut-review-skeleton-name"></div>
+                            <div class="ut-review-skeleton-line ut-review-skeleton-date"></div>
+                            <div class="ut-review-skeleton-stars">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                            <div class="ut-review-skeleton-line ut-review-skeleton-text"></div>
+                            <div class="ut-review-skeleton-line ut-review-skeleton-text ut-review-skeleton-text-short"></div>
+                            <div class="ut-review-skeleton-actions">
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                    </div>
+                </t>
             </div>
 
             <div t-ref="results" t-on-click="onResultsClick" t-att-class="state.loading ? 'tw-hidden' : 'tw-transition-opacity'"></div>

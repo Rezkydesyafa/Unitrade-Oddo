@@ -73,14 +73,44 @@
                     </section>
 
                     <div class="ut-dash-filter-row tw-mb-7 tw-flex tw-items-center tw-gap-3">
-                        <button type="button" class="ut-dash-date-filter">
-                            <i class="fa fa-calendar-o"></i>
-                            <span class="tw-flex tw-flex-col">
-                                <span class="ut-dash-filter-label">Tanggal</span>
-                                <span class="ut-dash-filter-value" t-esc="payload.current_date_label"></span>
-                            </span>
-                            <i class="fa fa-angle-down tw-ml-auto"></i>
-                        </button>
+                        <div class="ut-dash-date-control">
+                            <button type="button" t-att-class="state.datePickerOpen ? 'ut-dash-date-filter is-open' : 'ut-dash-date-filter'" t-on-click="toggleDatePicker">
+                                <i class="fa fa-calendar-o"></i>
+                                <span class="tw-flex tw-flex-col">
+                                    <span class="ut-dash-filter-label">Tanggal</span>
+                                    <span class="ut-dash-filter-value" t-esc="dateLabel"></span>
+                                </span>
+                                <i t-att-class="state.dateLoading ? 'fa fa-circle-o-notch fa-spin tw-ml-auto' : 'fa fa-angle-down tw-ml-auto'"></i>
+                            </button>
+                            <div t-if="state.datePickerOpen" class="ut-dash-date-popover">
+                                <div class="ut-dash-date-popover-head">
+                                    <button type="button" class="ut-dash-date-icon-btn" t-on-click="() => this.shiftDate(-1)" t-att-disabled="state.dateLoading || state.dateMode === 'all'" aria-label="Tanggal sebelumnya">
+                                        <i class="fa fa-angle-left"></i>
+                                    </button>
+                                    <span class="tw-min-w-0">
+                                        <strong t-esc="dateDisplayLabel"></strong>
+                                        <small>Pilih rentang data dashboard</small>
+                                    </span>
+                                    <button type="button" class="ut-dash-date-icon-btn" t-on-click="() => this.shiftDate(1)" t-att-disabled="state.dateLoading || state.dateMode === 'all'" aria-label="Tanggal berikutnya">
+                                        <i class="fa fa-angle-right"></i>
+                                    </button>
+                                </div>
+                                <div class="ut-dash-date-presets" aria-label="Preset rentang dashboard">
+                                    <button type="button" t-att-class="dateModeClass('day')" t-on-click="setToday" t-att-disabled="state.dateLoading">Hari ini</button>
+                                    <button type="button" t-att-class="dateModeClass('month')" t-on-click="setLastMonth" t-att-disabled="state.dateLoading">1 Bulan</button>
+                                    <button type="button" t-att-class="dateModeClass('all')" t-on-click="setAllTime" t-att-disabled="state.dateLoading">Semua Waktu</button>
+                                </div>
+                                <input type="date" class="ut-dash-date-input" t-att-value="state.dateValue" t-on-change="onDateInputChange" t-att-disabled="state.dateLoading"/>
+                                <div t-if="state.dateError" class="ut-dash-date-error" t-esc="state.dateError"></div>
+                                <div class="ut-dash-date-actions">
+                                    <button type="button" class="ut-dash-date-secondary" t-on-click="setToday" t-att-disabled="state.dateLoading">Hari ini</button>
+                                    <button type="button" class="ut-dash-date-primary" t-on-click="applyDateFilter" t-att-disabled="state.dateLoading">
+                                        <t t-if="state.dateLoading">Memuat...</t>
+                                        <t t-else="">Terapkan</t>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                         <t t-if="payload.add_product_url">
                             <a t-att-href="payload.add_product_url" class="ut-dash-add-product">
                                 <i class="fa fa-plus"></i>
@@ -102,7 +132,7 @@
                             <strong class="tw-mt-[18px] tw-block tw-text-[32px] tw-font-semibold tw-leading-10 tw-text-black" t-esc="stats.revenue_label"></strong>
                         </article>
                         <article class="ut-dash-figma-card tw-h-[176px] tw-px-[25px] tw-py-[26px]">
-                            <h2 class="tw-m-0 tw-text-[20px] tw-font-medium tw-leading-6 tw-text-black">Penjualan grafik</h2>
+                            <h2 class="tw-m-0 tw-text-[20px] tw-font-medium tw-leading-6 tw-text-black">Penjualan produk</h2>
                             <p class="tw-m-0 tw-mt-[36px] tw-text-[32px] tw-font-semibold tw-leading-10 tw-text-black" t-esc="stats.sold_count || 0"></p>
                             <p class="tw-m-0 tw-text-[12px] tw-font-medium tw-text-[#6a7282]">produk terjual</p>
                         </article>
@@ -159,9 +189,18 @@
                         </section>
 
                         <section id="dashboard-orders" class="ut-dash-figma-card ut-dash-orders-card tw-p-[24px]">
-                            <div class="tw-mb-5 tw-flex tw-items-center tw-justify-between">
-                                <h2 class="tw-m-0 tw-text-[16px] tw-font-semibold tw-leading-5 tw-text-[#0a0a0a]">Pesanan</h2>
-                                <a href="/unitrade/seller/orders" class="tw-text-[12px] tw-font-medium tw-leading-4 tw-text-[#155dfc] tw-no-underline">View All Orders</a>
+                            <div class="tw-mb-5 tw-flex tw-items-center tw-justify-between tw-gap-3">
+                                <div class="tw-min-w-0">
+                                    <h2 class="tw-m-0 tw-text-[16px] tw-font-semibold tw-leading-5 tw-text-[#0a0a0a]">Pesanan</h2>
+                                    <p class="tw-m-0 tw-mt-1 tw-text-[11px] tw-font-medium tw-leading-4 tw-text-[#6a7282]" t-esc="ordersPeriodLabel"></p>
+                                </div>
+                                <div class="ut-dash-orders-head-actions">
+                                    <div class="ut-dash-orders-period" aria-label="Periode pesanan">
+                                        <button type="button" t-att-class="ordersPeriodClass('weekly')" t-on-click="() => this.setOrdersPeriod('weekly')" t-att-disabled="state.dateLoading">Weekly</button>
+                                        <button type="button" t-att-class="ordersPeriodClass('monthly')" t-on-click="() => this.setOrdersPeriod('monthly')" t-att-disabled="state.dateLoading">Monthly</button>
+                                    </div>
+                                    <a href="/unitrade/seller/orders" class="tw-text-[12px] tw-font-medium tw-leading-4 tw-text-[#155dfc] tw-no-underline">View All Orders</a>
+                                </div>
                             </div>
                             <div t-if="orders.length" class="tw-overflow-x-auto">
                                 <table class="ut-dash-orders-table tw-w-full tw-min-w-[620px]">

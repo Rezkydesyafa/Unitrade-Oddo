@@ -345,6 +345,67 @@
         </t>
     </template>
 
+    <template id="seller_product_payment_template" name="Seller Product Payment">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="page_title"/>
+            <div id="wrap"
+                class="ut-seller-product-payment-mount"
+                t-att-data-product-payment-payload="product_payment_payload_json"
+                t-att-data-seller-name="seller.name"
+                t-attf-data-seller-avatar-url="/web/image/res.users/#{seller.user_id.id}/avatar_128"
+                t-attf-data-seller-profile-url="/seller-profile/#{seller_public_ref}"
+                t-att-data-notification-count="notification_count"
+                t-att-data-unread-chat-count="unread_chat_count">
+                <div class="ut-seller-dashboard-page tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
+                    <div class="ut-dash-stage ut-product-payment-stage ut-dash-skeleton-stage">
+                        <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                            <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
+                        </div>
+                        <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                            <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                            <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                            <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-flex-1 tw-max-w-[658px] tw-rounded-[22px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+                        </header>
+                        <aside class="ut-dash-sidebar ut-product-create-sidebar ut-dash-skeleton-sidebar">
+                            <div class="ut-dash-sidebar-brand">
+                                <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
+                            </div>
+                            <div class="ut-dash-sidebar-nav">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                            <div class="ut-dash-sidebar-footer">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                        </aside>
+                        <main class="ut-product-payment-main tw-absolute tw-left-[181px] tw-right-[52px] tw-top-[175px] tw-pb-16">
+                            <section class="tw-mb-[24px]">
+                                <span class="ut-dash-skeleton-line tw-h-11 tw-w-[300px] tw-rounded-[16px]"></span>
+                                <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
+                            </section>
+                            <span class="ut-dash-skeleton-card tw-mb-6 tw-h-[88px] tw-w-full"></span>
+                            <div class="tw-grid tw-grid-cols-[minmax(0,1fr)_378px] tw-gap-8">
+                                <span class="ut-dash-skeleton-card tw-h-[620px]"></span>
+                                <span class="ut-dash-skeleton-card tw-h-[775px]"></span>
+                            </div>
+                        </main>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
     <template id="seller_product_edit_template" name="Seller Product Edit">
         <t t-call="website.layout">
             <t t-set="title" t-value="page_title"/>
@@ -523,9 +584,21 @@
                                     <span class="tw-flex tw-h-[35px] tw-w-[35px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#f5f5f7] tw-text-black">
                                         <i class="fa fa-commenting-o"></i>
                                     </span>
-                                    <p class="tw-m-0 tw-text-[12px] tw-font-medium tw-leading-5 tw-text-[#525252]">
-                                        Estimasi balasan chat:<br/>
-                                        ±10 menit
+                                    <p class="tw-m-0 tw-pt-[1px] tw-text-[12px] tw-font-medium tw-leading-5 tw-text-[#525252]">
+                                        <span class="tw-block">Estimasi balasan chat:</span>
+                                        <span class="tw-block tw-text-[#212529]">&#177;10 menit</span>
+                                    </p>
+                                </div>
+
+                                <div t-if="seller_phone_display" class="tw-mt-3 tw-flex tw-items-start tw-gap-3">
+                                    <span class="tw-flex tw-h-[35px] tw-w-[35px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#e9fff3] tw-text-[#16a34a]">
+                                        <i class="fa fa-whatsapp"></i>
+                                    </span>
+                                    <p class="tw-m-0 tw-pt-[1px] tw-text-[12px] tw-font-medium tw-leading-5 tw-text-[#525252]">
+                                        <span class="tw-block">WhatsApp:</span>
+                                        <a t-att-href="seller_phone_url or '#'" target="_blank" rel="noopener" class="tw-block tw-text-[#212529] tw-no-underline hover:tw-underline">
+                                            <t t-esc="seller_phone_display"/>
+                                        </a>
                                     </p>
                                 </div>
                             </div>

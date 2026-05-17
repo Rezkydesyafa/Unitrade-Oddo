@@ -17,6 +17,7 @@
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
+        'data/listing_fee_config.xml',
         'data/mail_template.xml',
         'data/demo_students.xml',
         'views/seller_views.xml',

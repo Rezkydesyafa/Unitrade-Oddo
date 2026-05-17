@@ -3,6 +3,7 @@
 import publicWidget from "@web/legacy/js/public/public_widget";
 import { Component, mount, onMounted, onWillUnmount, useEffect, useRef, useState } from "@odoo/owl";
 import { templates } from "@web/core/assets";
+import { jsonrpc } from "@web/core/network/rpc_service";
 import { sellerSidebarItems } from "./seller_sidebar";
 
 function compactMoney(value) {
@@ -37,6 +38,32 @@ function todayLabel() {
     ].join("/");
 }
 
+function todayInputValue() {
+    return formatDateInput(new Date());
+}
+
+function formatDateInput(date) {
+    return [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0"),
+    ].join("-");
+}
+
+function inputValueFromDate(value) {
+    const date = value ? new Date(`${value}T00:00:00`) : new Date();
+    if (Number.isNaN(date.getTime())) {
+        return todayInputValue();
+    }
+    return formatDateInput(date);
+}
+
+function shiftDateValue(value, days) {
+    const date = new Date(`${inputValueFromDate(value)}T00:00:00`);
+    date.setDate(date.getDate() + days);
+    return formatDateInput(date);
+}
+
 function payloadFromDataset(dataset, parsed) {
     if (parsed && parsed.stats) {
         return parsed;
@@ -62,8 +89,18 @@ function payloadFromDataset(dataset, parsed) {
         reviews: [],
         refunds: [],
         chart: parsed && (parsed.weekly || parsed.monthly) ? parsed : {},
+        date_filter: {
+            value: todayInputValue(),
+            mode: "day",
+            label: todayLabel(),
+            display_label: todayLabel(),
+            today_value: todayInputValue(),
+            is_today: true,
+        },
+        orders_period: "weekly",
         current_date_label: todayLabel(),
         add_product_url: dataset.addProductUrl || "",
+        data_url: "/unitrade/seller/dashboard/data",
         csrf_token: "",
     };
 }
@@ -78,17 +115,34 @@ export class SellerDashboard extends Component {
         this.chartRef = useRef("chart");
         this.rootRef = useRef("root");
         this.onResize = () => this.drawChart();
+        const initialPayload = this.props.payload || {};
+        const initialDate = (initialPayload.date_filter && initialPayload.date_filter.value) || todayInputValue();
+        const initialDateMode = (initialPayload.date_filter && initialPayload.date_filter.mode) || "day";
+        this.onDocumentClick = (ev) => {
+            const target = ev.target;
+            if (this.state.datePickerOpen && target && target.closest && !target.closest(".ut-dash-date-control")) {
+                this.state.datePickerOpen = false;
+            }
+        };
         this.state = useState({
             period: "weekly",
+            payload: initialPayload,
             query: "",
             searchOpen: false,
             sidebarOpen: false,
             ready: false,
             handoffOrder: null,
+            datePickerOpen: false,
+            dateValue: initialDate,
+            dateMode: initialDateMode,
+            ordersPeriod: initialPayload.orders_period || "weekly",
+            dateLoading: false,
+            dateError: "",
         });
 
         onMounted(() => {
             window.addEventListener("resize", this.onResize);
+            document.addEventListener("click", this.onDocumentClick);
             window.setTimeout(() => {
                 this.state.ready = true;
                 window.requestAnimationFrame(() => this.drawChart());
@@ -97,6 +151,7 @@ export class SellerDashboard extends Component {
 
         onWillUnmount(() => {
             window.removeEventListener("resize", this.onResize);
+            document.removeEventListener("click", this.onDocumentClick);
         });
 
         useEffect(
@@ -105,12 +160,12 @@ export class SellerDashboard extends Component {
                     this.drawChart();
                 }
             },
-            () => [this.state.period, this.state.ready]
+            () => [this.state.period, this.state.ready, this.state.payload]
         );
     }
 
     get payload() {
-        return this.props.payload || {};
+        return this.state.payload || this.props.payload || {};
     }
 
     get seller() {
@@ -121,8 +176,28 @@ export class SellerDashboard extends Component {
         return this.payload.stats || {};
     }
 
+    get dateFilter() {
+        return this.payload.date_filter || {};
+    }
+
+    get dateLabel() {
+        return this.dateFilter.label || this.payload.current_date_label || todayLabel();
+    }
+
+    get dateDisplayLabel() {
+        return this.dateFilter.display_label || this.dateLabel;
+    }
+
     get orders() {
         return (this.payload.orders || []).slice(0, 4);
+    }
+
+    get ordersPeriod() {
+        return this.payload.orders_period || this.state.ordersPeriod || "weekly";
+    }
+
+    get ordersPeriodLabel() {
+        return this.ordersPeriod === "monthly" ? "30 hari terakhir" : "7 hari terakhir";
     }
 
     get messages() {
@@ -209,6 +284,17 @@ export class SellerDashboard extends Component {
             : `${base} tw-bg-transparent tw-text-[#6a7282]`;
     }
 
+    dateModeClass(mode) {
+        const base = "ut-dash-date-preset";
+        const activeMode = (this.payload.date_filter && this.payload.date_filter.mode) || this.state.dateMode || "day";
+        return activeMode === mode ? `${base} is-active` : base;
+    }
+
+    ordersPeriodClass(period) {
+        const base = "ut-dash-orders-period-btn";
+        return this.ordersPeriod === period ? `${base} is-active` : base;
+    }
+
     statusClass(status) {
         return `ut-dash-status-pill ut-dash-status-${status || "pending"}`;
     }
@@ -227,6 +313,89 @@ export class SellerDashboard extends Component {
 
     setPeriod(period) {
         this.state.period = period;
+    }
+
+    setOrdersPeriod(period) {
+        if (!["weekly", "monthly"].includes(period) || this.state.dateLoading) {
+            return;
+        }
+        this.state.ordersPeriod = period;
+        return this.loadDashboardForDate(this.state.dateValue, this.state.dateMode, period);
+    }
+
+    toggleDatePicker(ev) {
+        if (ev && ev.stopPropagation) {
+            ev.stopPropagation();
+        }
+        this.state.datePickerOpen = !this.state.datePickerOpen;
+    }
+
+    onDateInputChange(ev) {
+        this.state.dateValue = ev.target.value || todayInputValue();
+        this.state.dateMode = "day";
+        this.state.dateError = "";
+    }
+
+    async loadDashboardForDate(value, mode = this.state.dateMode, ordersPeriod = this.state.ordersPeriod) {
+        const selectedDate = inputValueFromDate(value || this.state.dateValue);
+        const selectedMode = ["day", "month", "all"].includes(mode) ? mode : "day";
+        const selectedOrdersPeriod = ["weekly", "monthly"].includes(ordersPeriod) ? ordersPeriod : "weekly";
+        this.state.dateValue = selectedDate;
+        this.state.dateMode = selectedMode;
+        this.state.ordersPeriod = selectedOrdersPeriod;
+        this.state.dateLoading = true;
+        this.state.dateError = "";
+        try {
+            const payload = await jsonrpc(this.payload.data_url || "/unitrade/seller/dashboard/data", {
+                date: selectedDate,
+                date_mode: selectedMode,
+                orders_period: selectedOrdersPeriod,
+            });
+            if (!payload || payload.success === false) {
+                throw new Error((payload && payload.message) || "Data dashboard belum bisa dimuat.");
+            }
+            this.state.payload = payload;
+            this.state.dateValue = (payload.date_filter && payload.date_filter.value) || selectedDate;
+            this.state.dateMode = (payload.date_filter && payload.date_filter.mode) || selectedMode;
+            this.state.ordersPeriod = payload.orders_period || selectedOrdersPeriod;
+            this.state.datePickerOpen = false;
+            const url = new URL(window.location.href);
+            url.searchParams.set("date", this.state.dateValue);
+            url.searchParams.set("date_mode", this.state.dateMode);
+            url.searchParams.set("orders_period", this.state.ordersPeriod);
+            window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+            window.requestAnimationFrame(() => this.drawChart());
+        } catch (error) {
+            this.state.dateError = error.message || "Data dashboard belum bisa dimuat.";
+        } finally {
+            this.state.dateLoading = false;
+        }
+    }
+
+    applyDateFilter() {
+        return this.loadDashboardForDate(this.state.dateValue, "day", this.state.ordersPeriod);
+    }
+
+    shiftDate(days) {
+        const nextDate = shiftDateValue(this.state.dateValue, days);
+        this.state.dateValue = nextDate;
+        return this.loadDashboardForDate(nextDate, "day", this.state.ordersPeriod);
+    }
+
+    setToday() {
+        const today = todayInputValue();
+        this.state.dateValue = today;
+        return this.loadDashboardForDate(today, "day", this.state.ordersPeriod);
+    }
+
+    setLastMonth() {
+        const anchorDate = this.state.dateValue || todayInputValue();
+        return this.loadDashboardForDate(anchorDate, "month", this.state.ordersPeriod);
+    }
+
+    setAllTime() {
+        const anchorDate = this.state.dateValue || todayInputValue();
+        return this.loadDashboardForDate(anchorDate, "all", this.state.ordersPeriod);
     }
 
     openSearch() {

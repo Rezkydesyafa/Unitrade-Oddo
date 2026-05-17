@@ -85,7 +85,7 @@
                                     <h2>Informasi Publik Toko</h2>
                                     <p>Informasi yang terlihat oleh pembeli</p>
                                 </span>
-                                <label class="ut-settings-switch">
+                                <label class="ut-settings-switch" title="Status toko">
                                     <input type="checkbox" t-att-checked="state.form.storeActive ? true : undefined" t-on-change="setStoreActive"/>
                                     <span></span>
                                     <strong t-esc="state.form.storeActive ? 'Aktif' : 'Nonaktif'"></strong>
@@ -97,14 +97,26 @@
                                     <div class="ut-settings-url-row">
                                         <span class="ut-settings-url-prefix" t-esc="state.form.storeUrlBase"></span>
                                         <input type="text" t-att-value="state.form.slug" t-on-input="(ev) => this.setField('slug', ev)" placeholder="nama-toko"/>
-                                        <a t-att-href="seller.profile_url" class="ut-settings-icon-link" target="_blank" aria-label="Buka profil toko">
+                                        <a t-att-href="storeProfileUrl" class="ut-settings-icon-link" target="_blank" rel="noopener" aria-label="Buka profil toko">
                                             <i class="fa fa-external-link"></i>
                                         </a>
                                     </div>
                                 </div>
                                 <div class="ut-settings-field">
                                     <label>Deskripsi / Catatan Toko</label>
-                                    <textarea t-att-value="state.form.description" t-on-input="(ev) => this.setField('description', ev)" placeholder="Tuliskan jam operasional, kebijakan retur, atau sapaan pembeli"></textarea>
+                                    <textarea t-att-value="state.form.description" maxlength="1000" t-on-input="(ev) => this.setField('description', ev)" placeholder="Tuliskan jam operasional, kebijakan retur, atau sapaan pembeli"></textarea>
+                                    <div class="ut-settings-field-meta">
+                                        <span>Maksimal 1000 karakter</span>
+                                        <strong t-esc="descriptionCounter"></strong>
+                                    </div>
+                                </div>
+                                <div class="ut-settings-field">
+                                    <label>Nomor Telepon / WhatsApp <small>Opsional</small></label>
+                                    <div class="ut-settings-phone-wrap">
+                                        <i class="fa fa-whatsapp"></i>
+                                        <input type="tel" t-att-value="state.form.phone" t-on-input="(ev) => this.setField('phone', ev)" placeholder="08xxxxxxxxxx"/>
+                                    </div>
+                                    <p class="ut-settings-field-hint">Nomor ini membantu pembeli menghubungi toko jika diperlukan.</p>
                                 </div>
                                 <div class="ut-settings-actions">
                                     <button type="button" class="ut-settings-save" t-att-disabled="state.savingSection ? true : undefined" t-on-click="() => this.saveSection('public')">
@@ -120,25 +132,28 @@
                                 <span class="ut-settings-card-icon is-green"><i class="fa fa-map-marker"></i></span>
                                 <span>
                                     <h2>Alamat &amp; Logistik</h2>
-                                    <p>Alamat gudang dan pengaturan pengiriman</p>
+                                    <p>Alamat toko mengikuti alamat utama di profil user</p>
                                 </span>
                             </header>
                             <div class="ut-settings-fields">
-                                <div class="ut-settings-two-grid">
-                                    <div class="ut-settings-field">
-                                        <label>Provinsi</label>
-                                        <input type="text" t-att-value="state.form.province" t-on-input="(ev) => this.setField('province', ev)" placeholder="DI Yogyakarta"/>
+                                <div class="ut-settings-address-card">
+                                    <div class="ut-settings-address-card-head">
+                                        <div>
+                                            <strong>Alamat Utama</strong>
+                                            <span>Dipakai sebagai alamat toko dan logistik seller</span>
+                                        </div>
+                                        <button type="button" class="ut-settings-address-button" t-on-click="openAddressModal">
+                                            Atur Alamat
+                                        </button>
                                     </div>
-                                    <div class="ut-settings-field">
-                                        <label>Kota / Kabupaten</label>
-                                        <input type="text" t-att-value="state.form.city" t-on-input="(ev) => this.setField('city', ev)" placeholder="Sleman"/>
-                                    </div>
-                                </div>
-                                <div class="ut-settings-field">
-                                    <label>Detail Alamat</label>
-                                    <div class="ut-settings-address-wrap">
+                                    <div t-att-class="'ut-settings-address-preview ' + (state.form.addressSummary.has_address ? '' : 'is-empty')">
                                         <i class="fa fa-map-marker"></i>
-                                        <textarea t-att-value="state.form.addressDetail" t-on-input="(ev) => this.setField('addressDetail', ev)" placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan, kecamatan"></textarea>
+                                        <div>
+                                            <strong t-esc="state.form.addressSummary.label || 'Rumah'"></strong>
+                                            <p t-if="state.form.addressSummary.has_address" t-esc="state.form.addressSummary.line"></p>
+                                            <p t-else="">Belum ada alamat tersimpan di profil user.</p>
+                                            <small t-if="state.form.addressSummary.coordinates" t-esc="state.form.addressSummary.coordinates"></small>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="ut-settings-actions">
@@ -200,6 +215,109 @@
                             </div>
                         </section>
                     </main>
+
+                    <div t-att-class="'ut-address-modal ut-settings-address-modal ' + (state.addressModalOpen ? 'is-open' : '')" t-att-aria-hidden="state.addressModalOpen ? 'false' : 'true'">
+                        <div class="ut-address-modal-backdrop" t-on-click="closeAddressModal"></div>
+                        <section class="ut-address-dialog" role="dialog" aria-modal="true" aria-labelledby="ut_seller_address_modal_title">
+                            <div class="ut-address-dialog-scroll">
+                                <header class="ut-address-header">
+                                    <h2 id="ut_seller_address_modal_title">Atur Alamat</h2>
+                                    <button type="button" class="ut-address-icon-btn" t-on-click="closeAddressModal" aria-label="Tutup modal alamat">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M18 6 6 18"/>
+                                            <path d="m6 6 12 12"/>
+                                        </svg>
+                                    </button>
+                                </header>
+
+                                <div class="ut-address-search-wrap">
+                                    <label class="tw-sr-only" for="ut_seller_address_search">Cari alamat</label>
+                                    <input id="ut_seller_address_search" type="search" class="ut-address-input ut-address-search" t-att-value="state.addressSearch" t-on-input="onAddressSearchInput" placeholder="Cari alamat di Indonesia, contoh: UNISA Yogyakarta" autocomplete="off"/>
+                                    <div class="ut-address-suggestions">
+                                        <t t-foreach="state.addressSuggestions" t-as="suggestion" t-key="suggestion.id || suggestion.label || suggestion_index">
+                                            <button t-if="!suggestion.muted" type="button" class="ut-address-suggestion" t-on-click="() => this.selectAddressSuggestion(suggestion)" t-esc="suggestion.label"></button>
+                                            <div t-else="" class="ut-address-suggestion-muted" t-esc="suggestion.label"></div>
+                                        </t>
+                                    </div>
+                                </div>
+
+                                <div class="ut-address-map-wrap">
+                                    <div class="ut-address-map" data-address-map="1"></div>
+                                    <button type="button" class="ut-address-current-btn" t-on-click="useCurrentAddressLocation">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="3"/>
+                                            <path d="M12 2v3"/>
+                                            <path d="M12 19v3"/>
+                                            <path d="M2 12h3"/>
+                                            <path d="M19 12h3"/>
+                                        </svg>
+                                        Gunakan lokasi saya saat ini
+                                    </button>
+                                </div>
+
+                                <div class="ut-address-form-grid">
+                                    <label class="ut-address-field ut-address-field-wide">
+                                        <span>Provinsi</span>
+                                        <input type="text" class="ut-address-input" t-att-value="state.addressForm.province" t-on-input="(ev) => this.setAddressField('province', ev)" placeholder="DI Yogyakarta"/>
+                                    </label>
+                                    <label class="ut-address-field">
+                                        <span>Kota/Kabupaten</span>
+                                        <input type="text" class="ut-address-input" t-att-value="state.addressForm.city" t-on-input="(ev) => this.setAddressField('city', ev)" placeholder="Kota Yogyakarta"/>
+                                    </label>
+                                    <label class="ut-address-field">
+                                        <span>Kecamatan</span>
+                                        <input type="text" class="ut-address-input" t-att-value="state.addressForm.district" t-on-input="(ev) => this.setAddressField('district', ev)" placeholder="Ngampilan"/>
+                                    </label>
+                                    <label class="ut-address-field">
+                                        <span>Kelurahan</span>
+                                        <input type="text" class="ut-address-input" t-att-value="state.addressForm.village" t-on-input="(ev) => this.setAddressField('village', ev)" placeholder="Notoprajan"/>
+                                    </label>
+                                    <label class="ut-address-field">
+                                        <span>Kode Pos</span>
+                                        <input type="text" class="ut-address-input" inputmode="numeric" maxlength="10" t-att-value="state.addressForm.zip" t-on-input="(ev) => this.setAddressField('zip', ev)" placeholder="55262"/>
+                                    </label>
+                                    <label class="ut-address-field ut-address-field-wide">
+                                        <span>Nama Jalan, Gedung, No. Rumah</span>
+                                        <input type="text" class="ut-address-input" t-att-value="state.addressForm.street" t-on-input="(ev) => this.setAddressField('street', ev)" placeholder="Jl. Ringroad Barat No. 63"/>
+                                    </label>
+                                    <label class="ut-address-field ut-address-field-wide">
+                                        <span>Detail lainnya</span>
+                                        <input type="text" class="ut-address-input" t-att-value="state.addressForm.street2" t-on-input="(ev) => this.setAddressField('street2', ev)" placeholder="Cth: Blok/Unit, patokan, nama kos"/>
+                                    </label>
+                                </div>
+
+                                <div class="ut-address-coordinate-row">
+                                    <label>
+                                        <span>Latitude</span>
+                                        <input type="text" readonly="readonly" t-att-value="state.addressForm.latitude"/>
+                                    </label>
+                                    <label>
+                                        <span>Longitude</span>
+                                        <input type="text" readonly="readonly" t-att-value="state.addressForm.longitude"/>
+                                    </label>
+                                </div>
+
+                                <div class="ut-address-label-group">
+                                    <p>Tandai Sebagai</p>
+                                    <div class="ut-address-label-row" role="radiogroup" aria-label="Label alamat">
+                                        <button type="button" t-att-class="addressLabelClass('home')" t-on-click="() => this.setAddressLabel('home')">Rumah</button>
+                                        <button type="button" t-att-class="addressLabelClass('office')" t-on-click="() => this.setAddressLabel('office')">Kantor</button>
+                                        <button type="button" t-att-class="addressLabelClass('school')" t-on-click="() => this.setAddressLabel('school')">Sekolah</button>
+                                        <button type="button" t-att-class="addressLabelClass('other')" t-on-click="() => this.setAddressLabel('other')">Lainnya</button>
+                                    </div>
+                                </div>
+
+                                <div t-att-class="'ut-address-error ' + (state.addressError ? 'is-visible' : '')" role="alert" t-esc="state.addressError"></div>
+                            </div>
+                            <footer class="ut-address-footer">
+                                <button type="button" class="ut-address-cancel" t-on-click="closeAddressModal">Batal</button>
+                                <button type="button" class="ut-address-save" t-att-disabled="state.addressSaving ? true : undefined" t-on-click="saveAddress">
+                                    <t t-if="state.addressSaving">Menyimpan...</t>
+                                    <t t-else="">Simpan</t>
+                                </button>
+                            </footer>
+                        </section>
+                    </div>
                 </div>
             </t>
         </div>

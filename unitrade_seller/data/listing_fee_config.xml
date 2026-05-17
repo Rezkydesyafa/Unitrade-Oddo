@@ -1,0 +1,18 @@
+<odoo>
+    <function model="ir.config_parameter" name="set_param">
+        <value>unitrade.seller.listing_fee.threshold</value>
+        <value>1000000</value>
+    </function>
+    <function model="ir.config_parameter" name="set_param">
+        <value>unitrade.seller.listing_fee.low_amount</value>
+        <value>2000</value>
+    </function>
+    <function model="ir.config_parameter" name="set_param">
+        <value>unitrade.seller.listing_fee.high_amount</value>
+        <value>5000</value>
+    </function>
+    <function model="ir.config_parameter" name="set_param">
+        <value>unitrade.seller.posting_admin_fee</value>
+        <value>0</value>
+    </function>
+</odoo>

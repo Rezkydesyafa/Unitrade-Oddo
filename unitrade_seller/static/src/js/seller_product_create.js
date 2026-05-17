@@ -24,6 +24,12 @@ function formatFileSize(size) {
     return `${Math.max(1, Math.round(bytes / 1024))} KB`;
 }
 
+function formatRupiah(amount) {
+    const value = Number(amount || 0);
+    const rounded = Number.isFinite(value) ? Math.round(value) : 0;
+    return `Rp ${rounded.toLocaleString("id-ID")}`;
+}
+
 function shortName(name) {
     const value = String(name || "produk.jpg");
     if (value.length <= 22) {
@@ -74,6 +80,48 @@ function datasetPayload(dataset, parsed) {
         data_url: "/unitrade/seller/products/new/data",
         submit_url: "/unitrade/seller/products/create",
         delete_url: "",
+        payment_url: "",
+    };
+}
+
+function paymentPayload(dataset, parsed) {
+    if (parsed && parsed.product) {
+        return parsed;
+    }
+    return {
+        seller: {
+            name: dataset.sellerName || "Penjual UniTrade",
+            avatar_url: dataset.sellerAvatarUrl || "/web/static/img/user_menu_avatar.png",
+            profile_url: dataset.sellerProfileUrl || "/unitrade/seller/dashboard",
+        },
+        stats: {
+            notification_count: toNumber(dataset.notificationCount),
+            unread_chat_count: toNumber(dataset.unreadChatCount),
+        },
+        product: {
+            id: 0,
+            name: "Produk UniTrade",
+            category: "Barang",
+            price_label: "Rp 0",
+            image_url: "/web/static/img/placeholder.png",
+            products_url: "/unitrade/seller/products",
+        },
+        fees: {
+            posting_fee: 0,
+            posting_fee_label: "Rp 0",
+            admin_fee: 0,
+            admin_fee_label: "Rp 0",
+            total: 0,
+            total_label: "Rp 0",
+            balance: 0,
+            balance_label: "Rp 0",
+            tier_label: "",
+            percent_label: "",
+        },
+        methods: [],
+        data_url: "",
+        submit_url: "",
+        existing_intent: {},
     };
 }
 
@@ -104,6 +152,7 @@ export class SellerProductCreate extends Component {
             dataUrl: payload.data_url || "/unitrade/seller/products/new/data",
             submitUrl: payload.submit_url || "/unitrade/seller/products/create",
             deleteUrl: payload.delete_url || "",
+            paymentUrl: payload.payment_url || "",
             seller: payload.seller || {},
             stats: payload.stats || {},
             categories: payload.categories || [],
@@ -209,6 +258,7 @@ export class SellerProductCreate extends Component {
             this.state.productId = result.product_id || this.state.productId;
             this.state.submitUrl = result.submit_url || this.state.submitUrl;
             this.state.deleteUrl = result.delete_url || this.state.deleteUrl;
+            this.state.paymentUrl = result.payment_url || this.state.paymentUrl;
             this.applyProductPayload(result.product || null);
         } catch (error) {
             console.error("[UniTrade] Seller product create:", error);
@@ -402,7 +452,7 @@ export class SellerProductCreate extends Component {
             }
             this.state.success = result.message || (this.isEditMode ? "Perubahan produk berhasil disimpan." : "Produk berhasil diposting.");
             window.setTimeout(() => {
-                window.location.href = result.redirect_url || this.state.productsUrl;
+                window.location.href = result.payment_url || result.redirect_url || this.state.paymentUrl || this.state.productsUrl;
             }, 900);
         } catch (error) {
             console.error("[UniTrade] Seller product submit:", error);
@@ -440,6 +490,195 @@ export class SellerProductCreate extends Component {
     }
 }
 
+export class SellerProductPayment extends Component {
+    static template = "unitrade_seller.SellerProductPayment";
+    static props = {
+        payload: Object,
+    };
+
+    setup() {
+        const payload = this.props.payload || {};
+        this.state = useState({
+            ready: false,
+            loading: true,
+            submitting: false,
+            sidebarOpen: false,
+            error: "",
+            success: "",
+            expandedMethod: "",
+            selectedChannel: "",
+            acceptedTerms: false,
+            paymentResult: null,
+            seller: payload.seller || {},
+            stats: payload.stats || {},
+            product: payload.product || {},
+            fees: payload.fees || {},
+            methods: payload.methods || [],
+            dataUrl: payload.data_url || "",
+            submitUrl: payload.submit_url || "",
+            existingIntent: payload.existing_intent || {},
+        });
+        onMounted(() => this.loadData());
+    }
+
+    get seller() {
+        return this.state.seller || {};
+    }
+
+    get stats() {
+        return this.state.stats || {};
+    }
+
+    get rootClass() {
+        const classes = ["ut-seller-dashboard-page", "tw-fixed", "tw-inset-0", "tw-z-[1100]", "tw-overflow-auto", "tw-bg-[#f5f5f7]"];
+        if (this.state.sidebarOpen) {
+            classes.push("ut-is-sidebar-open");
+        }
+        return classes.join(" ");
+    }
+
+    get sidebarItems() {
+        return sellerSidebarItems("products", this.stats);
+    }
+
+    get sidebarClass() {
+        return "ut-product-create-sidebar";
+    }
+
+    get canPay() {
+        return Boolean(this.state.selectedChannel && this.state.acceptedTerms && !this.state.submitting);
+    }
+
+    get totalLabel() {
+        return this.state.fees.total_label || formatRupiah(this.state.fees.total);
+    }
+
+    get productsUrl() {
+        return this.state.product.products_url || "/unitrade/seller/products";
+    }
+
+    sidebarItemClass(item) {
+        const base = "ut-dash-sidebar-item";
+        return item.active ? `${base} active` : base;
+    }
+
+    methodClass(method) {
+        const classes = ["ut-product-payment-method"];
+        if (this.state.expandedMethod === method.key) {
+            classes.push("is-selected");
+        }
+        if ((method.channels || []).some((channel) => channel.key === this.state.selectedChannel)) {
+            classes.push("has-selected-channel");
+        }
+        if (method.insufficient) {
+            classes.push("is-warning");
+        }
+        return classes.join(" ");
+    }
+
+    channelClass(channel) {
+        const classes = ["ut-product-payment-channel"];
+        if (this.state.selectedChannel === channel.key) {
+            classes.push("is-active");
+        }
+        return classes.join(" ");
+    }
+
+    toggleSidebar() {
+        this.state.sidebarOpen = !this.state.sidebarOpen;
+    }
+
+    closeSidebar() {
+        this.state.sidebarOpen = false;
+    }
+
+    onSidebarNavClick() {
+        if (window.innerWidth <= 1024) {
+            this.closeSidebar();
+        }
+    }
+
+    async loadData() {
+        if (!this.state.dataUrl) {
+            this.state.loading = false;
+            this.state.ready = true;
+            return;
+        }
+        this.state.loading = true;
+        this.state.error = "";
+        try {
+            const result = await jsonrpc(this.state.dataUrl, {});
+            if (!result.success) {
+                throw new Error(result.message || "Data pembayaran belum bisa dimuat.");
+            }
+            this.state.seller = result.seller || this.state.seller;
+            this.state.stats = result.stats || this.state.stats;
+            this.state.product = result.product || this.state.product;
+            this.state.fees = result.fees || this.state.fees;
+            this.state.methods = result.methods || this.state.methods;
+            this.state.submitUrl = result.submit_url || this.state.submitUrl;
+            this.state.existingIntent = result.existing_intent || {};
+        } catch (error) {
+            console.error("[UniTrade] Seller product payment:", error);
+            this.state.error = error.message || "Data pembayaran belum bisa dimuat.";
+        } finally {
+            this.state.loading = false;
+            window.setTimeout(() => {
+                this.state.ready = true;
+            }, 160);
+        }
+    }
+
+    toggleMethod(method) {
+        this.state.expandedMethod = this.state.expandedMethod === method.key ? "" : method.key;
+        this.state.error = "";
+        this.state.success = "";
+        this.state.paymentResult = null;
+    }
+
+    selectChannel(method, channel) {
+        if (method.insufficient) {
+            this.state.error = "Saldo akun belum mencukupi untuk metode ini.";
+            return;
+        }
+        this.state.expandedMethod = method.key;
+        this.state.selectedChannel = channel.key;
+        this.state.error = "";
+        this.state.success = "";
+        this.state.paymentResult = null;
+    }
+
+    toggleTerms(ev) {
+        this.state.acceptedTerms = Boolean(ev.target.checked);
+        this.state.error = "";
+    }
+
+    async submitPayment() {
+        if (!this.canPay) {
+            return;
+        }
+        this.state.submitting = true;
+        this.state.error = "";
+        this.state.success = "";
+        try {
+            const result = await jsonrpc(this.state.submitUrl, {
+                payment_method: this.state.selectedChannel,
+                accepted_terms: this.state.acceptedTerms,
+            });
+            if (!result.success) {
+                throw new Error(result.message || "Pembayaran belum bisa dibuat.");
+            }
+            this.state.paymentResult = result;
+            this.state.success = result.message || "Transaksi pembayaran berhasil dibuat.";
+        } catch (error) {
+            console.error("[UniTrade] Seller listing payment:", error);
+            this.state.error = error.message || "Pembayaran belum bisa dibuat.";
+        } finally {
+            this.state.submitting = false;
+        }
+    }
+}
+
 publicWidget.registry.UnitradeSellerProductCreate = publicWidget.Widget.extend({
     selector: "#wrap.ut-seller-product-create-mount, #wrap.ut-seller-product-edit-mount",
 
@@ -454,6 +693,36 @@ publicWidget.registry.UnitradeSellerProductCreate = publicWidget.Widget.extend({
         const payload = datasetPayload(this.el.dataset, parsed);
         this.el.innerHTML = "";
         this.component = await mount(SellerProductCreate, this.el, {
+            props: { payload },
+            templates,
+        });
+        return superPromise;
+    },
+
+    destroy() {
+        if (this.component && this.component.destroy) {
+            this.component.destroy();
+        }
+        if (this._super) {
+            this._super.apply(this, arguments);
+        }
+    },
+});
+
+publicWidget.registry.UnitradeSellerProductPayment = publicWidget.Widget.extend({
+    selector: "#wrap.ut-seller-product-payment-mount",
+
+    async start() {
+        const superPromise = this._super ? this._super.apply(this, arguments) : Promise.resolve();
+        let parsed = {};
+        try {
+            parsed = JSON.parse(this.el.dataset.productPaymentPayload || "{}");
+        } catch (error) {
+            console.error("[UniTrade] Seller product payment payload:", error);
+        }
+        const payload = paymentPayload(this.el.dataset, parsed);
+        this.el.innerHTML = "";
+        this.component = await mount(SellerProductPayment, this.el, {
             props: { payload },
             templates,
         });
