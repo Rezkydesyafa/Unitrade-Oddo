@@ -10,6 +10,8 @@
                         <a href="/shop" class="tw-whitespace-nowrap tw-font-semibold tw-text-black tw-no-underline tw-transition-colors hover:tw-text-[#545454]">Belanja Sekarang &#8594;</a>
                         <span class="tw-hidden tw-font-semibold tw-text-[#939393] sm:tw-inline">|</span>
                         <a href="/seller-onboarding" class="tw-hidden tw-whitespace-nowrap tw-font-semibold tw-text-black tw-no-underline tw-transition-colors hover:tw-text-[#545454] sm:tw-inline">Mulai Berjualan</a>
+                        <span class="tw-hidden tw-font-semibold tw-text-[#939393] sm:tw-inline">|</span>
+                        <a href="/unitrade/sponsorship" class="tw-hidden tw-whitespace-nowrap tw-font-semibold tw-text-black tw-no-underline tw-transition-colors hover:tw-text-[#545454] sm:tw-inline">Sponsorship</a>
                     </div>
                     <div class="tw-hidden tw-items-center tw-gap-4 md:tw-flex">
                         <a href="/help" class="tw-font-normal tw-text-black tw-no-underline tw-transition-colors hover:tw-text-[#545454]">Bantuan</a>
@@ -134,6 +136,7 @@
                     <nav class="tw-grid tw-gap-1">
                         <a href="/shop" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Belanja Sekarang</a>
                         <a href="/seller-onboarding" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Mulai Berjualan</a>
+                        <a href="/unitrade/sponsorship" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Sponsorship</a>
                         <a href="/help" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Bantuan</a>
                         <a href="/contactus" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Kontak</a>
                         <t t-if="not website.is_public_user()">
