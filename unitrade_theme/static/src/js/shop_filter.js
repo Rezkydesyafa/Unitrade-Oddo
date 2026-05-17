@@ -10,7 +10,7 @@ const MIN_GAP_K = 10;
 const AUTO_APPLY_DELAY_MS = 500;
 const DEFAULT_LAT = -7.7956;
 const DEFAULT_LON = 110.3695;
-const SORT_KEYS = new Set(["terkait", "terlaris", "terbaru", "termurah", "termahal"]);
+const SORT_KEYS = new Set(["terkait", "terlaris", "terbaru", "termurah", "termahal", "promo"]);
 const LOCATION_KEYS = new Set(["terdekat", "kabupaten", "diy"]);
 
 function intOrDefault(value, fallback) {
