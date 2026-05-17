@@ -1,9 +1,10 @@
 import logging
 import json
+from datetime import timedelta
 
 import requests
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
@@ -220,6 +221,48 @@ class UnitradeEscrowLedger(models.Model):
                 'completed_at': now,
             })
         self._sync_order_escrow_state()
+
+    @api.model
+    def cron_auto_confirm_buyer_receipt(self):
+        raw_hours = self.env['ir.config_parameter'].sudo().get_param(
+            'unitrade.escrow.auto_confirm_receipt_hours',
+            default='48',
+        )
+        try:
+            timeout_hours = int(float(raw_hours or 48))
+        except (TypeError, ValueError):
+            timeout_hours = 48
+        timeout_hours = max(1, min(timeout_hours, 24 * 14))
+        cutoff = fields.Datetime.now() - timedelta(hours=timeout_hours)
+
+        ledgers = self.sudo().search([
+            ('state', '=', 'held'),
+            ('seller_confirmed_at', '!=', False),
+            ('seller_confirmed_at', '<=', cutoff),
+            ('buyer_confirmed_at', '=', False),
+            ('order_id.x_payment_status', '=', 'paid'),
+            ('order_id.x_unitrade_order_state', 'not in', ['cancelled', 'completed']),
+        ])
+        if not ledgers:
+            return True
+
+        now = fields.Datetime.now()
+        confirmed_ledgers = self.browse()
+        for ledger in ledgers:
+            try:
+                with self.env.cr.savepoint():
+                    ledger.write({
+                        'buyer_confirmed_at': now,
+                        'buyer_received_filename': _('Dikonfirmasi otomatis setelah 2x24 jam'),
+                    })
+                    confirmed_ledgers |= ledger
+            except Exception:
+                _logger.exception('Failed to auto-confirm buyer receipt for escrow ledger %s', ledger.id)
+
+        if confirmed_ledgers:
+            confirmed_ledgers._mark_releasable_if_fully_confirmed()
+            _logger.info('Auto-confirmed %s UniTrade escrow ledger(s) after buyer receipt timeout.', len(confirmed_ledgers))
+        return True
 
     def _ensure_confirmable(self):
         for ledger in self:

@@ -77,6 +77,14 @@ class SaleOrderUniTrade(models.Model):
     x_cancelled_at = fields.Datetime(string='Waktu Pembatalan', readonly=True, copy=False)
     x_cancel_reason = fields.Text(string='Alasan Pembatalan', readonly=True, copy=False)
     x_completed_at = fields.Datetime(string='Waktu Selesai UniTrade', readonly=True, copy=False)
+    x_unitrade_voucher_id = fields.Many2one('unitrade.voucher', string='Voucher UniTrade', readonly=True, copy=False)
+    x_unitrade_voucher_code = fields.Char(string='Kode Voucher UniTrade', readonly=True, copy=False)
+    x_unitrade_voucher_discount = fields.Monetary(
+        string='Diskon Voucher UniTrade',
+        currency_field='currency_id',
+        readonly=True,
+        copy=False,
+    )
 
     def _get_midtrans_key(self, key_name):
         return self.env['ir.config_parameter'].sudo().get_param(key_name, default='')
@@ -139,6 +147,65 @@ class SaleOrderUniTrade(models.Model):
         if 'unitrade.escrow.ledger' not in self.env.registry:
             return self.env['sale.order'].browse()
         return self.env['unitrade.escrow.ledger'].sudo().search([('order_id', '=', self.id)])
+
+    def unitrade_status_payload(self, ledger=False):
+        """Centralized UniTrade order status labels matching the analysis document."""
+        self.ensure_one()
+        if self.state == 'cancel':
+            return {'key': 'cancel', 'label': _('Dibatalkan')}
+        payment_status = self.x_payment_status or ''
+        unitrade_state = self.x_unitrade_order_state or ''
+        if payment_status == 'refunded' or unitrade_state == 'refunded':
+            return {'key': 'refund', 'label': _('Pengembalian')}
+        if payment_status in ('failed', 'expired', 'cancelled') or unitrade_state == 'cancelled':
+            return {'key': 'cancel', 'label': _('Dibatalkan')}
+        if 'unitrade.dispute' in self.env.registry:
+            refund_domain = [
+                ('order_id', '=', self.id),
+                ('state', 'in', self.env['unitrade.dispute'].ACTIVE_STATES),
+            ]
+            if ledger:
+                refund_domain.append(('escrow_ledger_id', '=', ledger.id))
+            if self.env['unitrade.dispute'].sudo().search(refund_domain, limit=1):
+                return {
+                    'key': 'refund',
+                    'label': _('Pengembalian'),
+                    'note': _('Pengajuan refund sedang ditinjau UniTrade.'),
+                    'can_confirm_received': False,
+                    'can_cancel_order': False,
+                }
+        if payment_status in ('pending', '') and self.state not in ('sale', 'done'):
+            cancel_blocker = self._unitrade_direct_cancel_blocker() if hasattr(self, '_unitrade_direct_cancel_blocker') else True
+            return {
+                'key': 'unpaid',
+                'label': _('Menunggu Pembayaran'),
+                'note': _('Selesaikan pembayaran atau batalkan pesanan jika tidak jadi membayar.'),
+                'can_cancel_order': not bool(cancel_blocker),
+            }
+        if unitrade_state == 'completed':
+            return {'key': 'done', 'label': _('Selesai')}
+        if payment_status == 'paid':
+            buyer_confirmed = bool(ledger and ledger.buyer_confirmed_at)
+            seller_confirmed = bool(ledger and ledger.seller_confirmed_at)
+            if seller_confirmed and not buyer_confirmed:
+                return {
+                    'key': 'confirmation',
+                    'label': _('Menunggu Konfirmasi'),
+                    'note': _('Penjual sudah menyerahkan barang. Konfirmasi setelah barang diterima.'),
+                    'can_confirm_received': bool(ledger),
+                    'can_cancel_order': False,
+                }
+            cancel_blocker = self._unitrade_direct_cancel_blocker() if hasattr(self, '_unitrade_direct_cancel_blocker') else True
+            return {
+                'key': 'processing',
+                'label': _('Diproses'),
+                'note': _('Menunggu penjual menyerahkan barang dan mengunggah bukti.'),
+                'can_confirm_received': False,
+                'can_cancel_order': not bool(cancel_blocker),
+            }
+        if self.state in ('sale', 'done'):
+            return {'key': 'done', 'label': _('Selesai')}
+        return {'key': 'unpaid', 'label': _('Menunggu Pembayaran')}
 
     def _unitrade_validate_buyer_partner(self, partner):
         self.ensure_one()
@@ -251,6 +318,32 @@ class SaleOrderUniTrade(models.Model):
         })
         return product
 
+    def _unitrade_voucher_discount_product(self):
+        product = self.env.ref('unitrade_payment.product_unitrade_voucher_discount', raise_if_not_found=False)
+        if product:
+            return product.sudo()
+        product = self.env['product.product'].sudo().create({
+            'name': 'UniTrade Voucher Discount',
+            'detailed_type': 'service',
+            'sale_ok': False,
+            'purchase_ok': False,
+            'list_price': 0.0,
+            'taxes_id': [(6, 0, [])],
+        })
+        self.env['ir.model.data'].sudo().create({
+            'module': 'unitrade_payment',
+            'name': 'product_unitrade_voucher_discount',
+            'model': 'product.product',
+            'res_id': product.id,
+            'noupdate': True,
+        })
+        return product
+
+    def _unitrade_voucher_lines(self):
+        self.ensure_one()
+        voucher_product = self._unitrade_voucher_discount_product()
+        return self.order_line.filtered(lambda line: voucher_product and line.product_id == voucher_product)
+
     def _unitrade_midtrans_checkout_methods(self, base_amount=None):
         self.ensure_one()
         config = self.env['ir.config_parameter'].sudo()
@@ -304,21 +397,106 @@ class SaleOrderUniTrade(models.Model):
         self.ensure_one()
         service_fee_product = self._unitrade_service_fee_product() if hasattr(self, '_unitrade_service_fee_product') else self.env['product.product']
         payment_fee_product = self._unitrade_payment_fee_product()
+        voucher_product = self._unitrade_voucher_discount_product()
         return self.order_line.filtered(
             lambda line: (
                 not line.display_type
                 and line.product_id
                 and line.product_id != service_fee_product
                 and line.product_id != payment_fee_product
+                and line.product_id != voucher_product
             )
         )
+
+    def _unitrade_clear_voucher_lines(self):
+        for order in self.sudo():
+            voucher_lines = order._unitrade_voucher_lines()
+            if voucher_lines:
+                voucher_lines.unlink()
+        return True
+
+    def _unitrade_sync_voucher_line(self, amount):
+        self.ensure_one()
+        voucher_product = self._unitrade_voucher_discount_product()
+        voucher_lines = self._unitrade_voucher_lines()
+        if not voucher_product:
+            return
+        amount = self.currency_id.round(amount or 0.0)
+        if amount > 0:
+            values = {
+                'order_id': self.id,
+                'product_id': voucher_product.id,
+                'product_uom_qty': 1.0,
+                'price_unit': -amount,
+                'name': self.x_unitrade_voucher_code or voucher_product.display_name,
+                'tax_id': [(6, 0, [])],
+            }
+            if voucher_lines:
+                voucher_lines[0].sudo().write({
+                    'product_uom_qty': 1.0,
+                    'price_unit': -amount,
+                    'name': values['name'],
+                    'tax_id': [(6, 0, [])],
+                })
+                stale_lines = voucher_lines - voucher_lines[0]
+                if stale_lines:
+                    stale_lines.sudo().unlink()
+            else:
+                self.env['sale.order.line'].sudo().create(values)
+        else:
+            self._unitrade_clear_voucher_lines()
+
+    def _unitrade_voucher_buyer_user(self):
+        self.ensure_one()
+        portal_users = self.partner_id.user_ids.filtered(lambda user: not user.has_group('base.group_user'))
+        return portal_users[:1] or self.env.user
+
+    def _unitrade_apply_voucher_code(self, code):
+        self.ensure_one()
+        if self.state != 'draft':
+            raise ValidationError(_('Voucher hanya bisa diterapkan sebelum pembayaran dibuat.'))
+        normalized = self.env['unitrade.voucher']._normalize_code(code)
+        if not normalized:
+            raise ValidationError(_('Masukkan kode voucher.'))
+        voucher = self.env['unitrade.voucher'].sudo().search([('code', '=', normalized)], limit=1)
+        if not voucher:
+            raise ValidationError(_('Kode voucher tidak ditemukan.'))
+        if hasattr(self, '_unitrade_sync_checkout_product_prices'):
+            self._unitrade_sync_checkout_product_prices()
+        product_lines = self._unitrade_product_lines_for_checkout()
+        subtotal = self.currency_id.round(sum(product_lines.mapped('price_subtotal')))
+        voucher._validate_for_order(self, user=self._unitrade_voucher_buyer_user(), subtotal=subtotal)
+        discount = voucher._discount_for_order(self, subtotal=subtotal)
+        if discount <= 0:
+            raise ValidationError(_('Voucher tidak menghasilkan diskon untuk keranjang ini.'))
+        self.sudo().write({
+            'x_unitrade_voucher_id': voucher.id,
+            'x_unitrade_voucher_code': normalized,
+            'x_unitrade_voucher_discount': discount,
+        })
+        self._unitrade_sync_voucher_line(discount)
+        self.invalidate_recordset(['order_line', 'amount_untaxed', 'amount_tax', 'amount_total'])
+        return self._unitrade_checkout_amounts(sync_fee=False)
+
+    def _unitrade_remove_voucher(self):
+        for order in self.sudo():
+            order.write({
+                'x_unitrade_voucher_id': False,
+                'x_unitrade_voucher_code': False,
+                'x_unitrade_voucher_discount': 0.0,
+            })
+            order._unitrade_clear_voucher_lines()
+            order.invalidate_recordset(['order_line', 'amount_untaxed', 'amount_tax', 'amount_total'])
+        return True
 
     def _unitrade_checkout_amounts(self, sync_fee=False, payment_method=None):
         self.ensure_one()
         service_fee_product = self._unitrade_service_fee_product() if hasattr(self, '_unitrade_service_fee_product') else self.env['product.product']
         payment_fee_product = self._unitrade_payment_fee_product()
+        voucher_product = self._unitrade_voucher_discount_product()
         service_fee_lines = self.order_line.filtered(lambda line: line.product_id == service_fee_product)
         payment_fee_lines = self.order_line.filtered(lambda line: line.product_id == payment_fee_product)
+        voucher_lines = self.order_line.filtered(lambda line: line.product_id == voucher_product)
         product_lines = self._unitrade_product_lines_for_checkout()
 
         if sync_fee and self.state == 'draft':
@@ -328,6 +506,7 @@ class SaleOrderUniTrade(models.Model):
                 self.invalidate_recordset(['order_line', 'amount_untaxed', 'amount_tax', 'amount_total'])
                 service_fee_lines = self.order_line.filtered(lambda line: line.product_id == service_fee_product)
                 payment_fee_lines = self.order_line.filtered(lambda line: line.product_id == payment_fee_product)
+                voucher_lines = self.order_line.filtered(lambda line: line.product_id == voucher_product)
                 product_lines = self._unitrade_product_lines_for_checkout()
 
             taxed_lines = product_lines.filtered(lambda line: line.tax_id)
@@ -338,17 +517,42 @@ class SaleOrderUniTrade(models.Model):
 
         subtotal = self.currency_id.round(sum(product_lines.mapped('price_subtotal')))
         service_fee = self._unitrade_service_fee_amount(subtotal) if hasattr(self, '_unitrade_service_fee_amount') else 0.0
-        payment_base = self.currency_id.round(subtotal + service_fee)
+        voucher_discount = 0.0
+        if self.x_unitrade_voucher_id:
+            try:
+                self.x_unitrade_voucher_id.sudo()._validate_for_order(
+                    self,
+                    user=self._unitrade_voucher_buyer_user(),
+                    subtotal=subtotal,
+                )
+                voucher_discount = self.x_unitrade_voucher_id.sudo()._discount_for_order(self, subtotal=subtotal)
+            except ValidationError:
+                if sync_fee and self.state == 'draft':
+                    self._unitrade_remove_voucher()
+                    voucher_lines = self.env['sale.order.line'].browse()
+                voucher_discount = 0.0
+        elif voucher_lines and sync_fee and self.state == 'draft':
+            voucher_lines.sudo().unlink()
+            voucher_lines = self.env['sale.order.line'].browse()
+
+        if sync_fee and self.state == 'draft':
+            self.sudo().write({'x_unitrade_voucher_discount': voucher_discount})
+            self._unitrade_sync_voucher_line(voucher_discount)
+
+        payment_base = self.currency_id.round(max(subtotal + service_fee - voucher_discount, 0.0))
         payment_fee = self._unitrade_payment_fee_amount(payment_method, payment_base) if payment_method else 0.0
 
         return {
             'service_fee_product_id': service_fee_product.id if service_fee_product else False,
             'payment_fee_product_id': payment_fee_product.id if payment_fee_product else False,
+            'voucher_discount_product_id': voucher_product.id if voucher_product else False,
             'item_subtotal': subtotal,
             'service_fee': service_fee,
             'payment_fee': payment_fee,
+            'voucher_discount': voucher_discount,
+            'voucher_code': self.x_unitrade_voucher_code or '',
             'tax': 0.0,
-            'total': self.currency_id.round(subtotal + service_fee + payment_fee),
+            'total': self.currency_id.round(max(subtotal + service_fee + payment_fee - voucher_discount, 0.0)),
             'item_quantity': sum(product_lines.mapped('product_uom_qty')),
         }
 
@@ -431,6 +635,8 @@ class SaleOrderUniTrade(models.Model):
             'currency_id': self.currency_id.id,
             'service_fee': int(round(amounts.get('service_fee', 0.0))),
             'payment_fee': int(round(amounts.get('payment_fee', 0.0))),
+            'voucher_code': amounts.get('voucher_code') or '',
+            'voucher_discount': int(round(amounts.get('voucher_discount', 0.0))),
             'total': int(round(amounts.get('total', self.amount_total))),
             'lines': line_payload,
         }
@@ -507,6 +713,13 @@ class SaleOrderUniTrade(models.Model):
                 'price': int(round(amounts['payment_fee'])),
                 'quantity': 1,
                 'name': 'Biaya Payment',
+            })
+        if amounts.get('voucher_discount'):
+            items.append({
+                'id': 'unitrade-voucher',
+                'price': -int(round(amounts['voucher_discount'])),
+                'quantity': 1,
+                'name': ('Voucher %s' % (amounts.get('voucher_code') or '')).strip()[:50],
             })
         return items
 
@@ -927,6 +1140,16 @@ class SaleOrderUniTrade(models.Model):
                 'currency': currency,
                 'category': 'Fee',
             })
+        if amounts.get('voucher_discount'):
+            items.append({
+                'type': 'DISCOUNT',
+                'name': ('Voucher %s' % (amounts.get('voucher_code') or '')).strip()[:255],
+                'quantity': 1,
+                'reference_id': 'unitrade-voucher',
+                'net_unit_amount': -int(round(amounts['voucher_discount'])),
+                'currency': currency,
+                'category': 'Discount',
+            })
         return items
 
     def _xendit_channel_properties(self, method, finish_url, expires_at):
@@ -1276,10 +1499,13 @@ class SaleOrderUniTrade(models.Model):
         product_ids = []
         service_fee_product = self.env.ref('unitrade_theme.product_unitrade_service_fee', raise_if_not_found=False)
         payment_fee_product = self.env.ref('unitrade_payment.product_unitrade_payment_fee', raise_if_not_found=False)
+        voucher_product = self.env.ref('unitrade_payment.product_unitrade_voucher_discount', raise_if_not_found=False)
         if service_fee_product:
             product_ids.append(service_fee_product.id)
         if payment_fee_product:
             product_ids.append(payment_fee_product.id)
+        if voucher_product:
+            product_ids.append(voucher_product.id)
 
         if not product_ids or not orders:
             removed_count = 0

@@ -329,6 +329,58 @@ class UnitradePaymentController(http.Controller):
 
         return base64.b64encode(data).decode('ascii'), upload.filename
 
+    def _binary_image_data_uri(self, image, default=''):
+        if not image:
+            return default
+        try:
+            return image_data_uri(image.encode() if isinstance(image, str) else image)
+        except Exception:
+            _logger.exception('Failed to build image data URI for order status page.')
+            return default
+
+    def _order_status_seller_value(self, seller):
+        seller = seller.sudo()
+        avatar_image = (
+            seller.x_avatar_128
+            or (seller.user_id.avatar_128 if seller.user_id else False)
+            or (seller.partner_id.image_128 if seller.partner_id else False)
+        )
+        public_ref = seller.x_store_slug or seller.x_profile_uuid or str(seller.id)
+        location = ', '.join(part for part in [
+            seller.x_store_city or '',
+            seller.x_store_province or '',
+        ] if part)
+        return {
+            'id': seller.id,
+            'name': seller.name or seller.user_id.name or _('Penjual UniTrade'),
+            'avatar_url': self._binary_image_data_uri(avatar_image, '/web/static/img/user_menu_avatar.png'),
+            'description': seller.x_profile_description or seller.x_payout_note or '',
+            'location': location,
+            'address': seller.x_store_address_detail or seller.x_profile_address or '',
+            'profile_url': '/seller-profile/%s' % quote(str(public_ref)),
+            'chat_url': '/seller-profile/%s/chat' % quote(str(public_ref)),
+            'active': bool(seller.x_store_active),
+        }
+
+    def _order_status_fallback_seller_value(self, product_lines):
+        product_template = product_lines[:1].product_id.product_tmpl_id if product_lines else False
+        name = ''
+        location = ''
+        if product_template:
+            name = getattr(product_template, 'x_seller_name', '') or ''
+            location = getattr(product_template, 'x_seller_location', '') or ''
+        return {
+            'id': 0,
+            'name': name or _('Penjual UniTrade'),
+            'avatar_url': '/web/static/img/user_menu_avatar.png',
+            'description': '',
+            'location': location,
+            'address': '',
+            'profile_url': '#',
+            'chat_url': '#',
+            'active': True,
+        }
+
     def _payment_method_meta(self, intent):
         return PAYMENT_METHOD_UI.get(intent.payment_method_code or '', {
             'title': intent.payment_method_label or 'Midtrans',
@@ -384,6 +436,10 @@ class UnitradePaymentController(http.Controller):
             payment_fee_product = order._unitrade_payment_fee_product()
             if payment_fee_product:
                 excluded_product_ids.add(payment_fee_product.id)
+        if hasattr(order, '_unitrade_voucher_discount_product'):
+            voucher_product = order._unitrade_voucher_discount_product()
+            if voucher_product:
+                excluded_product_ids.add(voucher_product.id)
         return order.order_line.filtered(
             lambda line: (
                 not line.display_type
@@ -587,21 +643,25 @@ class UnitradePaymentController(http.Controller):
             }
         status_map = {
             'pending': ('Menunggu Pembayaran', 'Pembayaran belum dikonfirmasi oleh Midtrans.'),
-            'paid': ('Barang Di Proses', 'Pembayaran berhasil. Penjual akan menyerahkan barang dan mengunggah bukti terlebih dahulu.'),
+            'paid': ('Diproses', 'Pembayaran berhasil. Penjual akan menyerahkan barang dan mengunggah bukti terlebih dahulu.'),
             'failed': ('Gagal', 'Pembayaran gagal. Silakan buat pembayaran baru dari checkout.'),
             'expired': ('Kedaluwarsa', 'Waktu pembayaran sudah habis.'),
             'cancelled': ('Dibatalkan', 'Pembayaran dibatalkan.'),
-            'refunded': ('Refund', 'Dana dikembalikan ke pembeli.'),
+            'refunded': ('Pengembalian', 'Dana dikembalikan ke pembeli.'),
         }
         payment_title, payment_copy = status_map.get(order.x_payment_status or 'pending', status_map['pending'])
+        if hasattr(order, 'unitrade_status_payload'):
+            status_payload = order.unitrade_status_payload(ledger=ledgers[:1])
+            payment_title = status_payload.get('label') or payment_title
+            payment_copy = status_payload.get('note') or payment_copy
         escrow_state = order.x_escrow_state or 'none'
         process_map = {
             'none': ('Menunggu Pembayaran', 'Pesanan mulai diproses setelah pembayaran dikonfirmasi.'),
-            'held': ('Barang Di Proses', 'Penjual sedang menyiapkan serah barang. Buyer bisa menyelesaikan setelah seller mengunggah bukti.'),
-            'releasable': ('Konfirmasi Lengkap', 'Serah terima barang sudah dikonfirmasi oleh seller dan buyer.'),
+            'held': ('Diproses', 'Penjual sedang menyiapkan serah barang. Buyer bisa menyelesaikan setelah seller mengunggah bukti.'),
+            'releasable': ('Menunggu Konfirmasi', 'Serah terima barang sudah dikonfirmasi oleh seller dan menunggu buyer.'),
             'released': ('Selesai', 'Transaksi sudah selesai.'),
             'disputed': ('Perlu Ditinjau', 'Transaksi sedang ditinjau oleh UniTrade.'),
-            'refunded': ('Refund', 'Pembayaran dikembalikan ke pembeli.'),
+            'refunded': ('Pengembalian', 'Pembayaran dikembalikan ke pembeli.'),
             'cancelled': ('Dibatalkan', 'Pesanan dibatalkan.'),
         }
         process_title, process_copy = process_map.get(escrow_state, process_map['none'])
@@ -611,14 +671,42 @@ class UnitradePaymentController(http.Controller):
             'price': self._format_money(line.price_subtotal, order.currency_id),
             'image_url': '/web/image/product.template/%s/image_512' % line.product_id.product_tmpl_id.id,
         } for line in product_lines]
+        seller_records = request.env['unitrade.seller'].sudo().browse()
+        if 'unitrade.seller' in request.env.registry:
+            seller_records |= ledgers.mapped('seller_id').sudo()
+            if intent and intent.seller_id:
+                seller_records |= intent.seller_id.sudo()
+            for line in product_lines:
+                product_template = line.product_id.product_tmpl_id
+                if 'x_seller_id' in product_template._fields and product_template.x_seller_id:
+                    seller_records |= product_template.x_seller_id.sudo()
+                if (
+                    not getattr(product_template, 'x_seller_id', False)
+                    and product_template.create_uid
+                    and 'x_seller_id' in product_template.create_uid._fields
+                    and product_template.create_uid.x_seller_id
+                ):
+                    seller_records |= product_template.create_uid.x_seller_id.sudo()
+        seller_records = request.env['unitrade.seller'].sudo().browse(list(dict.fromkeys(seller_records.ids)))
+        seller_values = [self._order_status_seller_value(seller) for seller in seller_records]
+        if not seller_values:
+            seller_values = [self._order_status_fallback_seller_value(product_lines)]
+        seller_by_id = {seller.get('id'): seller for seller in seller_values}
         ledger_values = [{
+            'id': ledger.id,
             'name': ledger.name,
+            'seller': seller_by_id.get(ledger.seller_id.id, {}) if ledger.seller_id else {},
             'buyer_confirmed': bool(ledger.buyer_confirmed_at),
             'seller_confirmed': bool(ledger.seller_confirmed_at),
             'buyer_evidence': bool(ledger.buyer_received_image),
             'seller_evidence': bool(ledger.seller_handoff_image),
+            'buyer_evidence_url': self._binary_image_data_uri(ledger.buyer_received_image),
+            'seller_evidence_url': self._binary_image_data_uri(ledger.seller_handoff_image),
             'buyer_filename': ledger.buyer_received_filename or '',
             'seller_filename': ledger.seller_handoff_filename or '',
+            'seller_location': ledger.seller_handoff_location or '',
+            'buyer_confirmed_at': fields.Datetime.to_string(ledger.buyer_confirmed_at) if ledger.buyer_confirmed_at else '',
+            'seller_confirmed_at': fields.Datetime.to_string(ledger.seller_confirmed_at) if ledger.seller_confirmed_at else '',
             'completed': bool(ledger.completed_at),
         } for ledger in ledgers]
         buyer_confirmed_count = len(ledgers.filtered(lambda ledger: ledger.buyer_confirmed_at))
@@ -700,12 +788,15 @@ class UnitradePaymentController(http.Controller):
             'order_status_process_title': process_title,
             'order_status_process_copy': process_copy,
             'order_status_ledgers': ledger_values,
+            'order_status_sellers': seller_values,
             'order_status_lines': line_values,
             'order_status_amounts': amounts,
             'order_status_total': self._format_money(intent.amount if intent else amounts.get('total'), order.currency_id),
             'order_status_subtotal': self._format_money(amounts.get('item_subtotal'), order.currency_id),
             'order_status_service_fee': self._format_money(amounts.get('service_fee'), order.currency_id),
             'order_status_payment_fee': self._format_money(amounts.get('payment_fee'), order.currency_id),
+            'order_status_voucher_discount': self._format_money(amounts.get('voucher_discount'), order.currency_id),
+            'order_status_voucher_code': amounts.get('voucher_code') or '',
             'order_status_progress_steps': progress_steps,
             'order_status_buyer_confirmed_count': buyer_confirmed_count,
             'order_status_seller_confirmed_count': seller_confirmed_count,
@@ -787,7 +878,7 @@ class UnitradePaymentController(http.Controller):
             return False
 
     def _update_midtrans_intent_payment_details(self, intent, payload):
-        details = intent.sale_order_id._midtrans_extract_payment_details(payload)
+        details = intent.sale_order_id._midtrans_extract_payment_details(payload) if intent.sale_order_id else {}
         write_values = {}
         if payload.get('transaction_id') and not intent.midtrans_transaction_id:
             write_values['midtrans_transaction_id'] = payload['transaction_id']
@@ -805,6 +896,20 @@ class UnitradePaymentController(http.Controller):
             write_values['midtrans_actions'] = json.dumps(details.get('actions') or [], ensure_ascii=False, indent=2)
         if write_values:
             intent.write(write_values)
+
+    def _sync_listing_fee_intent_status(self, intent, status, payload, extra_values=None):
+        if intent.intent_type != 'listing_fee':
+            return False
+        write_values = {
+            'state': status if status in ('paid', 'expired', 'failed') else 'pending',
+            'raw_response': json.dumps(payload, ensure_ascii=False, indent=2),
+        }
+        if status == 'paid' and not intent.paid_at:
+            write_values['paid_at'] = fields.Datetime.now()
+        if extra_values:
+            write_values.update(extra_values)
+        intent.sudo().write(write_values)
+        return True
 
     def _midtrans_status_url(self, intent):
         order = intent.sale_order_id.sudo()
@@ -845,6 +950,11 @@ class UnitradePaymentController(http.Controller):
                 return intent
             self._update_midtrans_intent_payment_details(intent, payload)
             status = self._normalize_midtrans_status(payload)
+            if self._sync_listing_fee_intent_status(intent, status, payload, {
+                'midtrans_transaction_id': payload.get('transaction_id') or intent.midtrans_transaction_id,
+                'midtrans_payment_type': payload.get('payment_type') or intent.midtrans_payment_type,
+            }):
+                return intent
             if status == 'paid':
                 intent.sale_order_id.sudo()._unitrade_mark_midtrans_paid(intent.sudo(), payload)
             elif status in ('expired', 'failed'):
@@ -903,7 +1013,7 @@ class UnitradePaymentController(http.Controller):
 
             event.write({
                 'payment_intent_id': intent.id,
-                'order_id': intent.sale_order_id.id,
+                'order_id': intent.sale_order_id.id or False,
             })
             self._update_midtrans_intent_payment_details(intent, payload)
             payload_amount = self._midtrans_payload_amount(payload)
@@ -915,6 +1025,12 @@ class UnitradePaymentController(http.Controller):
                 return self._json_response({'status': 'error', 'message': 'amount mismatch'}, status=400)
 
             status = self._normalize_midtrans_status(payload)
+            if self._sync_listing_fee_intent_status(intent, status, payload, {
+                'midtrans_transaction_id': payload.get('transaction_id') or intent.midtrans_transaction_id,
+                'midtrans_payment_type': payload.get('payment_type') or intent.midtrans_payment_type,
+            }):
+                event.write({'state': 'processed', 'error_message': False})
+                return self._json_response({'status': 'ok'})
             if status == 'paid':
                 intent.sale_order_id.sudo()._unitrade_mark_midtrans_paid(intent.sudo(), payload)
             elif status in ('expired', 'failed'):
@@ -1037,7 +1153,7 @@ class UnitradePaymentController(http.Controller):
         data = payload.get('data') if isinstance(payload, dict) else {}
         if not isinstance(data, dict):
             data = payload
-        details = intent.sale_order_id._xendit_extract_payment_details(data)
+        details = intent.sale_order_id._xendit_extract_payment_details(data) if intent.sale_order_id else {}
         write_values = {}
         if details.get('payment_reference') and not intent.payment_reference:
             write_values['payment_reference'] = details['payment_reference']
@@ -1142,7 +1258,7 @@ class UnitradePaymentController(http.Controller):
 
             event.write({
                 'payment_intent_id': intent.id,
-                'order_id': intent.sale_order_id.id,
+                'order_id': intent.sale_order_id.id or False,
             })
             self._update_intent_payment_details(intent, payload)
             status = self._normalize_payment_status(payload)
@@ -1154,6 +1270,9 @@ class UnitradePaymentController(http.Controller):
                 })
                 return self._json_response({'status': 'error', 'message': 'amount mismatch'}, status=400)
 
+            if self._sync_listing_fee_intent_status(intent, status, payload):
+                event.write({'state': 'processed', 'error_message': False})
+                return self._json_response({'status': 'ok'})
             if status == 'paid':
                 intent.sale_order_id.sudo()._unitrade_mark_xendit_paid(intent.sudo(), payload)
             elif status in ('expired', 'failed'):

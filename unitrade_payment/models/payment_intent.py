@@ -1,8 +1,9 @@
 import hashlib
 import json
 import logging
+from datetime import timedelta
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 from odoo.addons.unitrade_payment.xendit_methods import XENDIT_PAYMENT_METHODS
 from odoo.addons.unitrade_payment.midtrans_methods import MIDTRANS_PAYMENT_METHODS
@@ -80,6 +81,38 @@ class UnitradePaymentIntent(models.Model):
         ('midtrans_order_unique', 'unique(midtrans_order_id)', 'Order ID Midtrans harus unik.'),
         ('doku_invoice_unique', 'unique(doku_invoice_number)', 'Invoice DOKU harus unik.'),
     ]
+
+    def _publish_listing_fee_product(self):
+        for intent in self.sudo():
+            product = intent.product_template_id
+            if intent.intent_type != 'listing_fee' or intent.state != 'paid' or not product:
+                continue
+            values = {
+                'sale_ok': True,
+                'website_published': True,
+            }
+            if 'x_listing_fee' in product._fields:
+                values['x_listing_fee'] = intent.amount
+            if 'x_listing_expires_at' in product._fields and not product.x_listing_expires_at:
+                values['x_listing_expires_at'] = fields.Datetime.now() + timedelta(days=30)
+            if 'detailed_type' in product._fields:
+                values['detailed_type'] = 'consu'
+            elif 'type' in product._fields:
+                values['type'] = 'consu'
+            product.sudo().write(values)
+            _logger.info('Published listing fee product %s after payment intent %s paid', product.id, intent.id)
+
+    def write(self, vals):
+        result = super().write(vals)
+        if vals.get('state') == 'paid':
+            self._publish_listing_fee_product()
+        return result
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        intents = super().create(vals_list)
+        intents.filtered(lambda intent: intent.state == 'paid')._publish_listing_fee_product()
+        return intents
 
     def _set_raw_request(self, payload):
         for intent in self:
