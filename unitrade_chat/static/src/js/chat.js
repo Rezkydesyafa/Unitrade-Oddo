@@ -125,9 +125,11 @@ export class UnitradeChatApp extends Component {
 
         useEffect(
             () => {
-                this.scrollToBottom();
+                if (!this.state.loadingOlder && !this.state.messagesLoading) {
+                    this.scrollToBottom({ retries: 4 });
+                }
             },
-            () => [this.state.messages.length, this.state.activeConversationId]
+            () => [this.state.messages.length, this.state.activeConversationId, this.state.messagesLoading]
         );
     }
 
@@ -246,6 +248,7 @@ export class UnitradeChatApp extends Component {
             this.state.error = "Chat belum bisa dimuat.";
         } finally {
             this.state.loading = false;
+            this.scrollToBottom({ retries: 6 });
         }
     }
 
@@ -382,6 +385,7 @@ export class UnitradeChatApp extends Component {
 
     async selectConversation(conversationId) {
         if (conversationId === this.state.activeConversationId && this.state.mobileConversationOpen) {
+            this.scrollToBottom({ retries: 4 });
             return;
         }
         this.state.activeConversationId = conversationId;
@@ -408,6 +412,7 @@ export class UnitradeChatApp extends Component {
             this.state.error = "Percakapan gagal dimuat.";
         } finally {
             this.state.messagesLoading = false;
+            this.scrollToBottom({ retries: 6 });
         }
     }
 
@@ -440,6 +445,7 @@ export class UnitradeChatApp extends Component {
                 }
             });
             if (newCount) {
+                this.scrollToBottom({ retries: 3 });
                 this.scheduleVisibleReadReceipt();
             }
             this.pollDelay = newCount ? POLL_INTERVAL_FAST : POLL_INTERVAL_SLOW;
@@ -1021,14 +1027,35 @@ export class UnitradeChatApp extends Component {
         return "Terkirim";
     }
 
-    scrollToBottom() {
-        window.setTimeout(() => {
+    scrollToBottom(options = {}) {
+        const retries = Number.isFinite(Number(options.retries)) ? Number(options.retries) : 2;
+        const delay = Number.isFinite(Number(options.delay)) ? Number(options.delay) : 0;
+        const run = (remaining) => {
             const el = this.messageListRef.el;
             if (el) {
                 el.scrollTop = el.scrollHeight;
+                this.bindMediaScrollSync(el);
                 this.scheduleVisibleReadReceipt();
             }
-        }, 0);
+            if (remaining > 0) {
+                window.requestAnimationFrame(() => run(remaining - 1));
+            }
+        };
+        window.setTimeout(() => run(retries), delay);
+    }
+
+    bindMediaScrollSync(el) {
+        if (!el) {
+            return;
+        }
+        el.querySelectorAll("img").forEach((image) => {
+            if (image.complete || image.dataset.utChatScrollBound === "1") {
+                return;
+            }
+            image.dataset.utChatScrollBound = "1";
+            image.addEventListener("load", () => this.scrollToBottom({ retries: 2 }), { once: true });
+            image.addEventListener("error", () => this.scrollToBottom({ retries: 1 }), { once: true });
+        });
     }
 }
 
