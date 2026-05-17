@@ -1,0 +1,6 @@
+<odoo>
+    <function model="ir.config_parameter" name="set_param">
+        <value>unitrade.terms_privacy_version</value>
+        <value>2026-05-17</value>
+    </function>
+</odoo>

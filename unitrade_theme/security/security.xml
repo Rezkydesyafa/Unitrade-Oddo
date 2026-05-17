@@ -1,0 +1,12 @@
+<odoo>
+    <record id="rule_unitrade_security_activity_portal_own" model="ir.rule">
+        <field name="name">UniTrade security activity: portal own records</field>
+        <field name="model_id" ref="model_unitrade_security_activity"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+</odoo>
