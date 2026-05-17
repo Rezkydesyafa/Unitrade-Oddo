@@ -37,8 +37,48 @@
                     padding-top: 32px !important;
                     padding-bottom: 48px !important;
                 }
+                body:has(.ut-cart-layout-row) .o_website_sale_checkout {
+                    background-color: transparent !important;
+                    box-shadow: none !important;
+                    margin-top: 24px !important;
+                    padding: 0 !important;
+                }
                 .o_website_sale_checkout .row {
                     row-gap: 32px;
+                }
+                .ut-cart-layout-row {
+                    position: relative;
+                    margin: 0 0 48px !important;
+                    padding: 32px clamp(24px, 3vw, 48px) 48px !important;
+                    row-gap: 0 !important;
+                }
+                .ut-cart-layout-row::before {
+                    position: absolute;
+                    z-index: 0;
+                    top: 108px;
+                    right: 0;
+                    bottom: 0;
+                    left: 0;
+                    border-radius: 18px;
+                    background: #ffffff;
+                    box-shadow: 0 10px 34px rgba(33, 37, 41, 0.04);
+                    content: "";
+                }
+                .ut-cart-layout-row > * {
+                    position: relative;
+                    z-index: 1;
+                }
+                .ut-cart-breadcrumb-row {
+                    margin-bottom: 24px;
+                    padding-left: 0 !important;
+                    padding-right: 0 !important;
+                }
+                .ut-cart-breadcrumb-row > .tw-w-full {
+                    margin-bottom: 0 !important;
+                }
+                .ut-cart-layout-row .oe_cart,
+                .ut-cart-layout-row #o_cart_summary {
+                    margin-top: 48px;
                 }
 
                 /* ── Page title ─────────────────────────────────────── */
@@ -452,6 +492,20 @@
                         padding-left: 18px !important;
                         padding-right: 18px !important;
                     }
+                    body:has(.ut-cart-layout-row) .o_website_sale_checkout {
+                        padding: 0 !important;
+                    }
+                    .ut-cart-layout-row {
+                        padding: 18px 18px 32px !important;
+                    }
+                    .ut-cart-layout-row::before {
+                        top: 88px;
+                        border-radius: 16px;
+                    }
+                    .ut-cart-layout-row .oe_cart,
+                    .ut-cart-layout-row #o_cart_summary {
+                        margin-top: 32px;
+                    }
                     .o_cart_product {
                         flex-direction: column !important;
                         align-items: flex-start !important;
@@ -504,6 +558,15 @@
     <!-- ================================================================
          2. CART LINES — Replace trash/delete button with SVG icon
     ================================================================ -->
+    <template id="unitrade_cart_checkout_layout_classes" inherit_id="website_sale.checkout_layout" name="UniTrade Cart Checkout Layout Classes">
+        <xpath expr="//div[contains(@t-attf-class, 'row #{show_navigation_button')]" position="attributes">
+            <attribute name="t-attf-class">row #{show_navigation_button and 'position-relative'} #{not show_wizard_checkout and 'mt32'} #{show_shorter_cart_summary and 'ut-cart-layout-row'} mb32</attribute>
+        </xpath>
+        <xpath expr="//div[@t-if='show_wizard_checkout' and hasclass('col-12')]" position="attributes">
+            <attribute name="t-attf-class">col-12 #{show_shorter_cart_summary and 'ut-cart-breadcrumb-row'}</attribute>
+        </xpath>
+    </template>
+
     <template id="unitrade_cart_lines_delete" inherit_id="website_sale.cart_lines" name="UniTrade Cart Delete Button">
 
         <xpath expr="//div[@id='cart_products']" position="before">

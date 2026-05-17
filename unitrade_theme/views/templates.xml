@@ -28,6 +28,8 @@
                         <a href="/shop" class="tw-text-[#1d1d1f] hover:tw-text-[#000000] hover:tw-underline tw-transition-colors tw-no-underline tw-font-bold">Belanja Sekarang &amp;rarr;</a>
                         <span class="tw-text-gray-300 tw-mx-1">|</span>
                         <a href="/seller-onboarding" class="tw-text-[#1d1d1f] hover:tw-text-[#000000] hover:tw-underline tw-transition-colors tw-no-underline tw-font-bold">Mulai Berjualan</a>
+                        <span class="tw-text-gray-300 tw-mx-1">|</span>
+                        <a href="/unitrade/sponsorship" class="tw-text-[#1d1d1f] hover:tw-text-[#000000] hover:tw-underline tw-transition-colors tw-no-underline tw-font-bold">Sponsorship</a>
                     </div>
                     
                     <!-- Right Section -->

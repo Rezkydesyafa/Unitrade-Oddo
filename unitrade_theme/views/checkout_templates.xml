@@ -476,7 +476,7 @@
                 }
                 .ut-voucher-row {
                     display: grid;
-                    grid-template-columns: minmax(0, 1fr) auto;
+                    grid-template-columns: minmax(0, 1fr) auto auto;
                     gap: 12px;
                     align-items: center;
                     margin-bottom: 30px;
@@ -511,6 +511,24 @@
                 }
                 .ut-voucher-row button:hover {
                     background: #e8e8eb;
+                }
+                .ut-voucher-row button[data-voucher-remove] {
+                    border-color: #ef4444;
+                    background: #fff;
+                    color: #ef4444;
+                }
+                .ut-voucher-message {
+                    min-height: 20px;
+                    margin: -18px 0 24px;
+                    color: #6b7280;
+                    font-size: 13px;
+                    line-height: 20px;
+                }
+                .ut-voucher-message.is-success {
+                    color: #059669;
+                }
+                .ut-voucher-message.is-error {
+                    color: #dc2626;
                 }
                 .ut-pay-form {
                     width: 100%;
@@ -1006,6 +1024,14 @@
                                         <t t-call="unitrade_theme.unitrade_money"/>
                                     </span>
                                 </div>
+                                <div t-att-class="'ut-summary-row %s' % ('' if unitrade_checkout_amounts.get('voucher_discount') else 'tw-hidden')" data-voucher-summary-row="1">
+                                    <span>Voucher <span data-voucher-code-label="1" t-esc="unitrade_checkout_amounts.get('voucher_code') or ''"/></span>
+                                    <span data-voucher-discount-summary="1">
+                                        -<t t-set="ut_money_amount" t-value="unitrade_checkout_amounts.get('voucher_discount')"/>
+                                        <t t-set="ut_money_currency" t-value="order.currency_id"/>
+                                        <t t-call="unitrade_theme.unitrade_money"/>
+                                    </span>
+                                </div>
                             </div>
                             <div class="ut-summary-divider"/>
                             <div class="ut-summary-total">
@@ -1017,9 +1043,11 @@
                                 </span>
                             </div>
                             <div class="ut-voucher-row">
-                                <input type="text" placeholder="Kode Voucher"/>
-                                <button type="button">Terapkan</button>
+                                <input type="text" placeholder="Kode Voucher" data-voucher-input="1" t-att-value="unitrade_checkout_amounts.get('voucher_code') or ''"/>
+                                <button type="button" data-voucher-apply="1">Terapkan</button>
+                                <button t-att-class="'' if unitrade_checkout_amounts.get('voucher_discount') else 'tw-hidden'" type="button" data-voucher-remove="1">Hapus</button>
                             </div>
+                            <div class="ut-voucher-message" data-voucher-message="1" role="alert"></div>
                             <form action="/unitrade/checkout/pay" method="post" class="ut-pay-form">
                                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                 <input type="hidden" name="payment_method" t-att-value="unitrade_selected_payment_method" data-payment-method-input="1"/>
@@ -1410,6 +1438,13 @@
                                 closeModal();
                             });
                         }
+                        document.addEventListener("unitrade:voucher-updated", function (ev) {
+                            var detail = ev.detail || {};
+                            baseTotal = parseInt(detail.baseTotal || root.dataset.paymentBaseTotal || "0", 10) || 0;
+                            if (totalSummary) {
+                                totalSummary.textContent = formatRupiah(baseTotal + selectedFee);
+                            }
+                        });
                         document.addEventListener("keydown", function (ev) {
                             if (ev.key === "Escape" && modal && modal.classList.contains("is-open")) {
                                 closeModal(ev);
@@ -1417,10 +1452,145 @@
                         });
                     }
 
+                    function initVoucher() {
+                        var root = document.querySelector(".ut-checkout-page");
+                        if (!root) {
+                            return;
+                        }
+                        var input = root.querySelector("[data-voucher-input]");
+                        var applyButton = root.querySelector("[data-voucher-apply]");
+                        var removeButton = root.querySelector("[data-voucher-remove]");
+                        var message = root.querySelector("[data-voucher-message]");
+                        var row = root.querySelector("[data-voucher-summary-row]");
+                        var codeLabel = root.querySelector("[data-voucher-code-label]");
+                        var discountSummary = root.querySelector("[data-voucher-discount-summary]");
+                        var totalSummary = root.querySelector("[data-payment-total-summary]");
+                        var paymentFeeSummary = root.querySelector("[data-payment-fee-summary]");
+                        var paymentInput = root.querySelector("[data-payment-method-input]");
+
+                        function setMessage(text, type) {
+                            if (!message) {
+                                return;
+                            }
+                            message.textContent = text || "";
+                            message.classList.toggle("is-success", type === "success");
+                            message.classList.toggle("is-error", type === "error");
+                        }
+
+                        function rpc(url, params) {
+                            return fetch(url, {
+                                method: "POST",
+                                headers: {"Content-Type": "application/json"},
+                                body: JSON.stringify({
+                                    jsonrpc: "2.0",
+                                    method: "call",
+                                    params: params || {}
+                                })
+                            }).then(function (response) {
+                                return response.json();
+                            }).then(function (payload) {
+                                return payload.result || payload;
+                            });
+                        }
+
+                        function setBusy(isBusy) {
+                            [applyButton, removeButton, input].forEach(function (node) {
+                                if (node) {
+                                    node.disabled = !!isBusy;
+                                }
+                            });
+                        }
+
+                        function updateSummary(data) {
+                            var hasVoucher = !!(data && data.voucher_discount);
+                            if (row) {
+                                row.classList.toggle("tw-hidden", !hasVoucher);
+                            }
+                            if (removeButton) {
+                                removeButton.classList.toggle("tw-hidden", !hasVoucher);
+                            }
+                            if (codeLabel) {
+                                codeLabel.textContent = data.voucher_code || "";
+                            }
+                            if (discountSummary) {
+                                discountSummary.textContent = hasVoucher ? "-" + data.voucher_discount_label : "";
+                            }
+                            if (totalSummary && data.total_label) {
+                                totalSummary.textContent = data.total_label;
+                            }
+                            if (paymentFeeSummary && data.payment_fee_label) {
+                                paymentFeeSummary.textContent = data.payment_fee_label;
+                            }
+                            if (input && data.voucher_code) {
+                                input.value = data.voucher_code;
+                            }
+                            var baseTotal = Math.max((parseInt(data.total || 0, 10) || 0) - (parseInt(data.payment_fee || 0, 10) || 0), 0);
+                            root.dataset.paymentBaseTotal = String(baseTotal);
+                            document.dispatchEvent(new CustomEvent("unitrade:voucher-updated", {
+                                detail: {baseTotal: baseTotal}
+                            }));
+                        }
+
+                        if (applyButton) {
+                            applyButton.addEventListener("click", function (ev) {
+                                ev.preventDefault();
+                                var code = input ? input.value.trim() : "";
+                                if (!code) {
+                                    setMessage("Masukkan kode voucher.", "error");
+                                    return;
+                                }
+                                setBusy(true);
+                                rpc("/unitrade/checkout/voucher/apply", {
+                                    code: code,
+                                    payment_method: paymentInput ? paymentInput.value : "bca_va"
+                                }).then(function (data) {
+                                    if (data.success) {
+                                        updateSummary(data);
+                                        setMessage(data.message || "Voucher berhasil diterapkan.", "success");
+                                    } else {
+                                        setMessage(data.message || "Voucher tidak valid.", "error");
+                                    }
+                                }).catch(function () {
+                                    setMessage("Voucher belum bisa diterapkan. Coba lagi.", "error");
+                                }).finally(function () {
+                                    setBusy(false);
+                                });
+                            });
+                        }
+
+                        if (removeButton) {
+                            removeButton.addEventListener("click", function (ev) {
+                                ev.preventDefault();
+                                setBusy(true);
+                                rpc("/unitrade/checkout/voucher/remove", {
+                                    payment_method: paymentInput ? paymentInput.value : "bca_va"
+                                }).then(function (data) {
+                                    if (data.success) {
+                                        if (input) {
+                                            input.value = "";
+                                        }
+                                        updateSummary(data);
+                                        setMessage(data.message || "Voucher dihapus.", "success");
+                                    } else {
+                                        setMessage(data.message || "Voucher belum bisa dihapus.", "error");
+                                    }
+                                }).catch(function () {
+                                    setMessage("Voucher belum bisa dihapus. Coba lagi.", "error");
+                                }).finally(function () {
+                                    setBusy(false);
+                                });
+                            });
+                        }
+                    }
+
                     if (document.readyState === "loading") {
-                        document.addEventListener("DOMContentLoaded", initPaymentModal);
+                        document.addEventListener("DOMContentLoaded", function () {
+                            initPaymentModal();
+                            initVoucher();
+                        });
                     } else {
                         initPaymentModal();
+                        initVoucher();
                     }
                 }());
                 ]]>

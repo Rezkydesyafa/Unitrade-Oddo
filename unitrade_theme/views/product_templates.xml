@@ -300,7 +300,7 @@
                                                 t-att-disabled="ut_is_out_of_stock and 'disabled' or None"
                                                 t-att-data-stock-blocked="ut_is_out_of_stock and '1' or '0'"
                                                 class="tw-flex-1 tw-flex tw-items-center tw-justify-center tw-gap-2"
-                                                t-att-style="'background:var(--ut-color-button-bg); color:var(--ut-color-button-text); height:48px; border-radius:24px; border:none; font-size:16px; cursor:%s; width:100%; opacity:%s;' % ('not-allowed' if ut_is_out_of_stock else 'pointer', '0.62' if ut_is_out_of_stock else '1')">
+                                                t-att-style="'background:var(--ut-color-button-bg); color:var(--ut-color-button-text); height:48px; border-radius:24px; border:none; font-size:16px; cursor:' + ('not-allowed' if ut_is_out_of_stock else 'pointer') + '; width:100%; opacity:' + ('0.62' if ut_is_out_of_stock else '1') + ';'">
                                                 <i t-att-class="'fa fa-ban' if ut_is_out_of_stock else 'fa fa-shopping-cart'"></i>
                                                 <t t-if="ut_is_out_of_stock">Stok Habis</t>
                                                 <t t-else="">Belanja</t>
@@ -350,8 +350,9 @@
                                 </div>
                                 <!-- Action buttons -->
                                 <div class="tw-flex tw-gap-4">
+                                    <t t-set="ut_product_seller_ref" t-value="product.x_seller_id and (product.x_seller_id.x_store_slug or product.x_seller_id.x_profile_uuid or product.x_seller_id.id)"/>
                                     <a t-if="product.x_seller_id"
-                                        t-attf-href="/seller-profile/#{product.x_seller_id.x_profile_uuid or product.x_seller_id.id}"
+                                        t-attf-href="/seller-profile/#{ut_product_seller_ref}"
                                         class="ut-btn-outline"
                                         style="width:163px; height:48px; border:2px solid var(--ut-color-heading); border-radius:24px; color:var(--ut-color-heading); font-size:16px; display:flex; align-items:center; justify-content:center; text-decoration:none; background:transparent; box-sizing:border-box;">
                                         Kunjungi profile
@@ -363,7 +364,7 @@
                                         Kunjungi profile
                                     </a>
                                     <a t-if="product.x_seller_id"
-                                        t-attf-href="/seller-profile/#{product.x_seller_id.x_profile_uuid or product.x_seller_id.id}/chat?product_id=#{product.id}"
+                                        t-attf-href="/seller-profile/#{ut_product_seller_ref}/chat?product_id=#{product.id}"
                                         class="ut-btn-dark"
                                         style="width:217px; height:48px; border:1px solid var(--ut-color-border-strong); border-radius:24px; background:var(--ut-color-button-bg); color:var(--ut-color-button-text); font-size:16px; display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; box-sizing:border-box;">
                                         <i class="fa fa-commenting-o"></i> Chat penjual
