@@ -71,7 +71,7 @@
                     <span style="color: #2d3339; font-size: 14px;">Anda dapat mulai mengunggah produk, menerima pesanan, dan mengakses dashboard penjual.</span>
                 </div>
                 <p style="font-size: 15px; margin: 0 0 24px 0;">Jaga kualitas produk dan lengkapi informasi toko agar pembeli lebih mudah menemukan produk Anda.</p>
-                <a href="/seller/dashboard" style="display: inline-block; background: #212529; color: white; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-weight: bold; margin-top: 5px;">
+                <a href="/unitrade/seller/dashboard" style="display: inline-block; background: #212529; color: white; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-weight: bold; margin-top: 5px;">
                     Buka Dashboard Penjual
                 </a>
             </div>

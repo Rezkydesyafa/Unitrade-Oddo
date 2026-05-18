@@ -1,7 +1,8 @@
 # UniTrade Admin Feature Brainstorm and Implementation Plan
 
 Tanggal: 2026-05-10
-Status: Draft brainstorming admin features
+Last reviewed: 2026-05-18
+Status: Updated after source audit
 Target platform: Odoo 17 backend, custom UniTrade admin modules
 
 ## 1. Tujuan Admin
@@ -53,6 +54,7 @@ List fitur awal dari gambar sudah relevan dan menjadi dasar plan:
 
 | Prioritas | Fitur | Kenapa perlu |
 | --- | --- | --- |
+| P0 | Admin foundation dan security convergence | Role admin UniTrade harus konsisten lintas modul sebelum dashboard/task/report dibangun |
 | P0 | Admin dashboard dan task queue | Admin butuh ringkasan kondisi marketplace dan pekerjaan yang harus diproses |
 | P0 | Manajemen user dan seller | Wajib untuk verifikasi KTM, blokir akun, dan kontrol seller |
 | P0 | Product dan listing fee management | Produk tidak boleh publish sebelum fee upload lunas |
@@ -66,29 +68,33 @@ List fitur awal dari gambar sudah relevan dan menjadi dasar plan:
 
 ## 4. Status Saat Ini dari Project
 
+Audit source 2026-05-18 menunjukkan plan lama perlu dikoreksi. Beberapa fitur yang dulu ditulis sebagai gap sekarang sudah ada sebagian, tetapi belum menjadi admin operation center yang konsisten.
+
 Yang sudah ada sebagian:
 
-- Backend menu UniTrade.
-- Seller list, seller pending, seller reported.
-- Seller verification views.
-- Product marketplace backend view.
-- Payment status field di sale order.
-- Delivery backend view.
-- Review backend view.
-- Chat report moderation.
+- Backend root menu `UniTrade` dari `unitrade_seller` dengan sub menu penjual, produk, review, delivery, dan chat moderation.
+- Group `unitrade_seller.group_unitrade_admin` sudah ada, tetapi belum dipakai konsisten oleh semua modul admin.
+- Seller management sudah punya list, pending, reported, approve, reject, revoke, reset draft, OCR result, dan field tujuan payout di `unitrade.seller`.
+- Seller verification sudah punya model terpisah `unitrade.seller.verification` dengan state `draft`, `pending`, `manual_review`, `approved`, `rejected`.
+- Product marketplace backend sudah ada di `unitrade_product_ext`, termasuk field seller, stok, lokasi, `x_listing_fee`, `x_listing_expires_at`, publish/unpublish.
+- Listing fee flow sudah ada sebagian melalui `unitrade.payment.intent` dengan `intent_type = listing_fee` dan publish produk setelah intent paid.
+- Payment monitoring sudah lebih lengkap: `unitrade.payment.intent`, `unitrade.payment.event`, field payment pada `sale.order`, Midtrans aktif, Xendit legacy masih ada.
+- Escrow ledger sudah ada di `unitrade.escrow.ledger` dengan state `held`, `releasable`, `released`, `disputed`, `refunded`, `cancelled`, bukti serah terima, dan field payout.
+- Refund/dispute sudah ada di `unitrade_dispute` dengan model `unitrade.dispute`, `unitrade.dispute.evidence`, backend view, buyer form, seller response, dan hold escrow.
+- Notification model sudah ada di `unitrade.notification`, tetapi masih user-centric dan belum menjadi admin notification center.
+- Account security activity sudah ada di `unitrade.security.activity`, tetapi belum menjadi audit log admin lintas modul.
 
-Yang belum terlihat lengkap:
+Yang masih perlu ditambahkan atau dikoreksi:
 
-- Dashboard admin terpadu.
-- Task queue admin.
-- Laporan GMV dan grafik.
-- Export laporan.
-- Fee upload product management.
-- Escrow ledger management.
-- Manual payout management.
-- Refund/dispute case management.
-- System settings untuk tarif fee, SLA, policy, dan payout.
-- Audit log yang menyimpan aksi admin lintas modul.
+- Modul orkestrasi `unitrade_admin` sebaiknya dibuat tipis untuk dashboard, task queue, audit log, settings, report, dan menu consolidation. Business logic payment/seller/dispute tetap di modul yang sudah ada.
+- ACL dan menu perlu diseragamkan: payment/dispute masih banyak memakai `base.group_system` atau `sales_team.group_sale_manager`, sedangkan admin UniTrade seharusnya memakai `unitrade_seller.group_unitrade_admin`.
+- Public model action kritis perlu gatekeeping eksplisit dengan `has_group()` atau `check_access_rights()`, terutama approve/reject refund, release payout, revoke seller, waive fee, dan change settings.
+- Product listing belum punya status eksplisit seperti `fee_pending`, `fee_paid`, `waived`, `rejected`; sekarang status masih disimpulkan dari `sale_ok`, `website_published`, payment intent, dan expiry.
+- Fee upload saat ini memakai `ir.config_parameter` sederhana (`threshold`, `low_amount`, `high_amount`, `posting_admin_fee`), bukan tier persentase seperti plan lama. Admin settings harus mengikuti implementasi sekarang atau migration tier harus direncanakan eksplisit.
+- Default runtime sekarang berbeda dari asumsi lama: cancel window `unitrade.order.cancel_window_minutes` = 30 menit, auto confirm receipt `unitrade.escrow.auto_confirm_receipt_hours` default 48 jam, upload refund max `unitrade.refund.max_upload_mb` = 25 MB.
+- Manual payout belum punya model batch dengan bukti transfer. `unitrade.escrow.ledger` punya `payout_reference`, `payout_status`, dan manual mark released, tetapi belum cukup untuk audit payout manual MVP.
+- Refund/dispute sudah ada, tetapi admin approval masih perlu validasi minimum evidence, catatan keputusan wajib, SLA deadline, dan audit event.
+- Dashboard terpadu, task queue, reports/export, settings UI, audit log admin, dan admin notification center belum ada.
 
 ## 5. Dokumentasi Per Fitur
 
@@ -111,6 +117,14 @@ Daftar dokumen:
 - [Admin Notification Center](unitrade-admin-features/10-admin-notification-center.md)
 
 ## 6. Roadmap Admin
+
+### Fase 0: Admin Foundation dan Security Convergence
+
+- Buat modul `unitrade_admin` sebagai orkestrasi admin.
+- Satukan menu admin di bawah `UniTrade`.
+- Terapkan `unitrade_seller.group_unitrade_admin` pada action/menu/model admin lintas modul.
+- Tambah helper audit log untuk action kritis.
+- Gate public/admin actions yang bisa dipanggil RPC.
 
 ### Fase 1: Admin Control Dasar
 
@@ -136,11 +150,13 @@ Daftar dokumen:
 ## 7. Prinsip Implementasi Odoo
 
 - Gunakan backend Odoo untuk admin utama, bukan website public.
-- Buat group akses khusus `unitrade_seller.group_unitrade_admin` atau role admin tambahan jika perlu.
+- Gunakan existing group `unitrade_seller.group_unitrade_admin` sebagai role admin utama, lalu tambahkan subgroup hanya jika ada kebutuhan CS/finance yang jelas.
+- Hindari memindahkan logic yang sudah stabil dari `unitrade_seller`, `unitrade_payment`, dan `unitrade_dispute`; `unitrade_admin` cukup mengorkestrasi dashboard, task, report, settings, dan audit.
 - Jangan simpan credential payment/payout hardcoded. Gunakan `ir.config_parameter`.
 - Semua tindakan penting admin harus membuat audit log.
 - Semua list operasional harus punya search/filter: status, tanggal, user, seller, amount.
 - Semua amount tampil dalam format Rupiah tanpa desimal.
+- Public method Odoo yang berdampak finansial/trust harus melakukan pengecekan group di method, bukan hanya mengandalkan tombol view.
 
 ## 8. Acceptance Criteria Global
 
@@ -154,3 +170,5 @@ Daftar dokumen:
 - Admin dapat memproses payout manual dan upload bukti transfer.
 - Admin dapat export laporan periode tertentu.
 - Semua aksi kritis admin tercatat di audit log.
+- ACL dan menu admin konsisten memakai role admin UniTrade.
+- Admin dapat mengubah setting operasional dari UI tanpa edit XML/data file.

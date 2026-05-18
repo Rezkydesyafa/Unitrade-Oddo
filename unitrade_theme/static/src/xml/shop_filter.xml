@@ -71,6 +71,7 @@
                         <div data-sort="terbaru" t-att-class="sortClass('terbaru')" t-on-click="() => this.changeSort('terbaru')">Terbaru</div>
                         <div data-sort="termurah" t-att-class="sortClass('termurah')" t-on-click="() => this.changeSort('termurah')">Termurah</div>
                         <div data-sort="termahal" t-att-class="sortClass('termahal')" t-on-click="() => this.changeSort('termahal')">Termahal</div>
+                        <div data-sort="promo" t-att-class="sortClass('promo')" t-on-click="() => this.changeSort('promo')">Promo</div>
                     </div>
                 </div>
 

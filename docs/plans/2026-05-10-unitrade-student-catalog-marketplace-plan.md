@@ -44,10 +44,9 @@ Konsep utama:
 - Produk dapat dipakai untuk promosi katalog dan chat seller.
 - Pembeli dapat memilih transaksi lewat website atau lanjut komunikasi dengan seller.
 - Transaksi luar website harus diberi label bahwa tidak ada proteksi escrow/refund UniTrade.
-- Jika pembeli checkout dan bayar lewat website, transaksi masuk alur proteksi platform: pembayaran ditahan, seller memproses pesanan, seller upload bukti serah/kirim, pembeli konfirmasi selesai, lalu dana seller dirilis.
-- Jika pembeli tidak klik pesanan selesai dalam 24 jam setelah seller upload bukti serah/kirim, sistem dapat menyelesaikan pesanan otomatis.
-- Pembatalan bebas hanya tersedia sampai 10 menit setelah checkout.
-- Setelah 10 menit, pembatalan harus melalui banding.
+- Jika pembeli checkout dan bayar lewat website, transaksi masuk alur proteksi platform: pembayaran ditahan, seller memproses pesanan, seller konfirmasi barang diserahkan, pembeli konfirmasi barang diterima, lalu dana seller siap dirilis.
+- Pembatalan bebas hanya tersedia sampai 20 menit setelah checkout.
+- Setelah 20 menit, pembatalan harus melalui banding.
 - Refund wajib menyertakan video unboxing. Jika barang harus dikembalikan, pembeli wajib menyertakan video packing dan link folder Google Drive sebagai bukti.
 
 ## 2. Prinsip Produk
@@ -169,15 +168,15 @@ flowchart TD
 
 Aturan:
 
-- Buyer dapat membatalkan pesanan sendiri maksimal 10 menit setelah checkout.
-- Pembatalan langsung hanya boleh jika seller belum upload bukti serah/kirim.
-- Setelah 10 menit, buyer harus membuat banding pembatalan.
+- Buyer dapat membatalkan pesanan sendiri maksimal 20 menit setelah checkout.
+- Pembatalan langsung hanya boleh jika seller belum mengonfirmasi serah barang.
+- Setelah 20 menit, buyer harus membuat banding pembatalan.
 - Admin/CS memutuskan banding berdasarkan status seller, bukti, chat, dan alasan pembatalan.
 
 ```mermaid
 flowchart TD
-    A["Buyer membuka detail pesanan"] --> B{"Usia order <= 10 menit?"}
-    B -->|"Ya"| C{"Seller belum upload bukti serah/kirim?"}
+    A["Buyer membuka detail pesanan"] --> B{"Usia order <= 20 menit?"}
+    B -->|"Ya"| C{"Seller belum konfirmasi serah barang?"}
     C -->|"Ya"| D["Buyer bisa batalkan langsung"]
     C -->|"Tidak"| E["Buyer harus ajukan banding"]
     B -->|"Tidak"| E
@@ -255,7 +254,7 @@ Halaman legal/FAQ perlu menambahkan kebijakan:
 
 - Uang buyer tidak langsung masuk ke seller.
 - Dana ditahan sebagai escrow platform setelah pembayaran sukses.
-- Dana seller dirilis setelah pesanan selesai atau auto complete 24 jam.
+- Dana seller dirilis setelah pesanan selesai melalui konfirmasi buyer dan seller.
 - Jika ada banding/refund aktif, payout ditahan sampai kasus selesai.
 - Pada MVP, payout dilakukan manual oleh admin.
 
@@ -283,12 +282,12 @@ Daftar ini merangkum gap dari project saat ini terhadap konsep baru.
 | Label proteksi katalog | Belum ada label eksplisit | Label pada detail produk, chat CTA, cart/checkout, dan FAQ bahwa transaksi luar website tidak dilindungi escrow/refund |
 | Seller product CRUD website | Belum siap untuk seller normal | Form tambah/edit produk dari website, upload gambar, status draft/fee pending/published |
 | Fee upload produk | Belum ada | Tier fee, kalkulasi fee, pembayaran fee, status fee, publish setelah fee paid |
-| Checkout website penuh | Ada sebagian | Midtrans Snap dari website, payment intent, status pembayaran yang terhubung ke order |
+| Checkout website penuh | Ada sebagian | Xendit checkout dari website, payment intent, status pembayaran yang terhubung ke order |
 | Escrow order | Belum ada | Ledger dana masuk, dana tertahan, dana rilis, dana refund |
-| Seller bukti serah/kirim | Belum ada | Upload foto bukti, catatan, timestamp, status handoff uploaded |
-| Konfirmasi pesanan selesai | Belum ada | Tombol buyer klik selesai dan cron auto complete 24 jam |
-| Cancel 10 menit | Belum ada | Cancel langsung sebelum 10 menit dan belum ada bukti seller |
-| Banding cancel | Belum ada | Form banding setelah 10 menit atau setelah seller upload bukti |
+| Seller konfirmasi serah barang | Belum ada | Tombol seller konfirmasi diserahkan dan timestamp |
+| Konfirmasi pesanan selesai | Belum ada | Tombol buyer barang diterima dan seller konfirmasi diserahkan |
+| Cancel 20 menit | Belum ada | Cancel langsung sebelum 20 menit dan belum ada konfirmasi seller |
+| Banding cancel | Belum ada | Form banding setelah 20 menit atau setelah seller konfirmasi serah barang |
 | Refund evidence | Belum ada | Video unboxing wajib, video packing, link Google Drive |
 | CS dispute dashboard | Belum ada | Review bukti, approve/reject, minta bukti tambahan |
 | Manual payout seller | Belum ada | Data rekening seller, saldo siap cair, admin payout, audit log |
@@ -341,18 +340,16 @@ Perubahan:
   - dana ditahan
   - dana dirilis ke seller
   - refund ke buyer
-- Integrasikan Midtrans Snap/checkout UI dari website.
+- Integrasikan Xendit checkout UI dari website.
 - Webhook harus update payment intent, order, listing fee, dan escrow.
 
 ### 7.4 `unitrade_delivery`
 
 Perubahan:
 
-- Tambah bukti serah/kirim seller:
-  - foto bukti
-  - catatan pengiriman
-  - timestamp seller klik diserahkan/dikirim
-- Tambah batas waktu auto complete 24 jam.
+- Tambah konfirmasi serah barang seller:
+  - timestamp seller klik diserahkan
+  - status menunggu buyer jika buyer belum konfirmasi
 - Tracking GoSend tetap dapat menjadi fase lanjutan.
 
 ### 7.5 Modul Baru: `unitrade_dispute`
@@ -390,9 +387,8 @@ Perubahan:
   - produk berhasil publish
   - order masuk
   - pembayaran berhasil
-  - seller upload bukti serah/kirim
+  - seller konfirmasi serah barang
   - buyer perlu konfirmasi pesanan
-  - auto complete akan berjalan
   - banding/refund dibuat
   - CS meminta bukti tambahan
   - refund disetujui/ditolak
@@ -411,7 +407,7 @@ Halaman:
 - Pembayaran fee upload.
 - Daftar produk dengan status fee dan publish.
 - Detail order seller.
-- Upload bukti serah/kirim.
+- Konfirmasi barang sudah diserahkan.
 - Daftar payout/saldo.
 - Form rekening bank.
 - Daftar dispute/refund yang membutuhkan respons seller.
@@ -423,9 +419,9 @@ Halaman:
 - Detail produk dengan pilihan chat seller dan checkout website.
 - Checkout dengan informasi proteksi UniTrade.
 - Detail pesanan.
-- Tombol batal sebelum 10 menit.
-- Tombol ajukan banding setelah 10 menit.
-- Tombol pesanan selesai.
+- Tombol batal sebelum 20 menit.
+- Tombol ajukan banding setelah 20 menit.
+- Tombol barang diterima.
 - Form refund dengan upload video unboxing.
 - Form bukti pengembalian dengan link Google Drive.
 - Tracking status refund.
@@ -451,11 +447,8 @@ Status order platform yang disarankan:
 
 - `draft`: cart/checkout belum bayar.
 - `payment_pending`: menunggu pembayaran buyer.
-- `paid_escrow`: buyer sudah bayar, dana ditahan.
-- `processing`: seller memproses pesanan.
-- `handoff_uploaded`: seller upload bukti serah/kirim.
-- `buyer_confirmation_pending`: menunggu buyer klik selesai.
-- `completed`: buyer klik selesai atau auto complete 24 jam.
+- `processing`: buyer sudah bayar, dana ditahan, dan seller memproses pesanan.
+- `completed`: buyer klik barang diterima dan seller klik konfirmasi diserahkan.
 - `cancelled`: order dibatalkan.
 - `dispute_open`: banding/refund aktif.
 - `refund_approved`: refund disetujui.
@@ -464,9 +457,9 @@ Status order platform yang disarankan:
 
 Aturan penting:
 
-- Cancel langsung hanya sampai 10 menit setelah checkout dan sebelum bukti seller.
+- Cancel langsung hanya sampai 20 menit setelah checkout dan sebelum seller mengonfirmasi serah barang.
 - Dispute/refund membekukan auto complete dan payout.
-- Auto complete 24 jam dihitung dari waktu seller upload bukti serah/kirim.
+- Auto complete 24 jam tidak dipakai pada MVP flow dua pihak; completion membutuhkan konfirmasi buyer dan seller.
 - Payout hanya boleh jika order `completed` dan tidak ada dispute aktif.
 
 ## 10. Acceptance Criteria MVP
@@ -483,17 +476,17 @@ Aturan penting:
 ### 10.2 Checkout Website
 
 - Buyer bisa checkout dan membayar lewat website.
-- Setelah bayar sukses, order masuk status dana ditahan.
+- Setelah bayar sukses, order masuk status `processing` dan dana ditahan.
 - Seller melihat order masuk.
-- Seller bisa upload bukti serah/kirim berupa foto.
-- Buyer bisa klik pesanan selesai.
-- Jika buyer tidak klik dalam 24 jam, sistem auto complete.
+- Seller bisa klik konfirmasi diserahkan.
+- Buyer bisa klik barang diterima.
+- Order selesai setelah buyer dan seller sama-sama konfirmasi.
 - Dana seller menjadi siap dicairkan setelah completed.
 
 ### 10.3 Pembatalan dan Refund
 
-- Buyer bisa cancel langsung sebelum 10 menit jika seller belum upload bukti.
-- Setelah 10 menit, buyer diarahkan ke form banding.
+- Buyer bisa cancel langsung sebelum 20 menit jika seller belum mengonfirmasi serah barang.
+- Setelah 20 menit, buyer diarahkan ke form banding.
 - Refund wajib upload video unboxing.
 - Jika perlu pengembalian, form meminta video packing dan link Google Drive.
 - CS bisa approve/reject refund.
@@ -520,13 +513,13 @@ Tujuan: buyer bisa bayar di website dan dana tidak langsung rilis ke seller.
 
 Pekerjaan:
 
-- Integrasikan Midtrans checkout penuh.
+- Integrasikan Xendit checkout penuh.
 - Tambah payment intent dan escrow ledger.
 - Tambah status order UniTrade.
 - Tambah detail pesanan buyer/seller.
-- Tambah bukti serah/kirim seller.
-- Tambah tombol pesanan selesai buyer.
-- Tambah cron auto complete 24 jam.
+- Tambah tombol konfirmasi diserahkan seller.
+- Tambah tombol barang diterima buyer.
+- Selesaikan order hanya setelah dua pihak konfirmasi.
 
 ### Fase 3: Cancel, Banding, dan Refund
 
@@ -534,7 +527,7 @@ Tujuan: aturan pembatalan dan refund berjalan jelas.
 
 Pekerjaan:
 
-- Tambah cancel window 10 menit.
+- Tambah cancel window 20 menit.
 - Buat modul dispute/refund.
 - Buat form banding.
 - Buat upload video unboxing.

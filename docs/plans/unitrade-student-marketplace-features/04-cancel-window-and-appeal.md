@@ -5,7 +5,7 @@ Priority: P1
 
 ## Tujuan
 
-Buyer dapat membatalkan pesanan langsung maksimal 10 menit setelah checkout. Setelah 10 menit, atau jika seller sudah upload bukti serah/kirim, pembatalan harus melalui banding.
+Buyer dapat membatalkan pesanan langsung maksimal 20 menit setelah checkout. Setelah 20 menit, atau jika seller sudah mengonfirmasi serah barang, pembatalan harus melalui banding.
 
 ## Status Saat Ini
 
@@ -16,9 +16,9 @@ Buyer dapat membatalkan pesanan langsung maksimal 10 menit setelah checkout. Set
 
 ## Aturan Produk
 
-- Cancel langsung hanya berlaku sampai 10 menit setelah checkout.
-- Cancel langsung hanya berlaku jika seller belum upload bukti serah/kirim.
-- Setelah 10 menit, buyer harus mengajukan banding.
+- Cancel langsung hanya berlaku sampai 20 menit setelah checkout.
+- Cancel langsung hanya berlaku jika seller belum mengonfirmasi serah barang.
+- Setelah 20 menit, buyer harus mengajukan banding.
 - Jika dispute aktif, payout seller tertahan.
 
 ## Data Model
@@ -43,7 +43,7 @@ Model dispute dapat digunakan untuk banding:
 
 ## UI Buyer
 
-- Detail pesanan menampilkan countdown cancel jika masih <= 10 menit.
+- Detail pesanan menampilkan countdown cancel jika masih <= 20 menit.
 - Tombol `Batalkan Pesanan` muncul jika eligible.
 - Jika tidak eligible, tampilkan tombol `Ajukan Banding`.
 - Form banding meminta alasan dan bukti pendukung.
@@ -59,9 +59,9 @@ Model dispute dapat digunakan untuk banding:
 ## Acceptance Criteria
 
 - Buyer bisa cancel langsung sebelum deadline.
-- Buyer tidak bisa cancel langsung setelah 10 menit.
-- Buyer tidak bisa cancel langsung jika seller sudah upload bukti.
-- Setelah 10 menit, buyer diarahkan ke form banding.
+- Buyer tidak bisa cancel langsung setelah 20 menit.
+- Buyer tidak bisa cancel langsung jika seller sudah mengonfirmasi serah barang.
+- Setelah 20 menit, buyer diarahkan ke form banding.
 - Banding aktif menahan payout dan auto complete.
 - Admin dapat approve/reject banding.
 
@@ -74,4 +74,3 @@ Model dispute dapat digunakan untuk banding:
 5. Tambah form banding.
 6. Tambah dashboard CS untuk banding.
 7. Hubungkan dispute aktif ke escrow/payout hold.
-

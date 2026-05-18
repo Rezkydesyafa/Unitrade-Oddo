@@ -1,0 +1,65 @@
+<odoo>
+    <record id="view_unitrade_voucher_tree" model="ir.ui.view">
+        <field name="name">unitrade.voucher.tree</field>
+        <field name="model">unitrade.voucher</field>
+        <field name="arch" type="xml">
+            <tree string="Voucher">
+                <field name="active"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="discount_type"/>
+                <field name="discount_amount"/>
+                <field name="discount_percent"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="usage_limit"/>
+                <field name="usage_limit_per_user"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_unitrade_voucher_form" model="ir.ui.view">
+        <field name="name">unitrade.voucher.form</field>
+        <field name="model">unitrade.voucher</field>
+        <field name="arch" type="xml">
+            <form string="Voucher">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="active"/>
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="currency_id"/>
+                        </group>
+                        <group>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                        </group>
+                    </group>
+                    <group string="Diskon">
+                        <field name="discount_type"/>
+                        <field name="discount_amount" invisible="discount_type != 'fixed'"/>
+                        <field name="discount_percent" invisible="discount_type != 'percent'"/>
+                        <field name="min_order_amount"/>
+                    </group>
+                    <group string="Limit Pemakaian">
+                        <field name="usage_limit"/>
+                        <field name="usage_limit_per_user"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_unitrade_voucher" model="ir.actions.act_window">
+        <field name="name">Voucher</field>
+        <field name="res_model">unitrade.voucher</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_unitrade_voucher"
+              name="Voucher"
+              parent="menu_unitrade_payment_root"
+              action="action_unitrade_voucher"
+              sequence="35"/>
+</odoo>

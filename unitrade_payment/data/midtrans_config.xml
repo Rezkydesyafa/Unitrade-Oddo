@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="param_unitrade_midtrans_server_key" model="ir.config_parameter">
+        <field name="key">unitrade.midtrans.server_key</field>
+        <field name="value"></field>
+    </record>
+    <record id="param_unitrade_midtrans_client_key" model="ir.config_parameter">
+        <field name="key">unitrade.midtrans.client_key</field>
+        <field name="value"></field>
+    </record>
+    <record id="param_unitrade_midtrans_is_production" model="ir.config_parameter">
+        <field name="key">unitrade.midtrans.is_production</field>
+        <field name="value">False</field>
+    </record>
+    <record id="param_unitrade_midtrans_payment_expiry_minutes" model="ir.config_parameter">
+        <field name="key">unitrade.midtrans.payment_expiry_minutes</field>
+        <field name="value">30</field>
+    </record>
+    <record id="param_unitrade_midtrans_method_bca_va_enabled" model="ir.config_parameter">
+        <field name="key">unitrade.midtrans.method.bca_va.enabled</field>
+        <field name="value">True</field>
+    </record>
+    <record id="param_unitrade_midtrans_method_mandiri_bill_enabled" model="ir.config_parameter">
+        <field name="key">unitrade.midtrans.method.mandiri_bill.enabled</field>
+        <field name="value">True</field>
+    </record>
+    <record id="param_unitrade_midtrans_method_bni_va_enabled" model="ir.config_parameter">
+        <field name="key">unitrade.midtrans.method.bni_va.enabled</field>
+        <field name="value">True</field>
+    </record>
+    <record id="param_unitrade_midtrans_method_bri_va_enabled" model="ir.config_parameter">
+        <field name="key">unitrade.midtrans.method.bri_va.enabled</field>
+        <field name="value">True</field>
+    </record>
+    <record id="param_unitrade_midtrans_method_permata_va_enabled" model="ir.config_parameter">
+        <field name="key">unitrade.midtrans.method.permata_va.enabled</field>
+        <field name="value">True</field>
+    </record>
+    <record id="param_unitrade_midtrans_method_cimb_va_enabled" model="ir.config_parameter">
+        <field name="key">unitrade.midtrans.method.cimb_va.enabled</field>
+        <field name="value">False</field>
+    </record>
+    <record id="param_unitrade_midtrans_method_qris_enabled" model="ir.config_parameter">
+        <field name="key">unitrade.midtrans.method.qris.enabled</field>
+        <field name="value">True</field>
+    </record>
+    <record id="param_unitrade_midtrans_method_gopay_enabled" model="ir.config_parameter">
+        <field name="key">unitrade.midtrans.method.gopay.enabled</field>
+        <field name="value">True</field>
+    </record>
+    <record id="param_unitrade_midtrans_method_shopeepay_enabled" model="ir.config_parameter">
+        <field name="key">unitrade.midtrans.method.shopeepay.enabled</field>
+        <field name="value">False</field>
+    </record>
+    <record id="param_unitrade_midtrans_method_indomaret_enabled" model="ir.config_parameter">
+        <field name="key">unitrade.midtrans.method.indomaret.enabled</field>
+        <field name="value">False</field>
+    </record>
+    <record id="param_unitrade_midtrans_method_alfamart_enabled" model="ir.config_parameter">
+        <field name="key">unitrade.midtrans.method.alfamart.enabled</field>
+        <field name="value">False</field>
+    </record>
+    <record id="param_unitrade_midtrans_method_card_enabled" model="ir.config_parameter">
+        <field name="key">unitrade.midtrans.method.card.enabled</field>
+        <field name="value">False</field>
+    </record>
+</odoo>

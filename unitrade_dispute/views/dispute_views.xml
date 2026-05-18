@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_unitrade_dispute_tree" model="ir.ui.view">
+        <field name="name">unitrade.dispute.tree</field>
+        <field name="model">unitrade.dispute</field>
+        <field name="arch" type="xml">
+            <tree string="Refund &amp; Dispute" create="false">
+                <field name="name"/>
+                <field name="state" widget="badge"
+                    decoration-info="state in ('submitted', 'under_review')"
+                    decoration-warning="state in ('need_buyer_evidence', 'need_seller_response')"
+                    decoration-success="state == 'approved'"
+                    decoration-danger="state in ('rejected', 'cancelled')"/>
+                <field name="order_id"/>
+                <field name="buyer_id"/>
+                <field name="seller_id"/>
+                <field name="reason_code"/>
+                <field name="requested_amount"/>
+                <field name="approved_amount"/>
+                <field name="submitted_at"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_unitrade_dispute_form" model="ir.ui.view">
+        <field name="name">unitrade.dispute.form</field>
+        <field name="model">unitrade.dispute</field>
+        <field name="arch" type="xml">
+            <form string="Refund Case">
+                <header>
+                    <button name="action_start_review" type="object" string="Start Review" class="btn-primary" invisible="state not in ('submitted', 'need_buyer_evidence', 'need_seller_response')"/>
+                    <button name="action_need_buyer_evidence" type="object" string="Request Buyer Evidence" invisible="state not in ('submitted', 'under_review', 'need_seller_response')"/>
+                    <button name="action_need_seller_response" type="object" string="Request Seller Response" invisible="state not in ('submitted', 'under_review', 'need_buyer_evidence')"/>
+                    <button name="action_approve_refund" type="object" string="Approve Refund" class="btn-primary" invisible="state in ('approved', 'rejected', 'resolved', 'cancelled')"/>
+                    <button name="action_reject_refund" type="object" string="Reject Refund" invisible="state in ('approved', 'rejected', 'resolved', 'cancelled')"/>
+                    <button name="action_cancel" type="object" string="Cancel Case" invisible="state in ('approved', 'rejected', 'resolved', 'cancelled')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,under_review,need_seller_response,approved,rejected"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_related_order" type="object" class="oe_stat_button" icon="fa-shopping-cart">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Order</span>
+                            </div>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="dispute_type" readonly="1"/>
+                            <field name="order_id" readonly="1"/>
+                            <field name="order_line_id" readonly="1"/>
+                            <field name="payment_intent_id" readonly="1"/>
+                            <field name="escrow_ledger_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="buyer_id" readonly="1"/>
+                            <field name="seller_id" readonly="1"/>
+                            <field name="currency_id" readonly="1"/>
+                            <field name="requested_amount" readonly="1"/>
+                            <field name="approved_amount"/>
+                            <field name="admin_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="reason_code" readonly="1"/>
+                        <field name="reason_note" readonly="1"/>
+                    </group>
+                    <group string="Admin Decision">
+                        <field name="admin_decision_note" placeholder="Catatan keputusan CS/Admin..."/>
+                    </group>
+                    <notebook>
+                        <page string="Evidence">
+                            <field name="evidence_ids" readonly="1">
+                                <tree create="false" delete="false">
+                                    <field name="created_at"/>
+                                    <field name="submitted_by_id"/>
+                                    <field name="evidence_type"/>
+                                    <field name="attachment_id"/>
+                                    <field name="url" widget="url"/>
+                                    <field name="note"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Timeline">
+                            <group>
+                                <field name="submitted_at" readonly="1"/>
+                                <field name="review_started_at" readonly="1"/>
+                                <field name="approved_at" readonly="1"/>
+                                <field name="rejected_at" readonly="1"/>
+                                <field name="resolved_at" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_unitrade_dispute_search" model="ir.ui.view">
+        <field name="name">unitrade.dispute.search</field>
+        <field name="model">unitrade.dispute</field>
+        <field name="arch" type="xml">
+            <search string="Refund &amp; Dispute">
+                <field name="name"/>
+                <field name="order_id"/>
+                <field name="buyer_id"/>
+                <field name="seller_id"/>
+                <filter name="active" string="Active" domain="[('state','in',('submitted','under_review','need_buyer_evidence','need_seller_response'))]"/>
+                <filter name="approved" string="Approved" domain="[('state','=','approved')]"/>
+                <filter name="rejected" string="Rejected" domain="[('state','=','rejected')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="State" context="{'group_by':'state'}"/>
+                    <filter name="group_seller" string="Seller" context="{'group_by':'seller_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_unitrade_dispute" model="ir.actions.act_window">
+        <field name="name">Refund &amp; Dispute</field>
+        <field name="res_model">unitrade.dispute</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_unitrade_dispute_search"/>
+    </record>
+
+    <record id="view_sale_order_form_unitrade_dispute" model="ir.ui.view">
+        <field name="name">sale.order.form.unitrade.dispute</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="UniTrade Refund">
+                    <group>
+                        <field name="x_refund_dispute_id" readonly="1"/>
+                        <field name="x_refund_state" readonly="1"/>
+                        <field name="x_refunded_at" readonly="1"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_unitrade_escrow_ledger_form_dispute" model="ir.ui.view">
+        <field name="name">unitrade.escrow.ledger.form.dispute</field>
+        <field name="model">unitrade.escrow.ledger</field>
+        <field name="inherit_id" ref="unitrade_payment.view_unitrade_escrow_ledger_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='payout_reference']" position="after">
+                <field name="refund_dispute_id" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <menuitem id="menu_unitrade_dispute" name="Refund &amp; Dispute" parent="unitrade_payment.menu_unitrade_payment_root" action="action_unitrade_dispute" sequence="35"/>
+</odoo>

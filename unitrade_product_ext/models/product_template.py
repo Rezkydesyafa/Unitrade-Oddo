@@ -133,6 +133,30 @@ class ProductTemplateUniTrade(models.Model):
             warehouse = self.env['stock.warehouse'].sudo().search([('company_id', '=', company.id)], limit=1)
         return warehouse
 
+    def _unitrade_discount_percent(self):
+        self.ensure_one()
+        return max(min(self.x_discount_percent or 0.0, 100.0), 0.0)
+
+    def _unitrade_discounted_price(self):
+        self.ensure_one()
+        original_price = self.list_price or 0.0
+        discount_percent = self._unitrade_discount_percent()
+        if not discount_percent or original_price <= 0:
+            return original_price
+        return original_price * (100.0 - discount_percent) / 100.0
+
+    def _unitrade_price_info(self):
+        self.ensure_one()
+        discount_percent = self._unitrade_discount_percent()
+        original_price = self.list_price or 0.0
+        discounted_price = self._unitrade_discounted_price()
+        return {
+            'original_price': original_price,
+            'discounted_price': discounted_price,
+            'discount_percent': discount_percent,
+            'has_discount': bool(discount_percent and original_price > 0 and discounted_price < original_price),
+        }
+
     @api.depends('product_variant_ids.qty_available', 'product_variant_ids.free_qty')
     def _compute_unitrade_stock_qty(self):
         warehouse = self._unitrade_stock_warehouse()
@@ -359,7 +383,7 @@ class ProductTemplateUniTrade(models.Model):
                 ('description_sale', 'ilike', keyword),
             ]
         if category_id:
-            domain.append(('categ_id', '=', int(category_id)))
+            domain.append(('categ_id', 'child_of', int(category_id)))
         if condition:
             domain.append(('x_condition', '=', condition))
         if min_price:
@@ -370,6 +394,34 @@ class ProductTemplateUniTrade(models.Model):
             domain.append(('x_seller_location', 'ilike', location))
 
         return self.search(domain, order=sort_by, limit=limit, offset=offset)
+
+
+class ProductProductUniTrade(models.Model):
+    _inherit = 'product.product'
+
+    def _unitrade_discount_percent(self):
+        self.ensure_one()
+        return self.product_tmpl_id._unitrade_discount_percent()
+
+    def _unitrade_discounted_price(self):
+        self.ensure_one()
+        original_price = self.lst_price or self.list_price or 0.0
+        discount_percent = self._unitrade_discount_percent()
+        if not discount_percent or original_price <= 0:
+            return original_price
+        return original_price * (100.0 - discount_percent) / 100.0
+
+    def _unitrade_price_info(self):
+        self.ensure_one()
+        discount_percent = self._unitrade_discount_percent()
+        original_price = self.lst_price or self.list_price or 0.0
+        discounted_price = self._unitrade_discounted_price()
+        return {
+            'original_price': original_price,
+            'discounted_price': discounted_price,
+            'discount_percent': discount_percent,
+            'has_discount': bool(discount_percent and original_price > 0 and discounted_price < original_price),
+        }
 
 
 class ProductImageUniTrade(models.Model):

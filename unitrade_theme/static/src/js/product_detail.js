@@ -260,6 +260,14 @@ publicWidget.registry.UnitradeProductStockWarning = publicWidget.Widget.extend({
     if (!button || !this.el.contains(button)) {
       return;
     }
+    if (button.dataset.stockBlocked === '1') {
+      ev.preventDefault();
+      ev.stopPropagation();
+      if (ev.stopImmediatePropagation) {
+        ev.stopImmediatePropagation();
+      }
+      return;
+    }
     this._handleAddToCart(ev, button.closest('[data-unitrade-stock-form]'));
   },
 
@@ -386,8 +394,12 @@ publicWidget.registry.UnitradeProductStockWarning = publicWidget.Widget.extend({
       input.classList.remove('is-stock-invalid');
     }
     if (button && !this._isSubmitting) {
-      button.disabled = false;
-      button.classList.remove('disabled');
+      if (button.dataset.stockBlocked === '1') {
+        button.disabled = true;
+      } else {
+        button.disabled = false;
+        button.classList.remove('disabled');
+      }
     }
   },
 

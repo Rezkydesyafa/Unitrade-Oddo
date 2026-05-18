@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="product_unitrade_service_fee" model="product.product">
+        <field name="name">Biaya Layanan UniTrade</field>
+        <field name="detailed_type">service</field>
+        <field name="sale_ok">True</field>
+        <field name="purchase_ok">False</field>
+        <field name="list_price">0.0</field>
+        <field name="taxes_id" eval="[(6, 0, [])]"/>
+    </record>
+</odoo>

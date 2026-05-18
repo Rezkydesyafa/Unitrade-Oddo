@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_unitrade_dispute_user,unitrade.dispute user,model_unitrade_dispute,base.group_user,1,1,1,0
+access_unitrade_dispute_admin,unitrade.dispute admin,model_unitrade_dispute,base.group_system,1,1,1,1
+access_unitrade_dispute_evidence_user,unitrade.dispute.evidence user,model_unitrade_dispute_evidence,base.group_user,1,1,1,0
+access_unitrade_dispute_evidence_admin,unitrade.dispute.evidence admin,model_unitrade_dispute_evidence,base.group_system,1,1,1,1

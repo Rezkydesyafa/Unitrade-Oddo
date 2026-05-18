@@ -4,25 +4,38 @@
         <t t-call="website.layout">
             <t t-set="title">Katalog Produk — UniTrade</t>
             <div class="tw-max-w-7xl tw-mx-auto tw-px-4 tw-py-8">
-                <h1 class="unitrade-section-title tw-mb-8">Katalog Produk</h1>
-                <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 tw-gap-6">
-                    <t t-foreach="products" t-as="product">
-                        <a t-attf-href="/unitrade/product/#{product.id}" class="unitrade-card tw-block">
-                            <div class="tw-h-[180px] tw-bg-[#f5f5f7] tw-relative tw-flex tw-items-center tw-justify-center tw-overflow-hidden">
-                                <img t-att-src="'/web/image/product.template/%s/image_1920' % product.id" t-att-alt="product.name" class="tw-w-full tw-h-full tw-object-contain tw-object-center tw-p-3"/>
-                                <t t-if="product.x_condition">
-                                    <span t-attf-class="unitrade-badge tw-absolute tw-top-3 tw-left-3 #{product.x_condition == 'new' and 'unitrade-badge-new' or 'unitrade-badge-used'}">
-                                        <t t-if="product.x_condition == 'new'">Baru</t><t t-else="">Bekas</t>
-                                    </span>
-                                </t>
-                            </div>
-                            <div class="tw-p-4">
+                <h1 class="unitrade-section-title tw-mb-2">Katalog Produk</h1>
+                <p t-if="selected_category" class="tw-mb-8 tw-text-sm tw-text-gray-500">
+                    Kategori: <strong class="tw-text-gray-900" t-esc="selected_category.complete_name or selected_category.name"/>
+                </p>
+                <p t-else="" class="tw-mb-8 tw-text-sm tw-text-gray-500">Temukan barang dari semua kategori UniTrade.</p>
+                <t t-if="products">
+                    <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 tw-gap-6">
+                        <t t-foreach="products" t-as="product">
+                            <t t-set="ut_price_info" t-value="product._unitrade_price_info()"/>
+                            <a t-attf-href="/unitrade/product/#{product.id}" class="unitrade-card tw-block">
+                                <div class="tw-h-[180px] tw-bg-[#f5f5f7] tw-relative tw-flex tw-items-center tw-justify-center tw-overflow-hidden">
+                                    <img t-att-src="'/web/image/product.template/%s/image_1920' % product.id" t-att-alt="product.name" class="tw-w-full tw-h-full tw-object-contain tw-object-center tw-p-3"/>
+                                    <t t-if="product.x_condition">
+                                        <span t-attf-class="unitrade-badge tw-absolute tw-top-3 tw-left-3 #{product.x_condition == 'new' and 'unitrade-badge-new' or 'unitrade-badge-used'}">
+                                            <t t-if="product.x_condition == 'new'">Baru</t><t t-else="">Bekas</t>
+                                        </span>
+                                    </t>
+                                </div>
+                                <div class="tw-p-4">
                                 <h3 class="tw-font-semibold tw-text-sm tw-text-gray-900 tw-line-clamp-2"><t t-esc="product.name"/></h3>
-                                <p class="tw-text-indigo-600 tw-font-bold tw-text-lg">Rp <t t-esc="'{:,.0f}'.format(product.list_price).replace(',', '.')"/></p>
+                                <p class="tw-text-indigo-600 tw-font-bold tw-text-lg">Rp <t t-esc="'{:,.0f}'.format(ut_price_info.get('discounted_price')).replace(',', '.')"/></p>
                                 <span class="tw-text-xs tw-text-gray-500 tw-flex tw-items-center"><i class="fa fa-map-marker tw-mr-1"></i> <t t-esc="product.x_seller_location or 'Yogyakarta'"/></span>
-                            </div>
-                        </a>
-                    </t>
+                                </div>
+                            </a>
+                        </t>
+                    </div>
+                </t>
+                <div t-else="" class="tw-flex tw-min-h-[320px] tw-flex-col tw-items-center tw-justify-center tw-rounded-[24px] tw-border tw-border-solid tw-border-gray-200 tw-bg-white tw-p-8 tw-text-center tw-shadow-sm">
+                    <i class="fa fa-search tw-mb-4 tw-text-4xl tw-text-gray-300"></i>
+                    <h2 class="tw-m-0 tw-text-xl tw-font-semibold tw-text-gray-900">Belum ada produk di kategori ini</h2>
+                    <p class="tw-m-0 tw-mt-2 tw-max-w-md tw-text-sm tw-leading-6 tw-text-gray-500">Coba pilih kategori lain atau gunakan kata kunci pencarian yang lebih umum.</p>
+                    <a href="/shop" class="tw-mt-5 tw-inline-flex tw-items-center tw-rounded-full tw-bg-black tw-px-5 tw-py-2.5 tw-text-sm tw-font-semibold tw-text-white tw-no-underline">Lihat semua produk</a>
                 </div>
             </div>
         </t>
@@ -37,8 +50,11 @@
                         <img t-att-src="'/web/image/product.template/%s/image_1920' % product.id" t-att-alt="product.name" class="tw-w-full tw-h-full tw-object-cover"/>
                     </div>
                     <div>
+                        <t t-set="ut_price_info" t-value="product._unitrade_price_info()"/>
                         <h1 class="tw-text-3xl tw-font-bold tw-text-gray-900 tw-mb-4"><t t-esc="product.name"/></h1>
-                        <p class="tw-text-3xl tw-font-bold tw-text-indigo-600 tw-mb-6">Rp <t t-esc="'{:,.0f}'.format(product.list_price).replace(',', '.')"/></p>
+                        <div class="tw-mb-6 tw-flex tw-flex-wrap tw-items-baseline tw-gap-3">
+                            <p class="tw-m-0 tw-text-3xl tw-font-bold tw-text-indigo-600">Rp <t t-esc="'{:,.0f}'.format(ut_price_info.get('discounted_price')).replace(',', '.')"/></p>
+                        </div>
                         <div class="tw-flex tw-gap-3 tw-mb-6">
                             <t t-if="product.x_condition">
                                 <span t-attf-class="unitrade-badge #{product.x_condition == 'new' and 'unitrade-badge-new' or 'unitrade-badge-used'}">

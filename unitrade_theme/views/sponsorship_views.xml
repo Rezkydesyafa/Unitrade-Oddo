@@ -1,0 +1,107 @@
+<odoo>
+    <record id="view_unitrade_sponsorship_request_tree" model="ir.ui.view">
+        <field name="name">unitrade.sponsorship.request.tree</field>
+        <field name="model">unitrade.sponsorship.request</field>
+        <field name="arch" type="xml">
+            <tree string="Sponsorship Requests">
+                <field name="create_date"/>
+                <field name="name"/>
+                <field name="contact_name"/>
+                <field name="email"/>
+                <field name="phone"/>
+                <field name="status"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_unitrade_sponsorship_request_form" model="ir.ui.view">
+        <field name="name">unitrade.sponsorship.request.form</field>
+        <field name="model">unitrade.sponsorship.request</field>
+        <field name="arch" type="xml">
+            <form string="Sponsorship Request">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="contact_name"/>
+                            <field name="email"/>
+                            <field name="phone"/>
+                            <field name="budget_note"/>
+                        </group>
+                        <group>
+                            <field name="status"/>
+                            <field name="user_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="campaign_goal"/>
+                        <field name="note"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_unitrade_sponsorship_request" model="ir.actions.act_window">
+        <field name="name">Sponsorship Requests</field>
+        <field name="res_model">unitrade.sponsorship.request</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_unitrade_security_activity_tree" model="ir.ui.view">
+        <field name="name">unitrade.security.activity.tree</field>
+        <field name="model">unitrade.security.activity</field>
+        <field name="arch" type="xml">
+            <tree string="Security Activity" create="0" edit="0">
+                <field name="event_date"/>
+                <field name="user_id"/>
+                <field name="event_type"/>
+                <field name="title"/>
+                <field name="ip_address"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_unitrade_security_activity_form" model="ir.ui.view">
+        <field name="name">unitrade.security.activity.form</field>
+        <field name="model">unitrade.security.activity</field>
+        <field name="arch" type="xml">
+            <form string="Security Activity" create="0" edit="0">
+                <sheet>
+                    <group>
+                        <field name="event_date"/>
+                        <field name="user_id"/>
+                        <field name="event_type"/>
+                        <field name="title"/>
+                        <field name="detail"/>
+                        <field name="ip_address"/>
+                        <field name="session_id"/>
+                    </group>
+                    <group>
+                        <field name="user_agent"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_unitrade_security_activity" model="ir.actions.act_window">
+        <field name="name">Security Activity</field>
+        <field name="res_model">unitrade.security.activity</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_unitrade_theme_root" name="UniTrade Website" sequence="85" groups="base.group_system"/>
+    <menuitem id="menu_unitrade_sponsorship_request"
+              name="Sponsorship Requests"
+              parent="menu_unitrade_theme_root"
+              action="action_unitrade_sponsorship_request"
+              sequence="10"
+              groups="base.group_system"/>
+    <menuitem id="menu_unitrade_security_activity"
+              name="Security Activity"
+              parent="menu_unitrade_theme_root"
+              action="action_unitrade_security_activity"
+              sequence="20"
+              groups="base.group_system"/>
+</odoo>

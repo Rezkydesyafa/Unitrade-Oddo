@@ -102,6 +102,149 @@
   color: #dc2626 !important;
 }
 
+.ut-logout-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  font-family: 'Urbanist', Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.ut-logout-modal.is-open {
+  display: flex;
+}
+
+.ut-logout-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.42);
+  backdrop-filter: blur(7px);
+}
+
+.ut-logout-dialog {
+  position: relative;
+  display: flex;
+  width: min(670px, 100%);
+  min-height: 514px;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 40px;
+  background: #ffffff;
+  box-shadow: 0 34px 110px rgba(15, 23, 42, 0.24);
+  padding: 83px 56px 45px;
+  transform: translateY(16px) scale(0.98);
+  opacity: 0;
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ut-logout-modal.is-open .ut-logout-dialog {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.ut-logout-icon-wrap {
+  display: flex;
+  width: 116px;
+  height: 116px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #ffe0e0;
+  color: #ff0000;
+}
+
+.ut-logout-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.ut-logout-title {
+  margin: 57px 0 0;
+  color: #212529;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 48px;
+  text-align: center;
+}
+
+.ut-logout-copy {
+  margin: 11px 0 0;
+  color: #525252;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.ut-logout-actions {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  gap: 30px;
+  margin-top: auto;
+}
+
+.ut-logout-button {
+  display: inline-flex;
+  width: 203px;
+  height: 51px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 16px;
+  text-transform: uppercase;
+  transition: transform 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+
+.ut-logout-button:hover {
+  transform: translateY(-1px);
+}
+
+.ut-logout-button-back {
+  border: 2px solid #1a1a1a;
+  background: #ffffff;
+  color: #1a1a1a;
+}
+
+.ut-logout-button-confirm {
+  border: 2px solid #1a1a1a;
+  background: #1a1a1a;
+  color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .ut-logout-dialog {
+    min-height: 430px;
+    border-radius: 32px;
+    padding: 56px 24px 28px;
+  }
+
+  .ut-logout-icon-wrap {
+    width: 96px;
+    height: 96px;
+  }
+
+  .ut-logout-title {
+    margin-top: 42px;
+    font-size: 28px;
+    line-height: 36px;
+  }
+
+  .ut-logout-actions {
+    flex-direction: column-reverse;
+    gap: 12px;
+  }
+
+  .ut-logout-button {
+    width: 100%;
+  }
+}
+
 /* ============================================
    UniTrade — Elegant Hover Effects
    ============================================ */
@@ -1196,6 +1339,11 @@
   text-decoration: none !important;
 }
 
+.ut-category-icon {
+  width: 52px;
+  height: 52px;
+}
+
 /* User profile page translated from Figma node 149:549. */
 body:has(.ut-user-profile-page),
 body:has(.ut-user-profile-page) #wrapwrap,
@@ -1503,6 +1651,14 @@ body:has(.ut-user-profile-page) .ut-user-profile-form {
   width: 42px !important;
   height: 42px !important;
   flex: 0 0 42px !important;
+}
+
+.ut-user-profile-menu > span:last-child,
+.ut-user-profile-logout > span:last-child {
+  min-width: 0;
+  font-size: 18px !important;
+  line-height: 1.15;
+  white-space: nowrap;
 }
 
 .ut-user-profile-menu-icon svg,
@@ -2501,6 +2657,18 @@ body:has(.ut-user-profile-page) .ut-user-profile-form {
   display: grid;
   grid-template-rows: auto 1fr auto;
   box-shadow: 0 10px 30px rgba(29, 29, 31, 0.03);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.ut-user-order-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 38px rgba(29, 29, 31, 0.07);
+}
+
+.ut-user-order-card:focus-visible {
+  outline: 2px solid #212529;
+  outline-offset: 4px;
 }
 
 .ut-user-order-card.ut-is-hidden {
@@ -2557,9 +2725,19 @@ body:has(.ut-user-profile-page) .ut-user-profile-form {
   color: #8f5d00;
 }
 
+.ut-user-order-status.ut-status-processing {
+  background: #eef2ff;
+  color: #3730a3;
+}
+
 .ut-user-order-status.ut-status-cancel {
   background: #fff0f0;
   color: #c62828;
+}
+
+.ut-user-order-status.ut-status-refund {
+  background: #fff7ed;
+  color: #c2410c;
 }
 
 .ut-user-order-body {
@@ -2630,6 +2808,12 @@ body:has(.ut-user-profile-page) .ut-user-profile-form {
   font-size: 14px;
 }
 
+.ut-user-order-status-note {
+  margin-top: 8px !important;
+  color: #3730a3 !important;
+  font-weight: 600 !important;
+}
+
 .ut-user-order-price {
   min-width: 110px;
   padding-top: 5px;
@@ -2646,7 +2830,42 @@ body:has(.ut-user-profile-page) .ut-user-profile-form {
   display: flex;
   justify-content: flex-end;
   gap: 14px;
-  margin-top: -34px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  cursor: default;
+}
+
+.ut-user-order-action-form {
+  margin: 0;
+}
+
+.ut-user-order-proof-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ut-user-order-proof-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px dashed #c5c6ca;
+  border-radius: 999px;
+  background: #f9f9fb;
+  color: #525252;
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.ut-user-order-proof-upload input {
+  max-width: 150px;
+  color: #525252;
+  font-size: 11px;
 }
 
 .ut-user-order-btn {
@@ -2678,6 +2897,13 @@ body:has(.ut-user-profile-page) .ut-user-profile-form {
   color: #212529 !important;
 }
 
+.ut-user-order-btn-danger {
+  border: 1px solid #fecaca;
+  background: #fff;
+  color: #b42318 !important;
+  cursor: pointer;
+}
+
 .ut-user-order-btn-muted {
   border: 1px solid #d9d9d9;
   background: #f5f5f7;
@@ -2692,10 +2918,12 @@ body:has(.ut-user-profile-page) .ut-user-profile-form {
   opacity: 0.72;
 }
 
+.ut-order-receive-modal-open,
 .ut-order-review-modal-open {
   overflow: hidden;
 }
 
+.ut-order-receive-modal,
 .ut-order-review-modal {
   position: fixed;
   inset: 0;
@@ -2707,6 +2935,7 @@ body:has(.ut-user-profile-page) .ut-user-profile-form {
   font-family: Urbanist, Inter, sans-serif;
 }
 
+.ut-order-receive-modal.is-open,
 .ut-order-review-modal.is-open {
   display: flex;
 }
@@ -2728,6 +2957,286 @@ body:has(.ut-user-profile-page) .ut-user-profile-form {
   border-radius: 28px;
   background: #fff;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.22);
+}
+
+.ut-order-receive-dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(620px, 100%);
+  max-height: min(820px, calc(100vh - 32px));
+  overflow: hidden;
+  border-radius: 30px;
+  background: #fff;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.22);
+}
+
+.ut-order-receive-dialog form {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.ut-order-receive-scroll {
+  overflow-y: auto;
+  padding: 34px 40px 20px;
+  scrollbar-color: #aeb4bf transparent;
+  scrollbar-width: thin;
+}
+
+.ut-order-receive-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ut-order-receive-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ut-order-receive-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #aeb4bf;
+}
+
+.ut-order-receive-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 74px;
+  height: 74px;
+  margin: 0 auto 20px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #16a34a;
+  font-size: 28px;
+}
+
+.ut-order-receive-scroll h2 {
+  margin: 0;
+  color: #1d1d1d;
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.12;
+  text-align: center;
+}
+
+.ut-order-receive-copy {
+  margin: 10px auto 22px;
+  max-width: 420px;
+  color: #626262;
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 15px;
+  line-height: 22px;
+  text-align: center;
+}
+
+.ut-order-receive-product {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 18px;
+  padding: 12px;
+  border: 1px solid #e1e4ea;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.ut-order-receive-product img {
+  width: 88px;
+  height: 76px;
+  flex: 0 0 88px;
+  border-radius: 14px;
+  background: #f3f4f6;
+  object-fit: cover;
+}
+
+.ut-order-receive-product h3 {
+  margin: 0 0 4px;
+  color: #111827;
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 22px;
+}
+
+.ut-order-receive-product p {
+  margin: 0;
+  color: #667085;
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.ut-receive-upload-card {
+  position: relative;
+  display: flex;
+  min-height: 224px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  border: 1px dashed #aeb4bf;
+  border-radius: 18px;
+  background: #fff;
+  text-align: center;
+  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ut-receive-upload-card.is-dragging {
+  border-color: #111827;
+  background: #f9fafb;
+  box-shadow: inset 0 0 0 1px rgba(17, 24, 39, 0.08);
+}
+
+.ut-receive-upload-card input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ut-receive-upload-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  margin-bottom: 8px;
+  border-radius: 999px;
+  background: #f2f4f7;
+  color: #98a2b3;
+  font-size: 22px;
+}
+
+.ut-receive-upload-card strong {
+  color: #111827;
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 21px;
+}
+
+.ut-receive-upload-card span {
+  color: #667085;
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.ut-receive-upload-card button,
+.ut-order-receive-submit {
+  border: 0;
+  border-radius: 10px;
+  background: #030712;
+  color: #fff;
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.ut-receive-upload-card button {
+  margin-top: 10px;
+  padding: 12px 18px;
+}
+
+.ut-receive-file-list {
+  margin-top: 12px;
+}
+
+.ut-receive-file-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
+  color: #111827;
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.ut-receive-file-preview {
+  width: 70px;
+  height: 58px;
+  flex: 0 0 70px;
+  border-radius: 10px;
+  background: #eef0f3;
+  object-fit: cover;
+}
+
+.ut-receive-file-meta {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ut-receive-file-item strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ut-receive-file-item span {
+  color: #667085;
+}
+
+.ut-order-receive-message {
+  display: none;
+  margin-top: 12px;
+  padding: 11px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  background: #fef2f2;
+  color: #b42318;
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.ut-order-receive-message.is-visible {
+  display: block;
+}
+
+.ut-order-receive-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 18px 40px 30px;
+  border-top: 1px solid #eef0f3;
+  background: #fff;
+}
+
+.ut-order-receive-cancel,
+.ut-order-receive-submit {
+  min-width: 150px;
+  min-height: 46px;
+  padding: 0 22px;
+  cursor: pointer;
+}
+
+.ut-order-receive-cancel {
+  border: 1px solid #d0d5dd;
+  border-radius: 999px;
+  background: #fff;
+  color: #111827;
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.ut-order-receive-submit {
+  border-radius: 999px;
 }
 
 .ut-order-review-scroll {
@@ -4203,22 +4712,36 @@ body:has(.ut-user-settings-page) .password-meter {
     font-size: 13px;
   }
 
+  .ut-order-receive-modal,
   .ut-order-review-modal {
     align-items: stretch;
     padding: 12px;
   }
 
+  .ut-order-receive-dialog,
   .ut-order-review-dialog {
     max-height: calc(100vh - 24px);
     border-radius: 24px;
   }
 
+  .ut-order-receive-scroll,
   .ut-order-review-scroll {
     padding: 30px 22px 18px;
   }
 
+  .ut-order-receive-scroll h2,
   .ut-order-review-scroll h2 {
     font-size: 32px;
+  }
+
+  .ut-order-receive-footer {
+    flex-direction: column-reverse;
+    padding: 16px 22px 24px;
+  }
+
+  .ut-order-receive-cancel,
+  .ut-order-receive-submit {
+    width: 100%;
   }
 
   .ut-order-review-product {
@@ -4308,7 +4831,13 @@ body:has(.ut-seller-profile-page) {
 .ut-seller-skeleton-card,
 .ut-seller-skeleton-image,
 .ut-seller-skeleton-line,
-.ut-seller-skeleton-row span {
+.ut-seller-skeleton-row span,
+.ut-review-skeleton-chip-row span,
+.ut-review-skeleton-score,
+.ut-review-skeleton-avatar,
+.ut-review-skeleton-line,
+.ut-review-skeleton-stars span,
+.ut-review-skeleton-actions span {
   background: linear-gradient(
     90deg,
     #ececef 0%,
@@ -4321,9 +4850,11 @@ body:has(.ut-seller-profile-page) {
 
 .ut-seller-skeleton-card {
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: 178px;
-  height: 253px;
+  height: 300px;
   padding: 9px;
   border: 1px solid #d9d9d9;
   border-radius: 22px;
@@ -4331,7 +4862,8 @@ body:has(.ut-seller-profile-page) {
 }
 
 .ut-seller-skeleton-image {
-  height: 133px;
+  height: 180px;
+  min-height: 180px;
   border-radius: 12px;
 }
 
@@ -4341,20 +4873,23 @@ body:has(.ut-seller-profile-page) {
 }
 
 .ut-seller-skeleton-name {
-  width: 78%;
-  margin-top: 16px;
+  width: 82%;
+  height: 18px;
+  margin-top: 14px;
 }
 
 .ut-seller-skeleton-location {
-  width: 48%;
-  margin-top: 13px;
+  width: 56%;
+  height: 13px;
+  margin-top: 10px;
 }
 
 .ut-seller-skeleton-row {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  margin-top: 31px;
+  margin-top: auto;
+  padding-bottom: 2px;
 }
 
 .ut-seller-skeleton-row span {
@@ -4846,21 +5381,49 @@ body:has(.ut-seller-profile-page) {
 
 .ut-review-loading {
   display: flex;
-  gap: 25px;
-  padding: 18px 0 96px;
+  flex-direction: column;
+  gap: 24px;
+  padding: 0 0 96px;
 }
 
-.ut-review-skeleton-avatar,
-.ut-review-skeleton-line,
-.ut-review-skeleton-actions span {
-  background: linear-gradient(
-    90deg,
-    var(--ut-color-bg-muted) 0%,
-    var(--ut-color-bg-surface) 46%,
-    var(--ut-color-bg-muted) 92%
-  );
-  background-size: 220% 100%;
-  animation: ut-review-shimmer 1.35s ease-in-out infinite;
+.ut-review-skeleton-summary {
+  display: flex;
+  min-height: 118px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 22px 28px;
+  border-radius: 26px;
+  background-color: #fff;
+}
+
+.ut-review-skeleton-chip-row {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ut-review-skeleton-chip-row span {
+  display: block;
+  width: 104px;
+  height: 34px;
+  border-radius: 999px;
+}
+
+.ut-review-skeleton-score {
+  width: 168px;
+  height: 54px;
+  border-radius: 18px;
+}
+
+.ut-review-skeleton-item {
+  display: flex;
+  gap: 25px;
+  min-height: 188px;
+  padding: 0 0 34px;
+  border-bottom: 1px solid var(--ut-color-divider);
+  background-color: transparent;
 }
 
 .ut-review-skeleton-avatar {
@@ -4889,7 +5452,19 @@ body:has(.ut-seller-profile-page) {
 .ut-review-skeleton-date {
   width: 92px;
   height: 8px;
-  margin-bottom: 28px;
+  margin-bottom: 18px;
+}
+
+.ut-review-skeleton-stars {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 14px;
+}
+
+.ut-review-skeleton-stars span {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
 }
 
 .ut-review-skeleton-text {

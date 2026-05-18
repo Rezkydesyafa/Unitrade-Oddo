@@ -7,6 +7,7 @@
     'depends': ['product', 'website_sale', 'website_sale_stock', 'unitrade_seller'],
     'data': [
         'security/ir.model.access.csv',
+        'data/product_categories.xml',
         'views/product_views.xml',
         'views/product_templates.xml',
     ],

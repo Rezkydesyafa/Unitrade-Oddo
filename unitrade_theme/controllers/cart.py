@@ -136,7 +136,19 @@ class UnitradeWebsiteSaleCart(WebsiteSale):
             return str(int(qty))
         return ('%.2f' % qty).rstrip('0').rstrip('.')
 
+    def _unitrade_cleanup_fee_lines(self, order):
+        if not order or not hasattr(order, '_unitrade_checkout_amounts'):
+            return
+        try:
+            if hasattr(order, '_unitrade_sync_checkout_product_prices'):
+                order.sudo()._unitrade_sync_checkout_product_prices()
+            order.sudo()._unitrade_checkout_amounts(sync_fee=True)
+        except Exception:
+            _logger.exception('Failed to clean UniTrade fee lines for cart %s', order.id)
+
     def _cart_values(self, **post):
+        order = request.website.sale_get_order()
+        self._unitrade_cleanup_fee_lines(order)
         values = super()._cart_values(**post)
         issues = self._unitrade_current_stock_issues()
         request.session.pop(self._STOCK_WARNING_SESSION_KEY, None)
@@ -188,6 +200,12 @@ class UnitradeWebsiteSaleCart(WebsiteSale):
             express=express,
             **kwargs
         )
+        order = request.website.sale_get_order()
+        if order and hasattr(order, '_unitrade_sync_checkout_product_prices'):
+            try:
+                order.sudo()._unitrade_sync_checkout_product_prices()
+            except Exception:
+                _logger.exception('Failed to sync UniTrade discounted cart price for order %s', order.id)
         issues = self._unitrade_current_stock_issues()
         if issues:
             request.session[self._STOCK_WARNING_SESSION_KEY] = self._unitrade_cart_stock_message(issues)
@@ -223,6 +241,12 @@ class UnitradeWebsiteSaleCart(WebsiteSale):
             no_variant_attribute_values=no_variant_attribute_values,
             **kw
         )
+        order = request.website.sale_get_order()
+        if order and hasattr(order, '_unitrade_sync_checkout_product_prices'):
+            try:
+                order.sudo()._unitrade_sync_checkout_product_prices()
+            except Exception:
+                _logger.exception('Failed to sync UniTrade discounted cart price for order %s', order.id)
         issues = self._unitrade_current_stock_issues()
         if issues:
             warning = self._unitrade_cart_stock_message(issues)
@@ -233,8 +257,7 @@ class UnitradeWebsiteSaleCart(WebsiteSale):
         else:
             request.session.pop(self._STOCK_WARNING_SESSION_KEY, None)
 
-        order = request.website.sale_get_order()
-        if display and order and (issues or had_stock_warning) and values.get('website_sale.cart_lines'):
+        if display and order and values.get('website_sale.cart_lines'):
             values['website_sale.cart_lines'] = self._unitrade_render_cart_lines(order, issues)
         return values
 

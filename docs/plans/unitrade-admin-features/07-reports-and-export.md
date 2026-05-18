@@ -1,7 +1,21 @@
 # Reports and Export Plan
 
-Status: Draft
+Status: Updated after source audit
 Priority: P1
+Last reviewed: 2026-05-18
+
+## Update 2026-05-18
+
+Data sumber laporan sudah lebih lengkap daripada saat plan awal dibuat. Reports bisa membaca `sale.order`, `unitrade.payment.intent`, `unitrade.payment.event`, `unitrade.escrow.ledger`, `unitrade.dispute`, `unitrade.seller`, `unitrade.seller.verification`, `product.template`, `unitrade.review`, `unitrade.chat.report`, dan nanti `unitrade.seller.payout`.
+
+Koreksi scope:
+
+- Export laporan harus memakai model existing, bukan membuat tabel transaksi baru.
+- Untuk MVP, buat wizard ringkasan periode dan CSV/XLSX transaksi/refund/payout. PDF ringkasan bisa P2 jika belum ada format final.
+- Report GMV harus membedakan order checkout website yang paid dari listing fee revenue.
+- Escrow report harus memisahkan `held`, `releasable`, `released`, `disputed`, `refunded`, dan `cancelled`.
+- Refund report harus membaca SLA once field deadline ditambahkan.
+- Semua export harus mencantumkan timestamp export, admin yang export, filter yang dipakai, dan masuk audit log.
 
 ## Tujuan
 
@@ -68,6 +82,8 @@ Laporan payout:
 - Report model atau transient model.
 - XLSX export helper.
 - PDF QWeb report jika diperlukan.
+- Tambah audit event untuk export report.
+- Tambah saved filters untuk GMV, escrow, refund, payout, listing fee, seller verification, dan moderation.
 
 ## Acceptance Criteria
 
@@ -76,4 +92,3 @@ Laporan payout:
 - Export menampilkan angka Rupiah tanpa desimal.
 - Export transaksi bisa difilter per status.
 - Export refund memuat status penyelesaian.
-

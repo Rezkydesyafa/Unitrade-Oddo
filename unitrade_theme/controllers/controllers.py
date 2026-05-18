@@ -11,6 +11,7 @@ from odoo import http, _, SUPERUSER_ID, fields, tools
 from odoo.http import request
 from odoo.exceptions import UserError, AccessDenied
 from odoo.service import security
+from odoo.tools.image import image_data_uri
 from odoo.addons.auth_signup.models.res_users import SignupError
 from odoo.addons.auth_oauth.controllers.main import OAuthLogin, OAuthController
 from odoo.addons.portal.controllers.portal import get_error
@@ -53,6 +54,15 @@ class UnitradeAuthSignup(OAuthLogin):
                 request.env['ir.http']._auth_method_public()
 
                 return self._generate_and_redirect_otp(user_sudo, login_val)
+            if user.exists():
+                user.unitrade_record_security_activity(
+                    'login',
+                    title=_('Login berhasil'),
+                    detail=_('Masuk ke akun UniTrade.'),
+                    ip_address=request.httprequest.remote_addr,
+                    user_agent=request.httprequest.headers.get('User-Agent', ''),
+                    session_id=request.session.sid,
+                )
 
         return response
 
@@ -85,6 +95,19 @@ class UnitradeAuthSignup(OAuthLogin):
                 )
 
                 if user_sudo:
+                    user_sudo.unitrade_record_security_activity(
+                        'register',
+                        title=_('Akun dibuat'),
+                        detail=_('Registrasi akun UniTrade.'),
+                        ip_address=request.httprequest.remote_addr,
+                        user_agent=request.httprequest.headers.get('User-Agent', ''),
+                        session_id=request.session.sid,
+                    )
+                    user_sudo.unitrade_accept_terms_privacy(
+                        ip_address=request.httprequest.remote_addr,
+                        user_agent=request.httprequest.headers.get('User-Agent', ''),
+                        session_id=request.session.sid,
+                    )
                     return self._generate_and_redirect_otp(user_sudo, login_value)
                 else:
                     return self.web_login(*args, **kw)
@@ -511,6 +534,14 @@ class UnitradeOTPController(http.Controller):
             try:
                 user = request.env['res.users'].sudo().browse(user_id)
                 user.write({'is_otp_verified': True})
+                user.unitrade_record_security_activity(
+                    'otp_verified',
+                    title=_('OTP akun diverifikasi'),
+                    detail=_('Verifikasi OTP berhasil.'),
+                    ip_address=request.httprequest.remote_addr,
+                    user_agent=request.httprequest.headers.get('User-Agent', ''),
+                    session_id=request.session.sid,
+                )
             except Exception as e:
                 _logger.error("Failed to mark user as OTP verified: %s", str(e))
 
@@ -587,7 +618,7 @@ class UnitradePortalProfile(CustomerPortal):
     """Render and update the UniTrade user profile page."""
 
     _MAX_AVATAR_BYTES = 2 * 1024 * 1024
-    _ORDER_STATUSES = ('all', 'unpaid', 'done', 'cancel')
+    _ORDER_STATUSES = ('all', 'unpaid', 'processing', 'done', 'cancel', 'refund')
     _ADDRESS_LABELS = ('home', 'office', 'school', 'other')
     _INDONESIA_BOUNDS = {
         'min_lat': -11.2,
@@ -595,6 +626,11 @@ class UnitradePortalProfile(CustomerPortal):
         'min_lng': 94.5,
         'max_lng': 141.2,
     }
+
+    @http.route(['/my/profile'], type='http', auth='user', website=True, sitemap=False)
+    def profile_redirect(self, **kwargs):
+        """Keep the UniTrade profile alias from returning a 404."""
+        return request.redirect('/my/account')
 
     @http.route(['/my/account'], type='http', auth='user', website=True)
     def account(self, redirect=None, **post):
@@ -810,6 +846,15 @@ class UnitradePortalProfile(CustomerPortal):
         if not _is_email(email):
             return request.redirect('/my/settings?password_otp_error=email')
 
+        user.unitrade_record_security_activity(
+            'password_change',
+            title=_('Permintaan ubah password'),
+            detail=_('OTP dikirim sebelum link reset password.'),
+            ip_address=request.httprequest.remote_addr,
+            user_agent=request.httprequest.headers.get('User-Agent', ''),
+            session_id=request.session.sid,
+        )
+
         return UnitradeAuthSignup()._generate_and_redirect_otp(
             user,
             email,
@@ -864,6 +909,14 @@ class UnitradePortalProfile(CustomerPortal):
             session = session_store.get(sid)
             if session.get('uid') == request.env.uid:
                 session_store.delete(session)
+                request.env.user.sudo().unitrade_record_security_activity(
+                    'session_revoke',
+                    title=_('Session dicabut'),
+                    detail=_('Satu perangkat dicabut dari akun.'),
+                    ip_address=request.httprequest.remote_addr,
+                    user_agent=request.httprequest.headers.get('User-Agent', ''),
+                    session_id=request.session.sid,
+                )
         return request.redirect('/my/settings')
 
     @http.route('/my/settings/session/revoke_all', type='http', auth='user', website=True, methods=['POST'])
@@ -873,6 +926,14 @@ class UnitradePortalProfile(CustomerPortal):
         for sid, session in self._iter_unitrade_user_sessions():
             if sid != request.session.sid:
                 session_store.delete(session)
+        request.env.user.sudo().unitrade_record_security_activity(
+            'session_revoke_all',
+            title=_('Semua session dicabut'),
+            detail=_('Semua perangkat lain dikeluarkan dari akun.'),
+            ip_address=request.httprequest.remote_addr,
+            user_agent=request.httprequest.headers.get('User-Agent', ''),
+            session_id=request.session.sid,
+        )
         request.session.logout(keep_db=True)
         return request.redirect('/', 303)
 
@@ -889,9 +950,14 @@ class UnitradePortalProfile(CustomerPortal):
         else:
             try:
                 request.env['res.users']._check_credentials(password, {'interactive': True})
-                request.env.user.sudo()._deactivate_portal_user(**post)
+                request.env.user.sudo().unitrade_privacy_deactivate(
+                    reason=post.get('reason') or _('Permintaan hapus akun dari halaman pengaturan.'),
+                    ip_address=request.httprequest.remote_addr,
+                    user_agent=request.httprequest.headers.get('User-Agent', ''),
+                    session_id=request.session.sid,
+                )
                 request.session.logout()
-                return request.redirect('/web/login?message=%s' % urls.url_quote(_('Account deleted!')))
+                return request.redirect('/web/login?message=%s' % urls.url_quote(_('Akun dinonaktifkan dan data pribadi telah dianonimkan.')))
             except AccessDenied:
                 values['errors'] = {'deactivate': 'password'}
             except UserError as e:
@@ -917,6 +983,7 @@ class UnitradePortalProfile(CustomerPortal):
             'notify_transaction': user.x_notify_transaction,
             'notify_promo': user.x_notify_promo,
             'session_activity': self._unitrade_session_activity(),
+            'security_activity': self._unitrade_security_activity(user),
             'password_otp_error': request.params.get('password_otp_error'),
             'sessions_revoked': request.params.get('sessions_revoked') == '1',
         })
@@ -990,6 +1057,23 @@ class UnitradePortalProfile(CustomerPortal):
             return 'Aktif %s' % fields.Datetime.context_timestamp(request.env.user, dt_value).strftime('%d %B %Y, %H:%M')
         except Exception:
             return _('Sedang aktif')
+
+    def _unitrade_security_activity(self, user):
+        activities = request.env['unitrade.security.activity'].sudo().search(
+            [('user_id', '=', user.id)],
+            order='event_date desc, id desc',
+            limit=8,
+        )
+        rows = []
+        for activity in activities:
+            event_dt = fields.Datetime.context_timestamp(request.env.user, activity.event_date) if activity.event_date else False
+            rows.append({
+                'title': activity.title or activity.event_type,
+                'detail': activity.detail or '',
+                'ip_label': activity.ip_address or '-',
+                'date_label': event_dt.strftime('%d %B %Y, %H:%M') if event_dt else '-',
+            })
+        return rows
 
     def _prepare_unitrade_profile_values(self, post):
         error = {}
@@ -1271,8 +1355,10 @@ class UnitradePortalProfile(CustomerPortal):
         status_counts = {
             'all': len(order_items),
             'unpaid': len([item for item in order_items if item['status'] == 'unpaid']),
+            'processing': len([item for item in order_items if item['status'] == 'processing']),
             'done': len([item for item in order_items if item['status'] == 'done']),
             'cancel': len([item for item in order_items if item['status'] == 'cancel']),
+            'refund': len([item for item in order_items if item['status'] == 'refund']),
         }
 
         values.update({
@@ -1292,7 +1378,9 @@ class UnitradePortalProfile(CustomerPortal):
         partners = request.env['res.partner'].sudo().search([('commercial_partner_id', '=', partner.id)])
         orders = request.env['sale.order'].sudo().search([
             ('partner_id', 'in', partners.ids),
+            '|',
             ('state', 'in', ['sent', 'sale', 'done', 'cancel']),
+            ('x_payment_intent_id', '!=', False),
         ], order='date_order desc', limit=80)
 
         Review = False
@@ -1306,22 +1394,38 @@ class UnitradePortalProfile(CustomerPortal):
             _logger.info('UniTrade review module is not available while rendering customer orders.')
         items = []
         for order in orders:
-            status_key = self._unitrade_order_status_key(order)
             order_lines = order.order_line.filtered(lambda line: not line.display_type and line.product_id)
             for line in order_lines:
                 product = line.product_id.product_tmpl_id
                 seller = product.x_seller_id if 'x_seller_id' in product._fields and product.x_seller_id else False
-                seller_ref = seller.x_profile_uuid or seller.id if seller else ''
+                seller_ref = (seller.x_store_slug or seller.x_profile_uuid or seller.id) if seller else ''
+                ledger = self._unitrade_order_line_ledger(order, seller)
+                status = self._unitrade_order_item_status(order, ledger)
+                status_key = status['key']
+                refund_dispute = self._unitrade_order_refund_dispute(order, ledger)
+                refund_blocker = False
+                if hasattr(order, '_unitrade_refund_blocker'):
+                    try:
+                        refund_blocker = order._unitrade_refund_blocker(
+                            partner=request.env.user.partner_id,
+                            ledger=ledger,
+                        )
+                    except Exception:
+                        _logger.exception('Failed to evaluate refund eligibility for order %s', order.name)
+                        refund_blocker = _('Refund belum tersedia.')
                 review_exists = False
                 if Review and status_key == 'done':
                     review_exists = product.id in reviewed_product_ids
 
-                can_buy_again = self._unitrade_can_buy_again(product, line.product_id)
+                can_buy_again = status_key == 'done' and self._unitrade_can_buy_again(product, line.product_id)
                 items.append({
                     'id': '%s-%s' % (order.id, line.id),
                     'status': status_key,
+                    'status_label': status['label'],
+                    'status_note': status.get('note'),
                     'order': order,
                     'line': line,
+                    'ledger': ledger,
                     'product': product,
                     'seller': seller,
                     'seller_name': seller.name if seller else (order.user_id.name or 'Penjual UniTrade'),
@@ -1339,8 +1443,41 @@ class UnitradePortalProfile(CustomerPortal):
                     'price': self._unitrade_format_money(line.price_total, order.currency_id),
                     'can_review': status_key == 'done' and not review_exists,
                     'review_exists': review_exists,
+                    'can_confirm_received': status.get('can_confirm_received', False),
+                    'buyer_confirmed': bool(ledger and ledger.buyer_confirmed_at),
+                    'seller_confirmed': bool(ledger and ledger.seller_confirmed_at),
+                    'can_cancel_order': status.get('can_cancel_order', False),
+                    'refund_dispute': refund_dispute,
+                    'refund_state_label': self._unitrade_refund_state_label(refund_dispute.state) if refund_dispute else '',
+                    'can_refund_order': status_key == 'processing' and not refund_dispute and not bool(refund_blocker),
+                    'refund_blocker': refund_blocker or '',
+                    'refund_url': '/unitrade/order/%s/refund' % order.id,
+                    'refund_create_url': '/unitrade/order/%s/refund/new?ledger_id=%s&order_line_id=%s' % (
+                        order.id,
+                        ledger.id if ledger else '',
+                        line.id,
+                    ),
+                    'refund_detail_url': '/unitrade/order/%s/refund/%s' % (order.id, refund_dispute.id) if refund_dispute else '',
+                    'refund_requested_amount': self._unitrade_format_money(
+                        order._unitrade_refund_requested_amount(ledger=ledger, order_line=line) if hasattr(order, '_unitrade_refund_requested_amount') else line.price_subtotal,
+                        order.currency_id,
+                    ),
+                    'confirm_received_url': '/unitrade/order/%s/confirm-received' % order.id,
+                    'cancel_url': '/unitrade/order/%s/cancel' % order.id,
+                    'order_status_url': '/unitrade/order/status/%s' % order.id,
                 })
         return items
+
+    @staticmethod
+    def _unitrade_order_line_ledger(order, seller=False):
+        if 'unitrade.escrow.ledger' not in request.env.registry:
+            return request.env['sale.order'].browse()
+        domain = [('order_id', '=', order.id)]
+        if seller:
+            domain.append(('seller_id', '=', seller.id))
+        else:
+            domain.append(('seller_id', '=', False))
+        return request.env['unitrade.escrow.ledger'].sudo().search(domain, order='create_date desc', limit=1)
 
     @staticmethod
     def _unitrade_can_buy_again(product, variant):
@@ -1355,12 +1492,90 @@ class UnitradePortalProfile(CustomerPortal):
         return True
 
     @staticmethod
-    def _unitrade_order_status_key(order):
+    def _unitrade_order_item_status(order, ledger=False):
+        if hasattr(order, 'unitrade_status_payload'):
+            status = dict(order.sudo().unitrade_status_payload(ledger=ledger))
+            if status.get('key') == 'confirmation':
+                status['key'] = 'processing'
+            return status
         if order.state == 'cancel':
-            return 'cancel'
+            return {'key': 'cancel', 'label': _('Dibatalkan')}
+        payment_status = order.x_payment_status if 'x_payment_status' in order._fields else ''
+        unitrade_state = order.x_unitrade_order_state if 'x_unitrade_order_state' in order._fields else ''
+        if payment_status == 'refunded' or unitrade_state == 'refunded':
+            return {'key': 'refund', 'label': _('Pengembalian')}
+        if payment_status in ('failed', 'expired', 'cancelled') or unitrade_state == 'cancelled':
+            return {'key': 'cancel', 'label': _('Dibatalkan')}
+        if 'unitrade.dispute' in request.env.registry:
+            refund_domain = [
+                ('order_id', '=', order.id),
+                ('state', 'in', request.env['unitrade.dispute'].ACTIVE_STATES),
+            ]
+            if ledger:
+                refund_domain.append(('escrow_ledger_id', '=', ledger.id))
+            active_refund = request.env['unitrade.dispute'].sudo().search(refund_domain, limit=1)
+            if active_refund:
+                return {
+                    'key': 'refund',
+                    'label': _('Pengembalian'),
+                    'note': _('Pengajuan refund sedang ditinjau UniTrade. Payout seller ditahan sampai keputusan final.'),
+                    'can_confirm_received': False,
+                    'can_cancel_order': False,
+                }
+        if payment_status in ('pending', '') and order.state not in ('sale', 'done'):
+            cancel_blocker = order._unitrade_direct_cancel_blocker() if hasattr(order, '_unitrade_direct_cancel_blocker') else True
+            note = _('Selesaikan pembayaran dalam 30 menit atau batalkan pesanan jika tidak jadi membayar.')
+            return {
+                'key': 'unpaid',
+                'label': _('Belum di bayar'),
+                'note': note,
+                'can_cancel_order': not bool(cancel_blocker),
+            }
+        if unitrade_state == 'completed':
+            return {'key': 'done', 'label': _('Selesai')}
+        if payment_status == 'paid':
+            buyer_confirmed = bool(ledger and ledger.buyer_confirmed_at)
+            seller_confirmed = bool(ledger and ledger.seller_confirmed_at)
+            note = ''
+            if seller_confirmed and not buyer_confirmed:
+                note = _('Penjual sudah unggah bukti. Cek barang lalu selesaikan pesanan.')
+            elif not seller_confirmed:
+                note = _('Menunggu penjual menyerahkan barang dan mengunggah bukti.')
+            cancel_blocker = order._unitrade_direct_cancel_blocker() if hasattr(order, '_unitrade_direct_cancel_blocker') else True
+            return {
+                'key': 'processing',
+                'label': _('Di Proses'),
+                'note': note,
+                'can_confirm_received': bool(ledger and seller_confirmed and not buyer_confirmed),
+                'can_cancel_order': not bool(cancel_blocker),
+            }
         if order.state in ('sale', 'done'):
-            return 'done'
-        return 'unpaid'
+            return {'key': 'done', 'label': _('Selesai')}
+        return {'key': 'unpaid', 'label': _('Belum di bayar')}
+
+    @staticmethod
+    def _unitrade_order_refund_dispute(order, ledger=False):
+        if 'unitrade.dispute' not in request.env.registry:
+            return request.env['sale.order'].browse()
+        domain = [('order_id', '=', order.id)]
+        if ledger:
+            domain.append(('escrow_ledger_id', '=', ledger.id))
+        return request.env['unitrade.dispute'].sudo().search(domain, order='create_date desc', limit=1)
+
+    @staticmethod
+    def _unitrade_refund_state_label(state):
+        labels = {
+            'draft': _('Draft'),
+            'submitted': _('Diajukan'),
+            'under_review': _('Ditinjau'),
+            'need_buyer_evidence': _('Butuh Bukti Buyer'),
+            'need_seller_response': _('Butuh Respons Seller'),
+            'approved': _('Disetujui'),
+            'rejected': _('Ditolak'),
+            'resolved': _('Selesai'),
+            'cancelled': _('Dibatalkan'),
+        }
+        return labels.get(state, state or '')
 
     @staticmethod
     def _unitrade_quantity_label(quantity):
@@ -1383,12 +1598,54 @@ class UnitradePortalProfile(CustomerPortal):
 
     @staticmethod
     def _unitrade_seller_avatar_url(seller):
-        if seller and seller.user_id:
-            return '/web/image/res.users/%s/image_128?unique=%s' % (
-                seller.user_id.id,
-                seller.user_id.write_date or '',
+        if seller:
+            seller = seller.sudo()
+            image = (
+                seller.x_avatar_128
+                or (seller.user_id.avatar_128 if seller.user_id else False)
+                or (seller.partner_id.image_128 if seller.partner_id else False)
             )
+            if image:
+                return image_data_uri(image.encode() if isinstance(image, str) else image)
         return '/web/static/img/user_menu_avatar.png'
+
+
+class UnitradeSponsorshipController(http.Controller):
+    """Public sponsorship request page and submit handler."""
+
+    @http.route('/unitrade/sponsorship', type='http', auth='public', website=True, sitemap=True)
+    def sponsorship_page(self, **kwargs):
+        return request.render('unitrade_theme.sponsorship_page', {
+            'form_values': dict(kwargs or {}),
+            'success': kwargs.get('success') == '1',
+            'error': kwargs.get('error') or '',
+        })
+
+    @http.route('/unitrade/sponsorship/submit', type='http', auth='public', website=True, methods=['POST'], csrf=True)
+    def sponsorship_submit(self, **post):
+        name = (post.get('name') or '').strip()
+        contact_name = (post.get('contact_name') or '').strip()
+        email = (post.get('email') or '').strip()
+        phone = (post.get('phone') or '').strip()
+        campaign_goal = (post.get('campaign_goal') or '').strip()
+        budget_note = (post.get('budget_note') or '').strip()
+        if not name or not contact_name or not campaign_goal or not (email or phone):
+            return request.render('unitrade_theme.sponsorship_page', {
+                'form_values': dict(post or {}),
+                'success': False,
+                'error': _('Lengkapi nama brand, kontak, tujuan sponsorship, dan email atau nomor HP.'),
+            })
+
+        request.env['unitrade.sponsorship.request'].sudo().create({
+            'name': name,
+            'contact_name': contact_name,
+            'email': email,
+            'phone': phone,
+            'campaign_goal': campaign_goal,
+            'budget_note': budget_note,
+            'user_id': request.env.user.id if not request.env.user._is_public() else False,
+        })
+        return request.redirect('/unitrade/sponsorship?success=1')
 
 
 class UnitradeOAuthController(OAuthController):
@@ -1415,6 +1672,36 @@ class UnitradeOAuthController(OAuthController):
 class UnitradeWebsite(Website):
     """Override website homepage to inject Best Quality products."""
 
+    @staticmethod
+    def _unitrade_home_category_aliases():
+        return {
+            'food': ['Makanan', 'Makanan & Minuman', 'Minuman'],
+            'furniture': ['Perabotan', 'Furniture'],
+            'fashion': ['Fashion'],
+            'electronics': ['Barang Elektronik', 'Elektronik'],
+            'services': ['Jasa', 'Layanan'],
+            'health_beauty': ['Kesehatan & Kecantikan', 'Kecantikan', 'Kesehatan'],
+            'hobbies': ['Hobi & Koleksi', 'Hobi', 'Koleksi'],
+            'other': ['Lainnya', 'Barang Bekas', 'Other'],
+        }
+
+    def _unitrade_home_category_urls(self):
+        Category = request.env['product.category'].sudo()
+        category_urls = {}
+        for key, aliases in self._unitrade_home_category_aliases().items():
+            category = Category.browse()
+            for alias in aliases:
+                category = Category.search([('name', '=ilike', alias)], limit=1)
+                if category:
+                    break
+            if not category:
+                for alias in aliases:
+                    category = Category.search([('name', 'ilike', alias)], limit=1)
+                    if category:
+                        break
+            category_urls[key] = '/shop?ut_category=%s' % category.id if category else '/shop'
+        return category_urls
+
     @http.route('/', type='http', auth="public", website=True, sitemap=True)
     def index(self, **kw):
         """Override homepage route to pass 'products' variable for Kualitas Terbaik section."""
@@ -1434,5 +1721,6 @@ class UnitradeWebsite(Website):
         # Inject into qcontext so template can render them
         if hasattr(response, 'qcontext'):
             response.qcontext['products'] = best_products
+            response.qcontext['unitrade_category_urls'] = self._unitrade_home_category_urls()
             
         return response

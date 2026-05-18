@@ -10,7 +10,7 @@ const MIN_GAP_K = 10;
 const AUTO_APPLY_DELAY_MS = 500;
 const DEFAULT_LAT = -7.7956;
 const DEFAULT_LON = 110.3695;
-const SORT_KEYS = new Set(["terkait", "terlaris", "terbaru", "termurah", "termahal"]);
+const SORT_KEYS = new Set(["terkait", "terlaris", "terbaru", "termurah", "termahal", "promo"]);
 const LOCATION_KEYS = new Set(["terdekat", "kabupaten", "diy"]);
 
 function intOrDefault(value, fallback) {
@@ -39,6 +39,7 @@ function toServerKondisi(value) {
 
 function cloneFilterState(state) {
     return {
+        categoryId: intOrDefault(state.categoryId, 0),
         lokasi: state.lokasi || "",
         kondisi: state.kondisi || "",
         sort: SORT_KEYS.has(state.sort) ? state.sort : "terkait",
@@ -126,6 +127,7 @@ export class UnitradeShopFilter extends Component {
 
     _defaultFilterState() {
         return {
+            categoryId: 0,
             lokasi: "",
             kondisi: "",
             sort: "terkait",
@@ -152,6 +154,7 @@ export class UnitradeShopFilter extends Component {
         const lokasi = params.get("lokasi") || "";
         const sort = params.get("sort") || "terkait";
         return {
+            categoryId: Math.max(intOrDefault(params.get("ut_category"), 0), 0),
             lokasi: LOCATION_KEYS.has(lokasi) ? lokasi : "",
             kondisi: normalizeKondisi(params.get("kondisi")),
             sort: SORT_KEYS.has(sort) ? sort : "terkait",
@@ -423,6 +426,9 @@ export class UnitradeShopFilter extends Component {
         }
         if (state.sort && state.sort !== "terkait") {
             params.set("sort", state.sort);
+        }
+        if (state.categoryId) {
+            params.set("ut_category", String(state.categoryId));
         }
         if (state.lokasi) {
             params.set("lokasi", state.lokasi);

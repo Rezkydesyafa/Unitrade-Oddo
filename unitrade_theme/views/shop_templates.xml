@@ -110,6 +110,7 @@
                             <div data-sort="terbaru" class="tw-px-5 tw-h-[36px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-transition-colors tw-text-gray-600 hover:tw-bg-gray-100 hover:tw-text-black">Terbaru</div>
                             <div data-sort="termurah" class="tw-px-5 tw-h-[36px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-transition-colors tw-text-gray-600 hover:tw-bg-gray-100 hover:tw-text-black">Termurah</div>
                             <div data-sort="termahal" class="tw-px-5 tw-h-[36px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-transition-colors tw-text-gray-600 hover:tw-bg-gray-100 hover:tw-text-black">Termahal</div>
+                            <div data-sort="promo" class="tw-px-5 tw-h-[36px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-transition-colors tw-text-gray-600 hover:tw-bg-gray-100 hover:tw-text-black">Promo</div>
                         </div>
                     </div>
                     

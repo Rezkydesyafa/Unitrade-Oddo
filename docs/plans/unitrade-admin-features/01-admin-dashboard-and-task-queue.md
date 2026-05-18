@@ -1,7 +1,25 @@
 # Admin Dashboard and Task Queue Plan
 
-Status: Draft
+Status: Updated after source audit
 Priority: P0
+Last reviewed: 2026-05-18
+
+## Update 2026-05-18
+
+Project sekarang sudah punya banyak sumber data yang dulu belum ada: `unitrade.seller`, `unitrade.seller.verification`, `product.template` marketplace, `unitrade.payment.intent`, `unitrade.payment.event`, `unitrade.escrow.ledger`, `unitrade.dispute`, `unitrade.chat.report`, `unitrade.delivery`, dan `unitrade.review`. Jadi dashboard tidak perlu membuat ulang model operasional. Yang perlu dibuat adalah modul orkestrasi `unitrade_admin` untuk membaca metrik dan membuka record sumber.
+
+Task queue harus dibangun dari domain lintas model, bukan task manual saja:
+
+| Queue | Sumber data | Domain awal |
+| --- | --- | --- |
+| KTM pending/manual review | `unitrade.seller.verification`, `unitrade.seller` | state/status pending atau manual review |
+| Listing fee pending/expired | `unitrade.payment.intent`, `product.template` | `intent_type = listing_fee`, state pending/failed/expired, produk belum publish |
+| Order perlu diproses | `sale.order`, `unitrade.escrow.ledger` | paid/processing, seller belum confirm, buyer belum confirm, deadline lewat |
+| Refund aktif | `unitrade.dispute` | submitted/under_review/need_buyer_evidence/need_seller_response |
+| Payout siap | `unitrade.escrow.ledger` | state releasable, payout belum succeeded, tidak dispute |
+| Moderasi | `unitrade.chat.report`, `unitrade.seller` | report submitted/reported/under_review |
+
+Koreksi acceptance: dashboard harus memakai group `unitrade_seller.group_unitrade_admin`, dan semua kartu harus membuka action existing dengan context/filter, bukan halaman statis.
 
 ## Tujuan
 
@@ -50,12 +68,17 @@ Task queue:
 
 ## Perubahan Odoo
 
-Module yang disarankan: `unitrade_admin`.
+Module yang disarankan: `unitrade_admin` sebagai layer orkestrasi.
 
 Model opsional:
 
-- `unitrade.admin.dashboard.snapshot` untuk cache metrik harian.
-- `unitrade.admin.task` untuk menyatukan task lintas modul.
+- `unitrade.admin.dashboard.snapshot` untuk cache metrik harian jika query langsung mulai berat.
+- `unitrade.admin.task` untuk materialized task hanya jika domain lintas model tidak cukup.
+
+Service/helper:
+
+- `unitrade.admin.metric.service` atau model method internal untuk hitung metrik.
+- Helper action builder untuk membuka source record dengan filter yang sama seperti kartu dashboard.
 
 View:
 
@@ -78,4 +101,3 @@ View:
 4. Buat task queue sederhana dari domain lintas model.
 5. Tambah chart GMV 7 hari.
 6. Tambah menu admin dashboard.
-
