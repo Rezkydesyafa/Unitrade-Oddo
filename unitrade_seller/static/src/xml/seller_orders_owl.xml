@@ -72,7 +72,7 @@
                     <main class="ut-orders-main tw-absolute tw-left-[180px] tw-right-[67px] tw-top-[173px] tw-pb-10">
                         <section class="tw-mb-[38px]">
                             <h1 class="tw-m-0 tw-text-[40px] tw-font-normal tw-leading-none tw-text-black">Pesanan</h1>
-                            <p class="tw-m-0 tw-mt-[7px] tw-text-[16px] tw-leading-6 tw-text-[#6a7282]">Here's what's happening with your store today</p>
+                            <p class="tw-m-0 tw-mt-[7px] tw-text-[16px] tw-leading-6 tw-text-[#6a7282]">Pantau pesanan, chat, bukti serah terima, dan refund toko.</p>
                         </section>
 
                         <section class="ut-orders-card tw-overflow-hidden tw-rounded-[16px] tw-border tw-border-[#e5e7eb] tw-bg-white tw-shadow-[0_1px_1.5px_rgba(0,0,0,0.1),0_1px_1px_rgba(0,0,0,0.1)]">
@@ -90,10 +90,10 @@
                                 <table class="ut-orders-table tw-w-full tw-min-w-[1060px]">
                                     <thead>
                                         <tr>
-                                            <th>ORDER ID</th>
+                                            <th>ID PESANAN</th>
                                             <th>PELANGGAN</th>
                                             <th>PRODUK</th>
-                                            <th>TOTAL HARGA</th>
+                                            <th>TOTAL</th>
                                             <th>STATUS</th>
                                             <th>TANGGAL ORDER</th>
                                             <th>AKSI</th>
@@ -130,12 +130,17 @@
                                                     <span class="tw-text-[14px] tw-leading-5 tw-text-[#4a5565]" t-esc="order.date_label"></span>
                                                 </td>
                                                 <td>
-                                                    <span class="tw-flex tw-items-center tw-gap-8">
+                                                    <span class="tw-flex tw-items-center tw-gap-2">
                                                         <a t-att-href="order.order_status_url" class="ut-orders-action" aria-label="Lihat detail pesanan">
                                                             <i class="fa fa-eye"></i>
                                                         </a>
-                                                        <a t-att-href="order.action_url" class="ut-orders-action" aria-label="Aksi pesanan">
-                                                            <i class="fa fa-ellipsis-v"></i>
+                                                        <button t-if="order.can_confirm_handoff" type="button" class="ut-orders-action-button" t-on-click="() => this.openHandoff(order)">Diserahkan</button>
+                                                        <a t-if="order.can_respond_refund" t-att-href="order.refund_detail_url" class="ut-orders-action-button is-warning">Refund</a>
+                                                        <a t-elif="order.refund_detail_url" t-att-href="order.refund_detail_url" class="ut-orders-action" aria-label="Buka refund">
+                                                            <i class="fa fa-exclamation-circle"></i>
+                                                        </a>
+                                                        <a t-att-href="order.action_url" class="ut-orders-action" aria-label="Buka chat">
+                                                            <i class="fa fa-commenting-o"></i>
                                                         </a>
                                                     </span>
                                                 </td>
@@ -149,6 +154,33 @@
                             </div>
                         </section>
                     </main>
+                    <div t-if="state.handoffOrder" class="ut-dash-search-modal tw-fixed tw-inset-0 tw-z-[1200] tw-flex tw-items-center tw-justify-center tw-bg-black/45 tw-px-5" t-on-click.self="closeHandoff">
+                        <form t-att-action="state.handoffOrder.confirm_handoff_url" method="post" enctype="multipart/form-data" class="ut-dash-handoff-modal">
+                            <input type="hidden" name="csrf_token" t-att-value="state.csrfToken"/>
+                            <input type="hidden" name="return_url" value="/unitrade/seller/orders"/>
+                            <header class="tw-mb-5 tw-flex tw-items-start tw-justify-between tw-gap-4">
+                                <span>
+                                    <h2 class="tw-m-0 tw-text-[20px] tw-font-semibold tw-text-[#101828]">Barang Diserahkan</h2>
+                                    <p class="tw-m-0 tw-mt-1 tw-text-[13px] tw-text-[#6a7282]" t-esc="state.handoffOrder.order_name + ' / ' + state.handoffOrder.customer_name"></p>
+                                </span>
+                                <button type="button" class="tw-flex tw-size-9 tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-[#f3f4f6]" t-on-click="closeHandoff" aria-label="Tutup">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </header>
+                            <label class="ut-dash-handoff-field">
+                                <span>Bukti barang diserahkan</span>
+                                <input type="file" name="seller_evidence" accept="image/jpeg,image/png,image/webp" required="required"/>
+                            </label>
+                            <label class="ut-dash-handoff-field">
+                                <span>Lokasi penyerahan</span>
+                                <input type="text" name="seller_handoff_location" required="required" placeholder="Contoh: Lobby Kampus UNISA, pukul 13.00"/>
+                            </label>
+                            <div class="tw-mt-6 tw-flex tw-justify-end tw-gap-3">
+                                <button type="button" class="ut-dash-handoff-cancel" t-on-click="closeHandoff">Batal</button>
+                                <button type="submit" class="ut-dash-handoff-submit">Simpan Bukti</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </t>
         </div>

@@ -77,6 +77,13 @@ function payloadFromDataset(dataset, parsed) {
         stats: {
             revenue_label: dataset.revenueLabel || "Rp 0",
             available_balance_label: dataset.availableBalanceLabel || "Rp 0",
+            available_balance: Number(dataset.availableBalance || 0),
+            payoutable_balance_label: dataset.payoutableBalanceLabel || "Rp 0",
+            pending_payout_label: dataset.pendingPayoutLabel || "Rp 0",
+            released_balance_label: dataset.releasedBalanceLabel || "Rp 0",
+            used_balance_label: dataset.usedBalanceLabel || "Rp 0",
+            payout_ready: false,
+            can_request_payout: false,
             active_products: Number(dataset.activeProducts || 0),
             incoming_orders: Number(dataset.incomingOrders || 0),
             sold_count: Number(dataset.soldCount || 0),
@@ -98,11 +105,12 @@ function payloadFromDataset(dataset, parsed) {
             is_today: true,
         },
         orders_period: "weekly",
-        current_date_label: todayLabel(),
-        add_product_url: dataset.addProductUrl || "",
-        data_url: "/unitrade/seller/dashboard/data",
-        csrf_token: "",
-    };
+            current_date_label: todayLabel(),
+            add_product_url: dataset.addProductUrl || "",
+            data_url: "/unitrade/seller/dashboard/data",
+            payout_request_url: "/unitrade/seller/payout/request",
+            csrf_token: "",
+        };
 }
 
 export class SellerDashboard extends Component {
@@ -138,6 +146,9 @@ export class SellerDashboard extends Component {
             ordersPeriod: initialPayload.orders_period || "weekly",
             dateLoading: false,
             dateError: "",
+            payoutLoading: false,
+            payoutMessage: "",
+            payoutError: "",
         });
 
         onMounted(() => {
@@ -212,6 +223,14 @@ export class SellerDashboard extends Component {
         }));
     }
 
+    get reviews() {
+        return (this.payload.reviews || []).slice(0, 6);
+    }
+
+    get canRequestPayout() {
+        return Boolean(this.stats.can_request_payout) && !this.state.payoutLoading;
+    }
+
     get sidebarItems() {
         return sellerSidebarItems(this.sidebarActiveKey, this.stats);
     }
@@ -236,7 +255,7 @@ export class SellerDashboard extends Component {
         const orderItems = (this.payload.orders || []).map((order, index) => ({
             key: "order-" + index + "-" + order.order_name,
             icon: "fa-shopping-cart",
-            title: `${order.order_name || "Order"} - ${order.customer_name || "Customer"}`,
+            title: `${order.order_name || "Pesanan"} - ${order.customer_name || "Pembeli"}`,
             subtitle: `${order.product_name || ""} - ${order.status_label || ""}`,
             url: order.action_url || "#dashboard-orders",
         }));
@@ -398,6 +417,30 @@ export class SellerDashboard extends Component {
         return this.loadDashboardForDate(anchorDate, "all", this.state.ordersPeriod);
     }
 
+    async requestPayout() {
+        if (!this.canRequestPayout) {
+            return;
+        }
+        this.state.payoutLoading = true;
+        this.state.payoutMessage = "";
+        this.state.payoutError = "";
+        try {
+            const result = await jsonrpc(this.payload.payout_request_url || "/unitrade/seller/payout/request", {});
+            if (!result || result.success === false) {
+                throw new Error((result && result.message) || "Permintaan pencairan belum bisa diproses.");
+            }
+            if (result.dashboard_payload) {
+                this.state.payload = result.dashboard_payload;
+            }
+            this.state.payoutMessage = result.message || "Permintaan pencairan berhasil dikirim.";
+            window.requestAnimationFrame(() => this.drawChart());
+        } catch (error) {
+            this.state.payoutError = error.message || "Permintaan pencairan belum bisa diproses.";
+        } finally {
+            this.state.payoutLoading = false;
+        }
+    }
+
     openSearch() {
         this.state.searchOpen = true;
     }
@@ -440,7 +483,8 @@ export class SellerDashboard extends Component {
         }
         const data = (this.payload.chart || {})[this.state.period] || (this.payload.chart || {}).weekly || {};
         const labels = data.labels || [];
-        const values = data.revenue || [];
+        const revenueValues = (data.revenue || []).map((value) => Number(value || 0));
+        const orderValues = (data.orders || []).map((value) => Number(value || 0));
         const parent = canvas.parentElement;
         const rect = parent ? parent.getBoundingClientRect() : canvas.getBoundingClientRect();
         const width = Math.max(320, Math.floor(rect.width || 720));
@@ -458,8 +502,9 @@ export class SellerDashboard extends Component {
         const pad = { top: 18, right: 18, bottom: 34, left: 58 };
         const plotWidth = width - pad.left - pad.right;
         const plotHeight = height - pad.top - pad.bottom;
-        const rawMax = Math.max(...values.map((value) => Number(value || 0)), 0);
+        const rawMax = Math.max(...revenueValues, 0);
         const maxValue = rawMax > 0 ? rawMax * 1.12 : 100000;
+        const maxOrders = Math.max(...orderValues, 0) || 1;
         const stepValue = maxValue / 4;
         const steps = [4, 3, 2, 1, 0].map((step) => stepValue * step);
 
@@ -480,7 +525,7 @@ export class SellerDashboard extends Component {
         });
 
         ctx.textAlign = "center";
-        const fallbackLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        const fallbackLabels = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
         const drawLabels = labels.length ? labels : fallbackLabels;
         const gap = drawLabels.length > 1 ? plotWidth / (drawLabels.length - 1) : plotWidth;
         drawLabels.forEach((label, index) => {
@@ -492,8 +537,8 @@ export class SellerDashboard extends Component {
             ctx.stroke();
         });
 
-        const drawValues = values.length
-            ? values.map((value) => Number(value || 0))
+        const drawValues = revenueValues.length
+            ? revenueValues
             : [0, 0, 0, 0, 0, 0, 0];
         const points = drawValues.map((value, index) => ({
             x: pad.left + gap * index,
@@ -522,6 +567,33 @@ export class SellerDashboard extends Component {
             ctx.fillStyle = "#3b82f6";
             ctx.fill();
         });
+
+        if (orderValues.length) {
+            const orderPoints = orderValues.map((value, index) => ({
+                x: pad.left + gap * index,
+                y: pad.top + plotHeight - (value / maxOrders) * plotHeight,
+            }));
+            ctx.beginPath();
+            orderPoints.forEach((point, index) => {
+                if (index === 0) {
+                    ctx.moveTo(point.x, point.y);
+                } else {
+                    const previous = orderPoints[index - 1];
+                    const controlX = previous.x + (point.x - previous.x) / 2;
+                    ctx.bezierCurveTo(controlX, previous.y, controlX, point.y, point.x, point.y);
+                }
+            });
+            ctx.strokeStyle = "#f97316";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            orderPoints.forEach((point) => {
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = "#f97316";
+                ctx.fill();
+            });
+        }
     }
 }
 

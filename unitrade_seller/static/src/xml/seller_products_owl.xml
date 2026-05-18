@@ -72,15 +72,19 @@
                     <main class="ut-products-main tw-absolute tw-left-[181px] tw-right-[67px] tw-top-[175px] tw-pb-10">
                         <section class="tw-mb-[34px]">
                             <h1 class="tw-m-0 tw-text-[40px] tw-font-normal tw-leading-none tw-text-black">Barang</h1>
-                            <p class="tw-m-0 tw-mt-[7px] tw-text-[16px] tw-leading-6 tw-text-[#6a7282]">Here's what's happening with your store today</p>
+                            <p class="tw-m-0 tw-mt-[7px] tw-text-[16px] tw-leading-6 tw-text-[#6a7282]">Kelola barang yang tampil di toko Anda.</p>
                         </section>
 
                         <div class="tw-mb-[22px] tw-flex tw-items-center tw-gap-3">
-                            <button type="button" class="ut-products-date-filter">
+                            <label class="ut-products-date-filter">
                                 <i class="fa fa-calendar-o"></i>
-                                <span>Last 30 Days</span>
+                                <select t-model="state.dateFilter" t-on-change="onDateFilterChange" aria-label="Filter tanggal barang">
+                                    <option value="7">7 hari terakhir</option>
+                                    <option value="30">30 hari terakhir</option>
+                                    <option value="all">Semua waktu</option>
+                                </select>
                                 <i class="fa fa-angle-down"></i>
-                            </button>
+                            </label>
                             <a t-att-href="addProductUrl" class="ut-products-add-button">
                                 <i class="fa fa-plus"></i>
                                 <span>Tambah Barang</span>
@@ -99,10 +103,10 @@
                                             <th>PRODUK ID</th>
                                             <th>GAMBAR</th>
                                             <th>NAMA PRODUK</th>
-                                            <th>DATE</th>
-                                            <th>TOTAL/STOK</th>
+                                            <th>TANGGAL UPDATE</th>
+                                            <th>STOK</th>
                                             <th>KONDISI</th>
-                                            <th>ACTIONS</th>
+                                            <th>AKSI</th>
                                             <th>TANGGAL</th>
                                             <th></th>
                                         </tr>
@@ -129,7 +133,7 @@
                                                     <span class="ut-products-link" t-esc="product.expiry_label"></span>
                                                 </td>
                                                 <td>
-                                                    <a t-att-href="product.detail_url" class="ut-products-link">Lihat semua</a>
+                                                    <a t-att-href="product.detail_url" class="ut-products-link">Lihat</a>
                                                 </td>
                                             </tr>
                                         </t>

@@ -12,6 +12,8 @@ import pytz
 # pyrefly: ignore [missing-import]
 from odoo import fields, http
 # pyrefly: ignore [missing-import]
+from odoo.exceptions import UserError
+# pyrefly: ignore [missing-import]
 from odoo.http import request
 from markupsafe import Markup, escape
 from werkzeug.urls import url_encode
@@ -93,18 +95,16 @@ class UnitradeSellerController(http.Controller):
     def _get_seller_by_public_ref(profile_ref=None, seller_id=None):
         Seller = request.env['unitrade.seller'].sudo()
         seller = Seller.browse()
-        found_by_uuid = False
         if seller_id:
             seller = Seller.browse(seller_id).exists()
         elif profile_ref:
             seller = Seller.search([('x_store_slug', '=', profile_ref)], limit=1)
             if not seller:
                 seller = Seller.search([('x_profile_uuid', '=', profile_ref)], limit=1)
-            found_by_uuid = bool(seller)
             if not seller and profile_ref.isdigit():
                 seller = Seller.browse(int(profile_ref)).exists()
 
-        if seller and (found_by_uuid or UnitradeSellerController._can_view_seller_profile(seller)):
+        if seller and UnitradeSellerController._can_view_seller_profile(seller):
             seller._ensure_profile_uuid()
             return seller
         return Seller.browse()
@@ -319,12 +319,32 @@ class UnitradeSellerController(http.Controller):
         return localized.strftime('%d %b %Y')
 
     @staticmethod
-    def _dashboard_seller():
+    def _seller_store_is_active(seller):
+        return bool(_safe_get(seller, 'x_store_active', True))
+
+    @staticmethod
+    def _dashboard_seller(active_only=True):
         user = request.env.user
-        return request.env['unitrade.seller'].sudo().search([
+        Seller = request.env['unitrade.seller'].sudo()
+        domain = [
             ('user_id', '=', user.id),
             ('status', '=', 'verified'),
-        ], limit=1)
+        ]
+        if active_only and 'x_store_active' in Seller._fields:
+            domain.append(('x_store_active', '=', True))
+        return Seller.search(domain, limit=1)
+
+    def _seller_not_ready_redirect(self):
+        seller = self._dashboard_seller(active_only=False)
+        if seller and not self._seller_store_is_active(seller):
+            return request.redirect('/unitrade/seller/settings?store_inactive=1')
+        return request.redirect('/seller-onboarding')
+
+    def _seller_not_ready_message(self):
+        seller = self._dashboard_seller(active_only=False)
+        if seller and not self._seller_store_is_active(seller):
+            return 'Toko sedang nonaktif. Aktifkan kembali di Pengaturan Toko untuk memakai fitur seller.'
+        return 'Akun penjual belum terverifikasi.'
 
     @staticmethod
     def _seller_dashboard_product_domain(seller, active_only=False):
@@ -426,10 +446,19 @@ class UnitradeSellerController(http.Controller):
             'label': category.complete_name or category.name,
         } for category in categories]
 
-    def _seller_products_page_payloads(self, seller, limit=40):
+    @staticmethod
+    def _seller_products_date_filter(value):
+        value = str(value or '30').strip().lower()
+        return value if value in ('7', '30', 'all') else '30'
+
+    def _seller_products_page_payloads(self, seller, limit=None, date_filter='30'):
         Product = request.env['product.template'].sudo()
+        date_filter = self._seller_products_date_filter(date_filter)
+        domain = self._seller_dashboard_product_domain(seller, active_only=False)
+        if date_filter != 'all':
+            domain.append(('write_date', '>=', fields.Datetime.to_string(fields.Datetime.now() - timedelta(days=int(date_filter)))))
         products = Product.search(
-            self._seller_dashboard_product_domain(seller, active_only=False),
+            domain,
             order='write_date desc, create_date desc, id desc',
             limit=limit,
         )
@@ -463,7 +492,8 @@ class UnitradeSellerController(http.Controller):
             })
         return payloads
 
-    def _seller_products_page_context(self, seller):
+    def _seller_products_page_context(self, seller, date_filter='30'):
+        date_filter = self._seller_products_date_filter(date_filter)
         _, unread_chat_count = self._seller_dashboard_chat_payloads(seller)
         pending_order_count = self._seller_dashboard_pending_order_count(seller)
         payload = {
@@ -479,7 +509,8 @@ class UnitradeSellerController(http.Controller):
                 'notification_count': pending_order_count,
                 'unread_chat_count': unread_chat_count,
             },
-            'products': self._seller_products_page_payloads(seller),
+            'products': self._seller_products_page_payloads(seller, date_filter=date_filter),
+            'date_filter': date_filter,
             'add_product_url': self._seller_product_add_url(),
         }
         return {
@@ -514,8 +545,8 @@ class UnitradeSellerController(http.Controller):
             'dashboard_url': '/unitrade/seller/dashboard',
             'mode': 'create',
             'title': 'Tambah Barang',
-            'subtitle': "Here's what's happening with your store today",
-            'submit_label': 'Post',
+            'subtitle': 'Lengkapi informasi barang sebelum dipublikasikan.',
+            'submit_label': 'Posting',
             'data_url': '/unitrade/seller/products/new/data',
             'submit_url': '/unitrade/seller/products/create',
             'delete_url': '',
@@ -579,9 +610,81 @@ class UnitradeSellerController(http.Controller):
         total = currency.round(posting_fee + admin_fee)
         return posting_fee, admin_fee, total, policy
 
+    @staticmethod
+    def _seller_ledger_effective_date(ledger):
+        return (
+            ledger.completed_at
+            or ledger.released_at
+            or _safe_get(ledger.order_id, 'x_completed_at')
+            or ledger.order_id.date_order
+            or ledger.create_date
+        )
+
+    def _filter_seller_ledgers_by_date(self, ledgers, date_start=False, date_end=False):
+        if not date_start and not date_end:
+            return ledgers
+        return ledgers.filtered(lambda ledger: (
+            (not date_start or (self._seller_ledger_effective_date(ledger) and self._seller_ledger_effective_date(ledger) >= date_start))
+            and (not date_end or (self._seller_ledger_effective_date(ledger) and self._seller_ledger_effective_date(ledger) < date_end))
+        ))
+
+    def _seller_account_balance_debits(self, seller, currency):
+        if 'unitrade.payment.intent' not in request.env.registry:
+            return currency.round(0.0)
+        PaymentIntent = request.env['unitrade.payment.intent'].sudo()
+        domain = [
+            ('seller_id', '=', seller.id),
+            ('intent_type', '=', 'listing_fee'),
+            ('state', '=', 'paid'),
+            ('payment_method_code', '=', 'account_balance'),
+        ]
+        if 'currency_id' in PaymentIntent._fields:
+            domain.append(('currency_id', '=', currency.id))
+        intents = PaymentIntent.search(domain)
+        return currency.round(sum(intents.mapped('amount')))
+
+    def _seller_balance_summary(self, seller, currency, date_start=False, date_end=False):
+        empty = {
+            'total_revenue': currency.round(0.0),
+            'available_balance': currency.round(0.0),
+            'payoutable_balance': currency.round(0.0),
+            'pending_payout': currency.round(0.0),
+            'released_balance': currency.round(0.0),
+            'used_balance': currency.round(0.0),
+            'revenue_ledger_count': 0,
+            'payoutable_ledger_count': 0,
+        }
+        if 'unitrade.escrow.ledger' not in request.env.registry:
+            return empty
+
+        Ledger = request.env['unitrade.escrow.ledger'].sudo()
+        earned_ledgers = Ledger.search([
+            ('seller_id', '=', seller.id),
+            ('state', 'in', ['releasable', 'released']),
+        ])
+        display_ledgers = self._filter_seller_ledgers_by_date(earned_ledgers, date_start=date_start, date_end=date_end)
+        payoutable_ledgers = earned_ledgers.filtered(
+            lambda ledger: ledger.state == 'releasable' and ledger.payout_status not in ('pending', 'processing', 'succeeded')
+        )
+        pending_ledgers = earned_ledgers.filtered(lambda ledger: ledger.payout_status in ('pending', 'processing'))
+        released_ledgers = earned_ledgers.filtered(lambda ledger: ledger.state == 'released' or ledger.payout_status == 'succeeded')
+        used_balance = self._seller_account_balance_debits(seller, currency)
+        payoutable_balance = currency.round(sum(payoutable_ledgers.mapped('amount_seller')))
+        available_balance = currency.round(max(0.0, payoutable_balance - used_balance))
+
+        return {
+            'total_revenue': currency.round(sum(display_ledgers.mapped('amount_seller'))),
+            'available_balance': available_balance,
+            'payoutable_balance': payoutable_balance,
+            'pending_payout': currency.round(sum(pending_ledgers.mapped('amount_seller'))),
+            'released_balance': currency.round(sum(released_ledgers.mapped('amount_seller'))),
+            'used_balance': used_balance,
+            'revenue_ledger_count': len(display_ledgers),
+            'payoutable_ledger_count': len(payoutable_ledgers),
+        }
+
     def _seller_available_balance(self, seller, currency):
-        revenue_lines = self._seller_dashboard_order_lines(seller, revenue_only=True)
-        return currency.round(sum(revenue_lines.mapped('price_total')))
+        return self._seller_balance_summary(seller, currency)['available_balance']
 
     def _seller_product_payment_methods(self, balance, total, currency):
         return [
@@ -1527,6 +1630,18 @@ class UnitradeSellerController(http.Controller):
     def _seller_orders_payloads(self, seller):
         lines = self._seller_dashboard_order_lines(seller)
         deliveries = self._delivery_by_order(lines.mapped('order_id').ids)
+        conversations = {}
+        if 'unitrade.chat.conversation' in request.env.registry:
+            buyer_users = request.env['res.users'].sudo().search([
+                ('partner_id', 'in', lines.mapped('order_id.partner_id').ids),
+            ])
+            chat_records = request.env['unitrade.chat.conversation'].sudo().search([
+                ('seller_id', '=', seller.id),
+                ('buyer_user_id', 'in', buyer_users.ids),
+                ('active', '=', True),
+            ], order='last_message_date desc, create_date desc')
+            for conversation in chat_records:
+                conversations.setdefault(conversation.buyer_user_id.partner_id.id, conversation)
         payloads = []
         counts = {
             'all': 0,
@@ -1541,6 +1656,15 @@ class UnitradeSellerController(http.Controller):
             ledger = self._ledger_for_order_seller(order, seller)
             raw_status = self._order_status_payload(order, deliveries.get(order.id), ledger=ledger)
             filter_key = self._seller_orders_filter_key(raw_status['key'])
+            conversation = conversations.get(order.partner_id.id)
+            refund_dispute = self._seller_refund_dispute(order, ledger)
+            can_confirm_handoff = bool(
+                ledger
+                and order.x_payment_status == 'paid'
+                and order.x_unitrade_order_state not in ('cancelled', 'completed')
+                and not ledger.seller_confirmed_at
+                and ledger.state not in ('cancelled', 'refunded', 'disputed', 'released')
+            )
             counts['all'] += 1
             counts[filter_key] += 1
 
@@ -1555,10 +1679,21 @@ class UnitradeSellerController(http.Controller):
                 'product_image_url': '/web/image/product.product/%s/image_128' % line.product_id.id if line.product_id else '',
                 'total_label': self._format_money(line.price_total, order.currency_id),
                 'status_key': filter_key,
-                'status_label': self._seller_orders_status_label(filter_key),
+                'status_label': raw_status.get('label') or self._seller_orders_status_label(filter_key),
                 'date_label': self._format_order_datetime_label(order.date_order),
                 'order_status_url': '/unitrade/order/status/%s' % order.id,
-                'action_url': '/unitrade/seller/chat',
+                'ledger_id': ledger.id if ledger else 0,
+                'buyer_confirmed': bool(ledger and ledger.buyer_confirmed_at),
+                'seller_confirmed': bool(ledger and ledger.seller_confirmed_at),
+                'seller_evidence': bool(ledger and ledger.seller_handoff_image),
+                'can_confirm_handoff': can_confirm_handoff,
+                'confirm_handoff_url': '/seller/order/%s/confirm-handoff' % ledger.id if ledger else '',
+                'refund_dispute_id': refund_dispute.id if refund_dispute else 0,
+                'refund_state': refund_dispute.state if refund_dispute else '',
+                'refund_detail_url': '/unitrade/order/%s/refund/%s' % (order.id, refund_dispute.id) if refund_dispute else '',
+                'can_respond_refund': bool(refund_dispute and refund_dispute.state in ('submitted', 'under_review', 'need_seller_response')),
+                'refund_response_url': '/seller/refund/%s/respond' % refund_dispute.id if refund_dispute else '',
+                'action_url': '/unitrade/seller/chat?conversation_id=%s' % conversation.id if conversation else '/unitrade/seller/chat',
             })
 
         return {
@@ -1632,6 +1767,7 @@ class UnitradeSellerController(http.Controller):
             ('is_visible', '=', True),
         ], order='create_date desc', limit=limit)
         return [{
+            'id': review.id,
             'reviewer_name': review.user_id.name or 'Pengguna',
             'product_name': review.product_id.name,
             'rating': review.rating,
@@ -1673,23 +1809,36 @@ class UnitradeSellerController(http.Controller):
         } for dispute in disputes]
 
     def _seller_dashboard_chart_data(self, seller, selected_date=False):
-        lines = self._seller_dashboard_order_lines(seller, revenue_only=True)
         daily_revenue = defaultdict(float)
-        daily_orders = defaultdict(int)
-        for line in lines:
-            date_order = line.order_id.date_order
-            if not date_order:
-                continue
-            day = fields.Datetime.context_timestamp(request.env.user, date_order).date()
-            daily_revenue[day] += line.price_total
-            daily_orders[day] += 1
+        daily_orders = defaultdict(set)
+        if 'unitrade.escrow.ledger' in request.env.registry:
+            ledgers = request.env['unitrade.escrow.ledger'].sudo().search([
+                ('seller_id', '=', seller.id),
+                ('state', 'in', ['releasable', 'released']),
+            ])
+            for ledger in ledgers:
+                effective_date = self._seller_ledger_effective_date(ledger)
+                if not effective_date:
+                    continue
+                day = fields.Datetime.context_timestamp(request.env.user, effective_date).date()
+                daily_revenue[day] += ledger.amount_seller
+                daily_orders[day].add(ledger.order_id.id)
+        else:
+            lines = self._seller_dashboard_order_lines(seller, revenue_only=True)
+            for line in lines:
+                date_order = line.order_id.date_order
+                if not date_order:
+                    continue
+                day = fields.Datetime.context_timestamp(request.env.user, date_order).date()
+                daily_revenue[day] += line.price_total
+                daily_orders[day].add(line.order_id.id)
 
         anchor_date = selected_date or fields.Date.context_today(request.env.user)
         weekly_days = [anchor_date - timedelta(days=offset) for offset in range(6, -1, -1)]
         weekly = {
             'labels': [day.strftime('%d/%m') for day in weekly_days],
             'revenue': [round(daily_revenue.get(day, 0.0), 2) for day in weekly_days],
-            'orders': [daily_orders.get(day, 0) for day in weekly_days],
+            'orders': [len(daily_orders.get(day, set())) for day in weekly_days],
         }
 
         monthly_days = [anchor_date - timedelta(days=offset) for offset in range(29, -1, -1)]
@@ -1701,7 +1850,7 @@ class UnitradeSellerController(http.Controller):
             buckets.append({
                 'label': '%s-%s' % (bucket_days[0].strftime('%d/%m'), bucket_days[-1].strftime('%d/%m')),
                 'revenue': round(sum(daily_revenue.get(day, 0.0) for day in bucket_days), 2),
-                'orders': sum(daily_orders.get(day, 0) for day in bucket_days),
+                'orders': sum(len(daily_orders.get(day, set())) for day in bucket_days),
             })
         monthly = {
             'labels': [bucket['label'] for bucket in buckets],
@@ -1729,7 +1878,13 @@ class UnitradeSellerController(http.Controller):
             date_start=date_start,
             date_end=date_end,
         )
-        total_revenue = sum(revenue_lines.mapped('price_total'))
+        currency = request.website.currency_id or request.env.company.currency_id
+        balance_summary = self._seller_balance_summary(
+            seller,
+            currency,
+            date_start=date_start,
+            date_end=date_end,
+        )
         order_payloads = self._seller_dashboard_order_payloads(seller, date_start=orders_date_start, date_end=orders_date_end)
         chat_payloads, unread_chat_count = self._seller_dashboard_chat_payloads(seller)
         pending_order_count = self._seller_dashboard_pending_order_count(seller, date_start=date_start, date_end=date_end)
@@ -1750,8 +1905,15 @@ class UnitradeSellerController(http.Controller):
                 'profile_url': '/seller-profile/%s' % self._seller_public_ref(seller),
             },
             'stats': {
-                'revenue_label': self._format_money(total_revenue, request.website.currency_id),
-                'available_balance_label': self._format_money(total_revenue, request.website.currency_id),
+                'revenue_label': self._format_money(balance_summary['total_revenue'], currency),
+                'available_balance_label': self._format_money(balance_summary['available_balance'], currency),
+                'available_balance': balance_summary['available_balance'],
+                'payoutable_balance_label': self._format_money(balance_summary['payoutable_balance'], currency),
+                'pending_payout_label': self._format_money(balance_summary['pending_payout'], currency),
+                'released_balance_label': self._format_money(balance_summary['released_balance'], currency),
+                'used_balance_label': self._format_money(balance_summary['used_balance'], currency),
+                'payout_ready': bool(_safe_get(seller, 'x_payout_ready', False)),
+                'can_request_payout': bool(balance_summary['available_balance'] > 0 and _safe_get(seller, 'x_payout_ready', False)),
                 'active_products': len(active_products),
                 'incoming_orders': pending_order_count,
                 'average_rating': review_summary['rating'] or seller.average_rating or 0.0,
@@ -1772,6 +1934,7 @@ class UnitradeSellerController(http.Controller):
             'csrf_token': request.csrf_token(),
             'add_product_url': self._seller_product_add_url(),
             'data_url': '/unitrade/seller/dashboard/data',
+            'payout_request_url': '/unitrade/seller/payout/request',
         }
 
         return {
@@ -2020,7 +2183,7 @@ class UnitradeSellerController(http.Controller):
         """Render the standalone seller dashboard app shell."""
         seller = self._dashboard_seller()
         if not seller:
-            return request.redirect('/seller-onboarding')
+            return self._seller_not_ready_redirect()
 
         return request.render(
             'unitrade_seller.seller_dashboard_template',
@@ -2039,7 +2202,7 @@ class UnitradeSellerController(http.Controller):
         if not seller:
             return {
                 'success': False,
-                'message': 'Akun penjual belum terverifikasi.',
+                'message': self._seller_not_ready_message(),
             }
 
         context = self._seller_dashboard_context(
@@ -2052,6 +2215,72 @@ class UnitradeSellerController(http.Controller):
         payload['success'] = True
         return payload
 
+    @http.route('/unitrade/seller/payout/request', type='json', auth='user', website=True, methods=['POST'])
+    def seller_payout_request(self, **kwargs):
+        """Request payout for releasable escrow balances owned by the current seller."""
+        seller = self._dashboard_seller()
+        if not seller:
+            return {
+                'success': False,
+                'message': self._seller_not_ready_message(),
+            }
+        if 'unitrade.escrow.ledger' not in request.env.registry:
+            return {
+                'success': False,
+                'message': 'Ledger escrow belum aktif sehingga saldo belum bisa dicairkan.',
+            }
+        currency = request.website.currency_id or request.env.company.currency_id
+        balance_summary = self._seller_balance_summary(seller, currency)
+        if not _safe_get(seller, 'x_payout_ready', False):
+            return {
+                'success': False,
+                'message': 'Lengkapi rekening pencairan di Pengaturan Toko sebelum tarik saldo.',
+            }
+        if balance_summary['available_balance'] <= 0:
+            return {
+                'success': False,
+                'message': 'Belum ada saldo escrow yang siap dicairkan.',
+            }
+        if balance_summary['used_balance'] > 0:
+            return {
+                'success': False,
+                'message': 'Sebagian saldo sudah dipakai untuk biaya posting. Pencairan otomatis menunggu rekonsiliasi saldo.',
+            }
+
+        ledgers = request.env['unitrade.escrow.ledger'].sudo().search([
+            ('seller_id', '=', seller.id),
+            ('state', '=', 'releasable'),
+            ('payout_status', 'not in', ['pending', 'processing', 'succeeded']),
+        ], order='completed_at asc, create_date asc, id asc')
+        if not ledgers:
+            return {
+                'success': False,
+                'message': 'Belum ada transaksi escrow yang siap dicairkan.',
+            }
+        try:
+            with request.env.cr.savepoint():
+                ledgers.action_create_xendit_payout()
+        except UserError as error:
+            return {
+                'success': False,
+                'message': error.args[0] if error.args else str(error),
+            }
+        except Exception:
+            _logger.exception('Seller payout request failed for seller %s', seller.id)
+            return {
+                'success': False,
+                'message': 'Permintaan pencairan belum bisa diproses. Silakan coba lagi.',
+            }
+
+        context = self._seller_dashboard_context(seller)
+        payload = json.loads(context['dashboard_payload_json'])
+        payload['success'] = True
+        return {
+            'success': True,
+            'message': 'Permintaan pencairan berhasil dikirim.',
+            'dashboard_payload': payload,
+        }
+
     @http.route([
         '/unitrade/seller/orders',
         '/seller/orders',
@@ -2061,7 +2290,7 @@ class UnitradeSellerController(http.Controller):
         """Render the standalone seller orders app shell."""
         seller = self._dashboard_seller()
         if not seller:
-            return request.redirect('/seller-onboarding')
+            return self._seller_not_ready_redirect()
 
         return request.render(
             'unitrade_seller.seller_orders_template',
@@ -2075,7 +2304,7 @@ class UnitradeSellerController(http.Controller):
         if not seller:
             return {
                 'success': False,
-                'message': 'Akun penjual belum terverifikasi.',
+                'message': self._seller_not_ready_message(),
                 'orders': [],
                 'counts': {},
             }
@@ -2099,6 +2328,7 @@ class UnitradeSellerController(http.Controller):
             },
             'orders': payload['orders'],
             'counts': payload['counts'],
+            'csrf_token': request.csrf_token(),
         }
 
     @http.route('/unitrade/seller/refund/<int:dispute_id>/approve', type='http', auth='user', website=True, methods=['POST'], csrf=True, sitemap=False)
@@ -2140,11 +2370,11 @@ class UnitradeSellerController(http.Controller):
         """Render the standalone seller products app shell."""
         seller = self._dashboard_seller()
         if not seller:
-            return request.redirect('/seller-onboarding')
+            return self._seller_not_ready_redirect()
 
         return request.render(
             'unitrade_seller.seller_products_template',
-            self._seller_products_page_context(seller),
+            self._seller_products_page_context(seller, date_filter=kwargs.get('date_filter')),
         )
 
     @http.route([
@@ -2154,7 +2384,7 @@ class UnitradeSellerController(http.Controller):
     ], type='http', auth='user', website=True, sitemap=False)
     def seller_settings(self, **kwargs):
         """Render the standalone seller store settings app shell."""
-        seller = self._dashboard_seller()
+        seller = self._dashboard_seller(active_only=False)
         if not seller:
             return request.redirect('/seller-onboarding')
         return request.render(
@@ -2165,7 +2395,7 @@ class UnitradeSellerController(http.Controller):
     @http.route('/unitrade/seller/settings/data', type='json', auth='user', website=True, methods=['POST'])
     def seller_settings_data(self, **kwargs):
         """Return current settings for the logged-in seller only."""
-        seller = self._dashboard_seller()
+        seller = self._dashboard_seller(active_only=False)
         if not seller:
             return {
                 'success': False,
@@ -2178,7 +2408,7 @@ class UnitradeSellerController(http.Controller):
     @http.route('/unitrade/seller/settings/update', type='json', auth='user', website=True, methods=['POST'])
     def seller_settings_update(self, **kwargs):
         """Update store settings for the logged-in seller only."""
-        seller = self._dashboard_seller()
+        seller = self._dashboard_seller(active_only=False)
         if not seller:
             return {
                 'success': False,
@@ -2208,7 +2438,7 @@ class UnitradeSellerController(http.Controller):
     @http.route('/unitrade/seller/settings/close-store', type='json', auth='user', website=True, methods=['POST'])
     def seller_settings_close_store(self, **kwargs):
         """Deactivate the current seller store and unpublished marketplace products."""
-        seller = self._dashboard_seller()
+        seller = self._dashboard_seller(active_only=False)
         if not seller:
             return {
                 'success': False,
@@ -2242,7 +2472,7 @@ class UnitradeSellerController(http.Controller):
     @http.route('/unitrade/seller/settings/request-delete', type='json', auth='user', website=True, methods=['POST'])
     def seller_settings_request_delete(self, **kwargs):
         """Create a safe deletion request without permanently deleting records."""
-        seller = self._dashboard_seller()
+        seller = self._dashboard_seller(active_only=False)
         if not seller:
             return {
                 'success': False,
@@ -2280,7 +2510,7 @@ class UnitradeSellerController(http.Controller):
         """Render the standalone seller product creation app shell."""
         seller = self._dashboard_seller()
         if not seller:
-            return request.redirect('/seller-onboarding')
+            return self._seller_not_ready_redirect()
 
         return request.render(
             'unitrade_seller.seller_product_create_template',
@@ -2296,7 +2526,7 @@ class UnitradeSellerController(http.Controller):
         """Render the listing payment step for a newly created seller product."""
         seller = self._dashboard_seller()
         if not seller:
-            return request.redirect('/seller-onboarding')
+            return self._seller_not_ready_redirect()
         product = self._seller_product_for_edit(seller, product_id)
         if not product:
             return request.redirect('/unitrade/seller/products')
@@ -2311,7 +2541,7 @@ class UnitradeSellerController(http.Controller):
         """Render the standalone seller product edit app shell."""
         seller = self._dashboard_seller()
         if not seller:
-            return request.redirect('/seller-onboarding')
+            return self._seller_not_ready_redirect()
         product = self._seller_product_for_edit(seller, product_id)
         if not product:
             return request.redirect('/unitrade/seller/products')
@@ -2327,7 +2557,7 @@ class UnitradeSellerController(http.Controller):
         if not seller:
             return {
                 'success': False,
-                'message': 'Akun penjual belum terverifikasi.',
+                'message': self._seller_not_ready_message(),
             }
         product = self._seller_product_for_edit(seller, product_id)
         if not product:
@@ -2346,7 +2576,7 @@ class UnitradeSellerController(http.Controller):
         if not seller:
             return {
                 'success': False,
-                'message': 'Akun penjual belum terverifikasi.',
+                'message': self._seller_not_ready_message(),
                 'categories': [],
             }
 
@@ -2378,7 +2608,7 @@ class UnitradeSellerController(http.Controller):
         if not seller:
             return {
                 'success': False,
-                'message': 'Akun penjual belum ditemukan.',
+                'message': self._seller_not_ready_message(),
             }
         product = self._seller_product_for_edit(seller, product_id)
         if not product:
@@ -2398,7 +2628,7 @@ class UnitradeSellerController(http.Controller):
         if not seller:
             return {
                 'success': False,
-                'message': 'Akun penjual belum terverifikasi.',
+                'message': self._seller_not_ready_message(),
             }
 
         try:
@@ -2523,7 +2753,7 @@ class UnitradeSellerController(http.Controller):
         if not seller:
             return {
                 'success': False,
-                'message': 'Akun penjual belum terverifikasi.',
+                'message': self._seller_not_ready_message(),
             }
         product = self._seller_product_for_edit(seller, product_id)
         if not product:
@@ -2590,7 +2820,7 @@ class UnitradeSellerController(http.Controller):
         if not seller:
             return {
                 'success': False,
-                'message': 'Akun penjual belum ditemukan.',
+                'message': self._seller_not_ready_message(),
             }
         product = self._seller_product_for_edit(seller, product_id)
         if not product:
@@ -2628,7 +2858,7 @@ class UnitradeSellerController(http.Controller):
         if not seller:
             return {
                 'success': False,
-                'message': 'Akun penjual belum ditemukan.',
+                'message': self._seller_not_ready_message(),
             }
         product = self._seller_product_for_edit(seller, product_id)
         if not product:
@@ -2660,9 +2890,10 @@ class UnitradeSellerController(http.Controller):
         if not seller:
             return {
                 'success': False,
-                'message': 'Akun penjual belum terverifikasi.',
+                'message': self._seller_not_ready_message(),
                 'products': [],
             }
+        date_filter = self._seller_products_date_filter(kwargs.get('date_filter'))
 
         return {
             'success': True,
@@ -2678,7 +2909,8 @@ class UnitradeSellerController(http.Controller):
                 'notification_count': self._seller_dashboard_pending_order_count(seller),
                 'unread_chat_count': self._seller_dashboard_chat_payloads(seller)[1],
             },
-            'products': self._seller_products_page_payloads(seller),
+            'products': self._seller_products_page_payloads(seller, date_filter=date_filter),
+            'date_filter': date_filter,
             'add_product_url': self._seller_product_add_url(),
         }
 

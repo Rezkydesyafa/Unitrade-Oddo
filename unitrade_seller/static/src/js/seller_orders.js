@@ -47,6 +47,8 @@ export class SellerOrders extends Component {
             activeTab: "all",
             query: "",
             sidebarOpen: false,
+            handoffOrder: null,
+            csrfToken: "",
             seller: (this.props.payload || {}).seller || {},
             stats: (this.props.payload || {}).stats || {},
             orders: [],
@@ -145,6 +147,14 @@ export class SellerOrders extends Component {
         this.state.activeTab = ORDER_TABS.some((tab) => tab.key === key) ? key : "all";
     }
 
+    openHandoff(order) {
+        this.state.handoffOrder = order;
+    }
+
+    closeHandoff() {
+        this.state.handoffOrder = null;
+    }
+
     toggleSidebar() {
         this.state.sidebarOpen = !this.state.sidebarOpen;
     }
@@ -177,6 +187,9 @@ export class SellerOrders extends Component {
             }
             if (result.stats) {
                 this.state.stats = result.stats;
+            }
+            if (result.csrf_token) {
+                this.state.csrfToken = result.csrf_token;
             }
         } catch (error) {
             console.error("[UniTrade] Seller orders:", error);

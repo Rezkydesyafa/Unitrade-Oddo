@@ -45,12 +45,12 @@
                         <a href="/shop/cart" class="ut-dash-nav-round" aria-label="Keranjang">
                             <i class="fa fa-shopping-cart"></i>
                         </a>
-                        <button type="button" class="ut-dash-nav-round tw-relative tw-border-0" t-on-click="openSearch" aria-label="Notifikasi">
+                        <a href="/unitrade/seller/orders" class="ut-dash-nav-round tw-relative" aria-label="Notifikasi">
                             <i class="fa fa-bell-o"></i>
                             <t t-if="stats.notification_count">
                                 <span class="ut-dash-navbar-dot" t-esc="stats.notification_count"></span>
                             </t>
-                        </button>
+                        </a>
                         <span class="tw-h-[38.5px] tw-w-px tw-bg-[#e5e7eb]"></span>
                         <a href="/unitrade/seller/dashboard" class="ut-dash-nav-round" aria-label="Dashboard seller">
                             <i class="fa fa-truck"></i>
@@ -125,10 +125,10 @@
                         </t>
                     </div>
 
-                    <div class="ut-dash-stat-row tw-mb-[27px] tw-grid tw-grid-cols-3 tw-gap-[27px]">
+                    <div class="ut-dash-stat-row tw-mb-[27px] tw-grid tw-grid-cols-4 tw-gap-[18px]">
                         <article class="ut-dash-figma-card tw-h-[176px] tw-px-[25px] tw-py-[26px]">
                             <h2 class="tw-m-0 tw-text-[20px] tw-font-medium tw-leading-6 tw-text-black">Total Pendapatan</h2>
-                            <span class="tw-mt-[7px] tw-inline-flex tw-h-6 tw-items-center tw-rounded tw-bg-[#dcfce7] tw-px-2 tw-text-[12px] tw-font-medium tw-leading-4 tw-text-[#008236]">+9%</span>
+                            <span class="tw-mt-[7px] tw-inline-flex tw-h-6 tw-items-center tw-rounded tw-bg-[#dcfce7] tw-px-2 tw-text-[12px] tw-font-medium tw-leading-4 tw-text-[#008236]">Escrow selesai</span>
                             <strong class="tw-mt-[18px] tw-block tw-text-[32px] tw-font-semibold tw-leading-10 tw-text-black" t-esc="stats.revenue_label"></strong>
                         </article>
                         <article class="ut-dash-figma-card tw-h-[176px] tw-px-[25px] tw-py-[26px]">
@@ -140,18 +140,30 @@
                             <h2 class="tw-m-0 tw-text-[20px] tw-font-medium tw-leading-6 tw-text-black">Produk toko aktif</h2>
                             <p class="tw-m-0 tw-mt-[45px] tw-text-[32px] tw-font-semibold tw-leading-10 tw-text-black" t-esc="stats.active_products || 0"></p>
                         </article>
+                        <article class="ut-dash-figma-card tw-h-[176px] tw-px-[25px] tw-py-[22px]">
+                            <h2 class="tw-m-0 tw-text-[20px] tw-font-medium tw-leading-6 tw-text-black">Saldo Tersedia</h2>
+                            <strong class="tw-mt-[14px] tw-block tw-text-[28px] tw-font-semibold tw-leading-9 tw-text-black" t-esc="stats.available_balance_label"></strong>
+                            <p class="tw-m-0 tw-mt-1 tw-text-[11px] tw-font-medium tw-leading-4 tw-text-[#6a7282]">Pencairan diproses: <t t-esc="stats.pending_payout_label || 'Rp 0'"/></p>
+                            <button type="button" class="ut-dash-payout-button tw-mt-3" t-att-disabled="!canRequestPayout ? true : undefined" t-on-click="requestPayout">
+                                <i t-att-class="state.payoutLoading ? 'fa fa-spinner fa-spin' : 'fa fa-money'"></i>
+                                <span t-esc="state.payoutLoading ? 'Memproses...' : 'Tarik Saldo'"></span>
+                            </button>
+                            <small t-if="!stats.payout_ready" class="ut-dash-payout-note">Lengkapi rekening pencairan.</small>
+                            <small t-if="state.payoutMessage" class="ut-dash-payout-note is-success" t-esc="state.payoutMessage"></small>
+                            <small t-if="state.payoutError" class="ut-dash-payout-note is-error" t-esc="state.payoutError"></small>
+                        </article>
                     </div>
 
                     <div class="ut-dash-grid tw-grid tw-grid-cols-[minmax(0,797px)_381px] tw-gap-7">
                         <section id="dashboard-analytics" class="ut-dash-figma-card tw-h-[422px] tw-p-[24px]">
                             <div class="tw-flex tw-items-start tw-justify-between">
                                 <div>
-                                    <h2 class="tw-m-0 tw-text-[18px] tw-font-semibold tw-leading-7 tw-text-[#0a0a0a]">Sales Overview</h2>
-                                    <p class="tw-m-0 tw-text-[14px] tw-leading-5 tw-text-[#6a7282]">Revenue vs Orders over time</p>
+                                    <h2 class="tw-m-0 tw-text-[18px] tw-font-semibold tw-leading-7 tw-text-[#0a0a0a]">Ringkasan Penjualan</h2>
+                                    <p class="tw-m-0 tw-text-[14px] tw-leading-5 tw-text-[#6a7282]">Pendapatan escrow dan jumlah pesanan</p>
                                 </div>
                                 <div class="tw-flex tw-h-9 tw-rounded-[10px] tw-bg-[#f3f4f6] tw-p-1">
-                                    <button type="button" t-att-class="periodClass('weekly')" t-on-click="() => this.setPeriod('weekly')">Weekly</button>
-                                    <button type="button" t-att-class="periodClass('monthly')" t-on-click="() => this.setPeriod('monthly')">Monthly</button>
+                                    <button type="button" t-att-class="periodClass('weekly')" t-on-click="() => this.setPeriod('weekly')">Mingguan</button>
+                                    <button type="button" t-att-class="periodClass('monthly')" t-on-click="() => this.setPeriod('monthly')">Bulanan</button>
                                 </div>
                             </div>
                             <div class="ut-dash-chart-frame tw-mt-5 tw-h-[315px]">
@@ -196,22 +208,22 @@
                                 </div>
                                 <div class="ut-dash-orders-head-actions">
                                     <div class="ut-dash-orders-period" aria-label="Periode pesanan">
-                                        <button type="button" t-att-class="ordersPeriodClass('weekly')" t-on-click="() => this.setOrdersPeriod('weekly')" t-att-disabled="state.dateLoading">Weekly</button>
-                                        <button type="button" t-att-class="ordersPeriodClass('monthly')" t-on-click="() => this.setOrdersPeriod('monthly')" t-att-disabled="state.dateLoading">Monthly</button>
+                                        <button type="button" t-att-class="ordersPeriodClass('weekly')" t-on-click="() => this.setOrdersPeriod('weekly')" t-att-disabled="state.dateLoading">Mingguan</button>
+                                        <button type="button" t-att-class="ordersPeriodClass('monthly')" t-on-click="() => this.setOrdersPeriod('monthly')" t-att-disabled="state.dateLoading">Bulanan</button>
                                     </div>
-                                    <a href="/unitrade/seller/orders" class="tw-text-[12px] tw-font-medium tw-leading-4 tw-text-[#155dfc] tw-no-underline">View All Orders</a>
+                                    <a href="/unitrade/seller/orders" class="tw-text-[12px] tw-font-medium tw-leading-4 tw-text-[#155dfc] tw-no-underline">Lihat Semua Pesanan</a>
                                 </div>
                             </div>
                             <div t-if="orders.length" class="tw-overflow-x-auto">
                                 <table class="ut-dash-orders-table tw-w-full tw-min-w-[620px]">
                                     <thead>
                                         <tr>
-                                            <th>ORDER ID</th>
-                                            <th>CUSTOMER</th>
-                                            <th>DATE</th>
+                                            <th>ID PESANAN</th>
+                                            <th>PELANGGAN</th>
+                                            <th>TANGGAL</th>
                                             <th>TOTAL</th>
                                             <th>STATUS</th>
-                                            <th>ACTION</th>
+                                            <th>AKSI</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -245,7 +257,7 @@
                             <div t-else="" class="ut-dash-empty">Belum ada order untuk produk seller ini.</div>
                         </section>
 
-                        <section id="dashboard-refunds" class="ut-dash-figma-card tw-h-[400px] tw-p-[24px]">
+                        <section id="dashboard-refunds" class="ut-dash-figma-card ut-dash-refunds-card tw-p-[24px]">
                             <div class="tw-flex tw-h-full tw-flex-col">
                                 <div class="tw-mb-4 tw-flex tw-items-center tw-justify-between">
                                     <h2 class="tw-m-0 tw-text-[16px] tw-font-semibold tw-leading-5 tw-text-[#0a0a0a]">Permintaan Refund</h2>
@@ -261,26 +273,51 @@
                                                     <small class="tw-shrink-0 tw-text-[11px] tw-font-medium tw-leading-4 tw-text-[#6a7282]" t-esc="refund.date_label"></small>
                                                 </span>
                                                 <span class="tw-block tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[12px] tw-font-medium tw-leading-5" t-esc="refund.reason"></span>
-                                                <span class="tw-block tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[11px] tw-leading-4 tw-text-[#6a7282]" t-esc="refund.amount_label + ' · ' + refund.state_label"></span>
+                                                <span class="tw-block tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[11px] tw-leading-4 tw-text-[#6a7282]" t-esc="refund.amount_label + ' / ' + refund.state_label"></span>
+                                                <span class="ut-dash-refund-actions">
+                                                    <a t-att-href="refund.detail_url" class="ut-dash-refund-detail">Detail</a>
+                                                    <form t-att-action="refund.approve_url" method="post">
+                                                        <input type="hidden" name="csrf_token" t-att-value="payload.csrf_token"/>
+                                                        <button type="submit" class="ut-dash-refund-approve">Setuju</button>
+                                                    </form>
+                                                    <form t-att-action="refund.reject_url" method="post">
+                                                        <input type="hidden" name="csrf_token" t-att-value="payload.csrf_token"/>
+                                                        <button type="submit" class="ut-dash-refund-reject">Tolak</button>
+                                                    </form>
+                                                </span>
                                             </span>
                                         </article>
                                     </t>
                                 </div>
                                 <div t-else="" class="ut-dash-empty">Belum ada permintaan refund.</div>
-                                <div t-if="refunds.length" class="tw-mt-auto tw-grid tw-grid-cols-3 tw-gap-3">
-                                    <a t-att-href="refunds[0].detail_url" class="ut-dash-refund-detail">Detail</a>
-                                    <form t-att-action="refunds[0].approve_url" method="post">
-                                        <input type="hidden" name="csrf_token" t-att-value="payload.csrf_token"/>
-                                        <button type="submit" class="ut-dash-refund-approve">Setuju</button>
-                                    </form>
-                                    <form t-att-action="refunds[0].reject_url" method="post">
-                                        <input type="hidden" name="csrf_token" t-att-value="payload.csrf_token"/>
-                                        <button type="submit" class="ut-dash-refund-reject">Tolak</button>
-                                    </form>
-                                </div>
                             </div>
                         </section>
                     </div>
+
+                    <section id="dashboard-reviews" class="ut-dash-figma-card tw-mt-7 tw-p-[24px]">
+                        <div class="tw-mb-4 tw-flex tw-items-center tw-justify-between">
+                            <div>
+                                <h2 class="tw-m-0 tw-text-[16px] tw-font-semibold tw-leading-5 tw-text-[#0a0a0a]">Ulasan Pembeli</h2>
+                                <p class="tw-m-0 tw-mt-1 tw-text-[11px] tw-font-medium tw-leading-4 tw-text-[#6a7282]">Rating terbaru dari produk toko</p>
+                            </div>
+                            <span class="tw-rounded-full tw-bg-[#f3f4f6] tw-px-3 tw-py-1 tw-text-[11px] tw-font-semibold tw-text-[#4a5565]">
+                                <t t-esc="stats.review_count || 0"/> ulasan
+                            </span>
+                        </div>
+                        <div t-if="reviews.length" class="ut-dash-review-grid">
+                            <t t-foreach="reviews" t-as="review" t-key="review.id || (review.product_name + '-' + review.date_label)">
+                                <article class="ut-dash-review-card">
+                                    <div class="tw-flex tw-items-center tw-justify-between tw-gap-3">
+                                        <strong t-esc="review.reviewer_name"></strong>
+                                        <span><i class="fa fa-star"></i> <t t-esc="review.rating"/></span>
+                                    </div>
+                                    <p t-esc="review.comment"></p>
+                                    <small><t t-esc="review.product_name"/> / <t t-esc="review.date_label"/></small>
+                                </article>
+                            </t>
+                        </div>
+                        <div t-else="" class="ut-dash-empty">Belum ada ulasan pembeli.</div>
+                    </section>
                 </main>
 
                 <div t-if="state.searchOpen" class="ut-dash-search-modal tw-fixed tw-inset-0 tw-z-[1200] tw-flex tw-items-start tw-justify-center tw-bg-black/45 tw-px-5 tw-pt-[90px]" t-on-click.self="closeSearch">
@@ -293,7 +330,7 @@
                             </button>
                         </div>
                         <div class="tw-max-h-[520px] tw-overflow-y-auto tw-p-3">
-                            <p class="tw-m-0 tw-px-2 tw-pb-2 tw-text-[12px] tw-font-semibold tw-uppercase tw-text-[#6a7282]">Quick Results</p>
+                            <p class="tw-m-0 tw-px-2 tw-pb-2 tw-text-[12px] tw-font-semibold tw-uppercase tw-text-[#6a7282]">Hasil Cepat</p>
                             <t t-if="filteredSearchItems.length">
                                 <t t-foreach="filteredSearchItems" t-as="item" t-key="item.key">
                                     <a t-att-href="item.url" class="tw-flex tw-min-h-[64px] tw-items-center tw-gap-3 tw-rounded-[18px] tw-px-3 tw-text-black tw-no-underline hover:tw-bg-[#f5f5f7]">
@@ -319,7 +356,7 @@
                         <header class="tw-mb-5 tw-flex tw-items-start tw-justify-between tw-gap-4">
                             <span>
                                 <h2 class="tw-m-0 tw-text-[20px] tw-font-semibold tw-text-[#101828]">Barang Diserahkan</h2>
-                                <p class="tw-m-0 tw-mt-1 tw-text-[13px] tw-text-[#6a7282]" t-esc="state.handoffOrder.order_name + ' · ' + state.handoffOrder.customer_name"></p>
+                                <p class="tw-m-0 tw-mt-1 tw-text-[13px] tw-text-[#6a7282]" t-esc="state.handoffOrder.order_name + ' / ' + state.handoffOrder.customer_name"></p>
                             </span>
                             <button type="button" class="tw-flex tw-size-9 tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-[#f3f4f6]" t-on-click="closeHandoff" aria-label="Tutup">
                                 <i class="fa fa-times"></i>

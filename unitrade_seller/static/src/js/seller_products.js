@@ -26,6 +26,7 @@ function datasetPayload(dataset, parsed) {
             unread_chat_count: toNumber(dataset.unreadChatCount),
         },
         products: [],
+        date_filter: dataset.dateFilter || "30",
         add_product_url: dataset.addProductUrl || "",
     };
 }
@@ -43,7 +44,7 @@ export class SellerProducts extends Component {
             loading: true,
             error: "",
             query: "",
-            dateFilter: "30",
+            dateFilter: payload.date_filter || "30",
             sidebarOpen: false,
             seller: payload.seller || {},
             stats: payload.stats || {},
@@ -116,6 +117,14 @@ export class SellerProducts extends Component {
         return `${product.id || product.product_code}-${product.name || ""}`;
     }
 
+    dateFilterLabel(value) {
+        return {
+            "7": "7 hari terakhir",
+            "30": "30 hari terakhir",
+            all: "Semua waktu",
+        }[value || this.state.dateFilter] || "30 hari terakhir";
+    }
+
     toggleSidebar() {
         this.state.sidebarOpen = !this.state.sidebarOpen;
     }
@@ -130,15 +139,23 @@ export class SellerProducts extends Component {
         }
     }
 
+    onDateFilterChange(ev) {
+        this.state.dateFilter = ev.target.value || "30";
+        return this.loadProducts();
+    }
+
     async loadProducts() {
         this.state.loading = true;
         this.state.error = "";
         try {
-            const result = await jsonrpc("/unitrade/seller/products/data", {});
+            const result = await jsonrpc("/unitrade/seller/products/data", {
+                date_filter: this.state.dateFilter,
+            });
             if (!result.success) {
                 throw new Error(result.message || "Produk belum bisa dimuat.");
             }
             this.state.products = result.products || [];
+            this.state.dateFilter = result.date_filter || this.state.dateFilter;
             if (result.seller) {
                 this.state.seller = result.seller;
             }

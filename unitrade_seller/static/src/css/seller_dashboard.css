@@ -505,6 +505,10 @@ body:has(.ut-seller-dashboard-page) {
     background: #eff6ff;
 }
 
+.ut-dash-refunds-card {
+    min-height: 400px;
+}
+
 .ut-dash-handoff-btn,
 .ut-dash-refund-detail-link {
     display: inline-flex;
@@ -534,12 +538,12 @@ body:has(.ut-seller-dashboard-page) {
 .ut-dash-refund-approve,
 .ut-dash-refund-reject {
     display: inline-flex;
-    width: 100%;
-    height: 42px;
+    min-width: 72px;
+    height: 30px;
     align-items: center;
     justify-content: center;
     border-radius: 999px;
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 700;
     text-decoration: none;
 }
@@ -555,6 +559,101 @@ body:has(.ut-seller-dashboard-page) {
     border: 1px solid #ff0000;
     background: #ffffff;
     color: #ff0000;
+}
+
+.ut-dash-refund-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.ut-dash-refund-actions form {
+    margin: 0;
+}
+
+.ut-dash-payout-button {
+    display: inline-flex;
+    min-height: 32px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 0;
+    border-radius: 999px;
+    background: #212529;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 0 14px;
+}
+
+.ut-dash-payout-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.48;
+}
+
+.ut-dash-payout-note {
+    display: block;
+    margin-top: 6px;
+    color: #6a7282;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 14px;
+}
+
+.ut-dash-payout-note.is-success {
+    color: #008236;
+}
+
+.ut-dash-payout-note.is-error {
+    color: #dc2626;
+}
+
+.ut-dash-review-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.ut-dash-review-card {
+    min-height: 132px;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    background: #fbfbfc;
+    padding: 14px;
+}
+
+.ut-dash-review-card strong,
+.ut-dash-review-card span {
+    color: #101828;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.ut-dash-review-card span {
+    color: #f59e0b;
+}
+
+.ut-dash-review-card p {
+    display: -webkit-box;
+    min-height: 40px;
+    margin: 10px 0;
+    overflow: hidden;
+    color: #4a5565;
+    font-size: 12px;
+    line-height: 20px;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.ut-dash-review-card small {
+    display: block;
+    overflow: hidden;
+    color: #6a7282;
+    font-size: 11px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .ut-dash-handoff-modal {
@@ -782,6 +881,36 @@ body:has(.ut-seller-dashboard-page) {
     text-decoration: none;
 }
 
+.ut-orders-action-button {
+    display: inline-flex;
+    min-height: 32px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 999px;
+    background: #212529;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 0 12px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.ut-orders-action-button:hover {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.ut-orders-action-button.is-warning {
+    background: #ffedd4;
+    color: #c2410c;
+}
+
+.ut-orders-action-button.is-warning:hover {
+    color: #c2410c;
+}
+
 .ut-products-stage {
     min-height: 1024px;
 }
@@ -825,6 +954,17 @@ body:has(.ut-seller-dashboard-page) {
     border: 0.8px solid #525252;
     background: transparent;
     color: #0a0a0a;
+}
+
+.ut-products-date-filter select {
+    min-width: 0;
+    flex: 1;
+    border: 0;
+    background: transparent;
+    color: #0a0a0a;
+    font: inherit;
+    outline: none;
+    appearance: none;
 }
 
 .ut-products-add-button {
@@ -2554,6 +2694,10 @@ body:has(.ut-seller-dashboard-page) {
         grid-template-columns: 1fr !important;
     }
 
+    .ut-dash-review-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
     .ut-dash-figma-card {
         height: auto !important;
         min-height: 176px;
@@ -2650,6 +2794,10 @@ body:has(.ut-seller-dashboard-page) {
         gap: 22px !important;
         padding-right: 18px !important;
         padding-left: 18px !important;
+    }
+
+    .ut-dash-review-grid {
+        grid-template-columns: 1fr;
     }
 
     .ut-orders-table th,
