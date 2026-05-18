@@ -183,14 +183,14 @@
                 <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-4 tw-gap-6">
                     <!-- Kategori 1 -->
                     <a t-att-href="'/unitrade/products?category=%s' % ut_category_food.id if ut_category_food else '/unitrade/products'" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
-                        <img src="/unitrade_theme/static/src/img/categories/makanan.png" alt="Makanan" loading="lazy" decoding="async" class="tw-w-[44px] tw-h-[44px] tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
+                        <img src="/unitrade_theme/static/src/img/categories/makanan.png" alt="Makanan" loading="lazy" decoding="async" class="ut-category-icon tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
                         <div>
                             <h3 class="tw-font-semibold tw-text-[#212529] tw-text-base">Makanan</h3>
                             <p class="tw-text-xs tw-text-gray-400">Ringan &amp; Berat</p>
                         </div>
                     </a>
                     <a t-att-href="'/unitrade/products?category=%s' % ut_category_furniture.id if ut_category_furniture else '/unitrade/products'" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
-                        <img src="/unitrade_theme/static/src/img/categories/perabotan.png" alt="Perabotan" loading="lazy" decoding="async" class="tw-w-[44px] tw-h-[44px] tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
+                        <img src="/unitrade_theme/static/src/img/categories/perabotan.png" alt="Perabotan" loading="lazy" decoding="async" class="ut-category-icon tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
                         <div>
                             <h3 class="tw-font-semibold tw-text-[#212529] tw-text-base">Perabotan</h3>
                             <p class="tw-text-xs tw-text-gray-400">Kamar &amp; kos</p>
@@ -198,7 +198,7 @@
                     </a>
                     <!-- Kategori 2 -->
                     <a t-att-href="'/unitrade/products?category=%s' % ut_category_fashion.id if ut_category_fashion else '/unitrade/products'" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
-                        <img src="/unitrade_theme/static/src/img/categories/fashion.png" alt="Fashion" loading="lazy" decoding="async" class="tw-w-[44px] tw-h-[44px] tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
+                        <img src="/unitrade_theme/static/src/img/categories/fashion.png" alt="Fashion" loading="lazy" decoding="async" class="ut-category-icon tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
                         <div>
                             <h3 class="tw-font-semibold tw-text-[#212529] tw-text-base">Fashion</h3>
                             <p class="tw-text-xs tw-text-gray-400">Pria &amp; Wanita</p>
@@ -206,35 +206,35 @@
                     </a>
                     <!-- Kategori 3 -->
                     <a t-att-href="'/unitrade/products?category=%s' % ut_category_electronics.id if ut_category_electronics else '/unitrade/products'" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
-                        <img src="/unitrade_theme/static/src/img/categories/elektronik.png" alt="Elektronik" loading="lazy" decoding="async" class="tw-w-[44px] tw-h-[44px] tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
+                        <img src="/unitrade_theme/static/src/img/categories/elektronik.png" alt="Elektronik" loading="lazy" decoding="async" class="ut-category-icon tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
                         <div>
                             <h3 class="tw-font-semibold tw-text-[#212529] tw-text-base">Elektronik</h3>
                             <p class="tw-text-xs tw-text-gray-400">Besar &amp; Kecil</p>
                         </div>
                     </a>
                     <a t-att-href="'/unitrade/products?category=%s' % ut_category_services.id if ut_category_services else '/unitrade/products'" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
-                        <img src="/unitrade_theme/static/src/img/categories/jasa.png" alt="Jasa" loading="lazy" decoding="async" class="tw-w-[44px] tw-h-[44px] tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
+                        <img src="/unitrade_theme/static/src/img/categories/jasa.png" alt="Jasa" loading="lazy" decoding="async" class="ut-category-icon tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
                         <div>
                             <h3 class="tw-font-semibold tw-text-[#212529] tw-text-base">Jasa</h3>
                             <p class="tw-text-xs tw-text-gray-400">Bantuan kampus</p>
                         </div>
                     </a>
                     <a t-att-href="'/unitrade/products?category=%s' % ut_category_health.id if ut_category_health else '/unitrade/products'" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
-                        <img src="/unitrade_theme/static/src/img/categories/kesehatan-kecantikan.png" alt="Kesehatan &amp; Kecantikan" loading="lazy" decoding="async" class="tw-w-[44px] tw-h-[44px] tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
+                        <img src="/unitrade_theme/static/src/img/categories/kesehatan-kecantikan.png" alt="Kesehatan &amp; Kecantikan" loading="lazy" decoding="async" class="ut-category-icon tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
                         <div>
                             <h3 class="tw-font-semibold tw-text-[#212529] tw-text-base">Kesehatan &amp; Kecantikan</h3>
                             <p class="tw-text-xs tw-text-gray-400">Care essentials</p>
                         </div>
                     </a>
                     <a t-att-href="'/unitrade/products?category=%s' % ut_category_hobbies.id if ut_category_hobbies else '/unitrade/products'" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
-                        <img src="/unitrade_theme/static/src/img/categories/hobi-koleksi.png" alt="Hobi &amp; Koleksi" loading="lazy" decoding="async" class="tw-w-[44px] tw-h-[44px] tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
+                        <img src="/unitrade_theme/static/src/img/categories/hobi-koleksi.png" alt="Hobi &amp; Koleksi" loading="lazy" decoding="async" class="ut-category-icon tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
                         <div>
                             <h3 class="tw-font-semibold tw-text-[#212529] tw-text-base">Hobi &amp; Koleksi</h3>
                             <p class="tw-text-xs tw-text-gray-400">Koleksi pribadi</p>
                         </div>
                     </a>
                     <a t-att-href="'/unitrade/products?category=%s' % ut_category_other.id if ut_category_other else '/unitrade/products'" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
-                        <img src="/unitrade_theme/static/src/img/categories/lainnya.png" alt="Lainnya" loading="lazy" decoding="async" class="tw-w-[44px] tw-h-[44px] tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
+                        <img src="/unitrade_theme/static/src/img/categories/lainnya.png" alt="Lainnya" loading="lazy" decoding="async" class="ut-category-icon tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
                         <div>
                             <h3 class="tw-font-semibold tw-text-[#212529] tw-text-base">Lainnya</h3>
                             <p class="tw-text-xs tw-text-gray-400">Lama</p>

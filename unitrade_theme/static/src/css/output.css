@@ -5712,6 +5712,11 @@
   text-decoration: none !important;
 }
 
+.ut-category-icon {
+  width: 52px;
+  height: 52px;
+}
+
 /* User profile page translated from Figma node 149:549. */
 
 body:has(.ut-user-profile-page),
