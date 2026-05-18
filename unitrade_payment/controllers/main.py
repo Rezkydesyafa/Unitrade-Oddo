@@ -1369,6 +1369,11 @@ class UnitradePaymentController(http.Controller):
     def seller_order_confirm_handoff(self, ledger_id, **kwargs):
         if 'unitrade.seller' not in request.env.registry or 'unitrade.escrow.ledger' not in request.env.registry:
             return request.not_found()
+        return_url = kwargs.get('return_url') if kwargs.get('return_url') in (
+            '/unitrade/seller/orders',
+            '/seller/orders',
+            '/my/seller/orders',
+        ) else ''
         seller = request.env['unitrade.seller'].sudo().search([
             ('user_id', '=', request.env.user.id),
             ('status', '=', 'verified'),
@@ -1383,8 +1388,12 @@ class UnitradePaymentController(http.Controller):
                 filename=filename,
                 location=(kwargs.get('seller_handoff_location') or '').strip(),
             )
+            if return_url:
+                return request.redirect(self._append_query(return_url, seller_confirmed=1))
             return request.redirect('/seller/dashboard?seller_confirmed=1#dashboard-orders')
         except UserError as error:
+            if return_url:
+                return request.redirect(self._append_query(return_url, seller_error=error.args[0] if error.args else str(error)))
             return request.redirect('/seller/dashboard?seller_error=%s#dashboard-orders' % quote(error.args[0] if error.args else str(error)))
 
     @http.route('/unitrade/payment/status/<string:reference>', type='http', auth='public', website=True, sitemap=False)
