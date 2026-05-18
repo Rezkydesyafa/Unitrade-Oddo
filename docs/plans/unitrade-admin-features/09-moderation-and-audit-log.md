@@ -1,7 +1,20 @@
 # Moderation and Audit Log Plan
 
-Status: Draft
+Status: Updated after source audit
 Priority: P1
+Last reviewed: 2026-05-18
+
+## Update 2026-05-18
+
+Moderation sudah ada sebagian, tetapi audit log admin belum ada. `unitrade.chat.report` punya review/block/unblock flow untuk chat. `unitrade.seller` punya reported seller state dan action review/resolved/revoke. `unitrade.security.activity` sudah mencatat aktivitas akun seperti register, OTP, login, password change, dan deactivate, tetapi model itu bukan audit log admin lintas modul.
+
+Koreksi plan:
+
+- `unitrade.security.activity` tetap untuk user security history.
+- Buat model baru `unitrade.admin.audit.log` untuk action admin lintas seller/product/payment/dispute/payout/settings/report.
+- Semua method action kritis harus memanggil audit helper dari Python, bukan hanya mengandalkan chatter.
+- Moderation queue harus menggabungkan chat report, seller report, product report nanti, refund dispute, dan user block review.
+- Public action yang berdampak ke trust/financial harus punya group gate di method. Ini bagian dari moderation hardening, bukan hanya security XML.
 
 ## Tujuan
 
@@ -50,6 +63,15 @@ Model baru:
   - `ip_address`
   - `create_date`
 
+Tambahan field yang disarankan:
+
+- `reason_required`: boolean atau validasi helper per action.
+- `request_uid`: user asli jika action memakai `sudo()`.
+- `source`: backend, website, cron, webhook, shell.
+- `amount`: Monetary opsional untuk payout/refund/fee.
+- `currency_id`: currency untuk amount.
+- `metadata_json`: payload ringkas tanpa credential/raw sensitive data.
+
 ## Acceptance Criteria
 
 - Semua action kritis membuat audit log.
@@ -57,4 +79,3 @@ Model baru:
 - Audit log tidak bisa diedit user biasa.
 - Admin bisa filter audit berdasarkan admin, action, target, tanggal.
 - Moderation queue menampilkan kasus yang belum selesai.
-

@@ -2,6 +2,20 @@
 
 Folder ini berisi rencana fitur admin untuk konsep UniTrade sebagai katalog mahasiswa dan marketplace checkout terproteksi.
 
+Last reviewed: 2026-05-18
+
+## Catatan Update 2026-05-18
+
+Source audit terbaru menunjukkan beberapa fitur admin sudah berkembang sejak plan awal dibuat:
+
+- `unitrade_payment` sudah punya payment intent, payment event, escrow ledger, Midtrans flow, dan Xendit legacy field.
+- `unitrade_dispute` sudah punya model refund/dispute, evidence, backend view, buyer refund form, dan seller response.
+- `unitrade_seller` sudah punya seller verification, reported seller review, revoke verification, dan field tujuan payout.
+- `unitrade_notification` sudah ada, tetapi masih untuk user notification, belum admin notification center.
+- `unitrade.security.activity` sudah ada untuk aktivitas akun, tetapi belum menggantikan audit log admin lintas modul.
+
+Karena itu, dokumen di folder ini sekarang harus dibaca sebagai rencana konsolidasi admin: gunakan model yang sudah ada, tambahkan modul orkestrasi `unitrade_admin`, dan koreksi security/ACL sebelum membangun dashboard, task queue, report, settings, payout manual, dan audit log.
+
 ## Urutan Baca
 
 1. [Feature Gap and Roadmap](00-admin-feature-gap-and-roadmap.md)
@@ -20,7 +34,7 @@ Folder ini berisi rencana fitur admin untuk konsep UniTrade sebagai katalog maha
 
 | Fase | Fokus | Dokumen |
 | --- | --- | --- |
+| 0 | Admin foundation, menu consolidation, ACL, audit helper | 00, 09 |
 | 1 | Dashboard, task queue, user/seller, produk/fee | 01, 02, 03 |
 | 2 | Transaksi, escrow, refund, payout manual | 04, 05, 06 |
 | 3 | Laporan, konfigurasi, audit, notifikasi admin | 07, 08, 09, 10 |
-

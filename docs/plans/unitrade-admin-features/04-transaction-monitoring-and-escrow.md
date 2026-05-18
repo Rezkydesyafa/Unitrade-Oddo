@@ -1,7 +1,21 @@
 # Transaction Monitoring and Escrow Plan
 
-Status: Draft
+Status: Updated after source audit
 Priority: P0
+Last reviewed: 2026-05-18
+
+## Update 2026-05-18
+
+Transaction dan escrow model sudah ada. `sale.order` sudah punya `x_payment_status`, `x_unitrade_order_state`, `x_escrow_state`, cancel deadline, cancel reason, completed time, dan payment intent relation. `unitrade.payment.intent` menyimpan provider, state, Midtrans/Xendit identifiers, raw request/response, dan intent type. `unitrade.payment.event` menyimpan webhook/event idempotency data. `unitrade.escrow.ledger` sudah menyimpan split dana per seller, platform fee, gateway fee, bukti seller/buyer, state escrow, dan payout status.
+
+Gap admin sekarang:
+
+- Belum ada transaction operation view yang menggabungkan order, payment intent, payment event, escrow ledger, dispute, dan payout.
+- Escrow ledger belum punya search view lengkap untuk state, seller, buyer, payout status, date, dan amount.
+- Belum ada flag `marked_problem` atau `admin_hold` untuk menahan transaksi tanpa langsung membuat dispute.
+- Action manual `Tandai Releasable` dan `Tandai Released Manual` perlu alasan wajib, group gate, dan audit log.
+- Payment/dispute menu masih tersebar di Sales/Payment root; perlu konsolidasi di menu `UniTrade`.
+- Plan lama menyebut cancel window 10 menit dan auto complete 24 jam. Source saat ini memakai `unitrade.order.cancel_window_minutes = 30` dan auto confirm receipt default 48 jam. Admin settings harus menampilkan nilai aktual ini.
 
 ## Tujuan
 
@@ -51,11 +65,15 @@ Admin dapat memantau seluruh transaksi checkout website, status order, status es
 
 ## Perubahan Odoo
 
-- Model `unitrade.payment.intent`.
-- Model `unitrade.escrow.ledger`.
-- Extend `sale.order` dengan state UniTrade.
-- Buat tree/form/search view admin.
+- Pakai model existing `unitrade.payment.intent`.
+- Pakai model existing `unitrade.payment.event`.
+- Pakai model existing `unitrade.escrow.ledger`.
+- Pakai field UniTrade existing di `sale.order`.
+- Tambah tree/form/search view admin yang menyatukan order, payment, escrow, dispute, dan payout.
 - Tambah smart button dari order ke escrow/dispute/payout.
+- Tambah transaction monitor action di `unitrade_admin` yang membuka `sale.order` dengan kolom UniTrade utama.
+- Tambah field opsional `x_unitrade_problem_state`, `x_unitrade_admin_hold_reason`, `x_unitrade_admin_hold_by_id` di order atau ledger jika admin hold diperlukan.
+- Tambah audit event untuk mark problem, clear problem, mark releasable, mark released, dan cancel admin.
 
 ## Acceptance Criteria
 
@@ -65,4 +83,3 @@ Admin dapat memantau seluruh transaksi checkout website, status order, status es
 - Admin melihat apakah payout tertahan karena dispute.
 - Admin bisa tandai transaksi bermasalah.
 - Semua perubahan status tercatat.
-
