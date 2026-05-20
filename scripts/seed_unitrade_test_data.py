@@ -447,6 +447,14 @@ PRODUCTS = [
     },
 ]
 
+REVIEW_COMMENTS = [
+    "Produk sesuai deskripsi dan nyaman dipakai untuk kegiatan kampus.",
+    "Kondisi barang bagus, seller responsif, dan transaksi lancar.",
+    "Harga sepadan dengan kualitas. Cocok untuk kebutuhan mahasiswa.",
+    "Barang diterima dengan baik dan detailnya sesuai foto produk.",
+    "Pengalaman belanja aman, komunikasi dengan seller jelas.",
+]
+
 
 def _seed_user(spec):
     Users = ENV["res.users"].with_context(active_test=False, no_reset_password=True).sudo()
@@ -835,6 +843,36 @@ def _seed_order(name_hint, buyer, product, qty, status_key, date_offset_days):
     return order, ledger
 
 
+def _seed_review_order(buyer, product, review_index):
+    SaleOrder = ENV["sale.order"].with_context(
+        tracking_disable=True,
+        mail_create_nolog=True,
+        mail_notrack=True,
+        mail_notify_force_send=False,
+    ).sudo()
+    date_order = fields.Datetime.now() - timedelta(days=review_index + 7)
+    order = SaleOrder.create({
+        "partner_id": buyer.partner_id.id,
+        "date_order": date_order,
+        "client_order_ref": "%s REVIEW %s %s" % (MARKER, product.default_code, review_index + 1),
+        "order_line": [(0, 0, {
+            "product_id": product.product_variant_id.id,
+            "product_uom_qty": 1,
+            "price_unit": product.list_price,
+            "tax_id": [(6, 0, [])],
+        })],
+    })
+    order.write({
+        "state": "sale",
+        "x_payment_status": "paid",
+        "x_unitrade_order_state": "completed",
+        "x_escrow_state": "released",
+        "x_paid_at": date_order,
+        "x_completed_at": date_order + timedelta(hours=2),
+    })
+    return order
+
+
 def _seed_refund(order, ledger, buyer, product):
     Dispute = _model("unitrade.dispute")
     if Dispute is False:
@@ -961,6 +999,14 @@ def _seed_review(buyer, order, product, rating, comment):
         existing.write(values)
         return existing
     return Review.create(values)
+
+
+def _seed_product_reviews(buyers, products):
+    for product_index, product in enumerate(products):
+        for review_index, comment in enumerate(REVIEW_COMMENTS):
+            buyer = buyers[(product_index + review_index) % len(buyers)]
+            order = _seed_review_order(buyer, product, review_index)
+            _seed_review(buyer, order, product, 5, comment)
 
 
 def cleanup_existing_data():
@@ -1130,7 +1176,7 @@ def seed_fresh_data():
         _seed_ticket(buyers[0], "refund_return", "Refund untuk jas lab", "Saya ingin cek proses pengembalian jas lab.", order_refund)
         _seed_ticket(buyers[1], "order_issue", "Pesanan dibatalkan", "Saya ingin memastikan dana pesanan yang dibatalkan aman.", order_cancelled)
         _seed_ticket(buyers[3], "contact_cs", "Butuh bantuan akun", "Saya ingin bertanya tentang perubahan nomor WhatsApp.")
-        _seed_review(buyers[2], order_completed, products[5], 5, "Lampu rapi dan sesuai deskripsi.")
+        _seed_product_reviews(buyers, products)
 
     ENV.cr.commit()
     _logger.info("UniTrade seed completed. Test password for all seed users: %s", DEFAULT_PASSWORD)

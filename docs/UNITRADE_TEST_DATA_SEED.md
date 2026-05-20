@@ -5,6 +5,7 @@ Script: `scripts/seed_unitrade_test_data.py`
 Tujuan:
 - Membersihkan produk marketplace UniTrade dan data transaksi terkait yang mengunci produk.
 - Membuat ulang data testing fresh untuk buyer, seller, produk, order, refund, chat, tiket customer service, dan review.
+- Setiap produk seed memiliki minimal 5 review rating 5.
 - Melengkapi data dengan gambar produk, gallery produk, foto profil user, foto KTM seller, bukti refund, bukti serah/terima barang.
 
 Default script adalah dry-run. Tidak ada data yang dihapus atau dibuat sebelum environment variable `UNITRADE_RESET_TEST_DATA=YES` di-set.

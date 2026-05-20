@@ -484,6 +484,68 @@ class UnitradeNotification(models.Model):
             return param
         return self.env.company.email or False
 
+    def _get_effective_action_url(self):
+        """Return the best click target for this notification.
+
+        Review notifications should take users to the related product detail
+        page. Older rows may not have ``action_url`` populated, and some
+        review reminders can point at an order, so this derives the product
+        URL from the referenced business record before falling back to the
+        stored URL.
+        """
+        self.ensure_one()
+        if self.category == 'review':
+            review_product_url = self._resolve_review_product_action_url()
+            if review_product_url:
+                return review_product_url
+        return self.action_url or False
+
+    def _resolve_review_product_action_url(self):
+        """Resolve ``/unitrade/product/<id>`` for review notifications."""
+        self.ensure_one()
+        if (
+            self.category != 'review'
+            or not self.reference_model
+            or not self.reference_id
+        ):
+            return False
+
+        try:
+            Model = self.env[self.reference_model].sudo()
+        except KeyError:
+            return False
+
+        record = Model.browse(self.reference_id).exists()
+        if not record:
+            return False
+
+        product = self.env['product.template'].sudo().browse()
+        if self.reference_model == 'unitrade.review':
+            product = record.product_id
+        elif self.reference_model == 'product.template':
+            product = record
+        elif self.reference_model == 'product.product':
+            product = record.product_tmpl_id
+        elif self.reference_model == 'sale.order':
+            review = self.env['unitrade.review'].sudo().search([
+                ('order_id', '=', record.id),
+                ('product_id', '!=', False),
+            ], limit=1)
+            if review:
+                product = review.product_id
+            else:
+                order_line = record.order_line.filtered(
+                    lambda line: (
+                        line.product_id and line.product_id.product_tmpl_id
+                    )
+                )[:1]
+                if order_line:
+                    product = order_line.product_id.product_tmpl_id
+
+        if product and product.exists():
+            return '/unitrade/product/%s' % product.id
+        return False
+
     @api.model
     def _render_title_and_message(self, event_code, payload):
         """Compute ``(title, message)`` for an emission.
@@ -643,6 +705,7 @@ class UnitradeNotification(models.Model):
 
         # 3. Scrub payload once so all downstream consumers see the safe copy.
         safe_payload = self._scrub_payload(payload) if payload else {}
+        action_url = self._validate_action_url(safe_payload.get('action_url'))
 
         # 4. Compute idempotency key --------------------------------------------
         idempotency_key = self._build_idempotency_key(
@@ -663,6 +726,8 @@ class UnitradeNotification(models.Model):
             limit=1,
         )
         if existing:
+            if action_url and existing.action_url != action_url:
+                existing.write({'action_url': action_url})
             _logger.info(
                 "unitrade.notification.emit user_id=%s event_code=%s "
                 "result=duplicate id=%s",
@@ -702,7 +767,6 @@ class UnitradeNotification(models.Model):
 
         # 9. Render content -----------------------------------------------------
         title, message = self._render_title_and_message(event_code, safe_payload)
-        action_url = self._validate_action_url(safe_payload.get('action_url'))
 
         # 10. Seed email_state. The actual ``mail.mail`` enqueue happens
         # in task 7.3 (``_send_email_via_template``); leaving the state
@@ -1165,13 +1229,23 @@ class UnitradeNotification(models.Model):
                     )
 
             try:
+                action_url = '/my/orders/%s' % order.id
+                order_line = order.order_line.filtered(
+                    lambda line: (
+                        line.product_id and line.product_id.product_tmpl_id
+                    )
+                )[:1]
+                if order_line:
+                    action_url = '/unitrade/product/%s' % (
+                        order_line.product_id.product_tmpl_id.id
+                    )
                 result = Notification.emit(
                     buyer.id,
                     'review.reminder',
                     payload={
                         'reference_model': 'sale.order',
                         'reference_id': order.id,
-                        'action_url': '/my/orders/%s' % order.id,
+                        'action_url': action_url,
                     },
                 )
                 if result:

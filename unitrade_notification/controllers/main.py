@@ -137,6 +137,7 @@ class UnitradeNotificationController(http.Controller):
 
     def _notification_item_payload(self, notif):
         category = notif.category or 'system'
+        action_url = notif._get_effective_action_url()
         return {
             'id': notif.id,
             'title': notif.title or 'Notifikasi UniTrade',
@@ -145,7 +146,7 @@ class UnitradeNotificationController(http.Controller):
             'ui_category': self._ui_category(category),
             'category_label': dict(notif._fields['category'].selection).get(category, category),
             'icon': _CATEGORY_ICONS.get(category, '🔔'),
-            'action_url': notif.action_url or '',
+            'action_url': action_url or '',
             'is_read': bool(notif.is_read),
             'time_label': self._notification_time_label(notif.create_date),
         }
@@ -297,7 +298,7 @@ class UnitradeNotificationController(http.Controller):
                 'id': r.id,
                 'title': r.title or '',
                 'message': r.message or '',
-                'action_url': r.action_url or False,
+                'action_url': r._get_effective_action_url(),
                 'is_read': bool(r.is_read),
                 'create_date': (
                     fields.Datetime.to_string(r.create_date)

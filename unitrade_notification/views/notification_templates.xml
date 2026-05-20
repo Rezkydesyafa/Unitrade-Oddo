@@ -338,7 +338,7 @@
                 <ul class="tw-list-none tw-p-0 tw-m-0 tw-divide-y tw-divide-gray-100 tw-max-h-96 tw-overflow-y-auto">
                     <t t-foreach="notifications" t-as="notif">
                         <li class="tw-m-0 tw-p-0">
-                            <a t-att-href="notif.action_url or '/my/notifications'"
+                            <a t-att-href="notif._get_effective_action_url() or '/my/notifications'"
                                t-att-data-notification-id="notif.id"
                                t-attf-class="tw-flex tw-flex-col tw-gap-1 tw-px-4 tw-py-3 tw-no-underline hover:tw-bg-gray-50 tw-transition-colors #{'tw-bg-blue-50' if not notif.is_read else 'tw-bg-white'}">
                                 <span t-attf-class="tw-text-sm tw-text-[#1d1d1f] tw-truncate #{'tw-font-bold' if not notif.is_read else 'tw-font-medium'}">
