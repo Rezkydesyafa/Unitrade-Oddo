@@ -8,6 +8,7 @@
     'data': [
         'security/ir.model.access.csv',
         'data/product_categories.xml',
+        'data/listing_expiry_cron.xml',
         'views/product_views.xml',
         'views/product_templates.xml',
     ],
