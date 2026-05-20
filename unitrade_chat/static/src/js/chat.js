@@ -648,6 +648,7 @@ export class UnitradeChatApp extends Component {
 
     configureChatReceiving() {
         this.state.headerMenuOpen = false;
+        window.location.href = "/unitrade/seller/settings";
     }
 
     openReportModal() {

@@ -1575,7 +1575,7 @@ body:has(.ut-chat-seller-dashboard-page) #wrap {
 }
 
 .ut-chat-seller-sidebar {
-  height: 570px;
+  height: 775px;
 }
 
 .ut-chat-seller-main {
@@ -1590,6 +1590,10 @@ body:has(.ut-chat-seller-dashboard-page) #wrap {
 
 .ut-chat-seller-heading {
   margin-bottom: 22px;
+}
+
+.ut-chat-seller-dashboard-page.ut-is-sidebar-open .ut-chat-seller-main {
+  left: 344px !important;
 }
 
 .ut-chat-seller-dashboard-page #ut-chat-owl {
@@ -1946,6 +1950,10 @@ body:has(.ut-chat-seller-dashboard-page) #wrap {
   .ut-chat-seller-dashboard-page .ut-chat-seller-main {
     left: 150px !important;
     right: 24px !important;
+  }
+
+  .ut-chat-seller-dashboard-page.ut-is-sidebar-open .ut-chat-seller-main {
+    left: 320px !important;
   }
 
   .ut-chat-seller-dashboard-page .ut-chat-shell {

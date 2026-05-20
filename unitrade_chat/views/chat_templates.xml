@@ -28,9 +28,12 @@
                                 <a href="/shop" class="tw-font-semibold tw-text-black tw-no-underline">Belanja Sekarang +</a>
                                 <span class="tw-font-semibold tw-text-[#939393]">|</span>
                                 <a href="/seller-onboarding" class="tw-font-semibold tw-text-black tw-no-underline">Mulai Berjualan</a>
+                                <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                                <a href="/unitrade/sponsorship" class="tw-font-semibold tw-text-black tw-no-underline">Sponsorship</a>
                             </div>
                             <div class="tw-flex tw-items-center tw-gap-[18px]">
-                                <a href="/help" class="tw-text-black tw-no-underline">Bantuan</a>
+                                <a href="/faq" class="tw-text-black tw-no-underline">FAQ</a>
+                                <a href="/customer-service" class="tw-text-black tw-no-underline">Customer Service</a>
                                 <a href="/contactus" class="tw-text-black tw-no-underline">Kontak</a>
                                 <span class="tw-font-semibold tw-text-[#939393]">|</span>
                                 <span>Ikuti kami :</span>

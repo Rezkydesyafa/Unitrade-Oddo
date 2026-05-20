@@ -18,7 +18,7 @@ class UnitradeDelivery(models.Model):
         ('in_transit', 'Dalam Pengiriman'),
         ('delivered', 'Terkirim'),
         ('failed', 'Gagal'),
-    ], string='Status', default='pending', tracking=True)
+    ], string='Status', default='pending')
     shipping_cost = fields.Float(string='Ongkos Kirim')
     pickup_address = fields.Char(string='Alamat Penjemput')
     pickup_lat = fields.Float(string='Pickup Latitude', digits=(10, 7))

@@ -96,7 +96,7 @@
                                 <i class="fa fa-ellipsis-v"></i>
                             </button>
                             <div t-if="state.headerMenuOpen" class="ut-chat-header-menu">
-                                <button type="button" t-on-click="configureChatReceiving">Atur Penerimaan Chat</button>
+                                <button t-if="state.isSellerView" type="button" t-on-click="configureChatReceiving">Atur Penerimaan Chat</button>
                                 <button type="button" t-on-click="openReportModal">Laporkan Pengguna</button>
                             </div>
                         </div>
