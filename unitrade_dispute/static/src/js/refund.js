@@ -3,7 +3,7 @@
 import publicWidget from "@web/legacy/js/public/public_widget";
 
 const PHOTO_MAX_FILES = 3;
-const PHOTO_MAX_SIZE = 5 * 1024 * 1024;
+const PHOTO_MAX_SIZE = 2 * 1024 * 1024;
 const VIDEO_MAX_SIZE = 10 * 1024 * 1024;
 const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const VIDEO_TYPES = ["video/mp4", "video/webm"];
@@ -205,7 +205,7 @@ publicWidget.registry.UnitradeOrderRefundModal = publicWidget.Widget.extend({
                 errors.push(`${file.name} harus berformat JPG, PNG, atau WEBP.`);
             }
             if (file.size > PHOTO_MAX_SIZE) {
-                errors.push(`${file.name} melebihi 5 MB.`);
+                errors.push(`${file.name} melebihi 2 MB.`);
             }
         });
         this._setUploadError(input.closest("[data-refund-dropzone]"), errors);

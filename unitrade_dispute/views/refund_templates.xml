@@ -91,7 +91,7 @@
                                         <i class="fa fa-upload"></i>
                                     </div>
                                     <strong>Drag &amp; drop foto bukti di sini, atau klik untuk memilih</strong>
-                                    <small>PNG, JPG, atau WEBP. Maksimal 3 foto, 5 MB per foto.</small>
+                                    <small>PNG, JPG, atau WEBP. Maksimal 3 foto, 2 MB per foto.</small>
                                     <button type="button" class="ut-order-refund-upload-btn" data-refund-browse="photos">Choose Files</button>
                                     <input class="ut-order-refund-file-input" type="file" name="refund_evidence" accept="image/jpeg,image/png,image/webp" required="required" multiple="multiple" data-refund-photos="1"/>
                                     <div class="ut-order-refund-file-list" data-refund-photo-list="1"></div>
