@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="unitrade_notification.NotificationBell">
+        <div class="ut-notification-bell"
+             t-ref="root"
+             t-on-mouseenter="openFromHover"
+             t-on-mouseleave="scheduleClose">
+            <button type="button"
+                    class="ut-notification-trigger"
+                    t-on-click="onButtonClick"
+                    aria-label="Notifikasi"
+                    t-att-aria-expanded="state.isOpen ? 'true' : 'false'">
+                <img src="/unitrade_theme/static/src/img/navbar-bell.svg" alt="" class="ut-notification-trigger-icon"/>
+                <span class="ut-notification-badge"
+                      t-att-class="{ 'ut-is-hidden': state.count === 0 }"
+                      t-esc="state.badgeText"/>
+            </button>
+
+            <div t-if="state.isOpen"
+                 class="ut-notification-panel"
+                 role="dialog"
+                 aria-label="Daftar notifikasi">
+                <div class="ut-notification-panel-header">
+                    <h3 class="ut-notification-panel-title">Notifikasi</h3>
+                    <div class="ut-notification-panel-actions">
+                        <a href="/my/notifications"
+                           class="ut-notification-icon-link"
+                           aria-label="Buka halaman notifikasi">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M7 17 17 7"/>
+                                <path d="M9 7h8v8"/>
+                            </svg>
+                        </a>
+                        <button type="button"
+                                class="ut-notification-icon-button"
+                                t-on-click="close"
+                                aria-label="Tutup notifikasi">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M18 6 6 18"/>
+                                <path d="m6 6 12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="ut-notification-tabs">
+                    <button type="button"
+                            t-att-class="tabClass('all')"
+                            t-on-click="() => this.setFilter('all')">
+                        Semua
+                    </button>
+                    <button type="button"
+                            t-att-class="tabClass('unread')"
+                            t-on-click="() => this.setFilter('unread')">
+                        Belum dibaca
+                        <span t-if="state.count > 0" class="ut-notification-tab-count" t-esc="state.badgeText"/>
+                    </button>
+                    <button type="button"
+                            t-if="state.count > 0"
+                            class="ut-notification-read-all"
+                            t-on-click="onClickMarkAllRead">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M20 6 9 17l-5-5"/>
+                        </svg>
+                        <span>Tandai semua</span>
+                    </button>
+                </div>
+
+                <div class="ut-notification-list">
+                    <t t-if="state.isLoading">
+                        <div class="ut-notification-empty">Memuat notifikasi...</div>
+                    </t>
+
+                    <t t-if="!state.isLoading and !hasVisibleNotifications()">
+                        <div class="ut-notification-empty">
+                            <strong>Belum ada notifikasi</strong>
+                            <span>Aktivitas pesanan, pembayaran, dan chat akan muncul di sini.</span>
+                        </div>
+                    </t>
+
+                    <t t-if="!state.isLoading and hasVisibleNotifications()">
+                        <t t-foreach="getVisibleNotifications()" t-as="notif" t-key="notif.id">
+                            <t t-if="notif.showGroupLabel">
+                                <div class="ut-notification-group-label" t-esc="notif.groupLabel"/>
+                            </t>
+                            <button type="button"
+                                    t-att-class="itemClass(notif)"
+                                    t-on-click="() => this.onClickItem(notif)">
+                                <span class="ut-notification-item-icon">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                                        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+                                    </svg>
+                                    <span t-if="!notif.is_read" class="ut-notification-unread-dot"/>
+                                </span>
+                                <span class="ut-notification-item-body">
+                                    <span class="ut-notification-item-title" t-esc="notif.title"/>
+                                    <span t-if="notif.message" class="ut-notification-item-message" t-esc="notif.message"/>
+                                    <span class="ut-notification-item-time" t-esc="notif.timeLabel"/>
+                                </span>
+                            </button>
+                        </t>
+                    </t>
+                </div>
+
+                <a href="/my/notifications" class="ut-notification-footer-link">
+                    Lihat semua notifikasi
+                </a>
+            </div>
+        </div>
+    </t>
+</templates>

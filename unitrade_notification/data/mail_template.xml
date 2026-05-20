@@ -1,5 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    UniTrade Notification — Mail Templates
+
+    Templates di file ini dipakai oleh Notification_Dispatcher
+    (`unitrade.notification._send_email_via_template`). Dispatcher merender
+    template terhadap recordset `unitrade.notification` (passing `record.id`
+    sebagai `res_id`), sehingga semua template baru menggunakan
+    `model_id` = `unitrade_notification.model_unitrade_notification`.
+
+    Template legacy `mail_template_order_confirmed` (di bawah) tetap memakai
+    `sale.model_sale_order` dan akan dirender oleh dispatcher dengan
+    `res_id = sale.order.id` (lihat task 7.3).
+
+    Semua template baru:
+      - subject     : `{{ object.title }}` (dispatcher mengisi title pada record)
+      - email_from  : `{{ object._get_email_from() or ... }}` (helper task 6.1
+                       membaca `ir.config_parameter unitrade.notification.email_from`)
+      - email_to    : alamat user pemilik notifikasi
+      - lang        : bahasa user, fallback ke `id_ID`
+      - body_html   : header brand UniTrade, heading event, body dinamis dari
+                       `object.message`, tombol aksi opsional (action_url),
+                       footer dengan link ke `/my/notifications/settings`
+      - auto_delete : True (mail.mail dibersihkan setelah dikirim;
+                       `mail_message_id` sudah ditangkap pre-purge oleh dispatcher)
+-->
 <odoo>
+
+    <!-- ======================================================================
+         LEGACY TEMPLATE — DO NOT MODIFY
+         ====================================================================== -->
     <record id="mail_template_order_confirmed" model="mail.template">
         <field name="name">UniTrade: Order Confirmed</field>
         <field name="model_id" ref="sale.model_sale_order"/>
@@ -17,4 +46,402 @@
             </div>
         </field>
     </record>
+
+    <!-- ======================================================================
+         ACCOUNT TEMPLATES
+         ====================================================================== -->
+
+    <record id="mail_template_account_welcome" model="mail.template">
+        <field name="name">UniTrade: Account Welcome</field>
+        <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
+        <field name="subject">{{ object.title }}</field>
+        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
+        <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #ffffff; color: #111827;">
+                <h1 style="color: #4F46E5; margin: 0 0 16px;">🛒 UniTrade</h1>
+                <h2 style="color: #059669; margin: 0 0 24px;">Selamat datang di UniTrade! 🎉</h2>
+                <p>Halo <strong>{{ object.user_id.name }}</strong>,</p>
+                {% if object.message %}<p>{{ object.message }}</p>{% endif %}
+                {% if not object.message %}<p>Akun kamu sudah aktif. Mulai jelajahi marketplace.</p>{% endif %}
+                {% if object.action_url %}
+                <p>
+                    <a href="{{ object.action_url }}" style="display:inline-block;background:#4F46E5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;">Lihat Detail</a>
+                </p>
+                {% endif %}
+                <hr style="border:none; border-top:1px solid #E5E7EB; margin:32px 0;"/>
+                <p style="color:#6B7280; font-size:12px;">
+                    UniTrade Marketplace · UNISA Yogyakarta<br/>
+                    <a href="/my/notifications/settings" style="color:#4F46E5;">Atur Preferensi Notifikasi</a>
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <record id="mail_template_account_password_reset" model="mail.template">
+        <field name="name">UniTrade: Account Password Reset</field>
+        <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
+        <field name="subject">{{ object.title }}</field>
+        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
+        <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #ffffff; color: #111827;">
+                <h1 style="color: #4F46E5; margin: 0 0 16px;">🛒 UniTrade</h1>
+                <h2 style="color: #059669; margin: 0 0 24px;">Password berhasil direset</h2>
+                <p>Halo <strong>{{ object.user_id.name }}</strong>,</p>
+                {% if object.message %}<p>{{ object.message }}</p>{% endif %}
+                {% if not object.message %}<p>Password akun UniTrade kamu sudah berhasil diperbarui.</p>{% endif %}
+                {% if object.action_url %}
+                <p>
+                    <a href="{{ object.action_url }}" style="display:inline-block;background:#4F46E5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;">Lihat Detail</a>
+                </p>
+                {% endif %}
+                <hr style="border:none; border-top:1px solid #E5E7EB; margin:32px 0;"/>
+                <p style="color:#6B7280; font-size:12px;">
+                    UniTrade Marketplace · UNISA Yogyakarta<br/>
+                    <a href="/my/notifications/settings" style="color:#4F46E5;">Atur Preferensi Notifikasi</a>
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <!-- ======================================================================
+         SELLER TEMPLATES
+         ====================================================================== -->
+
+    <record id="mail_template_seller_application_received" model="mail.template">
+        <field name="name">UniTrade: Seller Application Received</field>
+        <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
+        <field name="subject">{{ object.title }}</field>
+        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
+        <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #ffffff; color: #111827;">
+                <h1 style="color: #4F46E5; margin: 0 0 16px;">🛒 UniTrade</h1>
+                <h2 style="color: #059669; margin: 0 0 24px;">Pengajuan seller diterima</h2>
+                <p>Halo <strong>{{ object.user_id.name }}</strong>,</p>
+                {% if object.message %}<p>{{ object.message }}</p>{% endif %}
+                {% if not object.message %}<p>Tim kami akan review pengajuan kamu dalam 1×24 jam.</p>{% endif %}
+                {% if object.action_url %}
+                <p>
+                    <a href="{{ object.action_url }}" style="display:inline-block;background:#4F46E5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;">Lihat Detail</a>
+                </p>
+                {% endif %}
+                <hr style="border:none; border-top:1px solid #E5E7EB; margin:32px 0;"/>
+                <p style="color:#6B7280; font-size:12px;">
+                    UniTrade Marketplace · UNISA Yogyakarta<br/>
+                    <a href="/my/notifications/settings" style="color:#4F46E5;">Atur Preferensi Notifikasi</a>
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <record id="mail_template_seller_approved" model="mail.template">
+        <field name="name">UniTrade: Seller Approved</field>
+        <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
+        <field name="subject">{{ object.title }}</field>
+        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
+        <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #ffffff; color: #111827;">
+                <h1 style="color: #4F46E5; margin: 0 0 16px;">🛒 UniTrade</h1>
+                <h2 style="color: #059669; margin: 0 0 24px;">Selamat! Pengajuan seller disetujui ✅</h2>
+                <p>Halo <strong>{{ object.user_id.name }}</strong>,</p>
+                {% if object.message %}<p>{{ object.message }}</p>{% endif %}
+                {% if not object.message %}<p>Kamu sekarang bisa mulai jualan di UniTrade.</p>{% endif %}
+                {% if object.action_url %}
+                <p>
+                    <a href="{{ object.action_url }}" style="display:inline-block;background:#4F46E5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;">Lihat Detail</a>
+                </p>
+                {% endif %}
+                <hr style="border:none; border-top:1px solid #E5E7EB; margin:32px 0;"/>
+                <p style="color:#6B7280; font-size:12px;">
+                    UniTrade Marketplace · UNISA Yogyakarta<br/>
+                    <a href="/my/notifications/settings" style="color:#4F46E5;">Atur Preferensi Notifikasi</a>
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <record id="mail_template_seller_rejected" model="mail.template">
+        <field name="name">UniTrade: Seller Rejected</field>
+        <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
+        <field name="subject">{{ object.title }}</field>
+        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
+        <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #ffffff; color: #111827;">
+                <h1 style="color: #4F46E5; margin: 0 0 16px;">🛒 UniTrade</h1>
+                <h2 style="color: #DC2626; margin: 0 0 24px;">Pengajuan seller belum disetujui</h2>
+                <p>Halo <strong>{{ object.user_id.name }}</strong>,</p>
+                {% if object.message %}<p>{{ object.message }}</p>{% endif %}
+                {% if not object.message %}<p>Cek detail di halaman seller untuk pengajuan ulang.</p>{% endif %}
+                {% if object.action_url %}
+                <p>
+                    <a href="{{ object.action_url }}" style="display:inline-block;background:#4F46E5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;">Lihat Detail</a>
+                </p>
+                {% endif %}
+                <hr style="border:none; border-top:1px solid #E5E7EB; margin:32px 0;"/>
+                <p style="color:#6B7280; font-size:12px;">
+                    UniTrade Marketplace · UNISA Yogyakarta<br/>
+                    <a href="/my/notifications/settings" style="color:#4F46E5;">Atur Preferensi Notifikasi</a>
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <!-- ======================================================================
+         ORDER TEMPLATES
+         ====================================================================== -->
+
+    <record id="mail_template_order_new_for_seller" model="mail.template">
+        <field name="name">UniTrade: Order New For Seller</field>
+        <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
+        <field name="subject">{{ object.title }}</field>
+        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
+        <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #ffffff; color: #111827;">
+                <h1 style="color: #4F46E5; margin: 0 0 16px;">🛒 UniTrade</h1>
+                <h2 style="color: #059669; margin: 0 0 24px;">Pesanan baru masuk 🔔</h2>
+                <p>Halo <strong>{{ object.user_id.name }}</strong>,</p>
+                {% if object.message %}<p>{{ object.message }}</p>{% endif %}
+                {% if not object.message %}<p>Ada pesanan baru menunggu konfirmasi kamu.</p>{% endif %}
+                {% if object.action_url %}
+                <p>
+                    <a href="{{ object.action_url }}" style="display:inline-block;background:#4F46E5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;">Lihat Detail</a>
+                </p>
+                {% endif %}
+                <hr style="border:none; border-top:1px solid #E5E7EB; margin:32px 0;"/>
+                <p style="color:#6B7280; font-size:12px;">
+                    UniTrade Marketplace · UNISA Yogyakarta<br/>
+                    <a href="/my/notifications/settings" style="color:#4F46E5;">Atur Preferensi Notifikasi</a>
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <record id="mail_template_order_shipped" model="mail.template">
+        <field name="name">UniTrade: Order Shipped</field>
+        <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
+        <field name="subject">{{ object.title }}</field>
+        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
+        <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #ffffff; color: #111827;">
+                <h1 style="color: #4F46E5; margin: 0 0 16px;">🛒 UniTrade</h1>
+                <h2 style="color: #059669; margin: 0 0 24px;">Pesananmu dalam pengiriman 📦</h2>
+                <p>Halo <strong>{{ object.user_id.name }}</strong>,</p>
+                {% if object.message %}<p>{{ object.message }}</p>{% endif %}
+                {% if not object.message %}<p>Pesanan sudah dikirim. Silakan pantau statusnya.</p>{% endif %}
+                {% if object.action_url %}
+                <p>
+                    <a href="{{ object.action_url }}" style="display:inline-block;background:#4F46E5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;">Lacak Pengiriman</a>
+                </p>
+                {% endif %}
+                <hr style="border:none; border-top:1px solid #E5E7EB; margin:32px 0;"/>
+                <p style="color:#6B7280; font-size:12px;">
+                    UniTrade Marketplace · UNISA Yogyakarta<br/>
+                    <a href="/my/notifications/settings" style="color:#4F46E5;">Atur Preferensi Notifikasi</a>
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <record id="mail_template_order_cancelled" model="mail.template">
+        <field name="name">UniTrade: Order Cancelled</field>
+        <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
+        <field name="subject">{{ object.title }}</field>
+        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
+        <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #ffffff; color: #111827;">
+                <h1 style="color: #4F46E5; margin: 0 0 16px;">🛒 UniTrade</h1>
+                <h2 style="color: #DC2626; margin: 0 0 24px;">Pesanan dibatalkan</h2>
+                <p>Halo <strong>{{ object.user_id.name }}</strong>,</p>
+                {% if object.message %}<p>{{ object.message }}</p>{% endif %}
+                {% if not object.message %}<p>Pesanan telah dibatalkan. Lihat detail di halaman pesananmu.</p>{% endif %}
+                {% if object.action_url %}
+                <p>
+                    <a href="{{ object.action_url }}" style="display:inline-block;background:#4F46E5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;">Lihat Detail</a>
+                </p>
+                {% endif %}
+                <hr style="border:none; border-top:1px solid #E5E7EB; margin:32px 0;"/>
+                <p style="color:#6B7280; font-size:12px;">
+                    UniTrade Marketplace · UNISA Yogyakarta<br/>
+                    <a href="/my/notifications/settings" style="color:#4F46E5;">Atur Preferensi Notifikasi</a>
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <!-- ======================================================================
+         PAYMENT TEMPLATES
+         ====================================================================== -->
+
+    <record id="mail_template_payment_success" model="mail.template">
+        <field name="name">UniTrade: Payment Success</field>
+        <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
+        <field name="subject">{{ object.title }}</field>
+        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
+        <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #ffffff; color: #111827;">
+                <h1 style="color: #4F46E5; margin: 0 0 16px;">🛒 UniTrade</h1>
+                <h2 style="color: #059669; margin: 0 0 24px;">Pembayaran berhasil ✅</h2>
+                <p>Halo <strong>{{ object.user_id.name }}</strong>,</p>
+                {% if object.message %}<p>{{ object.message }}</p>{% endif %}
+                {% if not object.message %}<p>Pembayaran sudah kami terima. Pesanan akan segera diproses.</p>{% endif %}
+                {% if object.action_url %}
+                <p>
+                    <a href="{{ object.action_url }}" style="display:inline-block;background:#4F46E5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;">Lihat Pesanan</a>
+                </p>
+                {% endif %}
+                <hr style="border:none; border-top:1px solid #E5E7EB; margin:32px 0;"/>
+                <p style="color:#6B7280; font-size:12px;">
+                    UniTrade Marketplace · UNISA Yogyakarta<br/>
+                    <a href="/my/notifications/settings" style="color:#4F46E5;">Atur Preferensi Notifikasi</a>
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <record id="mail_template_payment_pending" model="mail.template">
+        <field name="name">UniTrade: Payment Pending</field>
+        <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
+        <field name="subject">{{ object.title }}</field>
+        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
+        <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #ffffff; color: #111827;">
+                <h1 style="color: #4F46E5; margin: 0 0 16px;">🛒 UniTrade</h1>
+                <h2 style="color: #D97706; margin: 0 0 24px;">Pembayaran menunggu konfirmasi</h2>
+                <p>Halo <strong>{{ object.user_id.name }}</strong>,</p>
+                {% if object.message %}<p>{{ object.message }}</p>{% endif %}
+                {% if not object.message %}<p>Selesaikan pembayaran sebelum batas waktu.</p>{% endif %}
+                {% if object.action_url %}
+                <p>
+                    <a href="{{ object.action_url }}" style="display:inline-block;background:#4F46E5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;">Selesaikan Pembayaran</a>
+                </p>
+                {% endif %}
+                <hr style="border:none; border-top:1px solid #E5E7EB; margin:32px 0;"/>
+                <p style="color:#6B7280; font-size:12px;">
+                    UniTrade Marketplace · UNISA Yogyakarta<br/>
+                    <a href="/my/notifications/settings" style="color:#4F46E5;">Atur Preferensi Notifikasi</a>
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <record id="mail_template_payment_failed" model="mail.template">
+        <field name="name">UniTrade: Payment Failed</field>
+        <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
+        <field name="subject">{{ object.title }}</field>
+        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
+        <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #ffffff; color: #111827;">
+                <h1 style="color: #4F46E5; margin: 0 0 16px;">🛒 UniTrade</h1>
+                <h2 style="color: #DC2626; margin: 0 0 24px;">Pembayaran gagal</h2>
+                <p>Halo <strong>{{ object.user_id.name }}</strong>,</p>
+                {% if object.message %}<p>{{ object.message }}</p>{% endif %}
+                {% if not object.message %}<p>Silakan coba kembali atau gunakan metode pembayaran lain.</p>{% endif %}
+                {% if object.action_url %}
+                <p>
+                    <a href="{{ object.action_url }}" style="display:inline-block;background:#4F46E5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;">Coba Lagi</a>
+                </p>
+                {% endif %}
+                <hr style="border:none; border-top:1px solid #E5E7EB; margin:32px 0;"/>
+                <p style="color:#6B7280; font-size:12px;">
+                    UniTrade Marketplace · UNISA Yogyakarta<br/>
+                    <a href="/my/notifications/settings" style="color:#4F46E5;">Atur Preferensi Notifikasi</a>
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <record id="mail_template_payment_expired" model="mail.template">
+        <field name="name">UniTrade: Payment Expired</field>
+        <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
+        <field name="subject">{{ object.title }}</field>
+        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
+        <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #ffffff; color: #111827;">
+                <h1 style="color: #4F46E5; margin: 0 0 16px;">🛒 UniTrade</h1>
+                <h2 style="color: #6B7280; margin: 0 0 24px;">Pembayaran kedaluwarsa</h2>
+                <p>Halo <strong>{{ object.user_id.name }}</strong>,</p>
+                {% if object.message %}<p>{{ object.message }}</p>{% endif %}
+                {% if not object.message %}<p>Batas waktu pembayaran sudah lewat. Buat pesanan ulang jika masih dibutuhkan.</p>{% endif %}
+                {% if object.action_url %}
+                <p>
+                    <a href="{{ object.action_url }}" style="display:inline-block;background:#4F46E5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;">Lihat Detail</a>
+                </p>
+                {% endif %}
+                <hr style="border:none; border-top:1px solid #E5E7EB; margin:32px 0;"/>
+                <p style="color:#6B7280; font-size:12px;">
+                    UniTrade Marketplace · UNISA Yogyakarta<br/>
+                    <a href="/my/notifications/settings" style="color:#4F46E5;">Atur Preferensi Notifikasi</a>
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <!-- ======================================================================
+         SYSTEM TEMPLATES
+         ====================================================================== -->
+
+    <record id="mail_template_system_announcement" model="mail.template">
+        <field name="name">UniTrade: System Announcement</field>
+        <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
+        <field name="subject">{{ object.title }}</field>
+        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
+        <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #ffffff; color: #111827;">
+                <h1 style="color: #4F46E5; margin: 0 0 16px;">🛒 UniTrade</h1>
+                <h2 style="color: #4F46E5; margin: 0 0 24px;">{{ object.title }}</h2>
+                <p>Halo <strong>{{ object.user_id.name }}</strong>,</p>
+                {% if object.message %}<p>{{ object.message }}</p>{% endif %}
+                {% if not object.message %}<p>Ada pengumuman baru dari tim UniTrade.</p>{% endif %}
+                {% if object.action_url %}
+                <p>
+                    <a href="{{ object.action_url }}" style="display:inline-block;background:#4F46E5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;">Selengkapnya</a>
+                </p>
+                {% endif %}
+                <hr style="border:none; border-top:1px solid #E5E7EB; margin:32px 0;"/>
+                <p style="color:#6B7280; font-size:12px;">
+                    UniTrade Marketplace · UNISA Yogyakarta<br/>
+                    <a href="/my/notifications/settings" style="color:#4F46E5;">Atur Preferensi Notifikasi</a>
+                </p>
+            </div>
+        </field>
+    </record>
+
 </odoo>

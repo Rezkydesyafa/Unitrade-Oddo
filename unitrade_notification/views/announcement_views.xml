@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Admin backend for unitrade.announcement (task 15.7).
+
+    Provides a list/form/action/menu so platform admins can draft
+    `unitrade.announcement` records and trigger the
+    `system.announcement` broadcast (Req 5.15, 8.2). Visible only to
+    admin / system groups - consistent with the failed-emails admin
+    view (task 14.1).
+-->
+<odoo>
+    <!-- ============================================================ -->
+    <!-- Tree (list) view                                             -->
+    <!-- ============================================================ -->
+    <record id="view_unitrade_announcement_tree" model="ir.ui.view">
+        <field name="name">unitrade.announcement.tree</field>
+        <field name="model">unitrade.announcement</field>
+        <field name="arch" type="xml">
+            <tree string="Pengumuman"
+                  decoration-success="state == 'published'"
+                  decoration-muted="state == 'draft'">
+                <field name="title"/>
+                <field name="state"/>
+                <field name="published_at"/>
+                <field name="published_by"/>
+                <field name="emitted_count"/>
+                <field name="target_user_count"/>
+                <field name="failed_batches"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Form view                                                    -->
+    <!-- ============================================================ -->
+    <record id="view_unitrade_announcement_form" model="ir.ui.view">
+        <field name="name">unitrade.announcement.form</field>
+        <field name="model">unitrade.announcement</field>
+        <field name="arch" type="xml">
+            <form string="Pengumuman">
+                <header>
+                    <button name="action_publish_and_broadcast"
+                            string="Publish &amp; Kirim ke Semua User"
+                            type="object"
+                            class="oe_highlight"
+                            confirm="Pengumuman akan dikirim ke semua user aktif (non-portal). Lanjutkan?"
+                            invisible="state == 'published'"/>
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="draft,published"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="title"
+                                   placeholder="Judul pengumuman"
+                                   readonly="state == 'published'"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Aksi">
+                            <field name="action_url"
+                                   placeholder="Mis. /my/orders"
+                                   readonly="state == 'published'"/>
+                        </group>
+                        <group string="Audit" invisible="state == 'draft'">
+                            <field name="published_at"/>
+                            <field name="published_by"/>
+                            <field name="target_user_count"/>
+                            <field name="emitted_count"/>
+                            <field name="failed_batches"/>
+                        </group>
+                    </group>
+                    <group string="Isi">
+                        <field name="body"
+                               nolabel="1"
+                               placeholder="Tulis isi pengumuman di sini..."
+                               readonly="state == 'published'"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Search view                                                  -->
+    <!-- ============================================================ -->
+    <record id="view_unitrade_announcement_search" model="ir.ui.view">
+        <field name="name">unitrade.announcement.search</field>
+        <field name="model">unitrade.announcement</field>
+        <field name="arch" type="xml">
+            <search string="Cari Pengumuman">
+                <field name="title"/>
+                <field name="published_by"/>
+                <separator/>
+                <filter name="state_draft"
+                        string="Draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter name="state_published"
+                        string="Dipublish"
+                        domain="[('state', '=', 'published')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state"
+                            string="Status"
+                            context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Action                                                       -->
+    <!-- ============================================================ -->
+    <record id="action_unitrade_announcement" model="ir.actions.act_window">
+        <field name="name">Pengumuman</field>
+        <field name="res_model">unitrade.announcement</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_unitrade_announcement_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Buat pengumuman pertama
+            </p>
+            <p>
+                Pengumuman akan dikirim ke semua user aktif (non-portal)
+                ketika tombol <strong>Publish &amp; Kirim</strong>
+                ditekan, lewat dispatcher
+                <code>unitrade.notification.broadcast</code>.
+            </p>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Menu (admin-only, under existing notifikasi root)            -->
+    <!-- ============================================================ -->
+    <menuitem id="menu_unitrade_announcement"
+              name="Pengumuman"
+              parent="menu_unitrade_notification_root"
+              action="action_unitrade_announcement"
+              groups="unitrade_seller.group_unitrade_admin,base.group_system"
+              sequence="20"/>
+</odoo>
