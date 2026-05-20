@@ -55,6 +55,17 @@ class UnitradeWebsiteSaleCart(WebsiteSale):
     def _unitrade_truthy(self, value):
         return value is True or str(value).lower() in ('1', 'true', 'yes', 'on')
 
+    def _unitrade_is_stock_limited_product(self, product):
+        if hasattr(product, '_unitrade_is_stock_limited'):
+            return product.sudo()._unitrade_is_stock_limited()
+        return product.type == 'product' and not product.allow_out_of_stock_order
+
+    def _unitrade_available_qty(self, product):
+        if hasattr(product, '_unitrade_available_qty'):
+            warehouse_id = request.website.sudo()._get_warehouse_available() if request.website else False
+            return product.sudo()._unitrade_available_qty(warehouse=warehouse_id)
+        return request.website.sudo()._get_product_available_qty(product.sudo())
+
     def _unitrade_product_referrer(self):
         referrer = request.httprequest.referrer or ''
         if '/shop/' not in referrer or '/shop/cart' in referrer:
@@ -68,7 +79,10 @@ class UnitradeWebsiteSaleCart(WebsiteSale):
             return 'Jumlah produk tidak valid.'
         if not product:
             return 'Jumlah produk tidak valid.'
-        if product.type != 'product' or product.allow_out_of_stock_order:
+        template = product.product_tmpl_id.sudo()
+        if hasattr(template, '_unitrade_is_publicly_available') and not template._unitrade_is_publicly_available():
+            return 'Produk belum aktif atau sudah tidak tersedia.'
+        if not self._unitrade_is_stock_limited_product(product):
             return ''
 
         order = request.website.sale_get_order()
@@ -94,7 +108,7 @@ class UnitradeWebsiteSaleCart(WebsiteSale):
         if requested_qty <= 0:
             return ''
 
-        available_qty = max(request.website.sudo()._get_product_available_qty(product.sudo()), 0)
+        available_qty = max(self._unitrade_available_qty(product), 0)
         if requested_qty <= available_qty:
             return ''
 
@@ -112,7 +126,7 @@ class UnitradeWebsiteSaleCart(WebsiteSale):
         )
         try:
             product = request.env['product.product'].sudo().browse(int(product_id)).exists()
-            stock = max(request.website.sudo()._get_product_available_qty(product.sudo()), 0) if product else 0
+            stock = max(self._unitrade_available_qty(product), 0) if product else 0
         except (TypeError, ValueError):
             stock = 0
         return {

@@ -14,7 +14,8 @@
                         <a href="/unitrade/sponsorship" class="tw-hidden tw-whitespace-nowrap tw-font-semibold tw-text-black tw-no-underline tw-transition-colors hover:tw-text-[#545454] sm:tw-inline">Sponsorship</a>
                     </div>
                     <div class="tw-hidden tw-items-center tw-gap-4 md:tw-flex">
-                        <a href="/help" class="tw-font-normal tw-text-black tw-no-underline tw-transition-colors hover:tw-text-[#545454]">Bantuan</a>
+                        <a href="/faq" class="tw-font-normal tw-text-black tw-no-underline tw-transition-colors hover:tw-text-[#545454]">FAQ</a>
+                        <a href="/customer-service" class="tw-font-normal tw-text-black tw-no-underline tw-transition-colors hover:tw-text-[#545454]">Customer Service</a>
                         <a href="/contactus" class="tw-font-normal tw-text-black tw-no-underline tw-transition-colors hover:tw-text-[#545454]">Kontak</a>
                         <span class="tw-font-semibold tw-text-[#939393]">|</span>
                         <div class="tw-flex tw-items-center tw-gap-2">
@@ -59,6 +60,12 @@
                         </button>
                     </form>
 
+                    <nav aria-label="Navigasi utama UniTrade" class="tw-hidden tw-shrink-0 tw-items-center tw-gap-4 xl:tw-flex">
+                        <a href="/customer-service" class="tw-whitespace-nowrap tw-text-[13px] tw-font-semibold tw-text-[#212529] tw-no-underline tw-transition-colors hover:tw-text-[#545454]">Customer Service</a>
+                        <a href="/unitrade/sponsorship" class="tw-whitespace-nowrap tw-text-[13px] tw-font-semibold tw-text-[#212529] tw-no-underline tw-transition-colors hover:tw-text-[#545454]">Sponsorship</a>
+                        <a href="/contactus" class="tw-whitespace-nowrap tw-text-[13px] tw-font-semibold tw-text-[#212529] tw-no-underline tw-transition-colors hover:tw-text-[#545454]">Kontak</a>
+                    </nav>
+
                     <div class="tw-ml-auto tw-flex tw-shrink-0 tw-items-center tw-gap-3 lg:tw-gap-4" t-nocache="User-specific navigation actions">
                         <t t-set="current_user" t-value="request.env.user"/>
                         <t t-if="not website.is_public_user()">
@@ -70,7 +77,7 @@
                                 </t>
                             </a>
 
-                            <a href="/my/orders" title="Notifikasi" aria-label="Notifikasi" class="tw-flex tw-size-[38px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#212529] tw-text-white tw-no-underline tw-transition-colors hover:tw-bg-black">
+                            <a id="unitrade-navbar-notification-link" href="/my/orders" title="Notifikasi" aria-label="Notifikasi" class="tw-flex tw-size-[38px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#212529] tw-text-white tw-no-underline tw-transition-colors hover:tw-bg-black">
                                 <img src="/unitrade_theme/static/src/img/navbar-bell.svg" alt="" class="tw-size-6"/>
                             </a>
 
@@ -137,7 +144,8 @@
                         <a href="/shop" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Belanja Sekarang</a>
                         <a href="/seller-onboarding" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Mulai Berjualan</a>
                         <a href="/unitrade/sponsorship" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Sponsorship</a>
-                        <a href="/help" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Bantuan</a>
+                        <a href="/customer-service" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Customer Service</a>
+                        <a href="/faq" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">FAQ</a>
                         <a href="/contactus" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Kontak</a>
                         <t t-if="not website.is_public_user()">
                             <a href="/my/account" class="tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-semibold tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Profil Saya</a>

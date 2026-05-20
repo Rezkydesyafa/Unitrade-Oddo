@@ -176,24 +176,7 @@
 
     <template id="unitrade_logout_confirm_modal" inherit_id="website.layout" name="UniTrade Logout Confirmation Modal">
         <xpath expr="//body" position="inside">
-            <div id="unitrade-logout-modal" class="ut-logout-modal" aria-hidden="true">
-                <div class="ut-logout-modal-backdrop" data-ut-logout-close="1"></div>
-                <section class="ut-logout-dialog" role="dialog" aria-modal="true" aria-labelledby="ut-logout-title" aria-describedby="ut-logout-description">
-                    <div class="ut-logout-icon-wrap" aria-hidden="true">
-                        <svg class="ut-logout-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M17 10H11C9.89543 10 9 10.8954 9 12V28C9 29.1046 9.89543 30 11 30H17" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-                            <path d="M23 14L29 20L23 26" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M15 20H29" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-                        </svg>
-                    </div>
-                    <h2 id="ut-logout-title" class="ut-logout-title">Keluar Dari Akun</h2>
-                    <p id="ut-logout-description" class="ut-logout-copy">Apakah anda yakin keluar dari UniTrade?</p>
-                    <div class="ut-logout-actions">
-                        <button type="button" class="ut-logout-button ut-logout-button-back" data-ut-logout-close="1">Kembali</button>
-                        <button type="button" class="ut-logout-button ut-logout-button-confirm" id="unitrade-logout-confirm">Keluar</button>
-                    </div>
-                </section>
-            </div>
+            <div id="unitrade-logout-confirm-root"></div>
         </xpath>
     </template>
 

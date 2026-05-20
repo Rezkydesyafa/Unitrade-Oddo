@@ -1708,9 +1708,14 @@ class UnitradeWebsite(Website):
         # Get response from original website controller
         response = super(UnitradeWebsite, self).index(**kw)
         
-        # Fetch published products
+        # Fetch only public products that pass UniTrade listing visibility rules.
         Product = request.env['product.template'].sudo()
-        published_products = Product.search([('website_published', '=', True)])
+        public_domain = (
+            Product._unitrade_public_active_domain()
+            if hasattr(Product, '_unitrade_public_active_domain')
+            else [('website_published', '=', True)]
+        )
+        published_products = Product.search(public_domain)
         
         # Sort by rating_avg (desc) and sales_count (desc), then take top 8
         best_products = published_products.sorted(

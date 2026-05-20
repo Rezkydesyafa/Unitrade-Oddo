@@ -106,28 +106,34 @@
   position: fixed;
   inset: 0;
   z-index: 5000;
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
   font-family: 'Urbanist', Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
 }
 
 .ut-logout-modal.is-open {
-  display: flex;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .ut-logout-modal-backdrop {
   position: absolute;
   inset: 0;
+  border: 0;
   background: rgba(10, 10, 10, 0.42);
   backdrop-filter: blur(7px);
+  cursor: pointer;
 }
 
 .ut-logout-dialog {
   position: relative;
   display: flex;
-  width: min(670px, 100%);
+  width: min(720px, 100%);
   min-height: 514px;
   flex-direction: column;
   align-items: center;
@@ -137,6 +143,7 @@
   padding: 83px 56px 45px;
   transform: translateY(16px) scale(0.98);
   opacity: 0;
+  pointer-events: auto;
   transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -189,7 +196,10 @@
 
 .ut-logout-button {
   display: inline-flex;
-  width: 203px;
+  min-width: 0;
+  width: 100%;
+  flex: 1 1 0;
+  max-width: none;
   height: 51px;
   align-items: center;
   justify-content: center;
@@ -203,6 +213,11 @@
 
 .ut-logout-button:hover {
   transform: translateY(-1px);
+}
+
+.ut-logout-button:focus-visible {
+  outline: 3px solid rgba(255, 0, 0, 0.18);
+  outline-offset: 3px;
 }
 
 .ut-logout-button-back {
@@ -241,6 +256,7 @@
   }
 
   .ut-logout-button {
+    max-width: none;
     width: 100%;
   }
 }
@@ -1339,9 +1355,29 @@
   text-decoration: none !important;
 }
 
+.ut-category-card {
+  height: 92px !important;
+  min-height: 92px;
+}
+
 .ut-category-icon {
-  width: 52px;
-  height: 52px;
+  width: 60px;
+  height: 60px;
+}
+
+.ut-category-card > div {
+  min-width: 0;
+}
+
+.ut-category-card h3 {
+  margin: 0 0 5px;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.ut-category-card p {
+  margin: 0;
+  line-height: 1.25;
 }
 
 /* User profile page translated from Figma node 149:549. */
@@ -6340,7 +6376,7 @@ body:has(.ut-seller-profile-page) {
   .unitrade-section-title::after {
     content: '';
     @apply tw-absolute tw-bottom-0 tw-left-0 tw-w-12 tw-h-1;
-    @apply tw-bg-gradient-to-r tw-from-indigo-600 tw-to-purple-600 tw-rounded-full;
+    @apply tw-bg-gradient-to-r tw-from-gray-950 tw-to-gray-400 tw-rounded-full;
   }
 
   /* Search Bar */
