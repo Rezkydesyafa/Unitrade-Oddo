@@ -13,9 +13,12 @@
                         <a href="/shop" class="tw-font-semibold tw-text-black tw-no-underline">Belanja Sekarang +</a>
                         <span class="tw-font-semibold tw-text-[#939393]">|</span>
                         <a href="/seller-onboarding" class="tw-font-semibold tw-text-black tw-no-underline">Mulai Berjualan</a>
+                        <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                        <a href="/unitrade/sponsorship" class="tw-font-semibold tw-text-black tw-no-underline">Sponsorship</a>
                     </div>
                     <div class="tw-flex tw-items-center tw-gap-[18px]">
-                        <a href="/help" class="tw-text-black tw-no-underline">Bantuan</a>
+                        <a href="/faq" class="tw-text-black tw-no-underline">FAQ</a>
+                        <a href="/customer-service" class="tw-text-black tw-no-underline">Customer Service</a>
                         <a href="/contactus" class="tw-text-black tw-no-underline">Kontak</a>
                         <span class="tw-font-semibold tw-text-[#939393]">|</span>
                         <span>Ikuti kami :</span>
@@ -128,7 +131,7 @@
                     <div class="ut-dash-stat-row tw-mb-[27px] tw-grid tw-grid-cols-4 tw-gap-[18px]">
                         <article class="ut-dash-figma-card tw-h-[176px] tw-px-[25px] tw-py-[26px]">
                             <h2 class="tw-m-0 tw-text-[20px] tw-font-medium tw-leading-6 tw-text-black">Total Pendapatan</h2>
-                            <span class="tw-mt-[7px] tw-inline-flex tw-h-6 tw-items-center tw-rounded tw-bg-[#dcfce7] tw-px-2 tw-text-[12px] tw-font-medium tw-leading-4 tw-text-[#008236]">Escrow selesai</span>
+                            <span class="tw-mt-[7px] tw-inline-flex tw-h-6 tw-items-center tw-rounded tw-bg-[#dcfce7] tw-px-2 tw-text-[12px] tw-font-medium tw-leading-4 tw-text-[#008236]">Transaksi selesai</span>
                             <strong class="tw-mt-[18px] tw-block tw-text-[32px] tw-font-semibold tw-leading-10 tw-text-black" t-esc="stats.revenue_label"></strong>
                         </article>
                         <article class="ut-dash-figma-card tw-h-[176px] tw-px-[25px] tw-py-[26px]">
@@ -140,17 +143,27 @@
                             <h2 class="tw-m-0 tw-text-[20px] tw-font-medium tw-leading-6 tw-text-black">Produk toko aktif</h2>
                             <p class="tw-m-0 tw-mt-[45px] tw-text-[32px] tw-font-semibold tw-leading-10 tw-text-black" t-esc="stats.active_products || 0"></p>
                         </article>
-                        <article class="ut-dash-figma-card tw-h-[176px] tw-px-[25px] tw-py-[22px]">
-                            <h2 class="tw-m-0 tw-text-[20px] tw-font-medium tw-leading-6 tw-text-black">Saldo Tersedia</h2>
-                            <strong class="tw-mt-[14px] tw-block tw-text-[28px] tw-font-semibold tw-leading-9 tw-text-black" t-esc="stats.available_balance_label"></strong>
-                            <p class="tw-m-0 tw-mt-1 tw-text-[11px] tw-font-medium tw-leading-4 tw-text-[#6a7282]">Pencairan diproses: <t t-esc="stats.pending_payout_label || 'Rp 0'"/></p>
-                            <button type="button" class="ut-dash-payout-button tw-mt-3" t-att-disabled="!canRequestPayout ? true : undefined" t-on-click="requestPayout">
-                                <i t-att-class="state.payoutLoading ? 'fa fa-spinner fa-spin' : 'fa fa-money'"></i>
-                                <span t-esc="state.payoutLoading ? 'Memproses...' : 'Tarik Saldo'"></span>
-                            </button>
-                            <small t-if="!stats.payout_ready" class="ut-dash-payout-note">Lengkapi rekening pencairan.</small>
-                            <small t-if="state.payoutMessage" class="ut-dash-payout-note is-success" t-esc="state.payoutMessage"></small>
-                            <small t-if="state.payoutError" class="ut-dash-payout-note is-error" t-esc="state.payoutError"></small>
+                        <article id="dashboard-payout" class="ut-dash-figma-card ut-dash-balance-card tw-h-[176px]">
+                            <t t-if="state.dateLoading">
+                                <span class="ut-dash-balance-skeleton-line tw-w-[132px]"></span>
+                                <span class="ut-dash-balance-skeleton-line is-amount tw-w-[190px]"></span>
+                                <span class="ut-dash-balance-skeleton-line tw-mt-auto tw-h-9 tw-w-full tw-rounded-full"></span>
+                            </t>
+                            <t t-else="">
+                                <div class="ut-dash-balance-head">
+                                    <span>
+                                        <h2 class="ut-dash-balance-title">Saldo Tersedia</h2>
+                                    </span>
+                                    <span class="ut-dash-balance-icon" aria-hidden="true">
+                                        <i class="fa fa-credit-card"></i>
+                                    </span>
+                                </div>
+                                <strong class="ut-dash-balance-amount" t-esc="stats.available_balance_label || 'Rp 0'"></strong>
+                                <a t-att-href="payoutPageUrl" class="ut-dash-payout-button">
+                                    <i class="fa fa-money"></i>
+                                    <span>Tarik Saldo</span>
+                                </a>
+                            </t>
                         </article>
                     </div>
 
@@ -159,7 +172,7 @@
                             <div class="tw-flex tw-items-start tw-justify-between">
                                 <div>
                                     <h2 class="tw-m-0 tw-text-[18px] tw-font-semibold tw-leading-7 tw-text-[#0a0a0a]">Ringkasan Penjualan</h2>
-                                    <p class="tw-m-0 tw-text-[14px] tw-leading-5 tw-text-[#6a7282]">Pendapatan escrow dan jumlah pesanan</p>
+                                    <p class="tw-m-0 tw-text-[14px] tw-leading-5 tw-text-[#6a7282]">Pendapatan transaksi selesai dan jumlah pesanan</p>
                                 </div>
                                 <div class="tw-flex tw-h-9 tw-rounded-[10px] tw-bg-[#f3f4f6] tw-p-1">
                                     <button type="button" t-att-class="periodClass('weekly')" t-on-click="() => this.setPeriod('weekly')">Mingguan</button>
@@ -232,12 +245,17 @@
                                                 <td><strong t-esc="order.order_name"></strong></td>
                                                 <td>
                                                     <span class="tw-flex tw-items-center tw-gap-3">
-                                                        <img t-att-src="order.customer_avatar_url" alt="" class="tw-size-8 tw-rounded-full tw-object-cover"/>
+                                                        <t t-if="order.customer_avatar_url">
+                                                            <img t-att-src="order.customer_avatar_url" alt="" class="ut-customer-avatar ut-customer-avatar-xs"/>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <span class="ut-customer-avatar ut-customer-avatar-xs is-initials" t-esc="order.customer_initials || 'UT'"></span>
+                                                        </t>
                                                         <span t-esc="order.customer_name"></span>
                                                     </span>
                                                 </td>
                                                 <td t-esc="order.date_label"></td>
-                                                <td><strong t-esc="order.total_label"></strong></td>
+                                                <td><strong class="ut-orders-total" t-esc="order.total_label"></strong></td>
                                                 <td><span t-att-class="statusClass(order.status_key)" t-esc="order.status_label"></span></td>
                                                 <td>
                                                     <button t-if="order.can_confirm_handoff" type="button" class="ut-dash-handoff-btn" t-on-click="() => this.openHandoff(order)">Diserahkan</button>
@@ -245,8 +263,8 @@
                                                     <a t-elif="order.refund_detail_url" t-att-href="order.refund_detail_url" class="tw-text-[#c2410c] tw-no-underline" aria-label="Buka refund">
                                                         <i class="fa fa-exclamation-circle"></i>
                                                     </a>
-                                                    <a t-else="" t-att-href="order.action_url" class="tw-text-[#212529] tw-no-underline" aria-label="Buka chat">
-                                                        <i class="fa fa-ellipsis-h"></i>
+                                                    <a t-else="" t-att-href="order.detail_url || order.order_detail_url || order.action_url" class="tw-text-[#212529] tw-no-underline" aria-label="Lihat detail pesanan">
+                                                        <i class="fa fa-eye"></i>
                                                     </a>
                                                 </td>
                                             </tr>
@@ -423,7 +441,8 @@
                     <span class="ut-dash-skeleton-block tw-h-[58px] tw-w-[226px] tw-rounded-[17px]"></span>
                     <span class="ut-dash-skeleton-block tw-h-[58px] tw-w-[178px] tw-rounded-[17px]"></span>
                 </div>
-                <div class="ut-dash-stat-row tw-mb-[27px] tw-grid tw-grid-cols-3 tw-gap-[27px]">
+                <div class="ut-dash-stat-row tw-mb-[27px] tw-grid tw-grid-cols-4 tw-gap-[18px]">
+                    <span class="ut-dash-skeleton-card tw-h-[176px]"></span>
                     <span class="ut-dash-skeleton-card tw-h-[176px]"></span>
                     <span class="ut-dash-skeleton-card tw-h-[176px]"></span>
                     <span class="ut-dash-skeleton-card tw-h-[176px]"></span>

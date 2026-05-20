@@ -13,9 +13,12 @@
                             <a href="/shop" class="tw-font-semibold tw-text-black tw-no-underline">Belanja Sekarang +</a>
                             <span class="tw-font-semibold tw-text-[#939393]">|</span>
                             <a href="/seller-onboarding" class="tw-font-semibold tw-text-black tw-no-underline">Mulai Berjualan</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <a href="/unitrade/sponsorship" class="tw-font-semibold tw-text-black tw-no-underline">Sponsorship</a>
                         </div>
                         <div class="tw-flex tw-items-center tw-gap-[18px]">
-                            <a href="/help" class="tw-text-black tw-no-underline">Bantuan</a>
+                            <a href="/faq" class="tw-text-black tw-no-underline">FAQ</a>
+                            <a href="/customer-service" class="tw-text-black tw-no-underline">Customer Service</a>
                             <a href="/contactus" class="tw-text-black tw-no-underline">Kontak</a>
                             <span class="tw-font-semibold tw-text-[#939393]">|</span>
                             <span>Ikuti kami :</span>
@@ -78,7 +81,7 @@
                         <div t-if="state.error" class="ut-product-create-alert is-error" t-esc="state.error"></div>
                         <div t-if="state.success" class="ut-product-create-alert is-success" t-esc="state.success"></div>
 
-                        <section class="ut-settings-card tw-mb-6">
+                        <section id="payout-settings" class="ut-settings-card tw-mb-6">
                             <header class="ut-settings-card-head">
                                 <span class="ut-settings-card-icon is-blue"><i class="fa fa-id-card-o"></i></span>
                                 <span>
@@ -117,6 +120,17 @@
                                         <input type="tel" t-att-value="state.form.phone" t-on-input="(ev) => this.setField('phone', ev)" placeholder="08xxxxxxxxxx"/>
                                     </div>
                                     <p class="ut-settings-field-hint">Nomor ini membantu pembeli menghubungi toko jika diperlukan.</p>
+                                </div>
+                                <div class="ut-settings-chat-toggle tw-flex tw-items-center tw-justify-between tw-gap-4 tw-rounded-[16px] tw-border tw-border-[#e5e7eb] tw-bg-[#fbfbfc] tw-p-4">
+                                    <span>
+                                        <strong class="tw-block tw-text-[14px] tw-font-semibold tw-leading-5 tw-text-[#101828]">Terima Chat Pembeli</strong>
+                                        <small class="tw-block tw-mt-1 tw-text-[12px] tw-leading-4 tw-text-[#6a7282]">Jika dimatikan, pembeli baru tidak bisa membuka chat baru. Percakapan lama tetap tersedia.</small>
+                                    </span>
+                                    <label class="ut-settings-switch" title="Penerimaan chat pembeli">
+                                        <input type="checkbox" t-att-checked="state.form.chatEnabled ? true : undefined" t-on-change="setChatEnabled"/>
+                                        <span></span>
+                                        <strong t-esc="state.form.chatEnabled ? 'Aktif' : 'Nonaktif'"></strong>
+                                    </label>
                                 </div>
                                 <div class="ut-settings-actions">
                                     <button type="button" class="ut-settings-save" t-att-disabled="state.savingSection ? true : undefined" t-on-click="() => this.saveSection('public')">

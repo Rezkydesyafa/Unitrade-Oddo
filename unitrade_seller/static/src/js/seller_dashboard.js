@@ -4,7 +4,12 @@ import publicWidget from "@web/legacy/js/public/public_widget";
 import { Component, mount, onMounted, onWillUnmount, useEffect, useRef, useState } from "@odoo/owl";
 import { templates } from "@web/core/assets";
 import { jsonrpc } from "@web/core/network/rpc_service";
-import { sellerSidebarItems } from "./seller_sidebar";
+import {
+    readSellerSidebarOpen,
+    sellerSidebarActiveKey,
+    sellerSidebarItems,
+    writeSellerSidebarOpen,
+} from "./seller_sidebar";
 
 function compactMoney(value) {
     const number = Number(value || 0);
@@ -109,6 +114,8 @@ function payloadFromDataset(dataset, parsed) {
             add_product_url: dataset.addProductUrl || "",
             data_url: "/unitrade/seller/dashboard/data",
             payout_request_url: "/unitrade/seller/payout/request",
+            payout_settings_url: "/unitrade/seller/settings#payout-settings",
+            payout_page_url: "/unitrade/seller/payouts",
             csrf_token: "",
         };
 }
@@ -132,12 +139,16 @@ export class SellerDashboard extends Component {
                 this.state.datePickerOpen = false;
             }
         };
+        this.onSidebarHashChange = () => {
+            this.state.sidebarActiveKey = sellerSidebarActiveKey("dashboard");
+        };
         this.state = useState({
             period: "weekly",
             payload: initialPayload,
             query: "",
             searchOpen: false,
-            sidebarOpen: false,
+            sidebarOpen: readSellerSidebarOpen(),
+            sidebarActiveKey: sellerSidebarActiveKey("dashboard"),
             ready: false,
             handoffOrder: null,
             datePickerOpen: false,
@@ -146,13 +157,11 @@ export class SellerDashboard extends Component {
             ordersPeriod: initialPayload.orders_period || "weekly",
             dateLoading: false,
             dateError: "",
-            payoutLoading: false,
-            payoutMessage: "",
-            payoutError: "",
         });
 
         onMounted(() => {
             window.addEventListener("resize", this.onResize);
+            window.addEventListener("hashchange", this.onSidebarHashChange);
             document.addEventListener("click", this.onDocumentClick);
             window.setTimeout(() => {
                 this.state.ready = true;
@@ -162,6 +171,7 @@ export class SellerDashboard extends Component {
 
         onWillUnmount(() => {
             window.removeEventListener("resize", this.onResize);
+            window.removeEventListener("hashchange", this.onSidebarHashChange);
             document.removeEventListener("click", this.onDocumentClick);
         });
 
@@ -227,8 +237,8 @@ export class SellerDashboard extends Component {
         return (this.payload.reviews || []).slice(0, 6);
     }
 
-    get canRequestPayout() {
-        return Boolean(this.stats.can_request_payout) && !this.state.payoutLoading;
+    get payoutPageUrl() {
+        return this.payload.payout_page_url || "/unitrade/seller/payouts";
     }
 
     get sidebarItems() {
@@ -236,7 +246,7 @@ export class SellerDashboard extends Component {
     }
 
     get sidebarActiveKey() {
-        return "dashboard";
+        return this.state.sidebarActiveKey || sellerSidebarActiveKey("dashboard");
     }
 
     get sidebarClass() {
@@ -257,7 +267,7 @@ export class SellerDashboard extends Component {
             icon: "fa-shopping-cart",
             title: `${order.order_name || "Pesanan"} - ${order.customer_name || "Pembeli"}`,
             subtitle: `${order.product_name || ""} - ${order.status_label || ""}`,
-            url: order.action_url || "#dashboard-orders",
+            url: order.detail_url || order.order_detail_url || order.action_url || "#dashboard-orders",
         }));
         const productItems = (this.payload.products || []).map((product, index) => ({
             key: "product-" + index + "-" + product.name,
@@ -417,30 +427,6 @@ export class SellerDashboard extends Component {
         return this.loadDashboardForDate(anchorDate, "all", this.state.ordersPeriod);
     }
 
-    async requestPayout() {
-        if (!this.canRequestPayout) {
-            return;
-        }
-        this.state.payoutLoading = true;
-        this.state.payoutMessage = "";
-        this.state.payoutError = "";
-        try {
-            const result = await jsonrpc(this.payload.payout_request_url || "/unitrade/seller/payout/request", {});
-            if (!result || result.success === false) {
-                throw new Error((result && result.message) || "Permintaan pencairan belum bisa diproses.");
-            }
-            if (result.dashboard_payload) {
-                this.state.payload = result.dashboard_payload;
-            }
-            this.state.payoutMessage = result.message || "Permintaan pencairan berhasil dikirim.";
-            window.requestAnimationFrame(() => this.drawChart());
-        } catch (error) {
-            this.state.payoutError = error.message || "Permintaan pencairan belum bisa diproses.";
-        } finally {
-            this.state.payoutLoading = false;
-        }
-    }
-
     openSearch() {
         this.state.searchOpen = true;
     }
@@ -451,11 +437,13 @@ export class SellerDashboard extends Component {
 
     toggleSidebar() {
         this.state.sidebarOpen = !this.state.sidebarOpen;
+        writeSellerSidebarOpen(this.state.sidebarOpen);
         window.setTimeout(() => this.drawChart(), 300);
     }
 
     closeSidebar() {
         this.state.sidebarOpen = false;
+        writeSellerSidebarOpen(false);
         window.setTimeout(() => this.drawChart(), 300);
     }
 

@@ -13,9 +13,12 @@
                             <a href="/shop" class="tw-font-semibold tw-text-black tw-no-underline">Belanja Sekarang +</a>
                             <span class="tw-font-semibold tw-text-[#939393]">|</span>
                             <a href="/seller-onboarding" class="tw-font-semibold tw-text-black tw-no-underline">Mulai Berjualan</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <a href="/unitrade/sponsorship" class="tw-font-semibold tw-text-black tw-no-underline">Sponsorship</a>
                         </div>
                         <div class="tw-flex tw-items-center tw-gap-[18px]">
-                            <a href="/help" class="tw-text-black tw-no-underline">Bantuan</a>
+                            <a href="/faq" class="tw-text-black tw-no-underline">FAQ</a>
+                            <a href="/customer-service" class="tw-text-black tw-no-underline">Customer Service</a>
                             <a href="/contactus" class="tw-text-black tw-no-underline">Kontak</a>
                             <span class="tw-font-semibold tw-text-[#939393]">|</span>
                             <span>Ikuti kami :</span>
@@ -146,10 +149,10 @@
                                     </span>
                                 </div>
                                 <div class="ut-product-create-field">
-                                    <label>Discounted Price<span>(Optional)</span></label>
+                                    <label>Diskon<span>(Optional)</span></label>
                                     <span class="ut-product-create-money">
-                                        <span>Rp</span>
-                                        <input type="number" min="0" step="1" t-att-value="state.form.discountPrice" t-on-input="(ev) => this.setField('discountPrice', ev)" placeholder="0.00"/>
+                                        <input type="number" min="0" max="100" step="1" t-att-value="state.form.discountPercent" t-on-input="(ev) => this.setField('discountPercent', ev)" placeholder="0"/>
+                                        <span>%</span>
                                     </span>
                                 </div>
                                 <div class="ut-product-create-field">
@@ -163,7 +166,7 @@
                             <a t-att-href="state.dashboardUrl" class="ut-product-create-back">&lt;- Back to Dashboard</a>
                             <div>
                                 <a t-att-href="state.productsUrl" class="ut-product-create-cancel">Cancel</a>
-                                <button t-if="isEditMode" type="button" class="ut-product-create-delete" t-att-disabled="state.deleting || state.submitting ? true : undefined" t-on-click="deleteProduct">
+                                <button t-if="isEditMode" type="button" class="ut-product-create-delete" t-att-disabled="state.deleting || state.submitting ? true : undefined" t-on-click="openDeleteModal">
                                     <i t-att-class="state.deleting ? 'fa fa-spinner fa-spin' : 'fa fa-trash-o'"></i>
                                     <span t-esc="state.deleting ? 'Menghapus...' : state.deleteLabel"></span>
                                 </button>
@@ -174,6 +177,51 @@
                             </div>
                         </div>
                     </main>
+
+                    <div t-if="state.deleteModalOpen" class="ut-product-delete-popup" role="dialog" aria-modal="true" aria-labelledby="ut_product_delete_title" aria-describedby="ut_product_delete_desc" t-on-click.self="closeDeleteModal">
+                        <section class="ut-product-delete-dialog">
+                            <button type="button" class="ut-product-delete-close" t-on-click="closeDeleteModal" t-att-disabled="state.deleting ? true : undefined" aria-label="Tutup popup hapus produk">
+                                <i class="fa fa-times"></i>
+                            </button>
+                            <div class="ut-product-delete-icon" aria-hidden="true">
+                                <i class="fa fa-trash-o"></i>
+                            </div>
+                            <h2 id="ut_product_delete_title">Hapus Produk?</h2>
+                            <p id="ut_product_delete_desc">
+                                Produk ini akan diarsipkan dari toko Anda. Pastikan Anda memahami ketentuan berikut sebelum melanjutkan.
+                            </p>
+                            <div class="ut-product-delete-terms">
+                                <div>
+                                    <i class="fa fa-eye-slash"></i>
+                                    <span>Produk tidak akan tampil lagi di katalog, halaman toko, dan hasil pencarian pembeli.</span>
+                                </div>
+                                <div>
+                                    <i class="fa fa-history"></i>
+                                    <span>Riwayat pesanan yang sudah terjadi tetap tersimpan untuk kebutuhan transaksi dan laporan.</span>
+                                </div>
+                                <div>
+                                    <i class="fa fa-credit-card"></i>
+                                    <span>Biaya posting/listing yang sudah dibayar tidak dikembalikan setelah produk dihapus.</span>
+                                </div>
+                                <div>
+                                    <i class="fa fa-plus-circle"></i>
+                                    <span>Jika ingin menjual lagi, Anda perlu membuat produk baru dan mengikuti proses pembayaran listing.</span>
+                                </div>
+                            </div>
+                            <label class="ut-product-delete-check">
+                                <input type="checkbox" t-att-checked="state.deleteAcknowledged ? true : undefined" t-on-change="setDeleteAcknowledged"/>
+                                <span>Saya mengerti dan ingin menghapus produk ini.</span>
+                            </label>
+                            <div t-if="state.deleteModalError" class="ut-product-delete-error" t-esc="state.deleteModalError"></div>
+                            <div class="ut-product-delete-actions">
+                                <button type="button" class="ut-product-delete-cancel" t-on-click="closeDeleteModal" t-att-disabled="state.deleting ? true : undefined">Batal</button>
+                                <button type="button" class="ut-product-delete-confirm" t-on-click="deleteProduct" t-att-disabled="!state.deleteAcknowledged || state.deleting ? true : undefined">
+                                    <i t-att-class="state.deleting ? 'fa fa-spinner fa-spin' : 'fa fa-trash-o'"></i>
+                                    <span t-esc="state.deleting ? 'Menghapus...' : 'Hapus Produk'"></span>
+                                </button>
+                            </div>
+                        </section>
+                    </div>
                 </div>
             </t>
         </div>
@@ -181,9 +229,10 @@
 
     <t t-name="unitrade_seller.SellerProductStepper">
         <section class="ut-product-stepper tw-mb-8" aria-label="Tahap tambah barang">
-            <div t-att-class="'ut-product-stepper-item ' + (step &gt;= 1 ? 'is-active' : '')">
+            <div t-att-class="'ut-product-stepper-item ' + (step == 1 ? 'is-active' : '') + (step &gt; 1 ? ' is-complete' : '')">
                 <span class="ut-product-stepper-dot">
-                    <i class="fa fa-check"></i>
+                    <t t-if="step &gt; 1"><i class="fa fa-check"></i></t>
+                    <t t-else="">1</t>
                 </span>
                 <span class="ut-product-stepper-label">Detail Produk</span>
             </div>
@@ -196,8 +245,11 @@
                 <span class="ut-product-stepper-label">Pembayaran</span>
             </div>
             <span class="ut-product-stepper-line"></span>
-            <div t-att-class="'ut-product-stepper-item ' + (step == 3 ? 'is-active' : '')">
-                <span class="ut-product-stepper-dot">3</span>
+            <div t-att-class="'ut-product-stepper-item ' + (step == 3 ? 'is-active' : '') + (step &gt; 3 ? ' is-complete' : '')">
+                <span class="ut-product-stepper-dot">
+                    <t t-if="step &gt; 3"><i class="fa fa-check"></i></t>
+                    <t t-else="">3</t>
+                </span>
                 <span class="ut-product-stepper-label">Selesai</span>
             </div>
         </section>
@@ -216,9 +268,12 @@
                             <a href="/shop" class="tw-font-semibold tw-text-black tw-no-underline">Belanja Sekarang +</a>
                             <span class="tw-font-semibold tw-text-[#939393]">|</span>
                             <a href="/seller-onboarding" class="tw-font-semibold tw-text-black tw-no-underline">Mulai Berjualan</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <a href="/unitrade/sponsorship" class="tw-font-semibold tw-text-black tw-no-underline">Sponsorship</a>
                         </div>
                         <div class="tw-flex tw-items-center tw-gap-[18px]">
-                            <a href="/help" class="tw-text-black tw-no-underline">Bantuan</a>
+                            <a href="/faq" class="tw-text-black tw-no-underline">FAQ</a>
+                            <a href="/customer-service" class="tw-text-black tw-no-underline">Customer Service</a>
                             <a href="/contactus" class="tw-text-black tw-no-underline">Kontak</a>
                             <span class="tw-font-semibold tw-text-[#939393]">|</span>
                             <span>Ikuti kami :</span>
@@ -275,7 +330,7 @@
                     <main class="ut-product-payment-main tw-absolute tw-left-[181px] tw-right-[52px] tw-top-[175px] tw-pb-16">
                         <section class="tw-mb-[24px]">
                             <h1 class="tw-m-0 tw-text-[40px] tw-font-normal tw-leading-none tw-text-black">Tambah Barang</h1>
-                            <p class="tw-m-0 tw-mt-[7px] tw-text-[16px] tw-leading-6 tw-text-[#6a7282]">Here's what's happening with your store today</p>
+                            <p class="tw-m-0 tw-mt-[7px] tw-text-[16px] tw-leading-6 tw-text-[#6a7282]">Selesaikan pembayaran biaya layanan untuk mempublikasikan produk Anda.</p>
                         </section>
 
                         <t t-set="step" t-value="2"/>
@@ -324,14 +379,13 @@
                                                     <p t-esc="method.description"></p>
                                                     <div t-if="method.channels.length" class="ut-product-payment-channel-grid">
                                                         <t t-foreach="method.channels" t-as="channel" t-key="channel.key">
-                                                            <button type="button" t-att-class="channelClass(channel)" t-on-click.stop="() => this.selectChannel(method, channel)">
+                                                            <button type="button" t-att-class="channelClass(channel)" t-att-title="channel.name" t-att-aria-label="channel.name" t-on-click.stop="() => this.selectChannel(method, channel)">
                                                                 <t t-if="channel.logo">
                                                                     <img t-att-src="channel.logo" t-att-alt="channel.name"/>
                                                                 </t>
                                                                 <t t-else="">
                                                                     <i class="fa fa-id-card-o"></i>
                                                                 </t>
-                                                                <span t-esc="channel.name"></span>
                                                             </button>
                                                         </t>
                                                     </div>
@@ -344,15 +398,6 @@
                                     </div>
                                 </section>
 
-                                <label class="ut-product-payment-terms">
-                                    <input type="checkbox" t-att-checked="state.acceptedTerms ? true : undefined" t-on-change="toggleTerms"/>
-                                    <span>
-                                        Saya menyetujui
-                                        <a href="/terms" target="_blank" rel="noopener">syarat dan ketentuan</a>
-                                        serta
-                                        <a href="/help" target="_blank" rel="noopener">kebijakan posting produk</a>
-                                    </span>
-                                </label>
                             </section>
 
                             <aside class="ut-product-payment-summary">
@@ -361,8 +406,10 @@
                                     <img t-att-src="state.product.image_url" t-att-alt="state.product.name"/>
                                     <h3 t-esc="state.product.name"></h3>
                                     <p t-esc="state.product.category"></p>
+                                    <span class="ut-product-payment-price-label">Harga Jual Produk</span>
                                     <strong t-esc="state.product.price_label"></strong>
                                 </article>
+                                <div class="ut-product-payment-summary-divider"></div>
                                 <div class="ut-product-payment-fees">
                                     <div>
                                         <span>Biaya Platform Upload</span>
@@ -386,11 +433,19 @@
                                     <p><i class="fa fa-check"></i>Akses ke fitur promosi dan boost</p>
                                     <p><i class="fa fa-check"></i>Analitik dan laporan penjualan</p>
                                 </div>
+                                <label class="ut-product-payment-terms">
+                                    <input type="checkbox" t-att-checked="state.acceptedTerms ? true : undefined" t-on-change="toggleTerms"/>
+                                    <span>
+                                        Saya menyetujui
+                                        <a href="/terms" target="_blank" rel="noopener">syarat dan ketentuan</a>
+                                        serta
+                                        <a href="/help" target="_blank" rel="noopener">kebijakan posting produk</a>
+                                    </span>
+                                </label>
                                 <button type="button" class="ut-product-payment-submit" t-att-disabled="!canPay ? true : undefined" t-on-click="submitPayment">
                                     <t t-if="state.submitting"><i class="fa fa-spinner fa-spin"></i> Membuat transaksi...</t>
                                     <t t-else="">Bayar <t t-esc="totalLabel"/></t>
                                 </button>
-                                <p class="ut-product-payment-note">Dengan melanjutkan, Anda setuju dengan syarat dan ketentuan kami</p>
                                 <a t-if="state.paymentResult" t-att-href="productsUrl" class="ut-product-payment-done">Lihat Daftar Barang</a>
                             </aside>
                         </div>

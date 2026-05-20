@@ -49,4 +49,22 @@
         <field name="groups" eval="[(4, ref('group_unitrade_admin'))]"/>
     </record>
 
+    <record id="rule_seller_payout_own" model="ir.rule">
+        <field name="name">Seller Payout: Own Requests Only</field>
+        <field name="model_id" ref="model_unitrade_seller_payout"/>
+        <field name="domain_force">[('seller_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_unitrade_seller'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_seller_payout_admin" model="ir.rule">
+        <field name="name">Seller Payout: Admin Full Access</field>
+        <field name="model_id" ref="model_unitrade_seller_payout"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_unitrade_admin'))]"/>
+    </record>
+
 </odoo>

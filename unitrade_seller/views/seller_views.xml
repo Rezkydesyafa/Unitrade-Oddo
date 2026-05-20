@@ -55,6 +55,7 @@
                             <field name="x_profile_uuid" readonly="1"/>
                             <field name="x_store_slug"/>
                             <field name="x_store_active"/>
+                            <field name="x_chat_enabled"/>
                         </group>
                         <group string="KTM Verification">
                             <field name="ktm_image" widget="image" readonly="status != 'draft'"/>

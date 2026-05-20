@@ -4,7 +4,7 @@ import publicWidget from "@web/legacy/js/public/public_widget";
 import { Component, mount, onMounted, onWillUnmount, useState } from "@odoo/owl";
 import { templates } from "@web/core/assets";
 import { jsonrpc } from "@web/core/network/rpc_service";
-import { sellerSidebarItems } from "./seller_sidebar";
+import { readSellerSidebarOpen, sellerSidebarItems, writeSellerSidebarOpen } from "./seller_sidebar";
 
 const JOGJA_CENTER = [-7.7956, 110.3695];
 const MAPBOX_GL_CSS_URL = "https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.css";
@@ -127,7 +127,7 @@ export class SellerSettings extends Component {
             requestingDelete: false,
             error: "",
             success: "",
-            sidebarOpen: false,
+            sidebarOpen: readSellerSidebarOpen(),
             seller: payload.seller || {},
             stats: payload.stats || {},
             bankOptions: payload.bank_options || [],
@@ -211,6 +211,7 @@ export class SellerSettings extends Component {
             accountNumber: settings.account_number || "",
             accountName: settings.account_name || "",
             storeActive: settings.store_active !== false,
+            chatEnabled: settings.chat_enabled !== false,
             deleteRequested: Boolean(settings.delete_requested),
         };
     }
@@ -251,12 +252,20 @@ export class SellerSettings extends Component {
         this.state.success = "";
     }
 
+    setChatEnabled(ev) {
+        this.state.form.chatEnabled = Boolean(ev.target.checked);
+        this.state.error = "";
+        this.state.success = "";
+    }
+
     toggleSidebar() {
         this.state.sidebarOpen = !this.state.sidebarOpen;
+        writeSellerSidebarOpen(this.state.sidebarOpen);
     }
 
     closeSidebar() {
         this.state.sidebarOpen = false;
+        writeSellerSidebarOpen(false);
     }
 
     onSidebarNavClick() {
@@ -295,6 +304,7 @@ export class SellerSettings extends Component {
             account_number: form.accountNumber,
             account_name: form.accountName,
             store_active: form.storeActive,
+            chat_enabled: form.chatEnabled,
         };
     }
 

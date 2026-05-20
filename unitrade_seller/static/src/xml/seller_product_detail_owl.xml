@@ -1,0 +1,344 @@
+<templates xml:space="preserve">
+    <t t-name="unitrade_seller.SellerProductDetail">
+        <div t-att-class="rootClass">
+            <t t-if="!state.ready">
+                <t t-call="unitrade_seller.SellerProductDetailSkeleton"/>
+            </t>
+            <t t-else="">
+                <div class="ut-dash-stage ut-product-detail-stage">
+                    <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px] tw-text-[12px] tw-leading-6 tw-text-black">
+                        <div class="tw-flex tw-items-center tw-gap-[18px]">
+                            <span>Gratis Ongkir + Diskon 30%</span>
+                            <a href="/shop" class="tw-font-semibold tw-text-black tw-no-underline">Belanja Sekarang +</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <a href="/seller-onboarding" class="tw-font-semibold tw-text-black tw-no-underline">Mulai Berjualan</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <a href="/unitrade/sponsorship" class="tw-font-semibold tw-text-black tw-no-underline">Sponsorship</a>
+                        </div>
+                        <div class="tw-flex tw-items-center tw-gap-[18px]">
+                            <a href="/faq" class="tw-text-black tw-no-underline">FAQ</a>
+                            <a href="/customer-service" class="tw-text-black tw-no-underline">Customer Service</a>
+                            <a href="/contactus" class="tw-text-black tw-no-underline">Kontak</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <span>Ikuti kami :</span>
+                            <span class="tw-flex tw-gap-2 tw-text-[12px]">
+                                <i class="fa fa-instagram"></i>
+                                <i class="fa fa-facebook-official"></i>
+                                <i class="fa fa-music"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                        <a href="/" class="tw-flex tw-h-[52px] tw-w-[129px] tw-items-center tw-gap-2 tw-rounded-full tw-px-[15px] tw-text-black tw-no-underline">
+                            <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="UniTrade" class="tw-h-[37px] tw-w-[41px] tw-object-contain"/>
+                            <span class="tw-text-[12px] tw-font-bold">UniTrade</span>
+                        </a>
+                        <a href="/unitrade/seller/products" class="tw-ml-[25px] tw-flex tw-h-12 tw-min-w-[190px] tw-items-center tw-justify-center tw-gap-2 tw-rounded-[22.5px] tw-bg-[#f9f9f9] tw-px-5 tw-text-[13px] tw-font-semibold tw-text-[#212529] tw-no-underline">
+                            <i class="fa fa-arrow-left"></i>
+                            Kembali ke Barang
+                        </a>
+                        <div class="tw-ml-auto tw-flex tw-items-center tw-gap-[25px]">
+                            <a href="/unitrade/seller/chat" class="ut-dash-nav-round tw-relative" aria-label="Chat Pembeli">
+                                <i class="fa fa-commenting-o"></i>
+                                <t t-if="stats.unread_chat_count">
+                                    <span class="ut-dash-navbar-dot" t-esc="stats.unread_chat_count"></span>
+                                </t>
+                            </a>
+                            <a href="/shop/cart" class="ut-dash-nav-round" aria-label="Keranjang">
+                                <i class="fa fa-shopping-cart"></i>
+                            </a>
+                            <a href="/unitrade/seller/orders" class="ut-dash-nav-round tw-relative" aria-label="Notifikasi pesanan">
+                                <i class="fa fa-bell-o"></i>
+                                <t t-if="stats.notification_count">
+                                    <span class="ut-dash-navbar-dot" t-esc="stats.notification_count"></span>
+                                </t>
+                            </a>
+                            <span class="tw-h-[38.5px] tw-w-px tw-bg-[#e5e7eb]"></span>
+                            <a href="/unitrade/seller/dashboard" class="ut-dash-nav-round" aria-label="Dashboard seller">
+                                <i class="fa fa-truck"></i>
+                            </a>
+                            <img t-att-src="seller.avatar_url" alt="Avatar penjual" class="tw-size-[45px] tw-rounded-full tw-object-cover"/>
+                            <span class="tw-mr-5 tw-max-w-[150px] tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[16px] tw-font-medium tw-leading-6 tw-text-[#212529]" t-esc="seller.name"></span>
+                        </div>
+                        <button type="button" class="ut-dash-mobile-menu tw-hidden tw-border-0 tw-bg-transparent tw-text-[24px]" t-on-click="toggleSidebar" aria-label="Buka navigasi">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                    </header>
+
+                    <div class="ut-dash-mobile-scrim" t-on-click="closeSidebar"></div>
+                    <t t-call="unitrade_seller.SellerSidebar"/>
+
+                    <main class="ut-product-detail-main tw-absolute tw-left-[181px] tw-right-[67px] tw-top-[173px] tw-pb-12">
+                        <section class="ut-product-detail-head tw-mb-[26px] tw-flex tw-items-end tw-justify-between tw-gap-4">
+                            <span class="tw-min-w-0">
+                                <a href="/unitrade/seller/products" class="tw-mb-3 tw-inline-flex tw-items-center tw-gap-2 tw-text-[13px] tw-font-semibold tw-text-[#4a5565] tw-no-underline">
+                                    <i class="fa fa-arrow-left"></i>
+                                    Semua Barang
+                                </a>
+                                <div class="tw-flex tw-flex-wrap tw-items-center tw-gap-3">
+                                    <h1 class="tw-m-0 tw-max-w-[780px] tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[40px] tw-font-normal tw-leading-none tw-text-black" t-esc="product.name"></h1>
+                                    <span t-att-class="statusClass()" t-esc="status.label"></span>
+                                </div>
+                                <p class="tw-m-0 tw-mt-[7px] tw-text-[16px] tw-leading-6 tw-text-[#6a7282]">
+                                    <t t-esc="product.product_code"/> / <t t-esc="product.category"/>
+                                </p>
+                            </span>
+                            <div class="ut-product-detail-actions">
+                                <a t-if="actions.can_continue_payment" t-att-href="actions.payment_url" class="ut-product-detail-primary-action">
+                                    <i class="fa fa-credit-card"></i>
+                                    <span>Lanjutkan Pembayaran</span>
+                                </a>
+                                <a t-if="actions.can_view_shop" t-att-href="actions.public_url" class="ut-product-detail-secondary-action">
+                                    <i class="fa fa-external-link"></i>
+                                    <span>Lihat di Shop</span>
+                                </a>
+                                <a t-if="actions.can_edit" t-att-href="actions.edit_url" class="ut-product-detail-secondary-action">
+                                    <i class="fa fa-pencil"></i>
+                                    <span>Edit Barang</span>
+                                </a>
+                            </div>
+                        </section>
+
+                        <section class="ut-product-detail-grid tw-grid tw-grid-cols-[minmax(0,1fr)_360px] tw-gap-5">
+                            <article class="ut-product-detail-card tw-p-6">
+                                <div class="tw-grid tw-grid-cols-[280px_minmax(0,1fr)] tw-gap-6">
+                                    <button type="button" class="ut-product-detail-main-image" t-on-click="() => this.openImagePreview(mainImage.url, product.name, product.product_code)">
+                                        <img t-att-src="mainImage.url" t-att-alt="mainImage.alt"/>
+                                    </button>
+                                    <div class="tw-min-w-0">
+                                        <div class="tw-flex tw-flex-wrap tw-items-center tw-gap-2">
+                                            <span t-att-class="conditionClass()" t-esc="product.condition_label"></span>
+                                            <span class="ut-product-detail-soft-pill" t-esc="product.stock_text"></span>
+                                            <span class="ut-product-detail-soft-pill" t-esc="product.category_path"></span>
+                                        </div>
+                                        <h2 class="tw-m-0 tw-mt-5 tw-text-[26px] tw-font-semibold tw-leading-8 tw-text-[#101828]" t-esc="product.discounted_price_label"></h2>
+                                        <div t-if="product.has_discount" class="tw-mt-1 tw-flex tw-items-center tw-gap-2">
+                                            <span class="tw-text-[14px] tw-font-medium tw-leading-5 tw-text-[#6a7282] tw-line-through" t-esc="product.price_label"></span>
+                                            <span class="ut-product-detail-discount" t-esc="'Diskon ' + product.discount_percent + '%'"></span>
+                                        </div>
+                                        <p class="tw-m-0 tw-mt-5 tw-text-[14px] tw-font-medium tw-leading-6 tw-text-[#4a5565]" t-esc="product.description"></p>
+                                        <dl class="ut-product-detail-info-list">
+                                            <div>
+                                                <dt>Lokasi</dt>
+                                                <dd t-esc="product.location"></dd>
+                                            </div>
+                                            <div>
+                                                <dt>Stok</dt>
+                                                <dd><t t-esc="product.stock_label"/> barang</dd>
+                                            </div>
+                                            <div>
+                                                <dt>Update</dt>
+                                                <dd t-esc="product.updated_label"></dd>
+                                            </div>
+                                        </dl>
+                                    </div>
+                                </div>
+                                <div t-if="product.images &amp;&amp; product.images.length &gt; 1" class="ut-product-detail-thumb-row">
+                                    <t t-foreach="product.images" t-as="image" t-key="imageKey(image)">
+                                        <button type="button" class="ut-product-detail-thumb" t-on-click="() => this.openImagePreview(image.url, product.name, image.alt)">
+                                            <img t-att-src="image.url" t-att-alt="image.alt"/>
+                                        </button>
+                                    </t>
+                                </div>
+                            </article>
+
+                            <aside class="ut-product-detail-card tw-p-6">
+                                <h2 class="tw-m-0 tw-text-[18px] tw-font-semibold tw-leading-7 tw-text-[#101828]">Status Listing</h2>
+                                <div class="tw-mt-5 tw-rounded-[16px] tw-bg-[#f9fafb] tw-p-4">
+                                    <span t-att-class="statusClass()" t-esc="status.label"></span>
+                                    <p class="tw-m-0 tw-mt-3 tw-text-[13px] tw-font-medium tw-leading-5 tw-text-[#4a5565]" t-esc="status.note"></p>
+                                </div>
+                                <dl class="ut-product-detail-info-list">
+                                    <div>
+                                        <dt>Masa aktif</dt>
+                                        <dd t-esc="status.expiry_label"></dd>
+                                    </div>
+                                    <div>
+                                        <dt>Aktif sejak</dt>
+                                        <dd t-esc="status.activated_at_label || 'Belum aktif'"></dd>
+                                    </div>
+                                    <div>
+                                        <dt>Berakhir</dt>
+                                        <dd t-esc="status.expires_at_label || 'Belum ada'"></dd>
+                                    </div>
+                                    <div>
+                                        <dt>Biaya upload</dt>
+                                        <dd t-esc="product.listing_fee_label"></dd>
+                                    </div>
+                                </dl>
+                            </aside>
+                        </section>
+
+                        <section class="ut-product-detail-grid tw-mt-5 tw-grid tw-grid-cols-[minmax(0,1fr)_360px] tw-gap-5">
+                            <article class="ut-product-detail-card tw-p-6">
+                                <div class="tw-flex tw-items-center tw-justify-between tw-gap-4">
+                                    <h2 class="tw-m-0 tw-text-[18px] tw-font-semibold tw-leading-7 tw-text-[#101828]">Pembayaran Listing</h2>
+                                    <span t-if="status.latest_intent &amp;&amp; status.latest_intent.id" class="ut-product-detail-soft-pill" t-esc="status.latest_intent.state_label"></span>
+                                </div>
+                                <div t-if="status.latest_intent &amp;&amp; status.latest_intent.id" class="ut-product-detail-payment-box">
+                                    <dl class="ut-product-detail-info-list">
+                                        <div>
+                                            <dt>Metode</dt>
+                                            <dd t-esc="status.latest_intent.method_label"></dd>
+                                        </div>
+                                        <div>
+                                            <dt>Referensi</dt>
+                                            <dd t-esc="status.latest_intent.reference || status.latest_intent.name"></dd>
+                                        </div>
+                                        <div>
+                                            <dt>Nominal</dt>
+                                            <dd t-esc="status.latest_intent.amount_label"></dd>
+                                        </div>
+                                        <div>
+                                            <dt>Deadline</dt>
+                                            <dd t-esc="status.latest_intent.expires_at_label || '-'"></dd>
+                                        </div>
+                                    </dl>
+                                    <a t-if="actions.can_continue_payment" t-att-href="actions.payment_url" class="ut-product-detail-inline-action">
+                                        <i class="fa fa-credit-card"></i>
+                                        Buka instruksi pembayaran
+                                    </a>
+                                </div>
+                                <div t-else="" class="ut-product-detail-empty">
+                                    <i class="fa fa-clock-o"></i>
+                                    <strong>Belum ada pembayaran</strong>
+                                    <span>Produk masih draft. Lanjutkan pembayaran agar tampil di shop.</span>
+                                </div>
+                            </article>
+
+                            <aside class="ut-product-detail-card tw-p-6">
+                                <h2 class="tw-m-0 tw-text-[18px] tw-font-semibold tw-leading-7 tw-text-[#101828]">Ringkasan Review</h2>
+                                <div class="tw-mt-5 tw-flex tw-items-end tw-gap-3">
+                                    <strong class="tw-text-[42px] tw-font-semibold tw-leading-none tw-text-[#101828]" t-esc="reviews.summary.average || '0.0'"></strong>
+                                    <span class="tw-pb-1 tw-text-[13px] tw-font-semibold tw-leading-5 tw-text-[#6a7282]">
+                                        <t t-esc="reviews.summary.count || 0"/> review
+                                    </span>
+                                </div>
+                                <div class="ut-product-detail-stars">
+                                    <t t-foreach="ratingStars(reviews.summary.average)" t-as="star" t-key="star.star">
+                                        <i t-att-class="star.active ? 'fa fa-star' : 'fa fa-star-o'"></i>
+                                    </t>
+                                </div>
+                                <div class="ut-product-detail-rating-bars">
+                                    <t t-foreach="reviews.summary.counts || []" t-as="item" t-key="item.star">
+                                        <div>
+                                            <span><t t-esc="item.star"/> bintang</span>
+                                            <em><b t-att-style="reviewBarStyle(item)"></b></em>
+                                            <strong t-esc="item.count"></strong>
+                                        </div>
+                                    </t>
+                                </div>
+                            </aside>
+                        </section>
+
+                        <section class="ut-product-detail-card tw-mt-5 tw-p-6">
+                            <div class="tw-flex tw-items-center tw-justify-between tw-gap-4">
+                                <h2 class="tw-m-0 tw-text-[18px] tw-font-semibold tw-leading-7 tw-text-[#101828]">Review Terbaru</h2>
+                                <span class="ut-product-detail-soft-pill"><t t-esc="reviews.summary.count || 0"/> review</span>
+                            </div>
+                            <div t-if="reviews.items &amp;&amp; reviews.items.length" class="ut-product-detail-review-list">
+                                <t t-foreach="reviews.items" t-as="review" t-key="reviewKey(review)">
+                                    <article class="ut-product-detail-review">
+                                        <t t-if="review.reviewer_avatar_url">
+                                            <img t-att-src="review.reviewer_avatar_url" alt="" class="ut-product-detail-review-avatar"/>
+                                        </t>
+                                        <t t-else="">
+                                            <span class="ut-product-detail-review-avatar is-initials" t-esc="review.reviewer_initials || 'UT'"></span>
+                                        </t>
+                                        <div class="tw-min-w-0 tw-flex-1">
+                                            <div class="tw-flex tw-flex-wrap tw-items-center tw-gap-2">
+                                                <strong t-esc="review.reviewer_name"></strong>
+                                                <span class="ut-product-detail-stars is-small">
+                                                    <t t-foreach="ratingStars(review.rating)" t-as="star" t-key="star.star">
+                                                        <i t-att-class="star.active ? 'fa fa-star' : 'fa fa-star-o'"></i>
+                                                    </t>
+                                                </span>
+                                                <small t-esc="review.date_label"></small>
+                                            </div>
+                                            <p t-if="review.comment" t-esc="review.comment"></p>
+                                            <div t-if="review.tags &amp;&amp; review.tags.length" class="tw-flex tw-flex-wrap tw-gap-2">
+                                                <t t-foreach="review.tags" t-as="tag" t-key="tag">
+                                                    <span class="ut-product-detail-soft-pill" t-esc="tag"></span>
+                                                </t>
+                                            </div>
+                                            <div t-if="review.images &amp;&amp; review.images.length" class="ut-product-detail-review-images">
+                                                <t t-foreach="review.images" t-as="image" t-key="image">
+                                                    <button type="button" t-on-click="() => this.openImagePreview(image, 'Foto Review', review.comment || '')">
+                                                        <img t-att-src="image" alt="Foto review"/>
+                                                    </button>
+                                                </t>
+                                            </div>
+                                        </div>
+                                    </article>
+                                </t>
+                            </div>
+                            <div t-else="" class="ut-product-detail-empty">
+                                <i class="fa fa-star-o"></i>
+                                <strong>Belum ada review</strong>
+                                <span>Review akan muncul setelah pembeli menyelesaikan pesanan dan memberi ulasan.</span>
+                            </div>
+                        </section>
+                    </main>
+
+                    <div t-if="state.imagePreview" class="ut-order-detail-preview-modal" role="dialog" aria-modal="true" aria-labelledby="ut_product_detail_preview_title" t-on-click.self="closeImagePreview">
+                        <section class="ut-order-detail-preview-dialog">
+                            <header class="ut-order-detail-preview-head">
+                                <span>
+                                    <h2 id="ut_product_detail_preview_title" t-esc="state.imagePreview.title"></h2>
+                                    <p t-esc="state.imagePreview.caption"></p>
+                                </span>
+                                <button type="button" t-on-click="closeImagePreview" aria-label="Tutup preview gambar">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </header>
+                            <div class="ut-order-detail-preview-frame">
+                                <img t-att-src="state.imagePreview.url" t-att-alt="state.imagePreview.title"/>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="unitrade_seller.SellerProductDetailSkeleton">
+        <div class="ut-dash-stage ut-product-detail-stage ut-dash-skeleton-stage">
+            <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
+            </div>
+            <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-w-[190px] tw-rounded-[22px]"></span>
+                <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+            </header>
+            <aside class="ut-dash-sidebar ut-product-detail-sidebar ut-dash-skeleton-sidebar">
+                <div class="ut-dash-sidebar-brand">
+                    <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
+                </div>
+                <div class="ut-dash-sidebar-nav">
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                </div>
+            </aside>
+            <main class="ut-product-detail-main tw-absolute tw-left-[181px] tw-right-[67px] tw-top-[173px] tw-pb-12">
+                <span class="ut-dash-skeleton-line tw-h-11 tw-w-[320px] tw-rounded-[16px]"></span>
+                <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
+                <div class="tw-mt-7 tw-grid tw-grid-cols-[minmax(0,1fr)_360px] tw-gap-5">
+                    <span class="ut-dash-skeleton-card tw-h-[360px]"></span>
+                    <span class="ut-dash-skeleton-card tw-h-[360px]"></span>
+                    <span class="ut-dash-skeleton-card tw-h-[300px]"></span>
+                    <span class="ut-dash-skeleton-card tw-h-[300px]"></span>
+                </div>
+            </main>
+        </div>
+    </t>
+</templates>

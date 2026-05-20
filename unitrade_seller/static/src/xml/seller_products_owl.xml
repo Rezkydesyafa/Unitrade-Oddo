@@ -13,9 +13,12 @@
                             <a href="/shop" class="tw-font-semibold tw-text-black tw-no-underline">Belanja Sekarang +</a>
                             <span class="tw-font-semibold tw-text-[#939393]">|</span>
                             <a href="/seller-onboarding" class="tw-font-semibold tw-text-black tw-no-underline">Mulai Berjualan</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <a href="/unitrade/sponsorship" class="tw-font-semibold tw-text-black tw-no-underline">Sponsorship</a>
                         </div>
                         <div class="tw-flex tw-items-center tw-gap-[18px]">
-                            <a href="/help" class="tw-text-black tw-no-underline">Bantuan</a>
+                            <a href="/faq" class="tw-text-black tw-no-underline">FAQ</a>
+                            <a href="/customer-service" class="tw-text-black tw-no-underline">Customer Service</a>
                             <a href="/contactus" class="tw-text-black tw-no-underline">Kontak</a>
                             <span class="tw-font-semibold tw-text-[#939393]">|</span>
                             <span>Ikuti kami :</span>
@@ -32,12 +35,12 @@
                             <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="UniTrade" class="tw-h-[37px] tw-w-[41px] tw-object-contain"/>
                             <span class="tw-text-[12px] tw-font-bold">UniTrade</span>
                         </a>
-                        <div class="tw-ml-[25px] tw-flex tw-h-12 tw-flex-1 tw-max-w-[658px] tw-items-center tw-rounded-[22.5px] tw-bg-[#f9f9f9] tw-pl-8 tw-pr-[5px]">
-                            <input t-model="state.query" type="search" class="tw-min-w-0 tw-flex-1 tw-border-0 tw-bg-transparent tw-text-[12px] tw-text-[#212529] tw-outline-none placeholder:tw-text-[#939393]" placeholder="Cari produk di UniTrade"/>
-                            <button type="button" class="tw-flex tw-size-[38px] tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-[#212529] tw-text-white" aria-label="Cari produk">
+                        <form action="/shop" method="get" class="tw-ml-[25px] tw-flex tw-h-12 tw-flex-1 tw-max-w-[658px] tw-items-center tw-rounded-[22.5px] tw-bg-[#f9f9f9] tw-pl-8 tw-pr-[5px]">
+                            <input name="search" type="search" class="tw-min-w-0 tw-flex-1 tw-border-0 tw-bg-transparent tw-text-[12px] tw-text-[#212529] tw-outline-none placeholder:tw-text-[#939393]" placeholder="Cari produk di UniTrade"/>
+                            <button type="submit" class="tw-flex tw-size-[38px] tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-[#212529] tw-text-white" aria-label="Cari produk">
                                 <i class="fa fa-search"></i>
                             </button>
-                        </div>
+                        </form>
                         <div class="tw-ml-auto tw-flex tw-items-center tw-gap-[25px]">
                             <a href="/unitrade/seller/chat" class="ut-dash-nav-round tw-relative" aria-label="Chat Pembeli">
                                 <i class="fa fa-commenting-o"></i>
@@ -69,46 +72,67 @@
                     <div class="ut-dash-mobile-scrim" t-on-click="closeSidebar"></div>
                     <t t-call="unitrade_seller.SellerSidebar"/>
 
-                    <main class="ut-products-main tw-absolute tw-left-[181px] tw-right-[67px] tw-top-[175px] tw-pb-10">
+                    <main class="ut-products-main tw-absolute tw-left-[180px] tw-right-[67px] tw-top-[173px] tw-pb-10">
                         <section class="tw-mb-[34px]">
                             <h1 class="tw-m-0 tw-text-[40px] tw-font-normal tw-leading-none tw-text-black">Barang</h1>
-                            <p class="tw-m-0 tw-mt-[7px] tw-text-[16px] tw-leading-6 tw-text-[#6a7282]">Kelola barang yang tampil di toko Anda.</p>
+                            <p class="tw-m-0 tw-mt-[7px] tw-text-[16px] tw-leading-6 tw-text-[#6a7282]">Kelola barang yang tampil di toko Anda dan pantau masa aktifnya.</p>
                         </section>
 
-                        <div class="tw-mb-[22px] tw-flex tw-items-center tw-gap-3">
-                            <label class="ut-products-date-filter">
-                                <i class="fa fa-calendar-o"></i>
-                                <select t-model="state.dateFilter" t-on-change="onDateFilterChange" aria-label="Filter tanggal barang">
-                                    <option value="7">7 hari terakhir</option>
-                                    <option value="30">30 hari terakhir</option>
-                                    <option value="all">Semua waktu</option>
-                                </select>
-                                <i class="fa fa-angle-down"></i>
-                            </label>
-                            <a t-att-href="addProductUrl" class="ut-products-add-button">
-                                <i class="fa fa-plus"></i>
-                                <span>Tambah Barang</span>
-                            </a>
-                        </div>
-
                         <section class="ut-products-card">
-                            <div class="tw-flex tw-h-7 tw-items-center tw-justify-between">
-                                <h2 class="tw-m-0 tw-text-[18px] tw-font-semibold tw-leading-7 tw-text-[#0a0a0a]">Semua Barang</h2>
+                            <div class="ut-products-toolbar">
+                                <div class="ut-products-search">
+                                    <i class="fa fa-search"></i>
+                                    <input t-model="state.query" t-on-input="onSearchInput" t-on-keydown="onSearchKeydown" type="search" placeholder="Cari barang..."/>
+                                </div>
+                                <button type="button" class="ut-products-filter-btn" t-on-click="toggleFilters">
+                                    <i class="fa fa-filter"></i>
+                                    <span>Filter</span>
+                                </button>
+                                <a t-att-href="addProductUrl" class="ut-products-add-button">
+                                    <i class="fa fa-plus"></i>
+                                    <span>Tambah Barang</span>
+                                </a>
                             </div>
-                            <div t-if="state.error" class="tw-mt-8 tw-rounded-[16px] tw-border tw-border-red-200 tw-bg-red-50 tw-px-5 tw-py-4 tw-text-[14px] tw-font-semibold tw-text-red-700" t-esc="state.error"></div>
-                            <div t-elif="filteredProducts.length" class="tw-mt-8 tw-overflow-x-auto">
-                                <table class="ut-products-table tw-w-full tw-min-w-[1115px]">
+                            <div t-if="state.filterOpen" class="ut-products-filter-panel">
+                                <label>
+                                    <span>Periode update</span>
+                                    <select t-att-value="state.dateFilter" t-on-change="onDateFilterChange">
+                                        <t t-foreach="dateFilterOptions" t-as="option" t-key="option.value">
+                                            <option t-att-value="option.value" t-esc="option.label"></option>
+                                        </t>
+                                    </select>
+                                </label>
+                                <label>
+                                    <span>Data per halaman</span>
+                                    <select t-att-value="state.pageSize" t-on-change="onPageSizeChange">
+                                        <option value="5">5</option>
+                                        <option value="10">10</option>
+                                        <option value="20">20</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="ut-products-tabs">
+                                <span class="ut-products-tab is-active">
+                                    <span>Semua Barang</span>
+                                    <span class="ut-products-tab-count" t-esc="pagination.total || 0"></span>
+                                </span>
+                                <span class="ut-products-tab-note">
+                                    Periode: <t t-esc="activeDateFilterLabel"/>
+                                </span>
+                            </div>
+                            <div t-if="state.error" class="tw-m-6 tw-rounded-[16px] tw-border tw-border-red-200 tw-bg-red-50 tw-px-5 tw-py-4 tw-text-[14px] tw-font-semibold tw-text-red-700" t-esc="state.error"></div>
+                            <div t-elif="filteredProducts.length" class="ut-products-table-scroll">
+                                <table class="ut-products-table">
                                     <thead>
                                         <tr>
-                                            <th>PRODUK ID</th>
-                                            <th>GAMBAR</th>
-                                            <th>NAMA PRODUK</th>
-                                            <th>TANGGAL UPDATE</th>
+                                            <th>ID BARANG</th>
+                                            <th>PRODUK</th>
+                                            <th>UPDATE</th>
                                             <th>STOK</th>
                                             <th>KONDISI</th>
+                                            <th>STATUS</th>
+                                            <th>MASA AKTIF</th>
                                             <th>AKSI</th>
-                                            <th>TANGGAL</th>
-                                            <th></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -116,32 +140,66 @@
                                             <tr>
                                                 <td><strong t-esc="product.product_code"></strong></td>
                                                 <td>
-                                                    <img t-att-src="product.image_url" t-att-alt="product.name" class="tw-size-[51px] tw-rounded-[10px] tw-object-cover"/>
-                                                </td>
-                                                <td>
-                                                    <span class="tw-block tw-max-w-[150px] tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[#0a0a0a]" t-esc="product.name"></span>
+                                                    <span class="ut-products-product-cell">
+                                                        <img t-att-src="product.image_url" t-att-alt="product.name" class="tw-size-12 tw-rounded-[10px] tw-border tw-border-[#e5e7eb] tw-object-cover"/>
+                                                        <span>
+                                                            <strong t-esc="product.name"></strong>
+                                                            <small t-esc="product.latest_payment_label || 'Produk toko'"></small>
+                                                        </span>
+                                                    </span>
                                                 </td>
                                                 <td t-esc="product.date_label"></td>
-                                                <td t-esc="product.stock_label"></td>
+                                                <td>
+                                                    <span t-att-class="stockClass(product)" t-esc="product.stock_label"></span>
+                                                </td>
                                                 <td>
                                                     <span t-att-class="conditionClass(product)" t-esc="product.condition_label"></span>
                                                 </td>
                                                 <td>
-                                                    <a t-att-href="product.edit_url" class="ut-products-link">Edit</a>
+                                                    <span t-att-class="statusClass(product)" t-esc="product.status_label"></span>
                                                 </td>
                                                 <td>
-                                                    <span class="ut-products-link" t-esc="product.expiry_label"></span>
+                                                    <span t-att-class="expiryClass(product)" t-esc="product.expiry_label"></span>
                                                 </td>
                                                 <td>
-                                                    <a t-att-href="product.detail_url" class="ut-products-link">Lihat</a>
+                                                    <div class="ut-products-actions">
+                                                        <a t-if="product.can_edit" t-att-href="product.edit_url" t-att-class="actionClass('edit')" title="Edit barang" aria-label="Edit barang">
+                                                            <i class="fa fa-pencil"></i>
+                                                        </a>
+                                                        <a t-if="product.can_continue_payment" t-att-href="product.payment_url" t-att-class="actionClass('pay')" title="Lanjutkan pembayaran" aria-label="Lanjutkan pembayaran">
+                                                            <i class="fa fa-credit-card"></i>
+                                                            <span>Bayar</span>
+                                                        </a>
+                                                        <a t-if="product.show_public_action" t-att-href="product.public_url" t-att-class="actionClass('shop')" title="Lihat di shop" aria-label="Lihat di shop">
+                                                            <i class="fa fa-external-link"></i>
+                                                        </a>
+                                                        <a t-att-href="product.detail_url" t-att-class="actionClass('view')" title="Lihat detail barang" aria-label="Lihat detail barang">
+                                                            <i class="fa fa-eye"></i>
+                                                        </a>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         </t>
                                     </tbody>
                                 </table>
+                                <div class="ut-products-pagination">
+                                    <span class="ut-products-pagination-info" t-esc="totalProductsLabel"></span>
+                                    <div class="ut-products-page-nav" aria-label="Navigasi halaman barang">
+                                        <button type="button" class="ut-products-page-btn is-text" t-on-click="prevPage" t-att-disabled="(!pagination.has_prev || state.loading) ? true : undefined">
+                                            Sebelumnya
+                                        </button>
+                                        <t t-foreach="pageNumbers" t-as="page" t-key="page">
+                                            <button type="button" t-att-class="pageButtonClass(page)" t-on-click="() => this.goToPage(page)" t-att-disabled="state.loading ? true : undefined" t-esc="page"></button>
+                                        </t>
+                                        <button type="button" class="ut-products-page-btn is-text" t-on-click="nextPage" t-att-disabled="(!pagination.has_next || state.loading) ? true : undefined">
+                                            Selanjutnya
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                             <div t-else="" class="tw-mt-8 tw-rounded-[18px] tw-border tw-border-dashed tw-border-[#d8dce4] tw-bg-[#fbfbfc] tw-p-8 tw-text-center tw-text-[14px] tw-font-semibold tw-text-[#6a7282]">
-                                Belum ada barang di toko ini.
+                                <t t-if="state.query">Barang tidak ditemukan untuk pencarian ini.</t>
+                                <t t-else="">Belum ada barang di toko ini.</t>
                             </div>
                         </section>
                     </main>
@@ -183,18 +241,27 @@
                     <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
                 </div>
             </aside>
-            <main class="ut-products-main tw-absolute tw-left-[181px] tw-right-[67px] tw-top-[175px] tw-pb-10">
+            <main class="ut-products-main tw-absolute tw-left-[180px] tw-right-[67px] tw-top-[173px] tw-pb-10">
                 <section class="tw-mb-[34px]">
                     <span class="ut-dash-skeleton-line tw-h-11 tw-w-[170px] tw-rounded-[16px]"></span>
                     <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
                 </section>
-                <div class="tw-mb-[22px] tw-flex tw-gap-3">
-                    <span class="ut-dash-skeleton-block tw-h-[38px] tw-w-[161px] tw-rounded-[10px]"></span>
-                    <span class="ut-dash-skeleton-block tw-h-[38px] tw-w-[162px] tw-rounded-[10px]"></span>
-                </div>
-                <section class="ut-dash-skeleton-card tw-h-[434px] tw-p-[25px]">
-                    <span class="ut-dash-skeleton-line tw-h-7 tw-w-[140px]"></span>
-                    <span class="ut-dash-skeleton-block tw-mt-10 tw-h-[292px] tw-w-full tw-rounded-[14px]"></span>
+                <section class="ut-dash-skeleton-card tw-h-[736px] tw-p-0">
+                    <div class="tw-flex tw-h-[95px] tw-items-center tw-gap-4 tw-border-b tw-border-[#e5e7eb] tw-px-6">
+                        <span class="ut-dash-skeleton-block tw-h-[46px] tw-flex-1 tw-rounded-[10px]"></span>
+                        <span class="ut-dash-skeleton-block tw-h-[46px] tw-w-[92px] tw-rounded-[10px]"></span>
+                        <span class="ut-dash-skeleton-block tw-h-[46px] tw-w-[162px] tw-rounded-[10px]"></span>
+                    </div>
+                    <div class="tw-flex tw-h-[53px] tw-items-center tw-gap-[58px] tw-border-b tw-border-[#e5e7eb] tw-px-6">
+                        <span class="ut-dash-skeleton-line tw-h-5 tw-w-[135px]"></span>
+                        <span class="ut-dash-skeleton-line tw-h-5 tw-w-[180px]"></span>
+                    </div>
+                    <div class="tw-p-6">
+                        <span class="ut-dash-skeleton-row"></span>
+                        <span class="ut-dash-skeleton-row tw-mt-5"></span>
+                        <span class="ut-dash-skeleton-row tw-mt-5"></span>
+                        <span class="ut-dash-skeleton-row tw-mt-5"></span>
+                    </div>
                 </section>
             </main>
         </div>
