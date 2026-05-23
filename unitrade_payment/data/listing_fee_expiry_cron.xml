@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="ir_cron_unitrade_expire_listing_fee_intents" model="ir.cron">
+        <field name="name">UniTrade Expire Listing Fee Payments</field>
+        <field name="model_id" ref="model_unitrade_payment_intent"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_unitrade_expire_stale_listing_fee_intents()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

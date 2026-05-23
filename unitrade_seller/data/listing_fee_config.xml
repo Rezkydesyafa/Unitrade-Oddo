@@ -15,4 +15,8 @@
         <value>unitrade.seller.posting_admin_fee</value>
         <value>0</value>
     </function>
+    <function model="ir.config_parameter" name="set_param">
+        <value>unitrade.seller.listing_duration_days</value>
+        <value>30</value>
+    </function>
 </odoo>

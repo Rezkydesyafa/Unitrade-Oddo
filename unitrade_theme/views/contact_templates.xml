@@ -3,171 +3,161 @@
     <template id="unitrade_contactus_layout" inherit_id="website.contactus" name="UniTrade Contact Us Redesign">
         <xpath expr="//div[@id='wrap']" position="replace">
             <div id="wrap" class="oe_structure ut-contact-page">
+                <t t-set="contact_phone" t-value="res_company.phone or '+62 21 1234 5678'"/>
+                <t t-set="contact_email" t-value="res_company.email or 'support@unitrade.com'"/>
+
                 <section class="ut-contact-shell">
-                    <div class="ut-contact-hero">
-                        <div class="ut-contact-hero-copy">
-                            <span class="ut-contact-hero-pill">
-                                <i class="fa fa-life-ring"/>
-                                Bantuan UniTrade
-                            </span>
-                            <h1>Hubungi UniTrade</h1>
-                            <p>Kirim pertanyaan, laporan transaksi, atau kebutuhan bantuan lainnya. Tim kami akan membantu menindaklanjuti secepat mungkin.</p>
-                            <div class="ut-contact-hero-actions">
-                                <a href="#contactus_form" class="ut-contact-hero-primary">Kirim Pesan</a>
-                                <a href="/help" class="ut-contact-hero-secondary">Pusat Bantuan</a>
-                            </div>
-                        </div>
-                        <div class="ut-contact-hero-panel">
-                            <span class="ut-contact-hero-panel-icon">
-                                <i class="fa fa-comments-o"/>
-                            </span>
-                            <strong>Butuh bantuan transaksi?</strong>
-                            <p>Cantumkan nomor order, nama produk, atau detail kendala agar proses pengecekan lebih cepat.</p>
-                            <div>
-                                <span>Order</span>
-                                <span>Payment</span>
-                                <span>Seller</span>
-                            </div>
-                        </div>
+                    <div class="ut-contact-page-head">
+                        <h1>Hubungi UniTrade</h1>
+                        <p>Ada pertanyaan? Kami siap membantu Anda 24/7. Kirim pesan atau hubungi kami langsung.</p>
                     </div>
 
-                    <div class="ut-contact-content">
-                        <div class="ut-contact-heading">
-                            <span class="ut-contact-eyebrow">Kontak Resmi</span>
-                            <h2>Kirim pesan atau hubungi kanal resmi UniTrade</h2>
-                            <p>Pilih kanal yang paling sesuai. Form di bawah akan masuk ke inbox bantuan UniTrade.</p>
-                        </div>
-                        <div class="ut-contact-grid">
-                            <div class="ut-contact-card ut-contact-form-card">
-                                <div class="ut-contact-card-header">
-                                    <span class="ut-contact-icon">
-                                        <i class="fa fa-envelope-o"/>
+                    <section class="ut-contact-info-grid" aria-label="Informasi kontak UniTrade">
+                        <a t-att-href="'tel:%s' % contact_phone.replace(' ', '').replace('-', '')" class="ut-contact-info-card">
+                            <span class="ut-contact-icon"><i class="fa fa-phone"/></span>
+                            <strong>Telepon</strong>
+                            <small>Senin - Jumat, 08:00 - 17:00 WIB</small>
+                            <b><t t-esc="contact_phone"/></b>
+                        </a>
+                        <a t-att-href="'mailto:%s' % contact_email" class="ut-contact-info-card">
+                            <span class="ut-contact-icon"><i class="fa fa-envelope-o"/></span>
+                            <strong>Email</strong>
+                            <small>Respon dalam 24 jam</small>
+                            <b><t t-esc="contact_email"/></b>
+                        </a>
+                        <a href="https://maps.google.com/?q=UNISA%20Yogyakarta" target="_blank" rel="noopener noreferrer" class="ut-contact-info-card">
+                            <span class="ut-contact-icon"><i class="fa fa-map-marker"/></span>
+                            <strong>Alamat</strong>
+                            <small>Kantor Pusat</small>
+                            <b>
+                                <t t-if="res_company.street">
+                                    <span><t t-esc="res_company.street"/></span>
+                                    <span>
+                                        <t t-if="res_company.city"><t t-esc="res_company.city"/></t>
+                                        <t t-if="res_company.zip">, <t t-esc="res_company.zip"/></t>
                                     </span>
-                                    <div>
-                                        <h2>Kirim Pesan</h2>
-                                        <p>Lengkapi form berikut agar kami bisa memahami kebutuhanmu dengan jelas.</p>
-                                    </div>
-                                </div>
+                                </t>
+                                <t t-else="">
+                                    <span>Jl. Sudirman No. 123</span>
+                                    <span>Jakarta Selatan, 12190</span>
+                                </t>
+                            </b>
+                        </a>
+                    </section>
 
-                                <section class="s_website_form ut-contact-form" data-vcss="001" data-snippet="s_website_form">
-                                    <form id="contactus_form" action="/website/form/" method="post" enctype="multipart/form-data" class="o_mark_required" data-mark="*" data-model_name="mail.mail" data-success-mode="redirect" data-success-page="/contactus-thank-you" data-pre-fill="true">
-                                        <div class="s_website_form_rows s_col_no_bgcolor">
-                                            <div class="s_website_form_field s_website_form_custom s_website_form_required" data-type="char" data-name="Field">
-                                                <label class="s_website_form_label" for="contact1">
-                                                    <span class="s_website_form_label_content">Nama</span>
-                                                    <span class="s_website_form_mark"> *</span>
-                                                </label>
-                                                <input id="contact1" type="text" class="form-control s_website_form_input" name="name" required="" data-fill-with="name" placeholder="Nama lengkap"/>
-                                            </div>
+                    <section class="ut-contact-layout">
+                        <div class="ut-contact-card ut-contact-form-card">
+                            <h2>Kirim Pesan</h2>
+                            <p>Isi formulir di bawah dan kami akan segera menghubungi Anda</p>
 
-                                            <div class="s_website_form_field s_website_form_custom" data-type="char" data-name="Field">
-                                                <label class="s_website_form_label" for="contact2">
-                                                    <span class="s_website_form_label_content">Nomor Telepon</span>
-                                                </label>
-                                                <input id="contact2" type="tel" class="form-control s_website_form_input" name="phone" data-fill-with="phone" placeholder="Nomor yang bisa dihubungi"/>
-                                            </div>
-
-                                            <div class="s_website_form_field s_website_form_required s_website_form_model_required" data-type="email" data-name="Field">
-                                                <label class="s_website_form_label" for="contact3">
-                                                    <span class="s_website_form_label_content">Email</span>
-                                                    <span class="s_website_form_mark"> *</span>
-                                                </label>
-                                                <input id="contact3" type="email" class="form-control s_website_form_input" name="email_from" required="" data-fill-with="email" placeholder="nama@email.com"/>
-                                            </div>
-
-                                            <div class="s_website_form_field s_website_form_custom" data-type="char" data-name="Field">
-                                                <label class="s_website_form_label" for="contact4">
-                                                    <span class="s_website_form_label_content">Instansi</span>
-                                                </label>
-                                                <input id="contact4" type="text" class="form-control s_website_form_input" name="company" data-fill-with="commercial_company_name" placeholder="Opsional"/>
-                                            </div>
-
-                                            <div class="s_website_form_field s_website_form_required s_website_form_model_required" data-type="char" data-name="Field">
-                                                <label class="s_website_form_label" for="contact5">
-                                                    <span class="s_website_form_label_content">Subjek</span>
-                                                    <span class="s_website_form_mark"> *</span>
-                                                </label>
-                                                <input id="contact5" type="text" class="form-control s_website_form_input" name="subject" required="" placeholder="Topik bantuan"/>
-                                            </div>
-
-                                            <div class="s_website_form_field s_website_form_custom s_website_form_required" data-type="text" data-name="Field">
-                                                <label class="s_website_form_label" for="contact6">
-                                                    <span class="s_website_form_label_content">Pesan</span>
-                                                    <span class="s_website_form_mark"> *</span>
-                                                </label>
-                                                <textarea id="contact6" class="form-control s_website_form_input" name="description" required="" rows="5" placeholder="Ceritakan detail kebutuhanmu"></textarea>
-                                            </div>
-
-                                            <div class="s_website_form_field s_website_form_dnone">
-                                                <label class="s_website_form_label" for="contact7">
-                                                    <span class="s_website_form_label_content">Email To</span>
-                                                </label>
-                                                <input id="contact7" type="hidden" class="form-control s_website_form_input" name="email_to"/>
-                                            </div>
-
-                                            <div class="s_website_form_submit" data-name="Submit Button">
-                                                <a href="#" role="button" class="btn s_website_form_send ut-contact-submit">Kirim Pesan</a>
-                                                <span id="s_website_form_result"></span>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </section>
-                            </div>
-
-                            <aside class="ut-contact-side">
-                                <div class="ut-contact-card ut-contact-info-card">
-                                    <span class="ut-contact-icon ut-contact-icon-red">
-                                        <i class="fa fa-building-o"/>
-                                    </span>
-                                    <h2>Informasi Perusahaan</h2>
-                                    <p class="ut-contact-muted">Gunakan kanal resmi berikut untuk menghubungi UniTrade.</p>
-
-                                    <div class="ut-contact-info-list">
-                                        <div class="ut-contact-info-item">
-                                            <span><i class="fa fa-map-marker"/></span>
-                                            <div>
-                                                <strong>Alamat</strong>
-                                                <p>
-                                                    <t t-if="res_company.street">
-                                                        <t t-esc="res_company.street"/>
-                                                        <t t-if="res_company.city">, <t t-esc="res_company.city"/></t>
-                                                    </t>
-                                                    <t t-else="">UNISA Yogyakarta</t>
-                                                </p>
-                                            </div>
+                            <section class="s_website_form ut-contact-form" data-vcss="001" data-snippet="s_website_form">
+                                <form id="contactus_form" action="/website/form/" method="post" enctype="multipart/form-data" class="o_mark_required" data-mark="*" data-model_name="mail.mail" data-success-mode="message" data-pre-fill="true" novalidate="novalidate">
+                                    <div class="s_website_form_rows s_col_no_bgcolor">
+                                        <div class="s_website_form_field s_website_form_custom s_website_form_required ut-contact-field" data-type="char" data-name="Field">
+                                            <label class="s_website_form_label" for="contact1">
+                                                <span class="s_website_form_label_content">Nama Lengkap</span>
+                                                <span class="s_website_form_mark"> *</span>
+                                            </label>
+                                            <input id="contact1" type="text" class="form-control s_website_form_input" name="name" required="required" data-fill-with="name" placeholder="Masukkan nama lengkap"/>
                                         </div>
 
-                                        <div class="ut-contact-info-item">
-                                            <span><i class="fa fa-phone"/></span>
-                                            <div>
-                                                <strong>Telepon</strong>
-                                                <p><t t-esc="res_company.phone or '+62 000 0000 0000'"/></p>
-                                            </div>
+                                        <div class="s_website_form_field s_website_form_required s_website_form_model_required ut-contact-field" data-type="email" data-name="Field">
+                                            <label class="s_website_form_label" for="contact3">
+                                                <span class="s_website_form_label_content">Email</span>
+                                                <span class="s_website_form_mark"> *</span>
+                                            </label>
+                                            <input id="contact3" type="email" class="form-control s_website_form_input" name="email_from" required="required" data-fill-with="email" placeholder="nama@email.com"/>
                                         </div>
 
-                                        <div class="ut-contact-info-item">
-                                            <span><i class="fa fa-envelope"/></span>
-                                            <div>
-                                                <strong>Email</strong>
-                                                <p>
-                                                    <a t-att-href="'mailto:%s' % (res_company.email or 'info@unitrade.local')">
-                                                        <t t-esc="res_company.email or 'info@unitrade.local'"/>
-                                                    </a>
-                                                </p>
-                                            </div>
+                                        <div class="s_website_form_field s_website_form_required s_website_form_model_required ut-contact-field ut-contact-field-full" data-type="char" data-name="Field">
+                                            <label class="s_website_form_label" for="contact5">
+                                                <span class="s_website_form_label_content">Subjek</span>
+                                                <span class="s_website_form_mark"> *</span>
+                                            </label>
+                                            <input id="contact5" type="text" class="form-control s_website_form_input" name="subject" required="required"/>
+                                        </div>
+
+                                        <div class="s_website_form_field s_website_form_custom s_website_form_required ut-contact-field ut-contact-field-full" data-type="text" data-name="Field">
+                                            <label class="s_website_form_label" for="contact6">
+                                                <span class="s_website_form_label_content">Pesan</span>
+                                                <span class="s_website_form_mark"> *</span>
+                                            </label>
+                                            <textarea id="contact6" class="form-control s_website_form_input" name="description" required="required" rows="5" placeholder="Tuliskan pesan Anda di sini..."></textarea>
+                                        </div>
+
+                                        <div class="s_website_form_field s_website_form_dnone">
+                                            <label class="s_website_form_label" for="contact7">
+                                                <span class="s_website_form_label_content">Email To</span>
+                                            </label>
+                                            <input id="contact7" type="hidden" class="form-control s_website_form_input" name="email_to" t-att-value="contact_email"/>
+                                        </div>
+
+                                        <div class="s_website_form_submit" data-name="Submit Button">
+                                            <a href="#" role="button" class="btn s_website_form_send ut-contact-submit">
+                                                <span>Kirim Pesan</span>
+                                            </a>
+                                            <span id="s_website_form_result"></span>
                                         </div>
                                     </div>
+                                </form>
+                                <div class="s_website_form_end_message d-none">
+                                    <div class="ut-contact-form-success">
+                                        <strong>Pesan berhasil dikirim.</strong>
+                                        <span>Terima kasih. Tim UniTrade akan menghubungi Anda secepatnya.</span>
+                                    </div>
                                 </div>
-
-                                <div class="ut-contact-card ut-contact-note-card">
-                                    <span class="ut-contact-pill">Respon Bantuan</span>
-                                    <h3>Tim UniTrade siap membantu transaksi lebih nyaman.</h3>
-                                    <p>Untuk masalah pesanan, cantumkan nomor order atau nama produk agar proses pengecekan lebih cepat.</p>
-                                </div>
-                            </aside>
+                            </section>
                         </div>
-                    </div>
+
+                        <aside class="ut-contact-side">
+                            <section class="ut-contact-card ut-contact-faq-card">
+                                <div class="ut-contact-side-head">
+                                    <h2>Pertanyaan Umum</h2>
+                                    <span><i class="fa fa-question-circle-o"/></span>
+                                </div>
+                                <div class="ut-contact-faq-list">
+                                    <a href="/help#melacak-pesanan" class="ut-contact-faq-item">
+                                        <span>?</span>
+                                        <div>
+                                            <strong>Bagaimana cara melacak pesanan?</strong>
+                                            <p>Masuk ke akun Anda, pilih menu "Pesanan Saya", kemudian klik pesanan yang ingin dilacak. Anda akan melihat status pengiriman real-time.</p>
+                                        </div>
+                                    </a>
+                                    <a href="/help#metode-pembayaran" class="ut-contact-faq-item">
+                                        <span>?</span>
+                                        <div>
+                                            <strong>Metode pembayaran apa saja yang tersedia?</strong>
+                                            <p>Kami menerima transfer bank, e-wallet, kartu kredit/debit, dan metode pembayaran yang aktif di checkout.</p>
+                                        </div>
+                                    </a>
+                                    <a href="/help#membatalkan-pesanan" class="ut-contact-faq-item">
+                                        <span>?</span>
+                                        <div>
+                                            <strong>Bisakah membatalkan pesanan?</strong>
+                                            <p>Ya, Anda dapat membatalkan pesanan selama status masih memungkinkan dan sebelum penjual memproses barang.</p>
+                                        </div>
+                                    </a>
+                                </div>
+                                <a href="/help" class="ut-contact-faq-more">
+                                    <span>Lihat Semua FAQ</span>
+                                    <i class="fa fa-angle-right"/>
+                                </a>
+                            </section>
+
+                            <section class="ut-contact-card ut-contact-social-card">
+                                <h2>Ikuti Kami</h2>
+                                <div class="ut-contact-social-list">
+                                    <a href="https://www.facebook.com/unitrade" target="_blank" rel="noopener noreferrer" aria-label="Facebook UniTrade"><i class="fa fa-facebook"/></a>
+                                    <a href="https://twitter.com/unitrade" target="_blank" rel="noopener noreferrer" aria-label="Twitter UniTrade"><i class="fa fa-twitter"/></a>
+                                    <a href="https://www.instagram.com/unitrade" target="_blank" rel="noopener noreferrer" aria-label="Instagram UniTrade"><i class="fa fa-instagram"/></a>
+                                    <a href="https://wa.me/6282112345678" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp UniTrade"><i class="fa fa-whatsapp"/></a>
+                                </div>
+                            </section>
+                        </aside>
+                    </section>
                 </section>
+
+                <div class="ut-contact-toast" data-contact-toast="1" role="status" aria-live="polite"></div>
             </div>
         </xpath>
     </template>

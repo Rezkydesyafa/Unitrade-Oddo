@@ -12,6 +12,7 @@
         'data/voucher_data.xml',
         'data/mail_templates.xml',
         'data/escrow_cron.xml',
+        'data/listing_fee_expiry_cron.xml',
         'views/payment_views.xml',
         'views/voucher_views.xml',
         'views/checkout_templates.xml',

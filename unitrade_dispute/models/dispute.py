@@ -1,7 +1,7 @@
 import logging
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -45,6 +45,18 @@ class UnitradeDispute(models.Model):
     reason_note = fields.Text(required=True)
     requested_amount = fields.Monetary(currency_field='currency_id', required=True)
     approved_amount = fields.Monetary(currency_field='currency_id')
+    refund_admin_fee_amount = fields.Monetary(
+        string='Refund Admin Fee',
+        currency_field='currency_id',
+        default=0.0,
+        copy=False,
+    )
+    total_refund_amount = fields.Monetary(
+        string='Total Refund',
+        currency_field='currency_id',
+        compute='_compute_total_refund_amount',
+        store=True,
+    )
     currency_id = fields.Many2one(
         'res.currency',
         required=True,
@@ -52,12 +64,16 @@ class UnitradeDispute(models.Model):
     )
     admin_id = fields.Many2one('res.users', string='Admin/CS', copy=False)
     admin_decision_note = fields.Text(copy=False)
+    seller_decision_note = fields.Text(string='Seller Note', copy=False)
+    seller_decision_user_id = fields.Many2one('res.users', string='Seller Decision User', copy=False)
+    seller_decided_at = fields.Datetime(copy=False)
     submitted_at = fields.Datetime(copy=False)
     review_started_at = fields.Datetime(copy=False)
     approved_at = fields.Datetime(copy=False)
     rejected_at = fields.Datetime(copy=False)
     resolved_at = fields.Datetime(copy=False)
     evidence_ids = fields.One2many('unitrade.dispute.evidence', 'dispute_id', string='Evidence')
+    timeline_ids = fields.One2many('unitrade.dispute.timeline', 'dispute_id', string='Timeline')
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -67,7 +83,14 @@ class UnitradeDispute(models.Model):
                 vals['name'] = sequence.next_by_code('unitrade.dispute.refund') or 'RFD'
         return super().create(vals_list)
 
-    @api.constrains('requested_amount', 'approved_amount')
+    @api.depends('requested_amount', 'approved_amount', 'refund_admin_fee_amount')
+    def _compute_total_refund_amount(self):
+        for dispute in self:
+            base_amount = dispute.approved_amount or dispute.requested_amount or 0.0
+            admin_fee = dispute.refund_admin_fee_amount or 0.0
+            dispute.total_refund_amount = max(base_amount - admin_fee, 0.0)
+
+    @api.constrains('requested_amount', 'approved_amount', 'refund_admin_fee_amount')
     def _check_amounts(self):
         for dispute in self:
             if dispute.requested_amount <= 0:
@@ -76,6 +99,55 @@ class UnitradeDispute(models.Model):
                 raise ValidationError(_('Nominal refund disetujui tidak boleh negatif.'))
             if dispute.approved_amount and dispute.approved_amount > dispute.requested_amount:
                 raise ValidationError(_('Nominal refund disetujui tidak boleh melebihi nominal pengajuan.'))
+            if dispute.refund_admin_fee_amount < 0:
+                raise ValidationError(_('Biaya admin refund tidak boleh negatif.'))
+            if dispute.refund_admin_fee_amount and dispute.refund_admin_fee_amount > dispute.requested_amount:
+                raise ValidationError(_('Biaya admin refund tidak boleh melebihi nominal pengajuan.'))
+
+    def _record_timeline_event(self, event_key, note=False, status='done', event_time=False):
+        labels = dict(self.env['unitrade.dispute.timeline']._fields['event_key'].selection)
+        sequences = {
+            'order_created': 10,
+            'payment_received': 20,
+            'seller_handoff': 30,
+            'buyer_received': 40,
+            'return_requested': 50,
+            'seller_review': 60,
+            'seller_response': 65,
+            'refund_approved': 70,
+            'refund_rejected': 70,
+            'refund_completed': 80,
+            'refund_cancelled': 80,
+        }
+        Timeline = self.env['unitrade.dispute.timeline'].sudo()
+        now = event_time or fields.Datetime.now()
+        for dispute in self.sudo():
+            values = {
+                'label': labels.get(event_key, event_key),
+                'status': status,
+                'event_time': now,
+                'sequence': sequences.get(event_key, 100),
+                'note': note or False,
+            }
+            timeline = Timeline.search([
+                ('dispute_id', '=', dispute.id),
+                ('event_key', '=', event_key),
+            ], limit=1)
+            if timeline:
+                timeline.write(values)
+            else:
+                values.update({
+                    'dispute_id': dispute.id,
+                    'event_key': event_key,
+                })
+                Timeline.create(values)
+
+    def _check_seller_decision_access(self):
+        for dispute in self:
+            seller_user = dispute.seller_id.user_id if dispute.seller_id else False
+            if not seller_user or seller_user.id != self.env.user.id:
+                raise AccessError(_('Anda hanya bisa mengambil keputusan untuk refund dari toko Anda.'))
+        return True
 
     def _set_order_refund_state(self, state):
         for dispute in self.sudo():
@@ -112,6 +184,7 @@ class UnitradeDispute(models.Model):
                 'state': 'submitted',
                 'submitted_at': dispute.submitted_at or now,
             })
+            dispute._record_timeline_event('return_requested', event_time=dispute.submitted_at or now)
         self._hold_escrow_for_review()
         self._set_order_refund_state('submitted')
         return True
@@ -123,6 +196,7 @@ class UnitradeDispute(models.Model):
             'review_started_at': now,
             'admin_id': self.env.user.id,
         })
+        self._record_timeline_event('seller_review', event_time=now)
         self._set_order_refund_state('under_review')
         return True
 
@@ -139,6 +213,7 @@ class UnitradeDispute(models.Model):
             'state': 'need_seller_response',
             'admin_id': self.env.user.id,
         })
+        self._record_timeline_event('seller_review')
         self._set_order_refund_state('need_seller_response')
         return True
 
@@ -147,7 +222,7 @@ class UnitradeDispute(models.Model):
         for dispute in self.sudo():
             if dispute.state in ('cancelled', 'rejected', 'resolved'):
                 raise UserError(_('Refund case %s sudah tidak bisa di-approve.') % dispute.name)
-            approved_amount = dispute.approved_amount or dispute.requested_amount
+            approved_amount = dispute.approved_amount or dispute.total_refund_amount or dispute.requested_amount
             ledger = dispute.escrow_ledger_id
             order = dispute.order_id
             intent = dispute.payment_intent_id or order.x_payment_intent_id
@@ -175,6 +250,8 @@ class UnitradeDispute(models.Model):
             })
             if ledger:
                 ledger._sync_order_escrow_state()
+            dispute._record_timeline_event('refund_approved', event_time=now)
+            dispute._record_timeline_event('refund_completed', event_time=now)
             _logger.info('Refund dispute %s approved by user %s', dispute.name, self.env.user.id)
         return True
 
@@ -198,8 +275,33 @@ class UnitradeDispute(models.Model):
                 'x_refund_state': 'rejected',
                 'x_escrow_state': 'held',
             })
+            dispute._record_timeline_event('refund_rejected', note=dispute.seller_decision_note, status='failed', event_time=now)
             _logger.info('Refund dispute %s rejected by user %s', dispute.name, self.env.user.id)
         return True
+
+    def action_seller_approve_refund(self, note=''):
+        self._check_seller_decision_access()
+        now = fields.Datetime.now()
+        note = (note or '').strip()
+        self.sudo().write({
+            'seller_decision_note': note,
+            'seller_decision_user_id': self.env.user.id,
+            'seller_decided_at': now,
+        })
+        return self.action_approve_refund()
+
+    def action_seller_reject_refund(self, note=''):
+        self._check_seller_decision_access()
+        note = (note or '').strip()
+        if not note:
+            raise UserError(_('Catatan Seller wajib diisi sebelum menolak refund.'))
+        now = fields.Datetime.now()
+        self.sudo().write({
+            'seller_decision_note': note,
+            'seller_decision_user_id': self.env.user.id,
+            'seller_decided_at': now,
+        })
+        return self.action_reject_refund()
 
     def action_cancel(self):
         for dispute in self.sudo():
@@ -214,6 +316,7 @@ class UnitradeDispute(models.Model):
                 'x_refund_state': 'cancelled',
                 'x_escrow_state': 'held',
             })
+            dispute._record_timeline_event('refund_cancelled', status='failed')
         return True
 
     def action_seller_respond(self, note='', evidence_items=None):
@@ -254,6 +357,7 @@ class UnitradeDispute(models.Model):
                 'state': 'under_review',
                 'review_started_at': dispute.review_started_at or now,
             })
+            dispute._record_timeline_event('seller_response', note=note, event_time=now)
         self._set_order_refund_state('under_review')
         return True
 
@@ -296,3 +400,42 @@ class UnitradeDisputeEvidence(models.Model):
             'url': '/web/content/%s?download=true' % self.attachment_id.id,
             'target': 'self',
         }
+
+
+class UnitradeDisputeTimeline(models.Model):
+    _name = 'unitrade.dispute.timeline'
+    _description = 'UniTrade Dispute Timeline'
+    _order = 'sequence asc, event_time asc, id asc'
+
+    dispute_id = fields.Many2one('unitrade.dispute', required=True, index=True, ondelete='cascade')
+    event_key = fields.Selection([
+        ('order_created', 'Pesanan Dibuat'),
+        ('payment_received', 'Pembayaran Diterima'),
+        ('seller_handoff', 'Barang Diserahkan'),
+        ('buyer_received', 'Barang Diterima'),
+        ('return_requested', 'Pengajuan Retur Dibuat'),
+        ('seller_review', 'Menunggu Review Seller'),
+        ('seller_response', 'Respons Seller Dikirim'),
+        ('refund_approved', 'Refund Disetujui'),
+        ('refund_rejected', 'Refund Ditolak'),
+        ('refund_completed', 'Refund Selesai'),
+        ('refund_cancelled', 'Refund Dibatalkan'),
+    ], required=True, index=True)
+    label = fields.Char(required=True)
+    status = fields.Selection([
+        ('done', 'Done'),
+        ('current', 'Current'),
+        ('pending', 'Pending'),
+        ('failed', 'Failed'),
+    ], default='done', required=True)
+    event_time = fields.Datetime(default=fields.Datetime.now, required=True)
+    note = fields.Text()
+    sequence = fields.Integer(default=100, index=True)
+
+    _sql_constraints = [
+        (
+            'unitrade_dispute_timeline_unique_event',
+            'unique(dispute_id, event_key)',
+            'Timeline event sudah tercatat untuk refund ini.',
+        ),
+    ]

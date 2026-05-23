@@ -178,62 +178,22 @@
 
                     <!-- ════════  HERO  ════════ -->
                     <section class="ut-sp-fade" style="
-                        background: #1c1f23;
                         border-radius: 28px;
-                        padding: 56px 40px 60px;
                         margin-bottom: 40px;
-                        color: #fff;
+                        overflow: hidden;
                         box-shadow: 0 16px 48px rgba(16,24,40,0.10);
                     ">
-                        <span style="
-                            display: inline-flex; align-items: center; gap: 8px;
-                            background: rgba(255,255,255,0.08); border-radius: 999px;
-                            padding: 6px 16px; font-size: 12px; font-weight: 600;
-                            color: rgba(255,255,255,0.7); margin-bottom: 20px;
-                        ">
-                            <i class="fa fa-bullhorn" aria-hidden="true"></i>
-                            Sponsorship UniTrade
-                        </span>
-
-                        <h1 style="
-                            margin: 0; max-width: 640px;
-                            font-size: 42px; font-weight: 700;
-                            line-height: 1.14; letter-spacing: -0.01em;
-                        ">
-                            Tampil di hadapan komunitas mahasiswa UNISA.
-                        </h1>
-
-                        <p style="
-                            margin: 20px 0 0; max-width: 540px;
-                            font-size: 15.5px; line-height: 1.7;
-                            color: rgba(255,255,255,0.55); font-weight: 400;
-                        ">
-                            Ajukan placement campaign untuk promosi produk, aktivasi kampus, atau kolaborasi brand. Tim UniTrade akan menghubungi Anda untuk membahas format, jadwal, dan estimasi biaya.
-                        </p>
-
-                        <div style="margin-top: 32px; display: flex; flex-wrap: wrap; gap: 12px;">
-                            <a href="#sponsorship-form" style="
-                                display: inline-flex; height: 44px; align-items: center;
-                                padding: 0 24px; border-radius: 999px;
-                                background: #fff; color: #1c1f23;
-                                font-size: 13.5px; font-weight: 600;
-                                text-decoration: none;
-                                transition: background 0.2s ease;
-                            " onmouseover="this.style.background='#f0f0f2'" onmouseout="this.style.background='#fff'">
-                                Ajukan Sponsorship
-                            </a>
-                            <a href="/contactus" style="
-                                display: inline-flex; height: 44px; align-items: center;
-                                padding: 0 24px; border-radius: 999px;
-                                border: 1px solid rgba(255,255,255,0.2);
-                                background: transparent; color: rgba(255,255,255,0.75);
-                                font-size: 13.5px; font-weight: 600;
-                                text-decoration: none;
-                                transition: border-color 0.2s ease, background 0.2s ease;
-                            " onmouseover="this.style.borderColor='rgba(255,255,255,0.4)';this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.2)';this.style.background='transparent'">
-                                Diskusi Dulu
-                            </a>
-                        </div>
+                        <img src="/unitrade_theme/static/src/img/sponsorship/sponsorship_hero.png"
+                            alt="Banner sponsorship UniTrade"
+                            loading="eager"
+                            decoding="async"
+                            style="
+                                display: block;
+                                width: 100%;
+                                height: clamp(220px, 36vw, 430px);
+                                object-fit: cover;
+                                object-position: center;
+                            "/>
                     </section>
 
                     <!-- ════════  INFO + FORM  ════════ -->

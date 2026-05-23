@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="unitrade_seller.SellerPayouts">
+        <div t-att-class="rootClass">
+            <t t-if="!state.ready">
+                <t t-call="unitrade_seller.SellerPayoutsSkeleton"/>
+            </t>
+            <t t-else="">
+                <div class="ut-dash-stage ut-payout-stage">
+                    <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px] tw-text-[12px] tw-leading-6 tw-text-black">
+                        <div class="tw-flex tw-items-center tw-gap-[18px]">
+                            <span>Gratis Ongkir + Diskon 30%</span>
+                            <a href="/shop" class="tw-font-semibold tw-text-black tw-no-underline">Belanja Sekarang +</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <a href="/seller-onboarding" class="tw-font-semibold tw-text-black tw-no-underline">Mulai Berjualan</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <a href="/unitrade/sponsorship" class="tw-font-semibold tw-text-black tw-no-underline">Sponsorship</a>
+                        </div>
+                        <div class="tw-flex tw-items-center tw-gap-[18px]">
+                            <a href="/faq" class="tw-text-black tw-no-underline">FAQ</a>
+                            <a href="/customer-service" class="tw-text-black tw-no-underline">Customer Service</a>
+                            <a href="/contactus" class="tw-text-black tw-no-underline">Kontak</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <span>Ikuti kami :</span>
+                            <span class="tw-flex tw-gap-2 tw-text-[12px]">
+                                <i class="fa fa-instagram"></i>
+                                <i class="fa fa-facebook-official"></i>
+                                <i class="fa fa-music"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                        <a href="/" class="tw-flex tw-h-[52px] tw-w-[129px] tw-items-center tw-gap-2 tw-rounded-full tw-px-[15px] tw-text-black tw-no-underline">
+                            <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="UniTrade" class="tw-h-[37px] tw-w-[41px] tw-object-contain"/>
+                            <span class="tw-text-[12px] tw-font-bold">UniTrade</span>
+                        </a>
+                        <div class="tw-ml-[25px] tw-flex tw-h-12 tw-flex-1 tw-max-w-[658px] tw-items-center tw-rounded-[22.5px] tw-bg-[#f9f9f9] tw-pl-8 tw-pr-[5px]">
+                            <input type="search" class="tw-min-w-0 tw-flex-1 tw-border-0 tw-bg-transparent tw-text-[12px] tw-text-[#212529] tw-outline-none placeholder:tw-text-[#939393]" placeholder="Cari produk di UniTrade"/>
+                            <button type="button" class="tw-flex tw-size-[38px] tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-[#212529] tw-text-white" aria-label="Cari produk">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="tw-ml-auto tw-flex tw-items-center tw-gap-[25px]">
+                            <a href="/unitrade/seller/chat" class="ut-dash-nav-round tw-relative" aria-label="Chat Pembeli">
+                                <i class="fa fa-commenting-o"></i>
+                                <t t-if="stats.unread_chat_count">
+                                    <span class="ut-dash-navbar-dot" t-esc="stats.unread_chat_count"></span>
+                                </t>
+                            </a>
+                            <a href="/shop/cart" class="ut-dash-nav-round" aria-label="Keranjang">
+                                <i class="fa fa-shopping-cart"></i>
+                            </a>
+                            <a href="/unitrade/seller/orders" class="ut-dash-nav-round tw-relative" aria-label="Notifikasi pesanan">
+                                <i class="fa fa-bell-o"></i>
+                                <t t-if="stats.notification_count">
+                                    <span class="ut-dash-navbar-dot" t-esc="stats.notification_count"></span>
+                                </t>
+                            </a>
+                            <span class="tw-h-[38.5px] tw-w-px tw-bg-[#e5e7eb]"></span>
+                            <a href="/unitrade/seller/dashboard" class="ut-dash-nav-round" aria-label="Dashboard seller">
+                                <i class="fa fa-truck"></i>
+                            </a>
+                            <img t-att-src="seller.avatar_url" alt="Avatar penjual" class="tw-size-[45px] tw-rounded-full tw-object-cover"/>
+                            <span class="tw-mr-5 tw-max-w-[150px] tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[16px] tw-font-medium tw-leading-6 tw-text-[#212529]" t-esc="seller.name"></span>
+                        </div>
+                        <button type="button" class="ut-dash-mobile-menu tw-hidden tw-border-0 tw-bg-transparent tw-text-[24px]" t-on-click="toggleSidebar" aria-label="Buka navigasi">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                    </header>
+
+                    <div class="ut-dash-mobile-scrim" t-on-click="closeSidebar"></div>
+                    <t t-call="unitrade_seller.SellerSidebar"/>
+
+                    <main class="ut-payout-main tw-absolute tw-left-[180px] tw-right-[67px] tw-top-[173px] tw-pb-10">
+                        <section class="tw-mb-7">
+                            <h1 class="tw-m-0 tw-text-[40px] tw-font-normal tw-leading-none tw-text-black">Pencairan</h1>
+                            <p class="tw-m-0 tw-mt-[7px] tw-text-[16px] tw-leading-6 tw-text-[#6a7282]">Pantau saldo, rekening, dan dana yang siap dicairkan.</p>
+                        </section>
+
+                        <div t-if="state.error" class="ut-payout-alert is-error" t-esc="state.error"></div>
+                        <div t-if="state.success" class="ut-payout-alert is-success" t-esc="state.success"></div>
+
+                        <section class="ut-payout-summary">
+                            <div class="ut-payout-summary-info">
+                                <div>
+                                    <span>Saldo Tersedia</span>
+                                    <strong t-esc="summary.available_balance_label"></strong>
+                                </div>
+                                <span class="ut-payout-summary-divider"></span>
+                                <div>
+                                    <span>Rekening Terdaftar</span>
+                                    <strong t-esc="summary.account_label"></strong>
+                                </div>
+                            </div>
+                            <div class="ut-payout-summary-actions">
+                                <button type="button" class="ut-payout-secondary-button" t-on-click="openAccountModal">+ Tambah Rekening</button>
+                                <button type="button" class="ut-payout-primary-button" t-att-disabled="primaryPayoutDisabled ? true : undefined" t-on-click="() => this.requestPayout()">
+                                    <i t-att-class="state.loading ? 'fa fa-spinner fa-spin' : 'fa fa-arrow-up'"></i>
+                                    <span t-esc="state.loading ? 'Memproses...' : 'Tarik Saldo'"></span>
+                                </button>
+                            </div>
+                        </section>
+
+                        <section class="ut-payout-stat-grid">
+                            <article class="ut-payout-stat-card is-available">
+                                <span class="ut-payout-stat-icon"><i class="fa fa-dollar"></i></span>
+                                <small>Saldo Tersedia</small>
+                                <strong t-esc="summary.available_balance_label"></strong>
+                            </article>
+                            <article class="ut-payout-stat-card is-held">
+                                <span class="ut-payout-stat-icon"><i class="fa fa-clock-o"></i></span>
+                                <small>Saldo Ditahan</small>
+                                <strong t-esc="summary.held_balance_label"></strong>
+                                <p>Menunggu konfirmasi</p>
+                            </article>
+                            <article class="ut-payout-stat-card is-revenue">
+                                <span class="ut-payout-stat-icon"><i class="fa fa-line-chart"></i></span>
+                                <small>Total Pendapatan Bulan Ini</small>
+                                <strong t-esc="summary.month_revenue_label"></strong>
+                            </article>
+                        </section>
+
+                        <section class="ut-payout-countdown-card">
+                            <div>
+                                <h2>Dana Cair Otomatis Dalam:</h2>
+                                <p t-esc="countdown.subtitle"></p>
+                            </div>
+                            <strong t-esc="state.countdownLabel"></strong>
+                            <div class="ut-payout-progress">
+                                <span t-att-style="countdownProgressStyle"></span>
+                            </div>
+                        </section>
+
+                        <section class="ut-payout-verification-card">
+                            <header>
+                                <h2>Verifikasi Pesanan Terbaru</h2>
+                                <span t-if="verification.has_data" t-esc="verification.order_id"></span>
+                            </header>
+                            <div t-if="verification.has_data" class="ut-payout-timeline">
+                                <t t-foreach="verification.steps" t-as="step" t-key="step.key">
+                                    <div t-att-class="stepClass(step)">
+                                        <span class="ut-payout-timeline-dot"><i class="fa fa-check"></i></span>
+                                        <div>
+                                            <strong t-esc="step.label"></strong>
+                                            <small t-esc="step.date_label || 'Menunggu'"></small>
+                                            <img t-if="step.key === 'buyer_evidence' &amp;&amp; verification.evidence_url" t-att-src="verification.evidence_url" alt="Bukti penerimaan pembeli" class="ut-payout-evidence-preview"/>
+                                            <span t-if="step.key === 'ready' &amp;&amp; step.done" class="ut-payout-ready-pill">Dana Siap Dicairkan</span>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                            <div t-else="" class="ut-payout-empty">Belum ada transaksi terbaru untuk diverifikasi.</div>
+                        </section>
+
+                        <section class="ut-payout-table-card">
+                            <header>
+                                <h2>Dana Siap Dicairkan</h2>
+                            </header>
+                            <div t-if="readyLedgers.length" class="ut-payout-table-scroll">
+                                <table class="ut-payout-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Order ID</th>
+                                            <th>Produk</th>
+                                            <th>Pembeli</th>
+                                            <th>Bukti Penerimaan</th>
+                                            <th>Nominal</th>
+                                            <th>Verifikasi</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="readyLedgers" t-as="ledger" t-key="ledger.id">
+                                            <tr>
+                                                <td><strong t-esc="ledger.order_id"></strong></td>
+                                                <td>
+                                                    <span class="ut-payout-product-cell">
+                                                        <img t-att-src="ledger.product_image_url" alt="" onerror="this.src='/web/static/img/placeholder.png'"/>
+                                                        <span t-esc="ledger.product_name"></span>
+                                                    </span>
+                                                </td>
+                                                <td t-esc="ledger.buyer_name"></td>
+                                                <td>
+                                                    <img t-if="ledger.evidence_url" t-att-src="ledger.evidence_url" alt="Bukti penerimaan" class="ut-payout-proof-thumb"/>
+                                                    <span t-else="" class="ut-payout-proof-empty">-</span>
+                                                </td>
+                                                <td><strong t-esc="ledger.amount_label"></strong></td>
+                                                <td><span t-esc="ledger.verification_label"></span></td>
+                                                <td>
+                                                    <button type="button" class="ut-payout-table-action" t-att-disabled="(!ledger.ready || state.actionLedgerId === ledger.id) ? true : undefined" t-on-click="() => this.requestPayout(ledger.id)">
+                                                        <t t-if="state.actionLedgerId === ledger.id">...</t>
+                                                        <t t-else="">Tarik Dana</t>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div t-else="" class="ut-payout-empty">Belum ada dana yang siap dicairkan.</div>
+                        </section>
+
+                        <section class="ut-payout-history-card">
+                            <header>
+                                <h2>Riwayat Pencairan</h2>
+                            </header>
+                            <div t-if="history.length" class="ut-payout-history-list">
+                                <t t-foreach="history" t-as="item" t-key="item.id">
+                                    <article class="ut-payout-history-item">
+                                        <div>
+                                            <div class="ut-payout-history-title">
+                                                <strong t-esc="item.name"></strong>
+                                                <span t-att-class="historyStatusClass(item)" t-esc="item.status_label"></span>
+                                            </div>
+                                            <p t-esc="item.destination_label"></p>
+                                            <small t-esc="item.date_label"></small>
+                                            <div t-if="item.failure_reason" class="ut-payout-failure">
+                                                <i class="fa fa-exclamation-circle"></i>
+                                                <span t-esc="item.failure_reason"></span>
+                                            </div>
+                                        </div>
+                                        <div class="ut-payout-history-amount">
+                                            <strong t-esc="item.amount_label"></strong>
+                                            <a t-if="item.proof_url" t-att-href="item.proof_url">
+                                                <i class="fa fa-download"></i>
+                                                Unduh
+                                            </a>
+                                        </div>
+                                    </article>
+                                </t>
+                            </div>
+                            <div t-else="" class="ut-payout-empty">Belum ada riwayat pencairan.</div>
+                        </section>
+                    </main>
+
+                    <div t-if="state.accountModalOpen" class="ut-payout-account-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="ut_payout_account_title" t-on-click.self="closeAccountModal">
+                        <form class="ut-payout-account-modal" t-on-submit.prevent="saveAccount" novalidate="novalidate">
+                            <header class="ut-payout-account-modal-head">
+                                <div>
+                                    <h2 id="ut_payout_account_title">Tambah Rekening</h2>
+                                    <p>Lengkapi rekening atau e-wallet untuk menerima dana pencairan.</p>
+                                </div>
+                                <button type="button" class="ut-payout-account-close" t-on-click="closeAccountModal" aria-label="Tutup modal">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </header>
+                            <div t-if="state.accountError" class="ut-payout-account-error" t-esc="state.accountError"></div>
+                            <div class="ut-payout-account-fields">
+                                <label>
+                                    <span>Bank / E-Wallet</span>
+                                    <select t-att-value="state.accountForm.bankName" t-on-change="(ev) => this.setAccountField('bankName', ev)">
+                                        <t t-foreach="bankOptions" t-as="bank" t-key="bank.value">
+                                            <option t-att-value="bank.value" t-att-selected="state.accountForm.bankName === bank.value ? true : undefined" t-esc="bank.label"></option>
+                                        </t>
+                                    </select>
+                                </label>
+                                <label>
+                                    <span>Nomor Rekening / Nomor HP</span>
+                                    <input type="text" inputmode="numeric" maxlength="64" t-att-value="state.accountForm.accountNumber" t-on-input="(ev) => this.setAccountField('accountNumber', ev)" placeholder="Masukkan nomor rekening"/>
+                                </label>
+                                <label>
+                                    <span>Nama Pemilik Rekening</span>
+                                    <input type="text" maxlength="128" t-att-value="state.accountForm.accountName" t-on-input="(ev) => this.setAccountField('accountName', ev)" placeholder="Sesuai nama rekening"/>
+                                </label>
+                            </div>
+                            <footer class="ut-payout-account-actions">
+                                <button type="button" class="ut-payout-account-cancel" t-att-disabled="state.accountSaving ? true : undefined" t-on-click="closeAccountModal">Batal</button>
+                                <button type="submit" class="ut-payout-account-save" t-att-disabled="state.accountSaving ? true : undefined">
+                                    <i t-att-class="state.accountSaving ? 'fa fa-spinner fa-spin' : 'fa fa-floppy-o'"></i>
+                                    <span t-esc="state.accountSaving ? 'Menyimpan...' : 'Simpan Rekening'"></span>
+                                </button>
+                            </footer>
+                        </form>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="unitrade_seller.SellerPayoutsSkeleton">
+        <div class="ut-dash-stage ut-payout-stage ut-dash-skeleton-stage">
+            <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
+            </div>
+            <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-flex-1 tw-max-w-[658px] tw-rounded-[22px]"></span>
+                <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+            </header>
+            <aside class="ut-dash-sidebar ut-payout-sidebar ut-dash-skeleton-sidebar">
+                <div class="ut-dash-sidebar-brand">
+                    <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
+                </div>
+                <div class="ut-dash-sidebar-nav">
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                </div>
+            </aside>
+            <main class="ut-payout-main tw-absolute tw-left-[180px] tw-right-[67px] tw-top-[173px] tw-pb-10">
+                <section class="tw-mb-7">
+                    <span class="ut-dash-skeleton-line tw-h-11 tw-w-[220px] tw-rounded-[16px]"></span>
+                    <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
+                </section>
+                <span class="ut-dash-skeleton-card tw-h-[110px]"></span>
+                <div class="tw-mt-6 tw-grid tw-grid-cols-3 tw-gap-5">
+                    <span class="ut-dash-skeleton-card tw-h-[206px]"></span>
+                    <span class="ut-dash-skeleton-card tw-h-[206px]"></span>
+                    <span class="ut-dash-skeleton-card tw-h-[206px]"></span>
+                </div>
+                <span class="ut-dash-skeleton-card tw-mt-6 tw-h-[104px]"></span>
+                <span class="ut-dash-skeleton-card tw-mt-6 tw-h-[290px]"></span>
+                <span class="ut-dash-skeleton-card tw-mt-6 tw-h-[340px]"></span>
+                <span class="ut-dash-skeleton-card tw-mt-6 tw-h-[360px]"></span>
+            </main>
+        </div>
+    </t>
+</templates>

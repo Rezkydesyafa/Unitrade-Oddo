@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="unitrade_theme.CustomerServicePage">
+        <div class="ut-cs-shell">
+            <t t-if="state.loading">
+                <div class="ut-cs-skeleton-shell" aria-hidden="true">
+                    <div class="ut-cs-skeleton-title"></div>
+                    <div class="ut-cs-skeleton-subtitle"></div>
+                    <div class="ut-cs-skeleton-categories">
+                        <div class="ut-cs-skeleton-card"></div>
+                        <div class="ut-cs-skeleton-card"></div>
+                        <div class="ut-cs-skeleton-card"></div>
+                    </div>
+                    <div class="ut-cs-skeleton-grid">
+                        <div class="ut-cs-skeleton-form"></div>
+                        <div class="ut-cs-skeleton-list"></div>
+                    </div>
+                </div>
+            </t>
+            <t t-else="">
+                <header class="ut-cs-header">
+                    <h1>Customer Service</h1>
+                    <p>Butuh bantuan? Tim kami siap membantu Anda.</p>
+                </header>
+
+                <section class="ut-cs-category-grid" aria-label="Kategori bantuan">
+                    <t t-foreach="state.categories" t-as="category" t-key="category.key">
+                        <button type="button"
+                            t-att-class="categoryCardClass(category)"
+                            t-on-click="() => this.selectCategory(category.key)">
+                            <span t-att-class="'ut-cs-category-icon is-' + category.tone">
+                                <t t-if="category.key === 'order_issue'">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7Z"/>
+                                        <path d="m3.3 7 8.7 5 8.7-5"/>
+                                        <path d="M12 22V12"/>
+                                    </svg>
+                                </t>
+                                <t t-elif="category.key === 'refund_return'">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M3 12a9 9 0 0 1 15.6-6.1"/>
+                                        <path d="M18 3v5h-5"/>
+                                        <path d="M21 12a9 9 0 0 1-15.6 6.1"/>
+                                        <path d="M6 21v-5h5"/>
+                                    </svg>
+                                </t>
+                                <t t-else="">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/>
+                                    </svg>
+                                </t>
+                            </span>
+                            <strong t-esc="category.label"/>
+                            <span t-esc="category.description"/>
+                        </button>
+                    </t>
+                </section>
+
+                <section class="ut-cs-content-grid">
+                    <form class="ut-cs-form-card" t-on-submit.prevent="submitTicket" novalidate="novalidate">
+                        <h2>Buat Tiket Bantuan</h2>
+                        <div t-if="state.error" class="ut-cs-message is-error" role="alert" t-esc="state.error"></div>
+
+                        <label class="ut-cs-field">
+                            <span>Kategori Masalah <b>*</b></span>
+                            <select t-model="state.form.category" required="required">
+                                <option value="">Pilih kategori masalah</option>
+                                <t t-foreach="state.categories" t-as="category" t-key="category.key">
+                                    <option t-att-value="category.key" t-esc="category.label"/>
+                                </t>
+                            </select>
+                        </label>
+
+                        <label class="ut-cs-field">
+                            <span>Nomor Pesanan</span>
+                            <input t-model="state.form.orderRef" list="ut-cs-order-options" type="text" placeholder="Contoh: #ORD-8924"/>
+                            <datalist id="ut-cs-order-options">
+                                <t t-foreach="state.orders" t-as="order" t-key="order.id">
+                                    <option t-att-value="order.name" t-esc="order.label"/>
+                                </t>
+                            </datalist>
+                        </label>
+
+                        <label class="ut-cs-field">
+                            <span>Judul Masalah <b>*</b></span>
+                            <input t-model="state.form.title" type="text" placeholder="Jelaskan masalah Anda secara singkat" required="required"/>
+                        </label>
+
+                        <label class="ut-cs-field">
+                            <span>Deskripsi Keluhan <b>*</b></span>
+                            <textarea t-model="state.form.description" placeholder="Jelaskan masalah Anda secara detail..." required="required"></textarea>
+                        </label>
+
+                        <div class="ut-cs-field">
+                            <span>Upload Bukti (Opsional)</span>
+                            <div class="ut-cs-upload-zone"
+                                t-on-click="browseEvidence"
+                                t-on-dragover.prevent="onEvidenceDrag"
+                                t-on-dragleave.prevent="onEvidenceDragLeave"
+                                t-on-drop.prevent="onEvidenceDrop">
+                                <input t-ref="evidenceInput" type="file" multiple="multiple" accept="image/jpeg,image/png,video/mp4" class="tw-hidden" t-on-change="onEvidenceInput"/>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M12 16V4"/>
+                                    <path d="m7 9 5-5 5 5"/>
+                                    <path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/>
+                                </svg>
+                                <strong>Seret file ke sini atau <span>pilih file</span></strong>
+                                <small>Format: JPG, PNG, MP4 (Max 5MB per file)</small>
+                            </div>
+                            <div t-if="state.evidence.length" class="ut-cs-preview-grid">
+                                <t t-foreach="state.evidence" t-as="file" t-key="file.id">
+                                    <div class="ut-cs-preview-item">
+                                        <t t-if="file.type === 'video/mp4'">
+                                            <video t-att-src="file.previewUrl" muted="muted"></video>
+                                        </t>
+                                        <t t-else="">
+                                            <img t-att-src="file.previewUrl" t-att-alt="file.name"/>
+                                        </t>
+                                        <div>
+                                            <strong t-esc="file.name"/>
+                                            <span t-esc="formatFileSize(file.size)"/>
+                                        </div>
+                                        <button type="button" t-on-click.stop="() => this.removeEvidence(file.id)" aria-label="Hapus bukti">
+                                            <i class="fa fa-times"></i>
+                                        </button>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="ut-cs-submit" t-att-disabled="state.submitting ? true : undefined">
+                            <t t-if="state.submitting">Mengirim...</t>
+                            <t t-else="">Kirim Tiket</t>
+                        </button>
+                    </form>
+
+                    <aside class="ut-cs-recent-card">
+                        <h2>Tiket Terbaru</h2>
+                        <t t-if="state.recentTickets.length">
+                            <div class="ut-cs-recent-list">
+                                <t t-foreach="state.recentTickets" t-as="ticket" t-key="ticket.id">
+                                    <a t-att-href="ticket.detail_url" class="ut-cs-recent-item tw-no-underline">
+                                        <div class="ut-cs-recent-head">
+                                            <strong t-esc="ticket.name"/>
+                                            <span t-att-class="'ut-cs-status-badge is-' + ticket.status_tone" t-esc="ticket.status_label"/>
+                                        </div>
+                                        <p t-esc="ticket.summary || ticket.title"/>
+                                        <small t-esc="ticket.created_label"/>
+                                    </a>
+                                </t>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <div class="ut-cs-recent-empty">
+                                Belum ada tiket bantuan.
+                            </div>
+                        </t>
+                        <a t-att-href="state.allTicketsUrl" class="ut-cs-all-ticket-btn">Lihat Semua Tiket</a>
+                    </aside>
+                </section>
+            </t>
+
+            <div t-if="state.toast" t-att-class="'ut-cs-toast ' + (state.toastType === 'error' ? 'is-error' : 'is-success')" role="status" t-esc="state.toast"></div>
+        </div>
+    </t>
+</templates>

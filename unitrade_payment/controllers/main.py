@@ -13,6 +13,7 @@ import requests
 from odoo import _, fields, http
 from odoo.exceptions import UserError
 from odoo.http import request
+from odoo.osv import expression
 from odoo.tools.image import image_data_uri
 from odoo.addons.unitrade_payment.midtrans_methods import MIDTRANS_PAYMENT_METHODS
 
@@ -237,6 +238,8 @@ class UnitradePaymentController(http.Controller):
             'state': 'expired',
             'error_message': _('Waktu pembayaran %s menit sudah habis.') % minutes,
         })
+        if intent.intent_type == 'listing_fee' and hasattr(intent, '_archive_unpaid_listing_fee_products'):
+            intent._archive_unpaid_listing_fee_products()
         order = intent.sale_order_id.sudo()
         if order and order.x_payment_status == 'pending':
             order.write({'x_payment_status': 'expired'})
@@ -392,7 +395,35 @@ class UnitradePaymentController(http.Controller):
             'instructions': [],
         })
 
-    def _payment_status_copy(self, status):
+    def _payment_status_copy(self, status, intent=None):
+        if intent and intent.intent_type == 'listing_fee':
+            if status == 'paid':
+                return {
+                    'title': 'Pembayaran Berhasil',
+                    'copy': 'Pembayaran fee upload sudah dikonfirmasi. Produk Anda sudah aktif di katalog.',
+                    'message': 'Pembayaran fee upload sudah dikonfirmasi. Produk Anda sudah aktif di katalog.',
+                    'tone': 'success',
+                }
+            if status == 'expired':
+                return {
+                    'title': 'Pembayaran Kedaluwarsa',
+                    'copy': 'Waktu pembayaran fee upload sudah habis. Buat transaksi baru dari halaman barang.',
+                    'message': 'Waktu pembayaran fee upload sudah habis. Buat transaksi baru dari halaman barang.',
+                    'tone': 'danger',
+                }
+            if status in ('failed', 'cancelled'):
+                return {
+                    'title': 'Pembayaran Gagal',
+                    'copy': 'Pembayaran fee upload gagal atau dibatalkan. Produk belum aktif di katalog.',
+                    'message': 'Pembayaran fee upload gagal atau dibatalkan. Produk belum aktif di katalog.',
+                    'tone': 'danger',
+                }
+            return {
+                'title': 'Menunggu Pembayaran',
+                'copy': 'Selesaikan pembayaran agar produk aktif di katalog selama 30 hari.',
+                'message': 'Selesaikan pembayaran agar produk aktif di katalog selama 30 hari.',
+                'tone': 'warning',
+            }
         if status == 'paid':
             return {
                 'title': 'Pembayaran Berhasil',
@@ -498,22 +529,76 @@ class UnitradePaymentController(http.Controller):
     def _success_recommended_products(self, order, limit=6):
         Product = request.env['product.template'].sudo()
         excluded_ids = self._payment_product_lines(order).mapped('product_id.product_tmpl_id').ids
-        domain = [
-            ('sale_ok', '=', True),
-            ('website_published', '=', True),
-        ]
-        if 'x_is_marketplace' in Product._fields:
-            domain.append(('x_is_marketplace', '=', True))
+        domain = (
+            Product._unitrade_public_active_domain()
+            if hasattr(Product, '_unitrade_public_active_domain')
+            else [('sale_ok', '=', True), ('website_published', '=', True)]
+        )
         if excluded_ids:
-            domain.append(('id', 'not in', excluded_ids))
+            domain = expression.AND([domain, [('id', 'not in', excluded_ids)]])
         try:
             return Product.search(domain, order='create_date desc', limit=limit)
         except Exception:
             _logger.exception('Failed to load success page product recommendations for order %s', order.id)
             return Product.browse()
 
+    def _listing_fee_status_url(self, intent):
+        return '/unitrade/seller/products'
+
+    def _listing_fee_product_image_url(self, product):
+        if not product:
+            return '/web/static/img/placeholder.png'
+        return self._binary_image_data_uri(
+            product.image_512 or product.image_1920 or product.image_128,
+            '/web/static/img/placeholder.png',
+        )
+
+    def _listing_fee_payment_lines(self, intent):
+        product = intent.product_template_id.sudo()
+        product_name = product.display_name or product.name if product else _('Produk UniTrade')
+        return [{
+            'name': product_name or _('Produk UniTrade'),
+            'seller_name': intent.seller_id.name or _('Toko Anda'),
+            'price': self._format_money(intent.amount, intent.currency_id),
+            'image_url': self._listing_fee_product_image_url(product),
+        }]
+
+    def _listing_fee_success_page_values(self, intent):
+        product = intent.product_template_id.sudo()
+        product_url = product.website_url or ('/shop/product/%s' % product.id) if product else '/unitrade/seller/products'
+        product_name = product.display_name or product.name if product else _('Produk UniTrade')
+        return {
+            'payment_intent': intent,
+            'order': request.env['sale.order'].sudo().browse(),
+            'success_transaction_id': intent.midtrans_transaction_id or intent.midtrans_order_id or intent.name,
+            'success_title': 'Produk Berhasil Diposting!',
+            'success_next_title': 'Produk Sudah Aktif',
+            'success_next_copy': 'Fee upload sudah dibayar. Produk Anda sekarang tampil di katalog UniTrade selama masa aktif listing.',
+            'success_seller': False,
+            'success_context_card': {
+                'name': product_name or _('Produk UniTrade'),
+                'meta': 'Aktif selama 30 hari sejak pembayaran berhasil',
+                'image_url': self._listing_fee_product_image_url(product),
+                'action_url': product_url,
+                'action_label': 'Lihat Produk',
+            },
+            'success_steps': [
+                {'label': 'Produk tampil di katalog dan halaman toko'},
+                {'label': 'Pantau chat dan pesanan dari dashboard seller'},
+                {'label': 'Perpanjang listing jika masa aktif sudah habis'},
+            ],
+            'success_primary_url': '/unitrade/seller/products',
+            'success_primary_label': 'Lihat Daftar Barang',
+            'success_secondary_url': '/unitrade/seller/dashboard',
+            'success_secondary_label': 'Dashboard Seller',
+            'success_recommended_products': request.env['product.template'].sudo().browse(),
+            'status_url': '/unitrade/seller/products',
+        }
+
     def _success_page_values(self, intent):
         intent = intent.sudo()
+        if intent.intent_type == 'listing_fee':
+            return self._listing_fee_success_page_values(intent)
         order = intent.sale_order_id.sudo()
         status_url = '/my/orders'
         try:
@@ -524,7 +609,20 @@ class UnitradePaymentController(http.Controller):
             'payment_intent': intent,
             'order': order,
             'success_transaction_id': intent.midtrans_transaction_id or intent.midtrans_order_id or intent.xendit_latest_payment_id or intent.xendit_reference_id or intent.name,
+            'success_title': 'Pembayaran Berhasil!',
+            'success_next_title': 'Langkah Selanjutnya',
+            'success_next_copy': 'Transaksi kamu sudah aman. Sekarang tunggu prosesnya hingga selesai.',
             'success_seller': self._success_seller_values(order),
+            'success_context_card': False,
+            'success_steps': [
+                {'label': 'Tunggu barang diproses'},
+                {'label': 'Cek kondisi barang langsung'},
+                {'label': 'Konfirmasi pesanan selesai di aplikasi'},
+            ],
+            'success_primary_url': status_url,
+            'success_primary_label': 'Lihat Status Pesanan',
+            'success_secondary_url': '/',
+            'success_secondary_label': 'Kembali ke Beranda',
             'success_recommended_products': self._success_recommended_products(order),
             'status_url': status_url,
         }
@@ -533,23 +631,40 @@ class UnitradePaymentController(http.Controller):
         intent = intent.sudo()
         order = intent.sale_order_id.sudo()
         method_meta = self._payment_method_meta(intent)
-        status_copy = self._payment_status_copy(intent.state)
+        status_copy = self._payment_status_copy(intent.state, intent=intent)
         payment_reference = self._payment_reference(intent)
         payment_url = intent.payment_url or intent.deeplink_url
-        order_status_url = self._order_status_url(order)
-        if intent.state in ('expired', 'failed', 'cancelled'):
+        is_listing_fee = intent.intent_type == 'listing_fee'
+        order_status_url = self._listing_fee_status_url(intent) if is_listing_fee else self._order_status_url(order)
+        if intent.state in ('expired', 'failed', 'cancelled') and is_listing_fee:
+            primary_url = '/unitrade/seller/products'
+            primary_label = 'Kembali ke Barang'
+        elif intent.state in ('expired', 'failed', 'cancelled'):
             primary_url = '/shop/checkout'
             primary_label = 'Kembali ke Checkout'
+        elif intent.state == 'paid' and is_listing_fee:
+            primary_url = order_status_url
+            primary_label = 'Lihat Daftar Barang'
         elif intent.state == 'paid':
             primary_url = order_status_url
             primary_label = 'Lihat Status Pesanan'
         else:
             primary_url = order_status_url
-            primary_label = 'Cek Status Pembayaran'
+            primary_label = 'Cek Status Posting' if is_listing_fee else 'Cek Status Pembayaran'
         expires_at = self._payment_effective_expires_at(intent)
         expires_in_seconds = 0
         if expires_at and intent.state == 'pending':
             expires_in_seconds = max(0, int((expires_at - fields.Datetime.now()).total_seconds()))
+        payment_lines = self._listing_fee_payment_lines(intent) if is_listing_fee else [{
+            'name': line.product_id.product_tmpl_id.display_name,
+            'seller_name': (
+                line.product_id.product_tmpl_id.x_seller_id.name
+                if 'x_seller_id' in line.product_id.product_tmpl_id._fields and line.product_id.product_tmpl_id.x_seller_id
+                else 'Penjual UniTrade'
+            ),
+            'price': self._format_money(line.price_subtotal, order.currency_id),
+            'image_url': '/web/image/product.template/%s/image_512' % line.product_id.product_tmpl_id.id,
+        } for line in self._payment_product_lines(order)]
         return {
             'payment_intent': intent,
             'order': order,
@@ -572,24 +687,32 @@ class UnitradePaymentController(http.Controller):
             'payment_expires_in_seconds': expires_in_seconds,
             'payment_primary_url': primary_url,
             'payment_primary_label': primary_label,
-            'payment_lines': [{
-                'name': line.product_id.product_tmpl_id.display_name,
-                'seller_name': (
-                    line.product_id.product_tmpl_id.x_seller_id.name
-                    if 'x_seller_id' in line.product_id.product_tmpl_id._fields and line.product_id.product_tmpl_id.x_seller_id
-                    else 'Penjual UniTrade'
-                ),
-                'price': self._format_money(line.price_subtotal, order.currency_id),
-                'image_url': '/web/image/product.template/%s/image_512' % line.product_id.product_tmpl_id.id,
-            } for line in self._payment_product_lines(order)],
+            'payment_secondary_url': '/unitrade/seller/dashboard' if is_listing_fee else '/',
+            'payment_secondary_label': 'Dashboard Seller' if is_listing_fee else 'Kembali ke Beranda',
+            'payment_lines_title': 'Detail Posting Produk' if is_listing_fee else 'Detail Pesanan',
+            'payment_lines': payment_lines,
             'status_url': order_status_url,
         }
 
     def _payment_status_payload(self, intent):
-        status_copy = self._payment_status_copy(intent.state)
+        status_copy = self._payment_status_copy(intent.state, intent=intent)
         method_meta = self._payment_method_meta(intent)
         reference = self._payment_reference(intent)
         expires_at = self._payment_effective_expires_at(intent)
+        is_listing_fee = intent.intent_type == 'listing_fee'
+        status_url = self._listing_fee_status_url(intent) if is_listing_fee else self._order_status_url(intent.sale_order_id.sudo())
+        if is_listing_fee and intent.state in ('expired', 'failed', 'cancelled'):
+            primary_label = 'Kembali ke Barang'
+            primary_url = '/unitrade/seller/products'
+        elif is_listing_fee:
+            primary_label = 'Lihat Daftar Barang'
+            primary_url = status_url
+        elif intent.state in ('expired', 'failed', 'cancelled'):
+            primary_label = 'Kembali ke Checkout'
+            primary_url = '/shop/checkout'
+        else:
+            primary_label = 'Lihat Pesanan'
+            primary_url = status_url
         return {
             'status': intent.state,
             'title': status_copy['title'],
@@ -603,7 +726,9 @@ class UnitradePaymentController(http.Controller):
             'qr_image_url': self._payment_qr_src(intent),
             'payment_url': intent.payment_url or intent.deeplink_url,
             'expires_at': expires_at.isoformat() if expires_at else '',
-            'order_url': self._order_status_url(intent.sale_order_id.sudo()),
+            'order_url': status_url,
+            'primary_label': primary_label,
+            'primary_url': primary_url,
             'success_url': '/unitrade/payment/success/%s' % self._intent_reference_key(intent),
         }
 
@@ -618,6 +743,27 @@ class UnitradePaymentController(http.Controller):
         if user.has_group('sales_team.group_sale_manager') or user.has_group('base.group_system'):
             return True
         return order.partner_id.commercial_partner_id == user.partner_id.commercial_partner_id
+
+    def _seller_order_detail_redirect(self, order):
+        if not order or 'unitrade.seller' not in request.env.registry:
+            return ''
+        user = request.env.user
+        if user._is_public():
+            return ''
+        seller = request.env['unitrade.seller'].sudo().search([
+            ('user_id', '=', user.id),
+            ('status', '=', 'verified'),
+        ], limit=1)
+        Product = request.env['product.template'].sudo()
+        if not seller or 'x_seller_id' not in Product._fields:
+            return ''
+        seller_line = request.env['sale.order.line'].sudo().search([
+            ('order_id', '=', order.id),
+            ('display_type', '=', False),
+            ('product_id', '!=', False),
+            ('product_id.product_tmpl_id.x_seller_id', '=', seller.id),
+        ], limit=1)
+        return '/unitrade/seller/orders/%s' % order.id if seller_line else ''
 
     def _order_status_values(self, order):
         order = order.sudo()
@@ -878,7 +1024,12 @@ class UnitradePaymentController(http.Controller):
             return False
 
     def _update_midtrans_intent_payment_details(self, intent, payload):
-        details = intent.sale_order_id._midtrans_extract_payment_details(payload) if intent.sale_order_id else {}
+        if intent.sale_order_id:
+            details = intent.sale_order_id._midtrans_extract_payment_details(payload)
+        elif hasattr(intent, '_midtrans_extract_payment_details'):
+            details = intent._midtrans_extract_payment_details(payload)
+        else:
+            details = {}
         write_values = {}
         if payload.get('transaction_id') and not intent.midtrans_transaction_id:
             write_values['midtrans_transaction_id'] = payload['transaction_id']
@@ -909,11 +1060,13 @@ class UnitradePaymentController(http.Controller):
         if extra_values:
             write_values.update(extra_values)
         intent.sudo().write(write_values)
+        if write_values['state'] in ('expired', 'failed', 'cancelled') and hasattr(intent, '_archive_unpaid_listing_fee_products'):
+            intent._archive_unpaid_listing_fee_products()
         return True
 
     def _midtrans_status_url(self, intent):
         order = intent.sale_order_id.sudo()
-        base_url = order._midtrans_api_base_url() if order else 'https://api.sandbox.midtrans.com'
+        base_url = order._midtrans_api_base_url() if order else intent._midtrans_api_base_url()
         return '%s/v2/%s/status' % (base_url.rstrip('/'), quote(intent.midtrans_order_id or intent.name or ''))
 
     def _fetch_midtrans_status(self, intent):
@@ -1325,6 +1478,9 @@ class UnitradePaymentController(http.Controller):
             if request.env.user._is_public():
                 redirect_url = quote(request.httprequest.full_path or '/unitrade/order/status/%s' % order_id)
                 return request.redirect('/web/login?redirect=%s' % redirect_url)
+            seller_detail_url = self._seller_order_detail_redirect(order)
+            if seller_detail_url:
+                return request.redirect(seller_detail_url)
             return request.not_found()
         return request.render('unitrade_payment.unitrade_order_status', self._order_status_values(order))
 
@@ -1369,7 +1525,8 @@ class UnitradePaymentController(http.Controller):
     def seller_order_confirm_handoff(self, ledger_id, **kwargs):
         if 'unitrade.seller' not in request.env.registry or 'unitrade.escrow.ledger' not in request.env.registry:
             return request.not_found()
-        return_url = kwargs.get('return_url') if kwargs.get('return_url') in (
+        return_url_value = kwargs.get('return_url') or ''
+        return_url = return_url_value if return_url_value in (
             '/unitrade/seller/orders',
             '/seller/orders',
             '/my/seller/orders',
@@ -1381,6 +1538,8 @@ class UnitradePaymentController(http.Controller):
         ledger = request.env['unitrade.escrow.ledger'].sudo().browse(ledger_id).exists()
         if not seller or not ledger or ledger.seller_id.id != seller.id:
             return request.not_found()
+        if not return_url and return_url_value == '/unitrade/seller/orders/%s' % ledger.order_id.id:
+            return_url = return_url_value
         try:
             evidence, filename = self._read_evidence_upload('seller_evidence', 'barang diserahkan')
             ledger.action_seller_confirm_handoff(

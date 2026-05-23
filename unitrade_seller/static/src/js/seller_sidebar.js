@@ -1,50 +1,115 @@
 /** @odoo-module **/
 
 import publicWidget from "@web/legacy/js/public/public_widget";
-import { Component, mount, useState } from "@odoo/owl";
+import { Component, mount, onMounted, useState } from "@odoo/owl";
 import { templates } from "@web/core/assets";
 
 export const SELLER_SIDEBAR_ICON_BASE = "/unitrade_seller/static/src/img/";
+export const SELLER_SIDEBAR_STORAGE_KEY = "unitrade.seller.sidebar.expanded";
+
+const DASHBOARD_HASH_KEYS = {
+    "#dashboard-refunds": "refund",
+    "#dashboard-payout": "payout",
+    "#dashboard-reviews": "reviews",
+};
+
+export function readSellerSidebarOpen() {
+    try {
+        return window.localStorage.getItem(SELLER_SIDEBAR_STORAGE_KEY) === "1";
+    } catch (error) {
+        return false;
+    }
+}
+
+export function writeSellerSidebarOpen(isOpen) {
+    try {
+        window.localStorage.setItem(SELLER_SIDEBAR_STORAGE_KEY, isOpen ? "1" : "0");
+    } catch (error) {
+        // Local storage can be unavailable in private windows; the reactive state still works.
+    }
+}
 
 export function compactBadge(value) {
     const number = Number(value || 0);
     if (!Number.isFinite(number) || number <= 0) {
         return 0;
     }
-    return number > 9 ? "9+" : number;
+    return number > 99 ? "99+" : number;
+}
+
+export function sellerSidebarActiveKey(fallback = "dashboard") {
+    if (typeof window === "undefined") {
+        return fallback;
+    }
+    const path = window.location.pathname || "";
+    if (path.includes("/unitrade/seller/chat")) {
+        return "chat";
+    }
+    if (path.includes("/unitrade/seller/orders")) {
+        return "orders";
+    }
+    if (path.includes("/unitrade/seller/refunds")) {
+        return "refund";
+    }
+    if (path.includes("/unitrade/seller/payout") || path.includes("/seller/payout")) {
+        return "payout";
+    }
+    if (path.includes("/unitrade/seller/products")) {
+        return "products";
+    }
+    if (path.includes("/unitrade/seller/settings")) {
+        return "settings";
+    }
+    if (path.includes("/unitrade/seller/dashboard")) {
+        return DASHBOARD_HASH_KEYS[window.location.hash] || fallback || "dashboard";
+    }
+    return fallback || "dashboard";
 }
 
 export function sellerSidebarItems(activeKey, stats = {}) {
+    const currentActiveKey = sellerSidebarActiveKey(activeKey);
     const incomingOrders = stats.incoming_orders || stats.incomingOrders || stats.notification_count || 0;
     const unreadChat = stats.unread_chat_count || stats.unreadChatCount || 0;
     return [
         {
             key: "dashboard",
+            section: "store",
             label: "Dashboard",
             href: "/unitrade/seller/dashboard",
             iconUrl: `${SELLER_SIDEBAR_ICON_BASE}dashboard-icon-dashboard.svg`,
         },
         {
             key: "orders",
-            label: "Pesanan",
+            section: "store",
+            label: "Order",
             href: "/unitrade/seller/orders",
             iconUrl: `${SELLER_SIDEBAR_ICON_BASE}dashboard-icon-cart.svg`,
             badge: compactBadge(incomingOrders),
         },
         {
+            key: "refund",
+            section: "store",
+            label: "Refund",
+            href: "/unitrade/seller/refunds",
+            iconUrl: `${SELLER_SIDEBAR_ICON_BASE}dashboard-icon-refund.svg`,
+        },
+        {
             key: "products",
-            label: "Barang",
+            section: "store",
+            label: "Produk",
             href: "/unitrade/seller/products",
             iconUrl: `${SELLER_SIDEBAR_ICON_BASE}dashboard-icon-box.svg`,
         },
         {
-            key: "analytics",
-            label: "Analitik",
-            href: "/unitrade/seller/dashboard#dashboard-analytics",
-            iconUrl: `${SELLER_SIDEBAR_ICON_BASE}dashboard-icon-analytics.svg`,
+            key: "payout",
+            section: "store",
+            label: "Pencairan",
+            href: "/unitrade/seller/payouts",
+            iconUrl: `${SELLER_SIDEBAR_ICON_BASE}dashboard-icon-wallet.svg`,
         },
         {
             key: "chat",
+            section: "communication",
             label: "Chat Pembeli",
             href: "/unitrade/seller/chat",
             iconUrl: `${SELLER_SIDEBAR_ICON_BASE}dashboard-icon-chat.svg`,
@@ -52,19 +117,22 @@ export function sellerSidebarItems(activeKey, stats = {}) {
         },
         {
             key: "reviews",
+            section: "communication",
             label: "Ulasan",
             href: "/unitrade/seller/dashboard#dashboard-reviews",
             iconUrl: `${SELLER_SIDEBAR_ICON_BASE}dashboard-icon-star.svg`,
         },
         {
             key: "settings",
-            label: "Pengaturan Toko",
+            section: "settings",
+            label: "Settings",
             href: "/unitrade/seller/settings",
             iconUrl: `${SELLER_SIDEBAR_ICON_BASE}dashboard-icon-settings.svg`,
+            ariaLabel: "Pengaturan Toko",
         },
     ].map((item) => ({
         ...item,
-        active: item.key === activeKey,
+        active: item.key === currentActiveKey,
     }));
 }
 
@@ -83,8 +151,10 @@ export class SellerSidebarHost extends Component {
 
     setup() {
         this.state = useState({
-            sidebarOpen: false,
+            sidebarOpen: readSellerSidebarOpen(),
         });
+
+        onMounted(() => this.syncRootState());
     }
 
     get sidebarActiveKey() {
@@ -105,6 +175,7 @@ export class SellerSidebarHost extends Component {
 
     toggleSidebar() {
         this.state.sidebarOpen = !this.state.sidebarOpen;
+        writeSellerSidebarOpen(this.state.sidebarOpen);
         this.syncRootState();
     }
 

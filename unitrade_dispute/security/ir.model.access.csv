@@ -3,3 +3,5 @@ access_unitrade_dispute_user,unitrade.dispute user,model_unitrade_dispute,base.g
 access_unitrade_dispute_admin,unitrade.dispute admin,model_unitrade_dispute,base.group_system,1,1,1,1
 access_unitrade_dispute_evidence_user,unitrade.dispute.evidence user,model_unitrade_dispute_evidence,base.group_user,1,1,1,0
 access_unitrade_dispute_evidence_admin,unitrade.dispute.evidence admin,model_unitrade_dispute_evidence,base.group_system,1,1,1,1
+access_unitrade_dispute_timeline_user,unitrade.dispute.timeline user,model_unitrade_dispute_timeline,base.group_user,1,1,1,0
+access_unitrade_dispute_timeline_admin,unitrade.dispute.timeline admin,model_unitrade_dispute_timeline,base.group_system,1,1,1,1

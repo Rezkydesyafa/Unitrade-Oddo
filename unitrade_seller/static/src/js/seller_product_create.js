@@ -1,10 +1,11 @@
 /** @odoo-module **/
 
 import publicWidget from "@web/legacy/js/public/public_widget";
-import { Component, mount, onMounted, onWillUnmount, useRef, useState } from "@odoo/owl";
+import { Component, onMounted, onWillUnmount, useRef, useState } from "@odoo/owl";
 import { templates } from "@web/core/assets";
 import { jsonrpc } from "@web/core/network/rpc_service";
-import { sellerSidebarItems } from "./seller_sidebar";
+import { readSellerSidebarOpen, sellerSidebarItems, writeSellerSidebarOpen } from "./seller_sidebar";
+import { mountSellerApp } from "./seller_mount";
 
 const ALLOWED_TYPES = new Set(["image/png", "image/jpg", "image/jpeg", "image/webp"]);
 const MAX_IMAGES = 4;
@@ -72,7 +73,7 @@ function datasetPayload(dataset, parsed) {
         dashboard_url: "/unitrade/seller/dashboard",
         mode: "create",
         title: "Tambah Barang",
-        subtitle: "Here's what's happening with your store today",
+        subtitle: "Lengkapi informasi produk sebelum dipublikasikan.",
         submit_label: "Post",
         delete_label: "Hapus",
         product_id: 0,
@@ -139,13 +140,16 @@ export class SellerProductCreate extends Component {
             loading: true,
             submitting: false,
             deleting: false,
+            deleteModalOpen: false,
+            deleteAcknowledged: false,
+            deleteModalError: "",
             dragActive: false,
             error: "",
             success: "",
-            sidebarOpen: false,
+            sidebarOpen: readSellerSidebarOpen(),
             mode: payload.mode || "create",
             title: payload.title || (payload.mode === "edit" ? "Edit Barang" : "Tambah Barang"),
-            subtitle: payload.subtitle || (payload.mode === "edit" ? "Ubah isi informasi mengenai barang" : "Here's what's happening with your store today"),
+            subtitle: payload.subtitle || (payload.mode === "edit" ? "Ubah isi informasi mengenai barang" : "Lengkapi informasi produk sebelum dipublikasikan."),
             submitLabel: payload.submit_label || (payload.mode === "edit" ? "Simpan" : "Post"),
             deleteLabel: payload.delete_label || "Hapus",
             productId: payload.product_id || payload.product?.id || 0,
@@ -164,7 +168,7 @@ export class SellerProductCreate extends Component {
                 description: "",
                 categoryId: "",
                 price: "",
-                discountPrice: "",
+                discountPercent: "",
                 stock: "",
             },
             images: [],
@@ -224,10 +228,12 @@ export class SellerProductCreate extends Component {
 
     toggleSidebar() {
         this.state.sidebarOpen = !this.state.sidebarOpen;
+        writeSellerSidebarOpen(this.state.sidebarOpen);
     }
 
     closeSidebar() {
         this.state.sidebarOpen = false;
+        writeSellerSidebarOpen(false);
     }
 
     onSidebarNavClick() {
@@ -280,7 +286,7 @@ export class SellerProductCreate extends Component {
         this.state.form.description = product.description || "";
         this.state.form.categoryId = product.category_id ? String(product.category_id) : "";
         this.state.form.price = product.price || product.price === 0 ? String(product.price) : "";
-        this.state.form.discountPrice = product.discount_price ? String(product.discount_price) : "";
+        this.state.form.discountPercent = product.discount_percent ? String(product.discount_percent) : "";
         this.state.form.stock = product.stock || product.stock === 0 ? String(product.stock) : "";
         this.state.images = (product.images || []).map((image) => ({
             id: image.id,
@@ -304,6 +310,31 @@ export class SellerProductCreate extends Component {
     selectCategory(categoryId) {
         this.state.form.categoryId = String(categoryId);
         this.state.error = "";
+    }
+
+    openDeleteModal() {
+        if (!this.isEditMode || this.state.deleting || this.state.submitting) {
+            return;
+        }
+        this.state.error = "";
+        this.state.success = "";
+        this.state.deleteModalError = "";
+        this.state.deleteAcknowledged = false;
+        this.state.deleteModalOpen = true;
+    }
+
+    closeDeleteModal() {
+        if (this.state.deleting) {
+            return;
+        }
+        this.state.deleteModalOpen = false;
+        this.state.deleteModalError = "";
+        this.state.deleteAcknowledged = false;
+    }
+
+    setDeleteAcknowledged(ev) {
+        this.state.deleteAcknowledged = Boolean(ev.target.checked);
+        this.state.deleteModalError = "";
     }
 
     openFileDialog() {
@@ -389,7 +420,7 @@ export class SellerProductCreate extends Component {
     validateForm() {
         const form = this.state.form;
         const price = Number(form.price);
-        const discountPrice = form.discountPrice === "" ? 0 : Number(form.discountPrice);
+        const discountPercent = form.discountPercent === "" ? 0 : Number(form.discountPercent);
         const stock = Number(form.stock);
         if (!form.name.trim()) {
             return "Nama produk wajib diisi.";
@@ -403,11 +434,11 @@ export class SellerProductCreate extends Component {
         if (!Number.isFinite(price) || price < 0) {
             return "Harga tidak boleh negatif.";
         }
-        if (form.discountPrice !== "" && (!Number.isFinite(discountPrice) || discountPrice < 0)) {
-            return "Harga diskon tidak boleh negatif.";
+        if (form.discountPercent !== "" && (!Number.isFinite(discountPercent) || discountPercent < 0)) {
+            return "Diskon tidak boleh negatif.";
         }
-        if (discountPrice && discountPrice >= price) {
-            return "Harga diskon harus lebih kecil dari harga normal.";
+        if (discountPercent > 100) {
+            return "Diskon maksimal 100%.";
         }
         if (!Number.isFinite(stock) || stock < 0) {
             return "Stok harus angka dan tidak boleh negatif.";
@@ -436,7 +467,7 @@ export class SellerProductCreate extends Component {
                 description: form.description,
                 category_id: Number(form.categoryId),
                 price: Number(form.price || 0),
-                discount_price: form.discountPrice === "" ? 0 : Number(form.discountPrice),
+                discount_percent: form.discountPercent === "" ? 0 : Number(form.discountPercent),
                 stock: Number(form.stock || 0),
                 images: this.state.images.map((image) => ({
                     existing: Boolean(image.existing),
@@ -466,24 +497,28 @@ export class SellerProductCreate extends Component {
         if (!this.isEditMode || this.state.deleting || this.state.submitting) {
             return;
         }
-        if (!window.confirm("Hapus barang ini dari toko Anda?")) {
+        if (!this.state.deleteAcknowledged) {
+            this.state.deleteModalError = "Centang persetujuan ketentuan sebelum menghapus produk.";
             return;
         }
         this.state.error = "";
         this.state.success = "";
+        this.state.deleteModalError = "";
         this.state.deleting = true;
         try {
             const result = await jsonrpc(this.state.deleteUrl, {});
             if (!result.success) {
                 throw new Error(result.message || "Produk belum bisa dihapus.");
             }
+            this.state.deleteModalOpen = false;
             this.state.success = result.message || "Produk berhasil dihapus.";
             window.setTimeout(() => {
                 window.location.href = result.redirect_url || this.state.productsUrl;
             }, 900);
         } catch (error) {
             console.error("[UniTrade] Seller product delete:", error);
-            this.state.error = error.message || "Produk belum bisa dihapus.";
+            this.state.deleteModalError = error.message || "Produk belum bisa dihapus.";
+            this.state.error = this.state.deleteModalError;
         } finally {
             this.state.deleting = false;
         }
@@ -502,7 +537,7 @@ export class SellerProductPayment extends Component {
             ready: false,
             loading: true,
             submitting: false,
-            sidebarOpen: false,
+            sidebarOpen: readSellerSidebarOpen(),
             error: "",
             success: "",
             expandedMethod: "",
@@ -586,10 +621,12 @@ export class SellerProductPayment extends Component {
 
     toggleSidebar() {
         this.state.sidebarOpen = !this.state.sidebarOpen;
+        writeSellerSidebarOpen(this.state.sidebarOpen);
     }
 
     closeSidebar() {
         this.state.sidebarOpen = false;
+        writeSellerSidebarOpen(false);
     }
 
     onSidebarNavClick() {
@@ -670,6 +707,10 @@ export class SellerProductPayment extends Component {
             }
             this.state.paymentResult = result;
             this.state.success = result.message || "Transaksi pembayaran berhasil dibuat.";
+            const nextUrl = result.redirect_url || result.payment_url || "";
+            if (nextUrl) {
+                window.location.href = nextUrl;
+            }
         } catch (error) {
             console.error("[UniTrade] Seller listing payment:", error);
             this.state.error = error.message || "Pembayaran belum bisa dibuat.";
@@ -691,11 +732,7 @@ publicWidget.registry.UnitradeSellerProductCreate = publicWidget.Widget.extend({
             console.error("[UniTrade] Seller product create payload:", error);
         }
         const payload = datasetPayload(this.el.dataset, parsed);
-        this.el.innerHTML = "";
-        this.component = await mount(SellerProductCreate, this.el, {
-            props: { payload },
-            templates,
-        });
+        await mountSellerApp(this, SellerProductCreate, { payload }, templates, "Seller product form");
         return superPromise;
     },
 
@@ -721,11 +758,7 @@ publicWidget.registry.UnitradeSellerProductPayment = publicWidget.Widget.extend(
             console.error("[UniTrade] Seller product payment payload:", error);
         }
         const payload = paymentPayload(this.el.dataset, parsed);
-        this.el.innerHTML = "";
-        this.component = await mount(SellerProductPayment, this.el, {
-            props: { payload },
-            templates,
-        });
+        await mountSellerApp(this, SellerProductPayment, { payload }, templates, "Seller product payment");
         return superPromise;
     },
 

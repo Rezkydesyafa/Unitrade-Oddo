@@ -181,7 +181,6 @@ class UnitradeChatConversation(models.Model):
         seller = seller or self._get_verified_seller(seller_id=seller_id, profile_ref=profile_ref)
         if seller.user_id.id == user.id:
             raise UserError(_('Kamu tidak bisa membuka chat dengan toko sendiri.'))
-
         product = self._get_marketplace_product(product_id)
         if product and product.x_seller_id and product.x_seller_id.id != seller.id:
             raise UserError(_('Produk ini tidak dimiliki oleh seller yang dipilih.'))
@@ -196,6 +195,8 @@ class UnitradeChatConversation(models.Model):
             if product and not conversation.product_id:
                 conversation.sudo().write({'product_id': product.id})
             return conversation
+        if 'x_chat_enabled' in seller._fields and not seller.x_chat_enabled:
+            raise UserError(_('Toko ini sedang tidak menerima chat baru.'))
 
         conversation = self.sudo().create({
             'buyer_user_id': user.id,

@@ -1,3 +1,9 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_unitrade_notification_user,unitrade.notification.user,model_unitrade_notification,base.group_user,1,1,0,0
+access_unitrade_notification_user,unitrade.notification.user,model_unitrade_notification,base.group_user,1,1,0,1
+access_unitrade_notification_portal,unitrade.notification.portal,model_unitrade_notification,base.group_portal,1,1,0,1
 access_unitrade_notification_admin,unitrade.notification.admin,model_unitrade_notification,unitrade_seller.group_unitrade_admin,1,1,1,1
+access_unitrade_notification_preference_user,unitrade.notification.preference.user,model_unitrade_notification_preference,base.group_user,1,1,1,1
+access_unitrade_notification_preference_portal,unitrade.notification.preference.portal,model_unitrade_notification_preference,base.group_portal,1,1,1,1
+access_unitrade_notification_preference_admin,unitrade.notification.preference.admin,model_unitrade_notification_preference,unitrade_seller.group_unitrade_admin,1,1,1,1
+access_unitrade_announcement_admin,unitrade.announcement.admin,model_unitrade_announcement,unitrade_seller.group_unitrade_admin,1,1,1,1
+access_unitrade_announcement_system,unitrade.announcement.system,model_unitrade_announcement,base.group_system,1,1,1,1

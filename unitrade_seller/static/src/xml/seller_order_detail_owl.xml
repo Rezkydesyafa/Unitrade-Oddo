@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="unitrade_seller.SellerOrderDetail">
+        <div t-att-class="rootClass">
+            <t t-if="!state.ready">
+                <t t-call="unitrade_seller.SellerOrderDetailSkeleton"/>
+            </t>
+            <t t-else="">
+                <div class="ut-dash-stage ut-order-detail-stage">
+                    <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px] tw-text-[12px] tw-leading-6 tw-text-black">
+                        <div class="tw-flex tw-items-center tw-gap-[18px]">
+                            <span>Gratis Ongkir + Diskon 30%</span>
+                            <a href="/shop" class="tw-font-semibold tw-text-black tw-no-underline">Belanja Sekarang +</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <a href="/seller-onboarding" class="tw-font-semibold tw-text-black tw-no-underline">Mulai Berjualan</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <a href="/unitrade/sponsorship" class="tw-font-semibold tw-text-black tw-no-underline">Sponsorship</a>
+                        </div>
+                        <div class="tw-flex tw-items-center tw-gap-[18px]">
+                            <a href="/faq" class="tw-text-black tw-no-underline">FAQ</a>
+                            <a href="/customer-service" class="tw-text-black tw-no-underline">Customer Service</a>
+                            <a href="/contactus" class="tw-text-black tw-no-underline">Kontak</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <span>Ikuti kami :</span>
+                            <span class="tw-flex tw-gap-2 tw-text-[12px]">
+                                <i class="fa fa-instagram"></i>
+                                <i class="fa fa-facebook-official"></i>
+                                <i class="fa fa-music"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                        <a href="/" class="tw-flex tw-h-[52px] tw-w-[129px] tw-items-center tw-gap-2 tw-rounded-full tw-px-[15px] tw-text-black tw-no-underline">
+                            <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="UniTrade" class="tw-h-[37px] tw-w-[41px] tw-object-contain"/>
+                            <span class="tw-text-[12px] tw-font-bold">UniTrade</span>
+                        </a>
+                        <a href="/unitrade/seller/orders" class="tw-ml-[25px] tw-flex tw-h-12 tw-min-w-[210px] tw-items-center tw-justify-center tw-gap-2 tw-rounded-[22.5px] tw-bg-[#f9f9f9] tw-px-5 tw-text-[13px] tw-font-semibold tw-text-[#212529] tw-no-underline">
+                            <i class="fa fa-arrow-left"></i>
+                            Kembali ke Pesanan
+                        </a>
+                        <div class="tw-ml-auto tw-flex tw-items-center tw-gap-[25px]">
+                            <a href="/unitrade/seller/chat" class="ut-dash-nav-round tw-relative" aria-label="Chat Pembeli">
+                                <i class="fa fa-commenting-o"></i>
+                                <t t-if="stats.unread_chat_count">
+                                    <span class="ut-dash-navbar-dot" t-esc="stats.unread_chat_count"></span>
+                                </t>
+                            </a>
+                            <a href="/shop/cart" class="ut-dash-nav-round" aria-label="Keranjang">
+                                <i class="fa fa-shopping-cart"></i>
+                            </a>
+                            <a href="/unitrade/seller/orders" class="ut-dash-nav-round tw-relative" aria-label="Notifikasi pesanan">
+                                <i class="fa fa-bell-o"></i>
+                                <t t-if="stats.notification_count">
+                                    <span class="ut-dash-navbar-dot" t-esc="stats.notification_count"></span>
+                                </t>
+                            </a>
+                            <span class="tw-h-[38.5px] tw-w-px tw-bg-[#e5e7eb]"></span>
+                            <a href="/unitrade/seller/dashboard" class="ut-dash-nav-round" aria-label="Dashboard seller">
+                                <i class="fa fa-truck"></i>
+                            </a>
+                            <img t-att-src="seller.avatar_url" alt="Avatar penjual" class="tw-size-[45px] tw-rounded-full tw-object-cover"/>
+                            <span class="tw-mr-5 tw-max-w-[150px] tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[16px] tw-font-medium tw-leading-6 tw-text-[#212529]" t-esc="seller.name"></span>
+                        </div>
+                        <button type="button" class="ut-dash-mobile-menu tw-hidden tw-border-0 tw-bg-transparent tw-text-[24px]" t-on-click="toggleSidebar" aria-label="Buka navigasi">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                    </header>
+
+                    <div class="ut-dash-mobile-scrim" t-on-click="closeSidebar"></div>
+                    <t t-call="unitrade_seller.SellerSidebar"/>
+
+                    <main class="ut-order-detail-main tw-absolute tw-left-[180px] tw-right-[67px] tw-top-[173px] tw-pb-10">
+                        <section class="ut-order-detail-head tw-mb-[26px] tw-flex tw-items-end tw-justify-between tw-gap-4">
+                            <span class="tw-min-w-0">
+                                <a href="/unitrade/seller/orders" class="tw-mb-3 tw-inline-flex tw-items-center tw-gap-2 tw-text-[13px] tw-font-semibold tw-text-[#4a5565] tw-no-underline">
+                                    <i class="fa fa-arrow-left"></i>
+                                    Semua Pesanan
+                                </a>
+                                <h1 class="tw-m-0 tw-text-[40px] tw-font-normal tw-leading-none tw-text-black">Detail Pesanan</h1>
+                                <p class="tw-m-0 tw-mt-[7px] tw-text-[16px] tw-leading-6 tw-text-[#6a7282]">
+                                    <t t-esc="order.name"/> / <t t-esc="order.customer_name"/>
+                                </p>
+                            </span>
+                            <div class="ut-order-detail-actions">
+                                <a t-att-href="order.chat_url" class="ut-order-detail-secondary-action ut-order-detail-chat-action">
+                                    <i class="fa fa-commenting-o"></i>
+                                    <span>Chat Pembeli</span>
+                                </a>
+                                <a t-if="order.refund_detail_url" t-att-href="order.refund_detail_url" class="ut-order-detail-secondary-action is-warning">
+                                    <i class="fa fa-undo"></i>
+                                    <span>Detail Refund</span>
+                                </a>
+                                <button t-if="order.can_confirm_handoff" type="button" class="ut-order-detail-primary-action" t-on-click="openHandoff">
+                                    <i class="fa fa-camera"></i>
+                                    <span>Upload Bukti</span>
+                                </button>
+                            </div>
+                        </section>
+
+                        <section class="ut-order-detail-top-grid tw-grid tw-grid-cols-[minmax(0,1.45fr)_minmax(320px,0.8fr)] tw-gap-5">
+                            <article class="ut-order-detail-card tw-p-6">
+                                <div class="tw-flex tw-items-start tw-justify-between tw-gap-4">
+                                    <span class="tw-min-w-0">
+                                        <span class="tw-block tw-text-[12px] tw-font-semibold tw-uppercase tw-leading-4 tw-text-[#6a7282]">ID Pesanan</span>
+                                        <strong class="tw-mt-1 tw-block tw-text-[28px] tw-font-semibold tw-leading-9 tw-text-[#101828]" t-esc="order.name"></strong>
+                                    </span>
+                                    <span t-att-class="statusClass(order.status_key)" t-esc="order.status_label"></span>
+                                </div>
+                                <div class="ut-order-detail-summary-row tw-mt-7">
+                                    <span>
+                                        <small>Total toko</small>
+                                        <strong class="ut-orders-total" t-esc="order.seller_total_label"></strong>
+                                    </span>
+                                    <span>
+                                        <small>Jumlah item</small>
+                                        <strong><t t-esc="order.qty_total"/> barang</strong>
+                                    </span>
+                                    <span>
+                                        <small>Tanggal order</small>
+                                        <strong t-esc="order.date_label"></strong>
+                                    </span>
+                                </div>
+                            </article>
+
+                            <article class="ut-order-detail-card tw-p-6">
+                                <div class="tw-flex tw-items-start tw-gap-4">
+                                    <t t-if="order.customer_avatar_url">
+                                        <img t-att-src="order.customer_avatar_url" alt="" class="ut-customer-avatar ut-customer-avatar-md"/>
+                                    </t>
+                                    <t t-else="">
+                                        <span class="ut-customer-avatar ut-customer-avatar-md is-initials" t-esc="order.customer_initials || 'UT'"></span>
+                                    </t>
+                                    <span class="tw-min-w-0">
+                                        <span class="tw-block tw-text-[12px] tw-font-semibold tw-uppercase tw-leading-4 tw-text-[#6a7282]">Pembeli</span>
+                                        <strong class="tw-mt-1 tw-block tw-text-[18px] tw-font-semibold tw-leading-6 tw-text-[#101828]" t-esc="order.customer_name"></strong>
+                                        <small class="tw-mt-1 tw-block tw-text-[12px] tw-leading-5 tw-text-[#6a7282]" t-esc="order.customer_phone || order.customer_email || 'Kontak belum tersedia'"></small>
+                                    </span>
+                                </div>
+                                <div class="tw-mt-5 tw-rounded-[14px] tw-bg-[#f9fafb] tw-p-4">
+                                    <span class="tw-block tw-text-[12px] tw-font-semibold tw-uppercase tw-leading-4 tw-text-[#6a7282]">Alamat</span>
+                                    <p class="tw-m-0 tw-mt-2 tw-text-[14px] tw-font-medium tw-leading-6 tw-text-[#344054]" t-esc="order.shipping_address"></p>
+                                </div>
+                            </article>
+                        </section>
+
+                        <section class="ut-order-detail-content-grid tw-mt-5 tw-grid tw-grid-cols-[minmax(0,1fr)_360px] tw-gap-5">
+                            <article class="ut-order-detail-card tw-p-6">
+                                <div class="tw-mb-5 tw-flex tw-items-center tw-justify-between tw-gap-4">
+                                    <h2 class="tw-m-0 tw-text-[18px] tw-font-semibold tw-leading-7 tw-text-[#101828]">Produk Dipesan</h2>
+                                    <span class="tw-rounded-full tw-bg-[#f3f4f6] tw-px-3 tw-py-1 tw-text-[12px] tw-font-semibold tw-text-[#4a5565]">
+                                        <t t-esc="order.line_count"/> produk
+                                    </span>
+                                </div>
+                                <div class="ut-order-detail-line-list">
+                                    <t t-foreach="order.lines" t-as="line" t-key="lineKey(line)">
+                                        <div class="ut-order-detail-line">
+                                            <img t-att-src="line.image_url || '/web/static/img/placeholder.png'" t-att-alt="line.product_name" class="ut-order-detail-line-image" onerror="this.src='/web/static/img/placeholder.png'"/>
+                                            <span class="ut-order-detail-line-info">
+                                                <strong class="ut-order-detail-line-name" t-esc="line.product_name"></strong>
+                                                <small class="ut-order-detail-line-meta">
+                                                    Qty: <t t-esc="line.qty"/> / Harga satuan: <t t-esc="line.unit_price_label"/>
+                                                </small>
+                                            </span>
+                                            <strong class="ut-order-detail-line-total ut-orders-total" t-esc="line.subtotal_label"></strong>
+                                        </div>
+                                    </t>
+                                </div>
+                                <div class="ut-order-detail-total-row">
+                                    <span>
+                                        <small>Total untuk toko</small>
+                                        <strong class="ut-orders-total" t-esc="order.seller_total_label"></strong>
+                                    </span>
+                                    <span>
+                                        <small>Total dibayar pembeli</small>
+                                        <strong class="ut-orders-total" t-esc="order.order_total_label"></strong>
+                                    </span>
+                                </div>
+                            </article>
+
+                            <aside class="ut-order-detail-card tw-p-6">
+                                <h2 class="tw-m-0 tw-text-[18px] tw-font-semibold tw-leading-7 tw-text-[#101828]">Status Dana</h2>
+                                <div class="tw-mt-5 tw-rounded-[14px] tw-bg-[#f9fafb] tw-p-4">
+                                    <span class="tw-block tw-text-[12px] tw-font-semibold tw-uppercase tw-leading-4 tw-text-[#6a7282]">Dana penjual</span>
+                                    <strong class="ut-orders-total tw-mt-1 tw-block tw-text-[24px] tw-font-semibold tw-leading-8 tw-text-[#101828]" t-esc="order.amount_seller_label"></strong>
+                                    <p class="tw-m-0 tw-mt-2 tw-text-[13px] tw-font-medium tw-leading-5 tw-text-[#4a5565]" t-esc="order.ledger_state_label"></p>
+                                </div>
+                                <dl class="ut-order-detail-money-list">
+                                    <div>
+                                        <dt>Biaya layanan</dt>
+                                        <dd t-esc="order.platform_fee_label"></dd>
+                                    </div>
+                                    <div>
+                                        <dt>Biaya pembayaran</dt>
+                                        <dd t-esc="order.gateway_fee_label"></dd>
+                                    </div>
+                                    <div>
+                                        <dt>Status pencairan</dt>
+                                        <dd t-esc="order.payout_status_label"></dd>
+                                    </div>
+                                </dl>
+                                <div class="ut-order-detail-timeline">
+                                    <t t-foreach="timeline" t-as="step" t-key="step.label">
+                                        <div t-att-class="stepClass(step)">
+                                            <span class="ut-order-detail-step-dot">
+                                                <i t-att-class="step.done ? 'fa fa-check' : 'fa fa-circle'"></i>
+                                            </span>
+                                            <span>
+                                                <strong t-esc="step.label"></strong>
+                                                <small t-esc="step.caption"></small>
+                                            </span>
+                                        </div>
+                                    </t>
+                                </div>
+                            </aside>
+                        </section>
+
+                        <section class="ut-order-detail-evidence-grid tw-mt-5 tw-grid tw-grid-cols-2 tw-gap-5">
+                            <article class="ut-order-detail-card tw-p-6">
+                                <div class="tw-mb-4 tw-flex tw-items-center tw-justify-between tw-gap-3">
+                                    <h2 class="tw-m-0 tw-text-[18px] tw-font-semibold tw-leading-7 tw-text-[#101828]">Bukti Penjual</h2>
+                                    <span t-if="order.seller_confirmed" class="ut-order-detail-proof-pill">Sudah diupload</span>
+                                    <span t-else="" class="ut-order-detail-proof-pill is-muted">Belum ada bukti</span>
+                                </div>
+                                <button t-if="order.seller_evidence_url" type="button" class="ut-order-detail-proof-trigger" t-on-click="() => this.openEvidencePreview(order.seller_evidence_url, 'Bukti Penjual', order.seller_handoff_location || '')" aria-label="Lihat bukti penjual">
+                                    <img t-att-src="order.seller_evidence_url" alt="Bukti barang diserahkan" class="ut-order-detail-proof-image"/>
+                                    <span class="ut-order-detail-proof-zoom">
+                                        <i class="fa fa-search-plus"></i>
+                                        Lihat gambar
+                                    </span>
+                                </button>
+                                <div t-else="" class="ut-order-detail-proof-empty">
+                                    <i class="fa fa-camera"></i>
+                                    <span>Belum ada bukti serah terima.</span>
+                                </div>
+                                <p t-if="order.seller_handoff_location" class="tw-m-0 tw-mt-3 tw-text-[13px] tw-font-medium tw-leading-5 tw-text-[#4a5565]" t-esc="order.seller_handoff_location"></p>
+                            </article>
+
+                            <article class="ut-order-detail-card tw-p-6">
+                                <div class="tw-mb-4 tw-flex tw-items-center tw-justify-between tw-gap-3">
+                                    <h2 class="tw-m-0 tw-text-[18px] tw-font-semibold tw-leading-7 tw-text-[#101828]">Bukti Pembeli</h2>
+                                    <span t-if="order.buyer_confirmed" class="ut-order-detail-proof-pill">Dikonfirmasi</span>
+                                    <span t-else="" class="ut-order-detail-proof-pill is-muted">Menunggu pembeli</span>
+                                </div>
+                                <button t-if="order.buyer_evidence_url" type="button" class="ut-order-detail-proof-trigger" t-on-click="() => this.openEvidencePreview(order.buyer_evidence_url, 'Bukti Pembeli', order.buyer_confirmed_at_label || '')" aria-label="Lihat bukti pembeli">
+                                    <img t-att-src="order.buyer_evidence_url" alt="Bukti barang diterima" class="ut-order-detail-proof-image"/>
+                                    <span class="ut-order-detail-proof-zoom">
+                                        <i class="fa fa-search-plus"></i>
+                                        Lihat gambar
+                                    </span>
+                                </button>
+                                <div t-else="" class="ut-order-detail-proof-empty">
+                                    <i class="fa fa-clock-o"></i>
+                                    <span>Pembeli belum mengunggah bukti.</span>
+                                </div>
+                                <p t-if="order.buyer_confirmed_at_label" class="tw-m-0 tw-mt-3 tw-text-[13px] tw-font-medium tw-leading-5 tw-text-[#4a5565]" t-esc="order.buyer_confirmed_at_label"></p>
+                            </article>
+                        </section>
+                    </main>
+
+                    <div t-if="state.evidencePreview" class="ut-order-detail-preview-modal" role="dialog" aria-modal="true" aria-labelledby="ut_order_detail_preview_title" t-on-click.self="closeEvidencePreview">
+                        <section class="ut-order-detail-preview-dialog">
+                            <header class="ut-order-detail-preview-head">
+                                <span>
+                                    <h2 id="ut_order_detail_preview_title" t-esc="state.evidencePreview.title"></h2>
+                                    <p t-if="state.evidencePreview.caption" t-esc="state.evidencePreview.caption"></p>
+                                </span>
+                                <button type="button" t-on-click="closeEvidencePreview" aria-label="Tutup preview bukti">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </header>
+                            <div class="ut-order-detail-preview-frame">
+                                <img t-att-src="state.evidencePreview.src" t-att-alt="state.evidencePreview.title"/>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div t-if="state.handoffOpen" class="ut-dash-search-modal tw-fixed tw-inset-0 tw-z-[1200] tw-flex tw-items-center tw-justify-center tw-bg-black/45 tw-px-5" t-on-click.self="closeHandoff">
+                        <form t-att-action="order.confirm_handoff_url" method="post" enctype="multipart/form-data" class="ut-dash-handoff-modal">
+                            <input type="hidden" name="csrf_token" t-att-value="payload.csrf_token"/>
+                            <input type="hidden" name="return_url" t-att-value="order.detail_url"/>
+                            <header class="tw-mb-5 tw-flex tw-items-start tw-justify-between tw-gap-4">
+                                <span>
+                                    <h2 class="tw-m-0 tw-text-[20px] tw-font-semibold tw-text-[#101828]">Barang Diserahkan</h2>
+                                    <p class="tw-m-0 tw-mt-1 tw-text-[13px] tw-text-[#6a7282]" t-esc="order.name + ' / ' + order.customer_name"></p>
+                                </span>
+                                <button type="button" class="tw-flex tw-size-9 tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-[#f3f4f6]" t-on-click="closeHandoff" aria-label="Tutup">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </header>
+                            <div class="ut-dash-handoff-field">
+                                <span>Bukti barang diserahkan</span>
+                                <input t-ref="handoffFileInput" type="file" name="seller_evidence" accept="image/jpeg,image/png,image/webp" required="required" class="ut-dash-handoff-file-input" t-on-change="onHandoffFileChange"/>
+                                <button type="button" t-att-class="'ut-dash-handoff-dropzone' + (state.handoffDragActive ? ' is-dragging' : '') + (state.handoffPreviewUrl ? ' has-file' : '')" t-on-click="openHandoffFilePicker" t-on-dragenter="onHandoffDragEnter" t-on-dragover="onHandoffDragOver" t-on-dragleave="onHandoffDragLeave" t-on-drop="onHandoffDrop">
+                                    <t t-if="state.handoffPreviewUrl">
+                                        <span class="ut-dash-handoff-preview">
+                                            <img t-att-src="state.handoffPreviewUrl" alt="Preview bukti penyerahan"/>
+                                        </span>
+                                        <span class="ut-dash-handoff-upload-copy">
+                                            <strong t-esc="state.handoffFileName"></strong>
+                                            <small><t t-esc="state.handoffFileSize"/> - Klik untuk ganti gambar</small>
+                                        </span>
+                                    </t>
+                                    <t t-else="">
+                                        <span class="ut-dash-handoff-upload-icon">
+                                            <i class="fa fa-cloud-upload"></i>
+                                        </span>
+                                        <span class="ut-dash-handoff-upload-copy">
+                                            <strong>Tarik gambar ke sini</strong>
+                                            <small>atau klik untuk pilih file JPG, PNG, WebP maksimal 5 MB</small>
+                                        </span>
+                                    </t>
+                                </button>
+                                <div t-if="state.handoffPreviewUrl" class="tw-mt-2 tw-flex tw-justify-end">
+                                    <button type="button" class="ut-dash-handoff-remove" t-on-click="clearHandoffFile">
+                                        <i class="fa fa-trash-o"></i>
+                                        Hapus gambar
+                                    </button>
+                                </div>
+                                <p t-if="state.handoffError" class="ut-dash-handoff-error" t-esc="state.handoffError"></p>
+                            </div>
+                            <label class="ut-dash-handoff-field">
+                                <span>Lokasi penyerahan</span>
+                                <input type="text" name="seller_handoff_location" required="required" placeholder="Contoh: Lobby Kampus UNISA, pukul 13.00"/>
+                            </label>
+                            <div class="tw-mt-6 tw-flex tw-justify-end tw-gap-3">
+                                <button type="button" class="ut-dash-handoff-cancel" t-on-click="closeHandoff">Batal</button>
+                                <button type="submit" class="ut-dash-handoff-submit" t-att-disabled="!state.handoffFileName ? true : undefined">Simpan Bukti</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="unitrade_seller.SellerOrderDetailSkeleton">
+        <div class="ut-dash-stage ut-order-detail-stage ut-dash-skeleton-stage">
+            <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
+            </div>
+            <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-w-[210px] tw-rounded-[22px]"></span>
+                <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+            </header>
+            <aside class="ut-dash-sidebar ut-order-detail-sidebar ut-dash-skeleton-sidebar">
+                <div class="ut-dash-sidebar-brand">
+                    <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
+                </div>
+                <div class="ut-dash-sidebar-nav">
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                </div>
+            </aside>
+            <main class="ut-order-detail-main tw-absolute tw-left-[180px] tw-right-[67px] tw-top-[173px] tw-pb-10">
+                <span class="ut-dash-skeleton-line tw-h-11 tw-w-[260px] tw-rounded-[16px]"></span>
+                <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
+                <div class="tw-mt-7 tw-grid tw-grid-cols-[minmax(0,1fr)_360px] tw-gap-5">
+                    <span class="ut-dash-skeleton-card tw-h-[230px]"></span>
+                    <span class="ut-dash-skeleton-card tw-h-[230px]"></span>
+                    <span class="ut-dash-skeleton-card tw-h-[360px]"></span>
+                    <span class="ut-dash-skeleton-card tw-h-[360px]"></span>
+                </div>
+            </main>
+        </div>
+    </t>
+</templates>

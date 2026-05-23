@@ -4,14 +4,14 @@ from urllib.parse import quote, urlparse
 
 from odoo import _, http
 from odoo.exceptions import UserError
-from odoo.http import request
+from odoo.http import Stream, request
 
 _logger = logging.getLogger(__name__)
 
 
 class UnitradeDisputeController(http.Controller):
     PHOTO_MAX_FILES = 3
-    PHOTO_MAX_BYTES = 5 * 1024 * 1024
+    PHOTO_MAX_BYTES = 2 * 1024 * 1024
     VIDEO_MAX_BYTES = 10 * 1024 * 1024
     PHOTO_MIMETYPES = {'image/jpeg', 'image/png', 'image/webp'}
     VIDEO_MIMETYPES = {'video/mp4', 'video/webm'}
@@ -80,7 +80,7 @@ class UnitradeDisputeController(http.Controller):
                 continue
             if len(payload) > limit_bytes:
                 if evidence_type == 'buyer_photo':
-                    raise UserError(_('Foto bukti %s melebihi 5 MB. Maksimal 3 foto, 5 MB per foto.') % filename)
+                    raise UserError(_('Foto bukti %s melebihi 2 MB. Maksimal 3 foto, 2 MB per foto.') % filename)
                 if evidence_type == 'unboxing_video':
                     raise UserError(_('Video unboxing %s melebihi 10 MB. Upload ke Google Drive lalu isi link Google Drive.') % filename)
                 raise UserError(_('Ukuran file %s melebihi batas upload pengembalian.') % filename)
@@ -253,6 +253,16 @@ class UnitradeDisputeController(http.Controller):
             ('Content-Disposition', 'attachment; filename="%s"' % filename),
         ]
         return request.make_response(payload, headers=headers)
+
+    @http.route('/unitrade/refund/evidence/<int:evidence_id>/image', type='http', auth='user', website=True, methods=['GET'], sitemap=False)
+    def refund_evidence_image(self, evidence_id, **kwargs):
+        evidence = request.env['unitrade.dispute.evidence'].sudo().browse(evidence_id).exists()
+        if not evidence or not evidence.attachment_id or not self._can_view_dispute(evidence.dispute_id):
+            return request.not_found()
+        attachment = evidence.attachment_id.sudo()
+        if (attachment.mimetype or '') not in self.PHOTO_MIMETYPES:
+            return request.not_found()
+        return Stream.from_attachment(attachment).get_response(as_attachment=False)
 
     @http.route('/seller/refund/<int:dispute_id>/respond', type='http', auth='user', website=True, methods=['POST'], csrf=True, sitemap=False)
     def seller_refund_respond(self, dispute_id, **kwargs):

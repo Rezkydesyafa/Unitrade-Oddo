@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="customer_service_page" name="UniTrade Customer Service">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="page_title"/>
+            <main class="ut-cs-page tw-min-h-screen tw-bg-[#f9fafb] tw-px-4 tw-pb-16 tw-pt-10 md:tw-px-8">
+                <section id="ut-customer-service-app" class="ut-cs-app tw-mx-auto tw-w-full tw-max-w-[1280px]">
+                    <div class="ut-cs-skeleton-shell" aria-hidden="true">
+                        <div class="ut-cs-skeleton-title"></div>
+                        <div class="ut-cs-skeleton-subtitle"></div>
+                        <div class="ut-cs-skeleton-categories">
+                            <div class="ut-cs-skeleton-card"></div>
+                            <div class="ut-cs-skeleton-card"></div>
+                            <div class="ut-cs-skeleton-card"></div>
+                        </div>
+                        <div class="ut-cs-skeleton-grid">
+                            <div class="ut-cs-skeleton-form"></div>
+                            <div class="ut-cs-skeleton-list"></div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </t>
+    </template>
+
+    <template id="customer_service_tickets_page" name="UniTrade Customer Service Tickets">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="page_title"/>
+            <main class="ut-cs-page tw-min-h-screen tw-bg-[#f9fafb] tw-px-4 tw-pb-16 tw-pt-10 md:tw-px-8">
+                <section class="ut-cs-list-shell tw-mx-auto tw-w-full tw-max-w-[1024px]">
+                    <div class="tw-mb-8 tw-flex tw-flex-col tw-gap-3 md:tw-flex-row md:tw-items-end md:tw-justify-between">
+                        <div>
+                            <a href="/customer-service" class="tw-mb-4 tw-inline-flex tw-text-[14px] tw-font-semibold tw-text-[#667085] tw-no-underline hover:tw-text-[#101828]">
+                                Kembali ke Customer Service
+                            </a>
+                            <h1 class="tw-m-0 tw-text-[36px] tw-font-semibold tw-leading-tight tw-text-[#101828] md:tw-text-[44px]">Tiket Bantuan</h1>
+                            <p class="tw-mt-2 tw-text-[16px] tw-leading-6 tw-text-[#667085]">Pantau semua tiket bantuan yang pernah Anda kirim.</p>
+                        </div>
+                    </div>
+
+                    <div class="ut-cs-panel tw-bg-white">
+                        <t t-if="tickets">
+                            <div class="ut-cs-ticket-list-page">
+                                <t t-foreach="tickets" t-as="ticket">
+                                    <a t-att-href="ticket.get('detail_url')" class="ut-cs-ticket-row tw-no-underline">
+                                        <div>
+                                            <div class="tw-flex tw-flex-wrap tw-items-center tw-gap-3">
+                                                <strong class="tw-text-[16px] tw-text-[#101828]" t-esc="ticket.get('name')"/>
+                                                <span t-att-class="'ut-cs-status-badge is-%s' % ticket.get('status_tone')" t-esc="ticket.get('status_label')"/>
+                                            </div>
+                                            <h2 class="tw-mb-1 tw-mt-3 tw-text-[18px] tw-font-semibold tw-text-[#101828]" t-esc="ticket.get('title')"/>
+                                            <p class="tw-m-0 tw-text-[14px] tw-leading-6 tw-text-[#667085]" t-esc="ticket.get('summary')"/>
+                                            <div class="tw-mt-3 tw-flex tw-flex-wrap tw-gap-3 tw-text-[13px] tw-font-medium tw-text-[#98a2b3]">
+                                                <span t-esc="ticket.get('category_label')"/>
+                                                <span t-if="ticket.get('order_name')" t-esc="ticket.get('order_name')"/>
+                                                <span t-esc="ticket.get('created_at')"/>
+                                            </div>
+                                        </div>
+                                        <span class="ut-cs-ticket-arrow" aria-hidden="true">
+                                            <i class="fa fa-chevron-right"></i>
+                                        </span>
+                                    </a>
+                                </t>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <div class="ut-cs-empty-state">
+                                <h2>Belum ada tiket bantuan.</h2>
+                                <p>Kirim tiket pertama Anda melalui halaman Customer Service.</p>
+                                <a href="/customer-service">Buat Tiket</a>
+                            </div>
+                        </t>
+                    </div>
+                </section>
+            </main>
+        </t>
+    </template>
+
+    <template id="customer_service_ticket_detail_page" name="UniTrade Customer Service Ticket Detail">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="page_title"/>
+            <main class="ut-cs-page tw-min-h-screen tw-bg-[#f9fafb] tw-px-4 tw-pb-16 tw-pt-10 md:tw-px-8">
+                <section class="ut-cs-detail-shell tw-mx-auto tw-w-full tw-max-w-[960px]">
+                    <a href="/my/customer-service/tickets" class="tw-mb-5 tw-inline-flex tw-text-[14px] tw-font-semibold tw-text-[#667085] tw-no-underline hover:tw-text-[#101828]">
+                        Kembali ke daftar tiket
+                    </a>
+                    <div class="ut-cs-panel tw-bg-white">
+                        <div class="tw-flex tw-flex-col tw-gap-4 md:tw-flex-row md:tw-items-start md:tw-justify-between">
+                            <div>
+                                <div class="tw-flex tw-flex-wrap tw-items-center tw-gap-3">
+                                    <strong class="tw-text-[18px] tw-text-[#101828]" t-esc="ticket.get('name')"/>
+                                    <span t-att-class="'ut-cs-status-badge is-%s' % ticket.get('status_tone')" t-esc="ticket.get('status_label')"/>
+                                </div>
+                                <h1 class="tw-mb-2 tw-mt-4 tw-text-[32px] tw-font-semibold tw-leading-tight tw-text-[#101828]" t-esc="ticket.get('title')"/>
+                                <p class="tw-m-0 tw-text-[14px] tw-font-medium tw-text-[#667085]" t-esc="ticket.get('created_at')"/>
+                            </div>
+                        </div>
+
+                        <div class="ut-cs-detail-meta">
+                            <div>
+                                <span>Kategori</span>
+                                <strong t-esc="ticket.get('category_label')"/>
+                            </div>
+                            <div t-if="ticket.get('order_name')">
+                                <span>Nomor Pesanan</span>
+                                <strong t-esc="ticket.get('order_name')"/>
+                            </div>
+                        </div>
+
+                        <section class="ut-cs-detail-section">
+                            <h2>Deskripsi Keluhan</h2>
+                            <p t-esc="ticket.get('description')"/>
+                        </section>
+
+                        <section class="ut-cs-detail-section" t-if="ticket.get('evidence')">
+                            <h2>Bukti Upload</h2>
+                            <div class="ut-cs-evidence-grid">
+                                <t t-foreach="ticket.get('evidence')" t-as="item">
+                                    <a t-att-href="item.get('url')" target="_blank" rel="noopener" class="ut-cs-evidence-item tw-no-underline">
+                                        <t t-if="item.get('is_video')">
+                                            <video t-att-src="item.get('url')" controls="controls"></video>
+                                        </t>
+                                        <t t-else="">
+                                            <img t-att-src="item.get('url')" t-att-alt="item.get('name')"/>
+                                        </t>
+                                        <span t-esc="item.get('name')"/>
+                                    </a>
+                                </t>
+                            </div>
+                        </section>
+                    </div>
+                </section>
+            </main>
+        </t>
+    </template>
+</odoo>

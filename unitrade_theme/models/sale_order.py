@@ -205,6 +205,18 @@ class SaleOrder(models.Model):
             available_qty=self._unitrade_format_stock_qty(max(available_qty, 0)),
         )
 
+    def _unitrade_is_stock_limited_product(self, product):
+        self.ensure_one()
+        if hasattr(product, '_unitrade_is_stock_limited'):
+            return product.sudo()._unitrade_is_stock_limited()
+        return product.type == 'product' and not product.allow_out_of_stock_order
+
+    def _unitrade_available_qty(self, product):
+        self.ensure_one()
+        if hasattr(product, '_unitrade_available_qty'):
+            return product.sudo()._unitrade_available_qty(warehouse=self.warehouse_id)
+        return product.sudo().with_context(warehouse=self.warehouse_id.id).free_qty
+
     def _unitrade_get_cart_stock_issues(self):
         """Return stock issues for the current cart using the website warehouse."""
         self.ensure_one()
@@ -215,8 +227,7 @@ class SaleOrder(models.Model):
             lambda line: (
                 not line.display_type
                 and line.product_id
-                and line.product_id.type == 'product'
-                and not line.product_id.allow_out_of_stock_order
+                and self._unitrade_is_stock_limited_product(line.product_id)
             )
         )
         line_by_product_id = {}
@@ -232,9 +243,22 @@ class SaleOrder(models.Model):
                 continue
             checked_product_ids.add(product.id)
 
+            template = product.product_tmpl_id.sudo()
+            if hasattr(template, '_unitrade_is_publicly_available') and not template._unitrade_is_publicly_available():
+                issue = {
+                    'product_id': product.id,
+                    'product_name': product.display_name,
+                    'requested_qty': qty_by_product_id.get(product.id, 0.0),
+                    'available_qty': 0,
+                    'message': 'Produk %s belum aktif atau sudah tidak tersedia.' % product.display_name,
+                }
+                issues.append(issue)
+                issue_by_product_id[product.id] = issue
+                continue
+
             try:
                 cart_qty = qty_by_product_id.get(product.id, 0.0)
-                available_qty = product.sudo().with_context(warehouse=self.warehouse_id.id).free_qty
+                available_qty = self._unitrade_available_qty(product)
             except Exception:
                 _logger.exception('Failed to read realtime stock for product %s in cart %s', product.id, self.id)
                 available_qty = 0.0
@@ -270,13 +294,14 @@ class SaleOrder(models.Model):
         self.ensure_one()
 
         product = self.env['product.product'].browse(product_id).exists()
-        if not product or product.type != 'product' or product.allow_out_of_stock_order:
+        if not product or not self._unitrade_is_stock_limited_product(product):
             return verified_qty, warning
 
-        product_qty_in_cart, available_qty = self._get_cart_and_free_qty(product, line=order_line)
-        old_qty = order_line.product_uom_qty if order_line else 0
-        added_qty = verified_qty - old_qty
-        total_cart_qty = product_qty_in_cart + added_qty
+        other_cart_qty = sum(self.order_line.filtered(
+            lambda line: line.product_id.id == product.id and line != order_line
+        ).mapped('product_uom_qty'))
+        available_qty = self._unitrade_available_qty(product)
+        total_cart_qty = other_cart_qty + verified_qty
         precision = product.uom_id.rounding
 
         if float_compare(total_cart_qty, available_qty, precision_rounding=precision) <= 0:
@@ -286,7 +311,7 @@ class SaleOrder(models.Model):
                 self.shop_warning = False
             return verified_qty, warning
 
-        allowed_line_qty = max(available_qty - (product_qty_in_cart - old_qty), 0)
+        allowed_line_qty = max(available_qty - other_cart_qty, 0)
         message = self._unitrade_stock_message(product, total_cart_qty, available_qty)
         if order_line:
             order_line.shop_warning = message

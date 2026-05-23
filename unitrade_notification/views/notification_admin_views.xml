@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!--
+        Admin backend for triaging UniTrade notification records (task 14.1).
+
+        Surfaces email-delivery state (Req 8.5) so admins can investigate
+        failed sends and re-enqueue them via the `action_retry_email`
+        method implemented on `unitrade.notification` (task 7.3). Visible
+        only to platform admins / system users.
+    -->
+
+    <!-- ============================================================ -->
+    <!-- Tree (list) view                                             -->
+    <!-- ============================================================ -->
+    <record id="view_unitrade_notification_admin_tree" model="ir.ui.view">
+        <field name="name">unitrade.notification.admin.tree</field>
+        <field name="model">unitrade.notification</field>
+        <field name="arch" type="xml">
+            <tree string="Notifikasi"
+                  decoration-danger="email_state == 'failed'"
+                  decoration-success="email_state == 'sent'"
+                  decoration-muted="is_read == True">
+                <field name="create_date"/>
+                <field name="user_id"/>
+                <field name="category"/>
+                <field name="event_code"/>
+                <field name="title"/>
+                <field name="email_state"/>
+                <field name="mail_message_id"/>
+                <field name="is_read"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Form view (with retry button)                                -->
+    <!-- ============================================================ -->
+    <record id="view_unitrade_notification_admin_form" model="ir.ui.view">
+        <field name="name">unitrade.notification.admin.form</field>
+        <field name="model">unitrade.notification</field>
+        <field name="arch" type="xml">
+            <form string="Notifikasi">
+                <header>
+                    <button name="action_retry_email"
+                            string="Retry Email"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="email_state != 'failed'"/>
+                    <field name="email_state"
+                           widget="statusbar"
+                           statusbar_visible="not_applicable,pending,sent,failed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="title" placeholder="Judul notifikasi"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Notifikasi">
+                            <field name="user_id"/>
+                            <field name="category"/>
+                            <field name="event_code"/>
+                            <field name="action_url"/>
+                            <field name="is_read"/>
+                            <field name="read_at"/>
+                        </group>
+                        <group string="Email">
+                            <field name="email_state"/>
+                            <field name="mail_message_id"/>
+                            <field name="idempotency_key" groups="base.group_no_one"/>
+                        </group>
+                    </group>
+                    <group string="Pesan">
+                        <field name="message" nolabel="1"/>
+                    </group>
+                    <group string="Email Error" invisible="email_state != 'failed'">
+                        <field name="email_error" nolabel="1" readonly="1"/>
+                    </group>
+                    <group string="Referensi" groups="base.group_no_one">
+                        <field name="reference_model"/>
+                        <field name="reference_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Search view                                                  -->
+    <!-- ============================================================ -->
+    <record id="view_unitrade_notification_admin_search" model="ir.ui.view">
+        <field name="name">unitrade.notification.admin.search</field>
+        <field name="model">unitrade.notification</field>
+        <field name="arch" type="xml">
+            <search string="Cari Notifikasi">
+                <field name="title"/>
+                <field name="user_id"/>
+                <field name="event_code"/>
+                <field name="category"/>
+                <separator/>
+                <filter name="email_failed"
+                        string="Email Gagal"
+                        domain="[('email_state', '=', 'failed')]"/>
+                <filter name="email_pending"
+                        string="Email Pending"
+                        domain="[('email_state', '=', 'pending')]"/>
+                <filter name="email_sent"
+                        string="Email Terkirim"
+                        domain="[('email_state', '=', 'sent')]"/>
+                <separator/>
+                <filter name="unread"
+                        string="Belum Dibaca"
+                        domain="[('is_read', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_email_state"
+                            string="Status Email"
+                            context="{'group_by': 'email_state'}"/>
+                    <filter name="group_category"
+                            string="Kategori"
+                            context="{'group_by': 'category'}"/>
+                    <filter name="group_user"
+                            string="User"
+                            context="{'group_by': 'user_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Action: Failed Emails                                        -->
+    <!-- ============================================================ -->
+    <record id="action_failed_emails" model="ir.actions.act_window">
+        <field name="name">Notifikasi: Email Gagal</field>
+        <field name="res_model">unitrade.notification</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_unitrade_notification_admin_search"/>
+        <field name="domain">[('email_state', '=', 'failed')]</field>
+        <field name="context">{'search_default_email_failed': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tidak ada email notifikasi yang gagal terkirim.
+            </p>
+            <p>
+                Halaman ini menampilkan record <code>unitrade.notification</code>
+                dengan <code>email_state='failed'</code>. Buka record dan klik
+                tombol <strong>Retry Email</strong> untuk mengantrikan ulang
+                pengiriman lewat <code>mail.mail</code>.
+            </p>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Menus (admin-only)                                           -->
+    <!-- ============================================================ -->
+    <menuitem id="menu_unitrade_notification_root"
+              name="UniTrade Notifikasi"
+              groups="unitrade_seller.group_unitrade_admin,base.group_system"
+              sequence="80"/>
+
+    <menuitem id="menu_unitrade_notification_failed"
+              name="Email Gagal"
+              parent="menu_unitrade_notification_root"
+              action="action_failed_emails"
+              groups="unitrade_seller.group_unitrade_admin,base.group_system"
+              sequence="10"/>
+</odoo>

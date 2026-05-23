@@ -90,6 +90,12 @@ class UnitradeSeller(models.Model):
         tracking=True,
         help='Jika nonaktif, toko tidak ditampilkan sebagai toko aktif.',
     )
+    x_chat_enabled = fields.Boolean(
+        string='Terima Chat Pembeli',
+        default=True,
+        tracking=True,
+        help='Jika nonaktif, pembeli baru tidak bisa membuka chat baru dengan toko ini.',
+    )
     x_store_province = fields.Char(string='Provinsi Toko')
     x_store_city = fields.Char(string='Kota/Kabupaten Toko')
     x_store_address_detail = fields.Text(string='Detail Alamat Toko')
@@ -270,6 +276,11 @@ class UnitradeSeller(models.Model):
             UPDATE unitrade_seller
                SET x_store_active = TRUE
              WHERE x_store_active IS NULL
+        """)
+        self.env.cr.execute("""
+            UPDATE unitrade_seller
+               SET x_chat_enabled = TRUE
+             WHERE x_chat_enabled IS NULL
         """)
         self.env.cr.execute("""
             CREATE UNIQUE INDEX IF NOT EXISTS unitrade_seller_verified_nim_unique_idx

@@ -469,7 +469,7 @@
 
                         <section class="ut-pay-card">
                             <div class="ut-pay-divider-head">
-                                <h2 class="ut-pay-section-title">Detail Pesanan</h2>
+                                <h2 class="ut-pay-section-title" t-esc="payment_lines_title or 'Detail Pesanan'"/>
                             </div>
                             <t t-if="payment_lines">
                                 <article t-foreach="payment_lines" t-as="line" class="ut-pay-product">
@@ -509,7 +509,7 @@
 
                         <div class="ut-pay-actions">
                             <a t-att-href="payment_primary_url" class="ut-pay-primary" data-payment-primary="1" t-esc="payment_primary_label"/>
-                            <a href="/" class="ut-pay-secondary">Kembali ke Beranda</a>
+                            <a t-att-href="payment_secondary_url or '/'" class="ut-pay-secondary" t-esc="payment_secondary_label or 'Kembali ke Beranda'"/>
                         </div>
                     </div>
                 </main>
@@ -668,11 +668,11 @@
                             }
                             if (primaryAction) {
                                 if (data.status === "paid") {
-                                    primaryAction.textContent = "Lihat Pesanan";
-                                    primaryAction.href = data.order_url || "/my/orders";
+                                    primaryAction.textContent = data.primary_label || "Lihat Pesanan";
+                                    primaryAction.href = data.primary_url || data.order_url || "/my/orders";
                                 } else if (["expired", "failed", "cancelled"].indexOf(data.status) !== -1) {
-                                    primaryAction.textContent = "Kembali ke Checkout";
-                                    primaryAction.href = "/shop/checkout";
+                                    primaryAction.textContent = data.primary_label || "Kembali ke Checkout";
+                                    primaryAction.href = data.primary_url || "/shop/checkout";
                                 }
                             }
                             if (["paid", "expired", "failed", "cancelled"].indexOf(data.status) !== -1 && pollTimer) {
@@ -2612,7 +2612,7 @@
                                 </svg>
                             </div>
                             <div>
-                                <h1 class="ut-success-title">Pembayaran Berhasil!</h1>
+                                <h1 class="ut-success-title" t-esc="success_title or 'Pembayaran Berhasil!'"/>
                                 <p class="ut-success-transaction">
                                     ID Transaksi:
                                     <strong t-esc="success_transaction_id"/>
@@ -2624,11 +2624,24 @@
 
                         <div class="ut-success-next">
                             <div>
-                                <h2 class="ut-success-next-title">Langkah Selanjutnya</h2>
-                                <p class="ut-success-next-copy">Transaksi kamu sudah aman. Sekarang tunggu prosesnya hingga selesai.</p>
+                                <h2 class="ut-success-next-title" t-esc="success_next_title or 'Langkah Selanjutnya'"/>
+                                <p class="ut-success-next-copy" t-esc="success_next_copy or 'Transaksi kamu sudah aman. Sekarang tunggu prosesnya hingga selesai.'"/>
                             </div>
 
-                            <div class="ut-success-seller">
+                            <div t-if="success_context_card" class="ut-success-seller">
+                                <div class="ut-success-seller-profile">
+                                    <div class="ut-success-avatar">
+                                        <img t-att-src="success_context_card.get('image_url')" t-att-alt="success_context_card.get('name')"/>
+                                    </div>
+                                    <div>
+                                        <p class="ut-success-seller-name" t-esc="success_context_card.get('name')"/>
+                                        <p class="ut-success-seller-rating" t-esc="success_context_card.get('meta')"/>
+                                    </div>
+                                </div>
+                                <a t-att-href="success_context_card.get('action_url') or '#'" class="ut-success-chat" t-esc="success_context_card.get('action_label') or 'Lihat'"/>
+                            </div>
+
+                            <div t-elif="success_seller" class="ut-success-seller">
                                 <div class="ut-success-seller-profile">
                                     <div class="ut-success-avatar">
                                         <img t-att-src="success_seller.get('avatar_url')" t-att-alt="success_seller.get('name')"/>
@@ -2647,24 +2660,16 @@
                             </div>
 
                             <ol class="ut-success-steps">
-                                <li class="ut-success-step">
-                                    <span class="ut-success-step-number">1</span>
-                                    <span>Tunggu barang diproses</span>
-                                </li>
-                                <li class="ut-success-step">
-                                    <span class="ut-success-step-number">2</span>
-                                    <span>Cek kondisi barang langsung</span>
-                                </li>
-                                <li class="ut-success-step">
-                                    <span class="ut-success-step-number">3</span>
-                                    <span>Konfirmasi pesanan selesai di aplikasi</span>
+                                <li t-foreach="success_steps" t-as="step" class="ut-success-step">
+                                    <span class="ut-success-step-number" t-esc="step_index + 1"/>
+                                    <span t-esc="step.get('label')"/>
                                 </li>
                             </ol>
                         </div>
 
                         <div class="ut-success-actions">
-                            <a t-att-href="status_url" class="ut-success-primary">Lihat Status Pesanan</a>
-                            <a href="/" class="ut-success-secondary">Kembali ke Beranda</a>
+                            <a t-att-href="success_primary_url or status_url" class="ut-success-primary" t-esc="success_primary_label or 'Lihat Status Pesanan'"/>
+                            <a t-att-href="success_secondary_url or '/'" class="ut-success-secondary" t-esc="success_secondary_label or 'Kembali ke Beranda'"/>
                         </div>
                     </section>
                 </main>
