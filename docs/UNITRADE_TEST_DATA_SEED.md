@@ -10,6 +10,20 @@ Tujuan:
 
 Default script adalah dry-run. Tidak ada data yang dihapus atau dibuat sebelum environment variable `UNITRADE_RESET_TEST_DATA=YES` di-set.
 
+## Via Task Runner Windows
+
+Dry-run:
+
+```powershell
+.\scripts\unitrade.ps1 seed-dry
+```
+
+Execute reset + seed:
+
+```powershell
+.\scripts\unitrade.ps1 seed
+```
+
 ## Dry-run
 
 ```powershell
