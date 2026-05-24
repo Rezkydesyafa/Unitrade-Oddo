@@ -4,16 +4,16 @@ UniTrade adalah marketplace C2C berbasis Odoo 17 untuk mahasiswa Yogyakarta. Pla
 
 ## Ringkasan Project
 
-| Bagian            | Keterangan                                                  |
-| ----------------- | ----------------------------------------------------------- |
-| Nama project      | UniTrade Marketplace                                        |
-| Target pengguna   | Mahasiswa dan user terdaftar di lingkungan UNISA Yogyakarta |
-| Platform          | Odoo 17 Website dan Website Sale                            |
-| Model bisnis      | Marketplace C2C                                             |
-| Verifikasi seller | Verifikasi KTM dan validasi data mahasiswa                  |
-| Pembayaran        | Integrasi Midtrans                                          |
-| Frontend          | QWeb, OWL, JavaScript, Tailwind CSS dengan prefix `tw-`     |
-| Database          | PostgreSQL                                                  |
+| Bagian            | Keterangan                                              |
+| ----------------- | ------------------------------------------------------- |
+| Nama project      | UniTrade Marketplace                                    |
+| Target pengguna   | Mahasiswa dan user terdaftar di Yogyakarta              |
+| Platform          | Odoo 17 Website dan Website Sale                        |
+| Model bisnis      | Marketplace C2C                                         |
+| Verifikasi seller | Verifikasi KTM dan validasi data mahasiswa              |
+| Pembayaran        | Integrasi Midtrans                                      |
+| Frontend          | QWeb, OWL, JavaScript, Tailwind CSS dengan prefix `tw-` |
+| Database          | PostgreSQL                                              |
 
 ## Fitur Utama
 
@@ -34,7 +34,8 @@ Dokumentasi berikut dibuat dalam format Markdown dan Mermaid. Jika repository di
 
 | Dokumen                                              | Isi                                                                                                                                                    |
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [Setup Windows](./docs/WINDOWS_SETUP.md)             | Panduan menjalankan project di Windows/komputer lain: config, install/upgrade modul, seed data, Tailwind build/watch, dan run server.                 |
+| [Setup Windows](./docs/WINDOWS_SETUP.md)             | Panduan menjalankan project di Windows/komputer lain: config, install/upgrade modul, seed data, Tailwind build/watch, dan run server.                  |
+| [QA Test Plan](./docs/QA_TEST_PLAN.md)               | Panduan QA sederhana: fitur yang wajib dites, format test case, dan daftar test case utama UniTrade.                                                   |
 | [Flowchart Fitur](./FEATURE_FLOWCHARTS.md)           | Diagram alur untuk fitur yang sudah selesai, seperti login, register, daftar seller, profil, filter pencarian, wishlist, chat, pembayaran, dan review. |
 | [ERD UniTrade](./FEATURE_ERD.md)                     | Diagram hubungan data utama project dengan bahasa umum yang mudah dipahami.                                                                            |
 | [Viewer Flowchart](./FEATURE_FLOWCHARTS_VIEWER.html) | Halaman HTML lokal untuk membuka flowchart dengan tampilan Mermaid di browser.                                                                         |

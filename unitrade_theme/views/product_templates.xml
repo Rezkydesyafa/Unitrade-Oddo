@@ -68,7 +68,6 @@
                     </div>
 
                     <div class="ut-pd-sk-tabs">
-                        <span class="ut-pd-sk-tab-label ut-pd-sk-block"></span>
                         <span class="ut-pd-sk-tab ut-pd-sk-block"></span>
                         <span class="ut-pd-sk-tab ut-pd-sk-block"></span>
                     </div>
@@ -420,7 +419,6 @@
 
                         <!-- Tab Headers -->
                         <div class="ut-product-detail-tabbar">
-                            <span class="ut-product-detail-tabbar-label">Produk</span>
                             <button id="ut-tab-deskripsi" type="button"
                                 onclick="utSwitchTab(this, 'deskripsi')"
                                 class="ut-product-detail-tab-btn ut-product-detail-tab-active">
@@ -479,9 +477,9 @@
                     <!-- Related Products -->
                     <div class="tw-mb-8">
                         <h2 style="font-size:32px; font-weight:600; color:var(--ut-color-heading); margin-bottom:32px;">Pilihan lainnya untukmu</h2>
-                        <div t-if="ut_recommended_products" class="ut-related-products-row tw-flex tw-gap-4 tw-overflow-x-auto tw-pt-5 tw-pb-6 tw-px-2">
+                        <div t-if="ut_recommended_products" class="ut-related-products-row tw-grid tw-gap-4 tw-pt-5 tw-pb-6 tw-px-2">
                             <t t-foreach="ut_recommended_products" t-as="p">
-                                <div class="oe_product ut-related-product-item tw-shrink-0 tw-h-full">
+                                <div class="oe_product ut-related-product-item tw-h-full">
                                     <t t-set="ut_card_product" t-value="p"/>
                                     <t t-set="ut_card_href" t-value="p.website_url"/>
                                     <t t-set="ut_card_class" t-value="'tw-bg-white tw-border tw-border-solid tw-border-gray-200 tw-rounded-[14px] tw-overflow-hidden tw-shadow-sm hover:tw-shadow-md hover:-tw-translate-y-1 tw-transition-all tw-duration-300 tw-flex tw-flex-col tw-h-full tw-no-underline tw-group'"/>

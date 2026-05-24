@@ -44,6 +44,7 @@
             'unitrade_theme/static/src/css/output.css',
             'unitrade_theme/static/src/css/legal.css',
             'unitrade_theme/static/src/css/contact.css',
+            'unitrade_theme/static/src/css/customer_service.css',
             'unitrade_theme/static/src/xml/shop_filter.xml',
             'unitrade_theme/static/src/xml/product_detail.xml',
             'unitrade_theme/static/src/xml/orders.xml',

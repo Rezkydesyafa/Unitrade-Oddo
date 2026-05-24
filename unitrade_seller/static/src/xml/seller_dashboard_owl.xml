@@ -227,8 +227,8 @@
                                     <a href="/unitrade/seller/orders" class="tw-text-[12px] tw-font-medium tw-leading-4 tw-text-[#155dfc] tw-no-underline">Lihat Semua Pesanan</a>
                                 </div>
                             </div>
-                            <div t-if="orders.length" class="tw-overflow-x-auto">
-                                <table class="ut-dash-orders-table tw-w-full tw-min-w-[620px]">
+                            <div t-if="orders.length" class="ut-dash-orders-table-wrap">
+                                <table class="ut-dash-orders-table">
                                     <thead>
                                         <tr>
                                             <th>ID PESANAN</th>
@@ -242,28 +242,28 @@
                                     <tbody>
                                         <t t-foreach="orders" t-as="order" t-key="orderKey(order)">
                                             <tr>
-                                                <td><strong t-esc="order.order_name"></strong></td>
-                                                <td>
-                                                    <span class="tw-flex tw-items-center tw-gap-3">
+                                                <td class="ut-dash-order-id-cell"><strong t-esc="order.order_name"></strong></td>
+                                                <td class="ut-dash-order-customer-cell">
+                                                    <span class="ut-dash-order-customer">
                                                         <t t-if="order.customer_avatar_url">
                                                             <img t-att-src="order.customer_avatar_url" alt="" class="ut-customer-avatar ut-customer-avatar-xs"/>
                                                         </t>
                                                         <t t-else="">
                                                             <span class="ut-customer-avatar ut-customer-avatar-xs is-initials" t-esc="order.customer_initials || 'UT'"></span>
                                                         </t>
-                                                        <span t-esc="order.customer_name"></span>
+                                                        <span class="ut-dash-order-customer-name" t-esc="order.customer_name"></span>
                                                     </span>
                                                 </td>
-                                                <td t-esc="order.date_label"></td>
-                                                <td><strong class="ut-orders-total" t-esc="order.total_label"></strong></td>
-                                                <td><span t-att-class="statusClass(order.status_key)" t-esc="order.status_label"></span></td>
-                                                <td>
+                                                <td class="ut-dash-order-date-cell" t-esc="order.date_label"></td>
+                                                <td class="ut-dash-order-total-cell"><strong class="ut-orders-total" t-esc="order.total_label"></strong></td>
+                                                <td class="ut-dash-order-status-cell"><span t-att-class="statusClass(order.status_key)" t-esc="order.status_label"></span></td>
+                                                <td class="ut-dash-order-action-cell">
                                                     <button t-if="order.can_confirm_handoff" type="button" class="ut-dash-handoff-btn" t-on-click="() => this.openHandoff(order)">Diserahkan</button>
                                                     <a t-elif="order.can_respond_refund" t-att-href="order.refund_detail_url" class="ut-dash-refund-detail-link">Detail refund</a>
-                                                    <a t-elif="order.refund_detail_url" t-att-href="order.refund_detail_url" class="tw-text-[#c2410c] tw-no-underline" aria-label="Buka refund">
+                                                    <a t-elif="order.refund_detail_url" t-att-href="order.refund_detail_url" class="ut-dash-order-icon-action tw-text-[#c2410c] tw-no-underline" aria-label="Buka refund">
                                                         <i class="fa fa-exclamation-circle"></i>
                                                     </a>
-                                                    <a t-else="" t-att-href="order.detail_url || order.order_detail_url || order.action_url" class="tw-text-[#212529] tw-no-underline" aria-label="Lihat detail pesanan">
+                                                    <a t-else="" t-att-href="order.detail_url || order.order_detail_url || order.action_url" class="ut-dash-order-icon-action tw-text-[#212529] tw-no-underline" aria-label="Lihat detail pesanan">
                                                         <i class="fa fa-eye"></i>
                                                     </a>
                                                 </td>

@@ -116,11 +116,12 @@ export function sellerSidebarItems(activeKey, stats = {}) {
             badge: compactBadge(unreadChat),
         },
         {
-            key: "reviews",
-            section: "communication",
-            label: "Ulasan",
-            href: "/unitrade/seller/dashboard#dashboard-reviews",
-            iconUrl: `${SELLER_SIDEBAR_ICON_BASE}dashboard-icon-star.svg`,
+            key: "home",
+            section: "settings",
+            label: "Beranda",
+            href: "/",
+            iconUrl: `${SELLER_SIDEBAR_ICON_BASE}dashboard-icon-home.svg`,
+            ariaLabel: "Kembali ke Beranda UniTrade",
         },
         {
             key: "settings",

@@ -183,13 +183,16 @@ class UnitradeDisputeController(http.Controller):
                     line = False
 
             evidence_items = []
-            evidence_items.extend(self._uploaded_evidence(
+            photo_items = self._uploaded_evidence(
                 'refund_evidence',
                 'buyer_photo',
                 max_files=self.PHOTO_MAX_FILES,
                 max_bytes=self.PHOTO_MAX_BYTES,
                 allowed_mimetypes=self.PHOTO_MIMETYPES,
-            ))
+            )
+            if not photo_items:
+                raise UserError(_('Minimal upload 1 foto bukti pengembalian.'))
+            evidence_items.extend(photo_items)
             unboxing_items = self._uploaded_evidence(
                 'unboxing_video',
                 'unboxing_video',
@@ -200,15 +203,13 @@ class UnitradeDisputeController(http.Controller):
             evidence_items.extend(unboxing_items)
 
             drive_url = (kwargs.get('google_drive_url') or '').strip()
-            reason_code = kwargs.get('reason_code') or 'other'
-            unboxing_required = reason_code in ('not_as_described', 'damaged', 'wrong_item')
             if drive_url:
                 if not self._is_google_drive_url(drive_url):
                     raise UserError(_('Link Google Drive harus menggunakan domain drive.google.com atau docs.google.com.'))
                 evidence_items.append({
-                    'evidence_type': 'unboxing_video' if unboxing_required and not unboxing_items else 'google_drive_url',
+                    'evidence_type': 'google_drive_url',
                     'url': drive_url,
-                    'note': _('Video unboxing melalui Google Drive.') if unboxing_required and not unboxing_items else _('Bukti tambahan melalui Google Drive.'),
+                    'note': _('Bukti tambahan melalui Google Drive.'),
                     'submitted_by_id': request.env.user.id,
                 })
 

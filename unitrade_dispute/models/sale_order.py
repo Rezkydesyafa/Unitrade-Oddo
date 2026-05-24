@@ -115,15 +115,18 @@ class SaleOrderUniTradeDispute(models.Model):
             if len(reason_note) < 20:
                 raise UserError(_('Catatan pengembalian minimal 20 karakter.'))
             if not evidence_items:
-                raise UserError(_('Upload minimal satu bukti pengembalian.'))
-            drive_required = reason_code in ('not_as_described', 'damaged', 'wrong_item')
+                raise UserError(_('Minimal upload 1 foto bukti pengembalian.'))
+            has_photo = any(
+                item.get('evidence_type') == 'buyer_photo' and (item.get('datas') or item.get('attachment_id'))
+                for item in evidence_items
+            )
+            if not has_photo:
+                raise UserError(_('Minimal upload 1 foto bukti pengembalian.'))
             drive_urls = [
                 item.get('url')
                 for item in evidence_items
                 if item.get('evidence_type') == 'google_drive_url' and item.get('url')
             ]
-            if drive_required and not any(self._unitrade_is_google_drive_url(url) for url in drive_urls):
-                raise UserError(_('Link Google Drive video unboxing wajib untuk alasan pengembalian ini.'))
             if any(url and not self._unitrade_is_google_drive_url(url) for url in drive_urls):
                 raise UserError(_('Link Google Drive harus menggunakan domain drive.google.com atau docs.google.com.'))
 

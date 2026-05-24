@@ -1,0 +1,169 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]: Diskon 20% Spesial Mahasiswa
+        - link "Belanja Sekarang →" [ref=e8] [cursor=pointer]:
+          - /url: /shop
+        - generic [ref=e9]: "|"
+        - link "Mulai Berjualan" [ref=e10] [cursor=pointer]:
+          - /url: /seller-onboarding
+        - generic [ref=e11]: "|"
+        - link "Sponsorship" [ref=e12] [cursor=pointer]:
+          - /url: /unitrade/sponsorship
+      - generic [ref=e13]:
+        - link "FAQ" [ref=e14] [cursor=pointer]:
+          - /url: /faq
+        - link "Customer Service" [ref=e15] [cursor=pointer]:
+          - /url: /customer-service
+        - link "Kontak" [ref=e16] [cursor=pointer]:
+          - /url: /contactus
+        - generic [ref=e17]: "|"
+        - generic [ref=e18]:
+          - generic [ref=e19]: "Ikuti kami :"
+          - link "Instagram UniTrade" [ref=e20] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e21]
+          - link "Facebook UniTrade" [ref=e25] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e26]
+          - link "TikTok UniTrade" [ref=e28] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e29]
+    - generic [ref=e32]:
+      - link "UniTrade beranda" [ref=e33] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e34]: UniTrade
+      - search "Cari produk UniTrade" [ref=e35]:
+        - generic [ref=e36]: Cari produk di UniTrade
+        - searchbox "Cari produk di UniTrade" [ref=e37]
+        - button "Cari produk" [ref=e38] [cursor=pointer]:
+          - img [ref=e39]
+      - navigation "Navigasi utama UniTrade" [ref=e42]:
+        - link "Customer Service" [ref=e43] [cursor=pointer]:
+          - /url: /customer-service
+        - link "Sponsorship" [ref=e44] [cursor=pointer]:
+          - /url: /unitrade/sponsorship
+        - link "Kontak" [ref=e45] [cursor=pointer]:
+          - /url: /contactus
+      - generic [ref=e46]:
+        - link "Masuk" [ref=e47] [cursor=pointer]:
+          - /url: /web/login
+        - link "Daftar" [ref=e48] [cursor=pointer]:
+          - /url: /web/signup
+  - main:
+    - generic [ref=e51]:
+      - generic [ref=e53]:
+        - generic [ref=e54]:
+          - img "Logo" [ref=e55]
+          - paragraph [ref=e56]: UniTrade
+        - heading "Welcome to UniTrade" [level=1] [ref=e57]:
+          - text: Welcome to
+          - text: UniTrade
+        - paragraph [ref=e58]: Masuk ke akun Anda untuk mulai berbelanja produk kreatif dari mahasiswa atau kelola toko Anda sendiri dengan mudah dan aman.
+        - form [ref=e59]:
+          - generic [ref=e60]:
+            - generic [ref=e61]:
+              - textbox "Email" [active] [ref=e63]
+              - paragraph [ref=e64]: Masukan email anda
+            - generic [ref=e66]:
+              - textbox "Password" [ref=e67]
+              - button [ref=e68] [cursor=pointer]:
+                - img [ref=e69]
+          - button "Masuk" [ref=e71] [cursor=pointer]:
+            - generic [ref=e72]: Masuk
+          - generic [ref=e75]: Or
+          - link "Google" [ref=e77] [cursor=pointer]:
+            - /url: https://accounts.google.com/o/oauth2/v2/auth?response_type=token&client_id=1038741222645-rgba7mm5qjehaf7oto65mah7k5ma1tb0.apps.googleusercontent.com&redirect_uri=http%3A%2F%2F127.0.0.1%3A8069%2Fauth_oauth%2Fsignin&scope=openid+email+profile&state=%7B%22d%22%3A+%22unitrade_db%22%2C+%22p%22%3A+4%2C+%22r%22%3A+%22http%253A%252F%252F127.0.0.1%253A8069%252Fweb%22%7D
+            - img [ref=e78]
+            - generic [ref=e83]: Google
+          - generic [ref=e84]:
+            - paragraph [ref=e85]:
+              - text: Lupa password?
+              - link "klik disini" [ref=e86] [cursor=pointer]:
+                - /url: /web/reset_password
+            - paragraph [ref=e87]:
+              - text: Belum punya akun?
+              - link "Buat akun" [ref=e88] [cursor=pointer]:
+                - /url: /web/signup
+      - generic [ref=e89]:
+        - generic [ref=e90]:
+          - img "Office" [ref=e91]
+          - generic [ref=e93]:
+            - img "Budi" [ref=e94]
+            - img [ref=e96] [cursor=pointer]
+            - img [ref=e99] [cursor=pointer]
+            - heading "Budi Santoso" [level=3] [ref=e101]
+            - paragraph [ref=e102]: "\"Platform e-commerce yang sangat membantu mahasiswa untuk berwirausaha dan menjangkau pembeli di seluruh kampus!\""
+        - generic [ref=e103]:
+          - generic [ref=e104]:
+            - generic [ref=e105]:
+              - img [ref=e106]
+              - img [ref=e107]
+              - img [ref=e109]
+            - generic [ref=e111]:
+              - heading "Bergabung dengan 10k+ User" [level=4] [ref=e112]
+              - paragraph [ref=e113]: Bergabung dengan ribuan mahasiswa dan UMKM lainnya untuk mengembangkan bisnis dan menemukan produk unik.
+          - img [ref=e115] [cursor=pointer]
+  - contentinfo [ref=e117]:
+    - generic: UniTrade
+    - generic [ref=e119]:
+      - generic [ref=e120]:
+        - generic [ref=e121]:
+          - generic [ref=e122]:
+            - img "UniTrade Logo" [ref=e123]
+            - generic [ref=e124]: UniTrade
+          - paragraph [ref=e125]: Horem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus sem sollicitudin lacus, ut interdum tellus elit sed risus. Maecenas eget condimentum velit, sit amet feugiat lectus.
+          - generic [ref=e126]:
+            - link [ref=e127] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e128]
+            - link [ref=e130] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e131]
+            - link [ref=e133] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e134]
+            - link [ref=e136] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e137]
+        - generic [ref=e140]:
+          - generic [ref=e141]:
+            - heading "Beli" [level=4] [ref=e142]
+            - list [ref=e143]:
+              - listitem [ref=e144]:
+                - link "Makanan" [ref=e145] [cursor=pointer]:
+                  - /url: /shop
+              - listitem [ref=e146]:
+                - link "Minuman" [ref=e147] [cursor=pointer]:
+                  - /url: /shop
+              - listitem [ref=e148]:
+                - link "Pakaian" [ref=e149] [cursor=pointer]:
+                  - /url: /shop
+          - generic [ref=e150]:
+            - heading "Jual" [level=4] [ref=e151]
+            - list [ref=e152]:
+              - listitem [ref=e153]:
+                - link "Daftar Toko" [ref=e154] [cursor=pointer]:
+                  - /url: /seller-onboarding
+          - generic [ref=e155]:
+            - heading "Bantuan" [level=4] [ref=e156]
+            - list [ref=e157]:
+              - listitem [ref=e158]:
+                - link "FAQ" [ref=e159] [cursor=pointer]:
+                  - /url: /help
+              - listitem [ref=e160]:
+                - link "Syarat & Kebijakan" [ref=e161] [cursor=pointer]:
+                  - /url: /terms
+              - listitem [ref=e162]:
+                - link "Kebijakan Privasi" [ref=e163] [cursor=pointer]:
+                  - /url: /privacy-policy
+      - generic [ref=e165]:
+        - paragraph [ref=e166]: © 2025 UniTrade. All right reserved.
+        - generic [ref=e167]:
+          - link "Privacy Policy" [ref=e168] [cursor=pointer]:
+            - /url: /privacy-policy
+          - link "Terms of Service" [ref=e169] [cursor=pointer]:
+            - /url: /terms
+          - link "Cookies Settings" [ref=e170] [cursor=pointer]:
+            - /url: /help#terms
