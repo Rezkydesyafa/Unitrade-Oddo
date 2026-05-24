@@ -69,6 +69,21 @@ body:has(.ut-seller-dashboard-page) {
     line-height: 1;
 }
 
+.ut-seller-dashboard-page .ut-dash-navbar form:has(input[placeholder="Cari produk di UniTrade"]),
+.ut-seller-dashboard-page .ut-dash-navbar div:has(> input[placeholder="Cari produk di UniTrade"]),
+.ut-seller-dashboard-page .ut-dash-navbar a[href="/shop/cart"],
+.ut-seller-dashboard-page .ut-dash-navbar a[href*="/delivery"],
+.ut-seller-dashboard-page .ut-dash-navbar a[href*="/pengiriman"],
+.ut-seller-dashboard-page .ut-dash-navbar a[aria-label="Dashboard seller"],
+.ut-seller-dashboard-page .ut-dash-navbar a[aria-label="Pengiriman"] {
+    display: none !important;
+}
+
+.ut-seller-dashboard-page .ut-dash-skeleton-stage .ut-dash-navbar > span:nth-of-type(3),
+.ut-seller-dashboard-page .ut-dash-skeleton-stage .ut-dash-navbar > span:nth-of-type(5) {
+    display: none !important;
+}
+
 .ut-dash-side-link {
     display: inline-flex;
     position: relative;
@@ -385,23 +400,34 @@ body:has(.ut-seller-dashboard-page) {
     text-decoration: none;
 }
 
+.ut-dash-orders-table-wrap {
+    width: 100%;
+    overflow-x: hidden;
+}
+
 .ut-dash-orders-table {
+    width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
 }
 
 .ut-dash-orders-table th {
-    padding: 0 12px 12px 0;
+    padding: 0 8px 12px;
     color: #6a7282;
     font-family: Inter, sans-serif;
     font-size: 10px;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 16px;
     text-align: left;
+    text-transform: uppercase;
+    vertical-align: bottom;
+    white-space: normal;
 }
 
 .ut-dash-orders-table td {
-    height: 47px;
-    padding: 0 12px 0 0;
+    height: 54px;
+    min-width: 0;
+    padding: 8px;
     border-top: 1px solid #f0f2f5;
     color: #101828;
     font-family: Inter, sans-serif;
@@ -411,9 +437,42 @@ body:has(.ut-seller-dashboard-page) {
     vertical-align: middle;
 }
 
+.ut-dash-orders-table th:first-child,
+.ut-dash-orders-table td:first-child {
+    width: 13%;
+    padding-left: 0;
+}
+
+.ut-dash-orders-table th:nth-child(2),
+.ut-dash-orders-table td:nth-child(2) {
+    width: 27%;
+}
+
+.ut-dash-orders-table th:nth-child(3),
+.ut-dash-orders-table td:nth-child(3) {
+    width: 13%;
+}
+
+.ut-dash-orders-table th:nth-child(4),
+.ut-dash-orders-table td:nth-child(4) {
+    width: 17%;
+}
+
+.ut-dash-orders-table th:nth-child(5),
+.ut-dash-orders-table td:nth-child(5) {
+    width: 15%;
+}
+
+.ut-dash-orders-table th:last-child,
+.ut-dash-orders-table td:last-child {
+    width: 15%;
+    padding-right: 0;
+}
+
 .ut-dash-orders-card {
-    height: 320px;
-    min-height: 320px;
+    height: auto;
+    min-height: 334px;
+    overflow: hidden;
 }
 
 .ut-dash-orders-head-actions {
@@ -454,13 +513,57 @@ body:has(.ut-seller-dashboard-page) {
     color: #ffffff;
 }
 
+.ut-dash-order-id-cell strong {
+    display: block;
+    overflow-wrap: anywhere;
+    color: #0a0a0a;
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.ut-dash-order-customer {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 10px;
+}
+
+.ut-dash-order-customer-name {
+    display: -webkit-box;
+    min-width: 0;
+    overflow: hidden;
+    color: #101828;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.ut-dash-order-date-cell {
+    color: #344054;
+    line-height: 16px;
+    white-space: normal;
+}
+
+.ut-dash-order-total-cell,
+.ut-dash-order-status-cell,
+.ut-dash-order-action-cell {
+    white-space: nowrap;
+}
+
+.ut-dash-order-action-cell {
+    text-align: left;
+}
+
 .ut-dash-orders-table td strong {
     font-weight: 700;
 }
 
 .ut-dash-status-pill {
     display: inline-flex;
-    min-width: 58px;
+    max-width: 100%;
+    min-width: 64px;
     min-height: 22px;
     align-items: center;
     justify-content: center;
@@ -468,6 +571,8 @@ body:has(.ut-seller-dashboard-page) {
     padding: 3px 9px;
     font-size: 10px;
     font-weight: 600;
+    line-height: 14px;
+    white-space: nowrap;
 }
 
 .ut-dash-status-pending {
@@ -512,14 +617,17 @@ body:has(.ut-seller-dashboard-page) {
 .ut-dash-handoff-btn,
 .ut-dash-refund-detail-link {
     display: inline-flex;
-    min-height: 28px;
+    width: min(100%, 96px);
+    min-height: 30px;
     align-items: center;
     justify-content: center;
     border-radius: 999px;
-    padding: 0 14px;
+    padding: 0 12px;
     font-size: 11px;
     font-weight: 700;
+    line-height: 14px;
     text-decoration: none;
+    white-space: nowrap;
 }
 
 .ut-dash-handoff-btn {
@@ -532,6 +640,23 @@ body:has(.ut-seller-dashboard-page) {
     border: 1px solid #d0d5dd;
     background: #ffffff;
     color: #212529;
+}
+
+.ut-dash-order-icon-action {
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #f9fafb;
+    font-size: 13px;
+}
+
+.ut-dash-order-icon-action:hover,
+.ut-dash-handoff-btn:hover,
+.ut-dash-refund-detail-link:hover {
+    text-decoration: none;
 }
 
 .ut-dash-refund-detail,
@@ -1997,14 +2122,14 @@ body:has(.ut-seller-dashboard-page) {
 .ut-products-table-scroll {
     width: 100%;
     max-width: 100%;
-    overflow-x: auto;
+    overflow-x: hidden;
     overflow-y: hidden;
-    overscroll-behavior-x: contain;
     padding-bottom: 0;
 }
 
 .ut-products-table-scroll::-webkit-scrollbar {
-    height: 8px;
+    display: none;
+    height: 0;
 }
 
 .ut-products-table-scroll::-webkit-scrollbar-track {
@@ -2028,7 +2153,7 @@ body:has(.ut-seller-dashboard-page) {
 
 .ut-products-table {
     width: 100%;
-    min-width: 1120px;
+    min-width: 0;
     border-collapse: collapse;
     font-family: Inter, sans-serif;
     table-layout: fixed;
@@ -2043,7 +2168,7 @@ body:has(.ut-seller-dashboard-page) {
     font-weight: 700;
     letter-spacing: 0.3px;
     line-height: 16px;
-    padding: 0 24px;
+    padding: 0 14px;
     text-align: left;
     text-transform: uppercase;
     vertical-align: middle;
@@ -2052,32 +2177,42 @@ body:has(.ut-seller-dashboard-page) {
 
 .ut-products-table th:nth-child(1),
 .ut-products-table td:nth-child(1) {
-    width: 130px;
+    width: 15%;
 }
 
 .ut-products-table th:nth-child(2),
 .ut-products-table td:nth-child(2) {
-    width: 290px;
+    width: 23%;
 }
 
 .ut-products-table th:nth-child(3),
 .ut-products-table td:nth-child(3) {
-    width: 145px;
+    width: 13%;
 }
 
 .ut-products-table th:nth-child(4),
 .ut-products-table td:nth-child(4) {
-    width: 95px;
+    width: 7%;
 }
 
 .ut-products-table th:nth-child(5),
 .ut-products-table td:nth-child(5) {
-    width: 120px;
+    width: 10%;
+}
+
+.ut-products-table th:nth-child(6),
+.ut-products-table td:nth-child(6) {
+    width: 9%;
+}
+
+.ut-products-table th:nth-child(7),
+.ut-products-table td:nth-child(7) {
+    width: 13%;
 }
 
 .ut-products-table th:nth-child(8),
 .ut-products-table td:nth-child(8) {
-    width: 180px;
+    width: 10%;
 }
 
 .ut-products-table td {
@@ -2087,7 +2222,7 @@ body:has(.ut-seller-dashboard-page) {
     font-size: 14px;
     font-weight: 400;
     line-height: 20px;
-    padding: 0 24px;
+    padding: 0 14px;
     vertical-align: middle;
     white-space: nowrap;
 }
@@ -2095,6 +2230,22 @@ body:has(.ut-seller-dashboard-page) {
 .ut-products-table td strong {
     color: #0a0a0a;
     font-weight: 600;
+}
+
+.ut-products-code-cell {
+    min-width: 0;
+}
+
+.ut-products-code-cell strong {
+    display: block;
+    max-width: 100%;
+    color: #0a0a0a;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    white-space: normal;
 }
 
 .ut-products-product-cell {
@@ -2115,7 +2266,7 @@ body:has(.ut-seller-dashboard-page) {
 .ut-products-product-cell small {
     display: block;
     overflow: hidden;
-    max-width: 190px;
+    max-width: min(190px, 100%);
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -2215,15 +2366,17 @@ body:has(.ut-seller-dashboard-page) {
 .ut-products-actions {
     display: inline-flex;
     align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
+    justify-content: flex-start;
+    gap: 6px;
+    max-width: 100%;
+    overflow: hidden;
     white-space: nowrap;
 }
 
 .ut-products-action {
     display: inline-flex;
-    min-width: 34px;
-    height: 34px;
+    min-width: 28px;
+    height: 28px;
     align-items: center;
     justify-content: center;
     gap: 7px;
@@ -2235,7 +2388,7 @@ body:has(.ut-seller-dashboard-page) {
     font-size: 12px;
     font-weight: 700;
     line-height: 16px;
-    padding: 0 10px;
+    padding: 0 7px;
     text-decoration: none;
     transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
 }
@@ -2247,7 +2400,7 @@ body:has(.ut-seller-dashboard-page) {
 }
 
 .ut-products-action.is-pay {
-    min-width: 82px;
+    min-width: 68px;
     border-radius: 10px;
     background: #212529;
     color: #ffffff;

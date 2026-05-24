@@ -138,7 +138,7 @@
                                     <tbody>
                                         <t t-foreach="filteredProducts" t-as="product" t-key="productKey(product)">
                                             <tr>
-                                                <td><strong t-esc="product.product_code"></strong></td>
+                                                <td class="ut-products-code-cell"><strong t-esc="product.product_code"></strong></td>
                                                 <td>
                                                     <span class="ut-products-product-cell">
                                                         <img t-att-src="product.image_url" t-att-alt="product.name" class="tw-size-12 tw-rounded-[10px] tw-border tw-border-[#e5e7eb] tw-object-cover"/>
