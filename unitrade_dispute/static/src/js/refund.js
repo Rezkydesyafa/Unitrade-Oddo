@@ -89,28 +89,22 @@ publicWidget.registry.UnitradeOrderRefundModal = publicWidget.Widget.extend({
 
     _syncUnboxingRequirement() {
         const root = this._root();
-        const reason = root && root.querySelector("[data-refund-reason]");
         const videoInput = root && root.querySelector("[data-refund-unboxing]");
         const videoHint = root && root.querySelector("[data-refund-unboxing-hint]");
         const driveInput = root && root.querySelector("[data-refund-drive-url]");
         const driveHint = root && root.querySelector("[data-refund-drive-hint]");
-        if (!reason || !driveInput) {
+        if (!driveInput) {
             return;
         }
-        const required = ["not_as_described", "damaged", "wrong_item"].includes(reason.value);
-        driveInput.required = required;
+        driveInput.required = false;
         if (videoInput) {
             videoInput.required = false;
         }
         if (driveHint) {
-            driveHint.textContent = required
-                ? "Wajib isi link Google Drive video unboxing untuk alasan ini."
-                : "Opsional untuk alasan ini. Gunakan link Google Drive jika file terlalu besar.";
+            driveHint.textContent = "Opsional. Isi jika ingin menambahkan video unboxing atau bukti tambahan melalui Google Drive.";
         }
         if (videoHint) {
-            videoHint.textContent = required
-                ? "Upload langsung tetap opsional sebagai bukti tambahan. Link Google Drive di bawah tetap wajib."
-                : "MP4 atau WEBM. Opsional, maksimal 10 MB.";
+            videoHint.textContent = "MP4 atau WEBM. Opsional, maksimal 10 MB.";
         }
     },
 

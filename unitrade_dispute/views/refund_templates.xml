@@ -85,7 +85,7 @@
                             </div>
 
                             <div class="ut-order-refund-field">
-                                <span>Bukti foto/video</span>
+                                <span>Bukti foto wajib</span>
                                 <div class="ut-order-refund-upload-card" data-refund-dropzone="photos">
                                     <div class="ut-order-refund-upload-icon">
                                         <i class="fa fa-upload"></i>
@@ -100,8 +100,8 @@
                                     <div class="ut-order-refund-upload-icon">
                                         <i class="fa fa-video-camera"></i>
                                     </div>
-                                    <strong>Upload video unboxing tambahan</strong>
-                                    <small data-refund-unboxing-hint="1">MP4 atau WEBM. Opsional, maksimal 10 MB. Untuk alasan tertentu, link Google Drive tetap wajib.</small>
+                                    <strong>Upload video unboxing tambahan (opsional)</strong>
+                                    <small data-refund-unboxing-hint="1">MP4 atau WEBM. Opsional, maksimal 10 MB.</small>
                                     <button type="button" class="ut-order-refund-upload-btn" data-refund-browse="video">Choose File</button>
                                     <input class="ut-order-refund-file-input" type="file" name="unboxing_video" accept="video/mp4,video/webm" data-refund-unboxing="1"/>
                                     <div class="ut-order-refund-file-list" data-refund-video-list="1"></div>
@@ -109,9 +109,9 @@
                             </div>
 
                             <div class="ut-order-refund-field">
-                                <label for="ut_refund_drive_url">Link Google Drive video unboxing</label>
+                                <label for="ut_refund_drive_url">Link Google Drive video unboxing (opsional)</label>
                                 <input id="ut_refund_drive_url" type="url" name="google_drive_url" placeholder="https://drive.google.com/..." data-refund-drive-url="1"/>
-                                <small class="ut-order-refund-help" data-refund-drive-hint="1">Wajib untuk barang tidak sesuai, rusak, atau salah barang. Untuk alasan lain bersifat opsional.</small>
+                                <small class="ut-order-refund-help" data-refund-drive-hint="1">Opsional. Isi jika ingin menambahkan video unboxing atau bukti tambahan melalui Google Drive.</small>
                             </div>
 
                             <footer class="ut-order-refund-actions">
