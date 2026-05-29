@@ -51,7 +51,7 @@
 
                 <!-- Main Navbar -->
                 <div class="tw-pt-4 tw-pb-4 tw-px-4 md:tw-px-8 tw-bg-transparent tw-w-full tw-z-50">
-                    <div class="tw-max-w-7xl tw-mx-auto tw-bg-gradient-to-r tw-from-[#1f1f1f]/80 tw-via-[#2a2a2a]/80 tw-to-[#1a1a1a]/80 tw-backdrop-blur-md tw-h-[70px] tw-rounded-[54px] tw-shadow-lg tw-border tw-border-white/10 tw-flex tw-items-center tw-justify-between tw-px-4 md:tw-px-8">
+                    <div class="tw-max-w-7xl tw-mx-auto tw-backdrop-blur-md tw-h-[70px] tw-rounded-[54px] tw-shadow-lg tw-border tw-border-white/10 tw-flex tw-items-center tw-justify-between tw-px-4 md:tw-px-8" style="background: rgba(255, 255, 255, 0.72); -webkit-backdrop-filter: blur(18px) saturate(145%); backdrop-filter: blur(18px) saturate(145%); border-color: rgba(255, 255, 255, 0.54) !important; box-shadow: 0 18px 50px rgba(15, 23, 42, 0.10), 0 1px 0 rgba(255, 255, 255, 0.55) inset !important;">
                     <!-- Logo -->
                     <a href="/" class="tw-flex tw-items-center tw-gap-3 tw-no-underline">
                         <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="UniTrade Logo" class="tw-h-8 md:tw-h-10 tw-w-auto tw-invert tw-brightness-0"/>
@@ -188,6 +188,10 @@
             body #wrapwrap {
                 background: #f5f5f7 !important;
             }
+            body:has(#unitradeHeroCarousel) #wrapwrap,
+            body:has(#unitradeHeroCarousel) #wrap {
+                background: #ffffff !important;
+            }
             body #wrapwrap > footer.ut-main-footer {
                 border-top-left-radius: 120px !important;
                 border-top-right-radius: 120px !important;
@@ -280,7 +284,7 @@
                                 <ul class="tw-grid tw-gap-3 tw-text-sm tw-text-gray-500 tw-p-0 tw-m-0 tw-list-none">
                                     <li><a href="/help" class="tw-block tw-whitespace-nowrap hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">FAQ</a></li>
                                     <li><a href="/customer-service" class="tw-block tw-whitespace-nowrap hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Customer Service</a></li>
-                                    <li><a href="/terms" class="tw-block tw-whitespace-nowrap hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Syarat &amp; Kebijakan</a></li>
+                                    <li><a href="/contactus" class="tw-block tw-whitespace-nowrap hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Kontak</a></li>
                                     <li><a href="/privacy-policy" class="tw-block tw-whitespace-nowrap hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Kebijakan Privasi</a></li>
                                 </ul>
                             </div>

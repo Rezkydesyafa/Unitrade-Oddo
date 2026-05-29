@@ -64,7 +64,6 @@
 
             <div id="products_grid" class="col-12 col-lg-9 tw-pl-4">
                 <div id="ut-sort-bar" class="tw-bg-white tw-rounded-[14px] tw-h-[64px] tw-px-[24px] tw-flex tw-items-center tw-mb-6 tw-shadow-sm tw-border tw-border-solid tw-border-gray-200">
-                    <span class="tw-font-['Urbanist'] tw-font-semibold tw-text-[15px] tw-text-gray-600 tw-mr-6">Urutan</span>
                     <div class="tw-flex tw-gap-[12px]">
                         <div data-sort="terkait" t-att-class="sortClass('terkait')" t-on-click="() => this.changeSort('terkait')">Terkait</div>
                         <div data-sort="terlaris" t-att-class="sortClass('terlaris')" t-on-click="() => this.changeSort('terlaris')">Terlaris</div>

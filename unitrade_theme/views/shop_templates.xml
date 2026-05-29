@@ -103,7 +103,6 @@
                 <div id="products_grid" class="col-12 col-lg-9 tw-pl-4">
                     <!-- Top Sort Bar -->
                     <div id="ut-sort-bar" class="tw-bg-white tw-rounded-[14px] tw-h-[64px] tw-px-[24px] tw-flex tw-items-center tw-mb-6 tw-shadow-sm tw-border tw-border-solid tw-border-gray-200">
-                        <span class="tw-font-['Urbanist'] tw-font-semibold tw-text-[15px] tw-text-gray-600 tw-mr-6">Urutan</span>
                         <div class="tw-flex tw-gap-[12px]">
                             <div data-sort="terkait" class="tw-px-5 tw-h-[36px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-transition-colors tw-text-gray-600 hover:tw-bg-gray-100 hover:tw-text-black">Terkait</div>
                             <div data-sort="terlaris" class="tw-px-5 tw-h-[36px] tw-rounded-full tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-transition-colors tw-text-gray-600 hover:tw-bg-gray-100 hover:tw-text-black">Terlaris</div>
