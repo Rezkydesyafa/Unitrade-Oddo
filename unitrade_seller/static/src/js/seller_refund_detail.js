@@ -109,6 +109,10 @@ export class SellerRefundDetail extends Component {
         return Boolean(this.refund.can_decide) && !this.state.decisionLoading;
     }
 
+    get canReject() {
+        return Boolean(this.refund.can_decide || this.refund.can_reject_return) && !this.state.decisionLoading;
+    }
+
     sidebarItemClass(item) {
         const base = "ut-dash-sidebar-item";
         return item.active ? `${base} active` : base;
@@ -170,7 +174,7 @@ export class SellerRefundDetail extends Component {
     }
 
     async decide(decision) {
-        if (!this.canDecide) {
+        if (decision === "reject" ? !this.canReject : !this.canDecide) {
             return;
         }
         const note = String(this.state.sellerNote || "").trim();

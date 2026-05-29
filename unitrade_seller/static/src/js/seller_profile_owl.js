@@ -16,6 +16,10 @@ function normalizeRating(value) {
     return Number.isFinite(parsed) && parsed >= 1 && parsed <= 5 ? parsed : 0;
 }
 
+function normalizeSort(value) {
+    return ["newest", "oldest", "highest", "lowest"].includes(value) ? value : "newest";
+}
+
 function escapeHtml(value) {
     const map = {
         "&": "&amp;",
@@ -33,12 +37,14 @@ export class SellerProfileTabs extends Component {
         profileRef: String,
         initialTab: { type: String, optional: true },
         initialRating: { type: String, optional: true },
+        initialSort: { type: String, optional: true },
         search: { type: String, optional: true },
         initialResultsHtml: { type: String, optional: true },
     };
     static defaultProps = {
         initialTab: "home",
         initialRating: "",
+        initialSort: "newest",
         search: "",
         initialResultsHtml: "",
     };
@@ -57,6 +63,7 @@ export class SellerProfileTabs extends Component {
         this.state = useState({
             tab: normalizeTab(this.props.initialTab),
             rating: normalizeRating(this.props.initialRating),
+            sort: normalizeSort(this.props.initialSort),
             search: this.props.search || "",
             resultsHtml: this.props.initialResultsHtml || "",
             loading: false,
@@ -184,6 +191,7 @@ export class SellerProfileTabs extends Component {
         const nextTab = normalizeTab(params.get("tab") || "home");
         this.state.search = params.get("search") || "";
         this.state.rating = nextTab === "reviews" ? normalizeRating(params.get("rating")) : 0;
+        this.state.sort = nextTab === "reviews" ? normalizeSort(params.get("sort")) : "newest";
         this._syncSidebarSearch();
         await this.loadTab(nextTab, { replace: true });
     }
@@ -214,6 +222,21 @@ export class SellerProfileTabs extends Component {
     }
 
     async onResultsClick(ev) {
+        const sortButton = ev.target.closest(".ut-seller-review-sort");
+        if (sortButton) {
+            ev.preventDefault();
+            if (this.state.tab !== "reviews" || this.state.loading) {
+                return;
+            }
+            const nextSort = normalizeSort(sortButton.dataset.sort);
+            if (nextSort === this.state.sort) {
+                return;
+            }
+            this.state.sort = nextSort;
+            await this.loadTab("reviews");
+            return;
+        }
+
         const filterButton = ev.target.closest(".ut-seller-review-filter");
         if (!filterButton) {
             return;
@@ -240,6 +263,7 @@ export class SellerProfileTabs extends Component {
                 tab: this.state.tab,
                 search: this.state.search,
                 rating: this.state.tab === "reviews" ? this.state.rating : 0,
+                sort: this.state.tab === "reviews" ? this.state.sort : "newest",
             });
             if (requestId !== this.requestSeq) {
                 return;
@@ -249,6 +273,7 @@ export class SellerProfileTabs extends Component {
             }
             this.state.tab = normalizeTab(result.tab || tab);
             this.state.rating = this.state.tab === "reviews" ? normalizeRating(result.rating) : 0;
+            this.state.sort = this.state.tab === "reviews" ? normalizeSort(result.sort) : "newest";
             this.state.search = result.search || "";
             this.state.resultsHtml = result.html || "";
             this._syncSidebarSearch();
@@ -274,6 +299,9 @@ export class SellerProfileTabs extends Component {
         if (this.state.tab === "reviews" && this.state.rating) {
             params.set("rating", String(this.state.rating));
         }
+        if (this.state.tab === "reviews" && this.state.sort !== "newest") {
+            params.set("sort", this.state.sort);
+        }
         const query = params.toString();
         const url = `/seller-profile/${this.props.profileRef}${query ? `?${query}` : ""}`;
         const method = replace ? "replaceState" : "pushState";
@@ -291,6 +319,7 @@ publicWidget.registry.UnitradeSellerProfileTabs = publicWidget.Widget.extend({
             profileRef: this.el.dataset.profileRef || "",
             initialTab: this.el.dataset.initialTab || "home",
             initialRating: this.el.dataset.initialRating || "",
+            initialSort: this.el.dataset.initialSort || "newest",
             search: this.el.dataset.search || "",
             initialResultsHtml: results ? results.innerHTML : "",
         };
