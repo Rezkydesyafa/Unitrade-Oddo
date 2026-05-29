@@ -998,7 +998,7 @@
                 }
                 .ut-order-status-progress {
                     display: grid;
-                    grid-template-columns: repeat(4, minmax(0, 1fr));
+                    grid-template-columns: repeat(var(--ut-order-status-step-count, 4), minmax(0, 1fr));
                     gap: 10px;
                     margin-bottom: 20px;
                 }
@@ -1021,6 +1021,30 @@
                     border-color: #c7d2fe;
                     background: #eef2ff;
                     color: #3730a3;
+                }
+                .ut-order-status-step.is-failed {
+                    border-color: #fecaca;
+                    background: #fef2f2;
+                    color: #b91c1c;
+                }
+                .ut-order-status-refund-progress-note {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 12px;
+                    margin: -8px 0 20px;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 12px;
+                    background: #f9fafb;
+                    padding: 12px 14px;
+                    color: #4b5563;
+                    font-size: 13px;
+                }
+                .ut-order-status-refund-progress-note a {
+                    color: #111827;
+                    font-weight: 700;
+                    text-decoration: none;
+                    white-space: nowrap;
                 }
                 .ut-order-status-actions {
                     display: flex;
@@ -1203,7 +1227,7 @@
                 }
             </style>
 
-            <div class="ut-order-status-page">
+            <div class="ut-order-status-page" t-att-data-order-status-id="order.id" t-att-data-order-status-progress-url="'/unitrade/order/status/%s/data' % order.id" t-att-data-order-status-access-token="order_status_access_token or ''" t-att-data-order-status-refund-create-url="'/unitrade/order/%s/refund/new' % order.id">
                 <main class="ut-order-status-shell">
                     <h1 class="ut-order-status-title">Status Pesanan</h1>
                     <p class="ut-order-status-subtitle">Pantau pembayaran, proses serah terima, dan ringkasan transaksi UniTrade Anda.</p>
@@ -1227,11 +1251,20 @@
                         </section>
                     </div>
 
-                    <div class="ut-order-status-progress" aria-label="Progress pesanan">
+                    <div class="ut-order-status-progress" aria-label="Progress pesanan" data-order-status-progress="1" t-att-style="'--ut-order-status-step-count:%s' % (order_status_progress_count or len(order_status_progress_steps or []))">
                         <div t-foreach="order_status_progress_steps" t-as="step"
-                            t-att-class="'ut-order-status-step %s %s' % ('is-done' if step.get('done') else '', 'is-active' if step.get('active') else '')">
-                            <t t-esc="step.get('label')"/>
+                            t-att-class="'ut-order-status-step %s %s %s' % ('is-done' if step.get('done') else '', 'is-active' if step.get('active') else '', 'is-failed' if step.get('failed') else '')"
+                            data-order-status-step="1"
+                            t-att-data-step-key="step.get('key')"
+                            t-att-data-step-url="step.get('url') or ''">
+                            <span class="ut-order-status-dot"></span>
+                            <span class="ut-order-status-step-label" t-esc="step.get('label')"/>
+                            <span class="ut-order-status-step-status" t-esc="step.get('status')"/>
                         </div>
+                    </div>
+                    <div t-if="order_status_refund_detail_url" class="ut-order-status-refund-progress-note" data-order-status-refund-note="1">
+                        <span>Pengembalian tercatat pada pesanan ini.</span>
+                        <a t-att-href="order_status_refund_detail_url">Lihat Status Pengembalian</a>
                     </div>
 
                     <div class="ut-order-status-grid">
@@ -1347,6 +1380,10 @@
                                         </label>
                                         <button type="submit" class="ut-order-status-primary">Barang Diterima</button>
                                     </form>
+                                    <div class="ut-order-status-refund-action-slot" data-order-status-refund-action-slot="1" t-att-data-refund-create-url="'/unitrade/order/%s/refund/new' % order.id">
+                                        <a t-if="order_status_refund_detail_url" t-att-href="order_status_refund_detail_url" class="ut-order-status-secondary ut-order-status-refund-action" data-order-status-refund-action="1">Lihat Status Pengembalian</a>
+                                        <a t-if="not order_status_refund_detail_url and order_status_can_refund" t-att-href="'/unitrade/order/%s/refund/new' % order.id" class="ut-order-status-danger ut-order-status-refund-action" data-order-status-refund-action="1">Ajukan Pengembalian</a>
+                                    </div>
                                     <form t-if="order_status_can_cancel" t-att-action="order_status_cancel_url" method="post" class="ut-order-status-action-form">
                                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                         <input type="hidden" name="reason" value="Buyer direct cancel"/>
@@ -1470,7 +1507,7 @@
                 .ut-order-status-progress {
                     position: relative;
                     display: grid;
-                    grid-template-columns: repeat(4, minmax(0, 1fr));
+                    grid-template-columns: repeat(var(--ut-order-status-step-count, 4), minmax(0, 1fr));
                     gap: 0;
                     margin: 0;
                     padding-top: 0;
@@ -1505,6 +1542,12 @@
                 .ut-order-status-step.is-done:not(:last-child)::after {
                     background: #0a0a0a;
                 }
+                .ut-order-status-step.is-active:not(:last-child)::after {
+                    background: #0a0a0a;
+                }
+                .ut-order-status-step.is-failed:not(:last-child)::after {
+                    background: #dc2626;
+                }
                 .ut-order-status-dot {
                     position: relative;
                     display: inline-flex;
@@ -1519,7 +1562,8 @@
                     background: #202020;
                 }
                 .ut-order-status-step.is-done,
-                .ut-order-status-step.is-active {
+                .ut-order-status-step.is-active,
+                .ut-order-status-step.is-failed {
                     border: 0 !important;
                     background: transparent !important;
                     color: #0a0a0a !important;
@@ -1535,10 +1579,21 @@
                     border-radius: 999px;
                     background: #212529;
                 }
+                .ut-order-status-step.is-failed .ut-order-status-dot {
+                    background: #dc2626;
+                    color: #fff;
+                }
+                .ut-order-status-step.is-failed .ut-order-status-dot::after {
+                    content: "";
+                    width: 8px;
+                    height: 2px;
+                    border-radius: 999px;
+                    background: #fff;
+                }
                 .ut-order-status-step-label {
                     margin-top: 4px;
                     color: #0a0a0a;
-                    white-space: nowrap;
+                    white-space: normal;
                 }
                 .ut-order-status-step-status {
                     color: #99a1af;
@@ -1549,6 +1604,29 @@
                 }
                 .ut-order-status-step.is-active .ut-order-status-step-status {
                     color: #212529;
+                }
+                .ut-order-status-step.is-failed .ut-order-status-step-status {
+                    color: #dc2626;
+                }
+                .ut-order-status-refund-progress-note {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 12px;
+                    margin-top: 16px;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 12px;
+                    background: #f9fafb;
+                    padding: 12px 14px;
+                    color: #4b5563;
+                    font-size: 13px;
+                    line-height: 18px;
+                }
+                .ut-order-status-refund-progress-note a {
+                    color: #111827;
+                    font-weight: 700;
+                    text-decoration: none;
+                    white-space: nowrap;
                 }
                 .ut-order-status-product {
                     display: flex;
@@ -2114,7 +2192,7 @@
             </style>
         </xpath>
         <xpath expr="//div[hasclass('ut-order-status-page')]" position="replace">
-            <div class="ut-order-status-page">
+            <div class="ut-order-status-page" t-att-data-order-status-id="order.id" t-att-data-order-status-progress-url="'/unitrade/order/status/%s/data' % order.id" t-att-data-order-status-access-token="order_status_access_token or ''" t-att-data-order-status-refund-create-url="'/unitrade/order/%s/refund/new' % order.id">
                 <main class="ut-order-status-shell">
                     <h1 class="ut-order-status-title">Status Pesanan</h1>
                     <p class="ut-order-status-subtitle">Pantau pembayaran, proses serah terima, dan ringkasan transaksi UniTrade Anda</p>
@@ -2129,13 +2207,20 @@
                     <div class="ut-order-status-grid">
                         <div class="ut-order-status-main">
                             <section class="ut-order-status-card ut-order-status-progress-card">
-                                <div class="ut-order-status-progress" aria-label="Progress pesanan">
+                                <div class="ut-order-status-progress" aria-label="Progress pesanan" data-order-status-progress="1" t-att-style="'--ut-order-status-step-count:%s' % (order_status_progress_count or len(order_status_progress_steps or []))">
                                     <div t-foreach="order_status_progress_steps" t-as="step"
-                                        t-att-class="'ut-order-status-step %s %s' % ('is-done' if step.get('done') else '', 'is-active' if step.get('active') else '')">
+                                        t-att-class="'ut-order-status-step %s %s %s' % ('is-done' if step.get('done') else '', 'is-active' if step.get('active') else '', 'is-failed' if step.get('failed') else '')"
+                                        data-order-status-step="1"
+                                        t-att-data-step-key="step.get('key')"
+                                        t-att-data-step-url="step.get('url') or ''">
                                         <span class="ut-order-status-dot"></span>
                                         <span class="ut-order-status-step-label" t-esc="step.get('label')"/>
                                         <span class="ut-order-status-step-status" t-esc="step.get('status')"/>
                                     </div>
+                                </div>
+                                <div t-if="order_status_refund_detail_url" class="ut-order-status-refund-progress-note" data-order-status-refund-note="1">
+                                    <span>Pengembalian tercatat pada pesanan ini.</span>
+                                    <a t-att-href="order_status_refund_detail_url">Lihat Status Pengembalian</a>
                                 </div>
                             </section>
 
@@ -2291,6 +2376,10 @@
                                         <input type="hidden" name="reason" value="Buyer direct cancel"/>
                                         <button type="submit" class="ut-order-status-danger">Batalkan Pesanan</button>
                                     </form>
+                                    <div class="ut-order-status-refund-action-slot" data-order-status-refund-action-slot="1" t-att-data-refund-create-url="'/unitrade/order/%s/refund/new' % order.id">
+                                        <a t-if="order_status_refund_detail_url" t-att-href="order_status_refund_detail_url" class="ut-order-status-secondary ut-order-status-refund-action" data-order-status-refund-action="1">Lihat Status Pengembalian</a>
+                                        <a t-if="not order_status_refund_detail_url and order_status_can_refund" t-att-href="'/unitrade/order/%s/refund/new' % order.id" class="ut-order-status-danger ut-order-status-refund-action" data-order-status-refund-action="1">Ajukan Pengembalian</a>
+                                    </div>
                                     <a href="/shop" class="ut-order-status-secondary ut-order-status-shop-action">Kembali Belanja</a>
                                     <a href="/" class="ut-order-status-secondary ut-order-status-home-action">Kembali ke Beranda</a>
                                 </div>
@@ -2299,7 +2388,7 @@
                             <section class="ut-order-status-card ut-order-status-help-card">
                                 <h2>Butuh Bantuan?</h2>
                                 <p>Hubungi customer service kami untuk bantuan lebih lanjut</p>
-                                <a href="/contactus" class="ut-order-status-secondary">Hubungi CS</a>
+                                <a href="/customer-service" class="ut-order-status-secondary">Hubungi CS</a>
                             </section>
                         </aside>
                     </div>
