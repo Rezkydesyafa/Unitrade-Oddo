@@ -167,17 +167,21 @@
                                                 </td>
                                                 <td>
                                                     <span class="ut-orders-action-row" data-ut-orders-no-row-click="true">
-                                                        <a t-att-href="order.order_detail_url || order.detail_url || order.order_status_url" class="ut-orders-action" aria-label="Lihat detail pesanan">
-                                                            <i class="fa fa-eye"></i>
-                                                        </a>
-                                                        <a t-att-href="order.action_url" class="ut-orders-action" aria-label="Buka chat">
-                                                            <i class="fa fa-commenting-o"></i>
-                                                        </a>
-                                                        <button t-if="order.can_confirm_handoff" type="button" class="ut-orders-action-button" t-on-click="() => this.openHandoff(order)">Serahkan</button>
-                                                        <a t-if="order.can_respond_refund" t-att-href="order.refund_detail_url" class="ut-orders-action-button is-warning">Refund</a>
-                                                        <a t-elif="order.refund_detail_url" t-att-href="order.refund_detail_url" class="ut-orders-action" aria-label="Buka refund">
-                                                            <i class="fa fa-exclamation-circle"></i>
-                                                        </a>
+                                                        <span class="ut-orders-icon-actions">
+                                                            <a t-att-href="order.order_detail_url || order.detail_url || order.order_status_url" class="ut-orders-action" aria-label="Lihat detail pesanan">
+                                                                <i class="fa fa-eye"></i>
+                                                            </a>
+                                                            <a t-att-href="order.action_url" class="ut-orders-action" aria-label="Buka chat">
+                                                                <i class="fa fa-commenting-o"></i>
+                                                            </a>
+                                                            <a t-if="order.refund_detail_url &amp;&amp; !order.can_respond_refund" t-att-href="order.refund_detail_url" class="ut-orders-action" aria-label="Buka refund">
+                                                                <i class="fa fa-exclamation-circle"></i>
+                                                            </a>
+                                                        </span>
+                                                        <span class="ut-orders-primary-action-slot">
+                                                            <button t-if="order.can_confirm_handoff" type="button" class="ut-orders-action-button" t-on-click="() => this.openHandoff(order)">Serahkan</button>
+                                                            <a t-elif="order.can_respond_refund" t-att-href="order.refund_detail_url" class="ut-orders-action-button is-warning">Refund</a>
+                                                        </span>
                                                     </span>
                                                 </td>
                                             </tr>

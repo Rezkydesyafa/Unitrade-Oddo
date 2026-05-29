@@ -166,6 +166,7 @@ export class SellerProductCreate extends Component {
             form: {
                 name: "",
                 description: "",
+                condition: "used",
                 categoryId: "",
                 price: "",
                 discountPercent: "",
@@ -226,6 +227,11 @@ export class SellerProductCreate extends Component {
         return String(this.state.form.categoryId) === String(category.id) ? `${base} is-active` : base;
     }
 
+    conditionClass(condition) {
+        const base = "ut-product-create-condition";
+        return this.state.form.condition === condition ? `${base} is-active` : base;
+    }
+
     toggleSidebar() {
         this.state.sidebarOpen = !this.state.sidebarOpen;
         writeSellerSidebarOpen(this.state.sidebarOpen);
@@ -284,6 +290,7 @@ export class SellerProductCreate extends Component {
         this.revokeImageUrls();
         this.state.form.name = product.name || "";
         this.state.form.description = product.description || "";
+        this.state.form.condition = product.condition || product.condition_key || "used";
         this.state.form.categoryId = product.category_id ? String(product.category_id) : "";
         this.state.form.price = product.price || product.price === 0 ? String(product.price) : "";
         this.state.form.discountPercent = product.discount_percent ? String(product.discount_percent) : "";
@@ -309,6 +316,14 @@ export class SellerProductCreate extends Component {
 
     selectCategory(categoryId) {
         this.state.form.categoryId = String(categoryId);
+        this.state.error = "";
+    }
+
+    selectCondition(condition) {
+        if (!["new", "used"].includes(condition)) {
+            return;
+        }
+        this.state.form.condition = condition;
         this.state.error = "";
     }
 
@@ -431,6 +446,9 @@ export class SellerProductCreate extends Component {
         if (!form.categoryId) {
             return "Kategori produk wajib dipilih.";
         }
+        if (!["new", "used"].includes(form.condition)) {
+            return "Kondisi barang wajib dipilih.";
+        }
         if (!Number.isFinite(price) || price < 0) {
             return "Harga tidak boleh negatif.";
         }
@@ -465,6 +483,7 @@ export class SellerProductCreate extends Component {
             const result = await jsonrpc(this.state.submitUrl, {
                 name: form.name,
                 description: form.description,
+                condition: form.condition || "used",
                 category_id: Number(form.categoryId),
                 price: Number(form.price || 0),
                 discount_percent: form.discountPercent === "" ? 0 : Number(form.discountPercent),

@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="university_01_universitas_gadjah_mada" model="unitrade.university">
+            <field name="name">Universitas Gadjah Mada</field>
+            <field name="status">Negeri</field>
+            <field name="sequence" eval="10"/>
+        </record>
+        <record id="university_02_universitas_negeri_yogyakarta" model="unitrade.university">
+            <field name="name">Universitas Negeri Yogyakarta</field>
+            <field name="status">Negeri</field>
+            <field name="sequence" eval="20"/>
+        </record>
+        <record id="university_03_universitas_islam_negeri_sunan_kalijaga" model="unitrade.university">
+            <field name="name">Universitas Islam Negeri Sunan Kalijaga</field>
+            <field name="status">Negeri</field>
+            <field name="sequence" eval="30"/>
+        </record>
+        <record id="university_04_universitas_pembangunan_nasional_veteran_yogyaka" model="unitrade.university">
+            <field name="name">Universitas Pembangunan Nasional Veteran Yogyakarta</field>
+            <field name="status">Negeri</field>
+            <field name="sequence" eval="40"/>
+        </record>
+        <record id="university_05_institut_seni_indonesia_yogyakarta" model="unitrade.university">
+            <field name="name">Institut Seni Indonesia Yogyakarta</field>
+            <field name="status">Negeri</field>
+            <field name="sequence" eval="50"/>
+        </record>
+        <record id="university_06_poltekkes_kemenkes_yogyakarta" model="unitrade.university">
+            <field name="name">Poltekkes Kemenkes Yogyakarta</field>
+            <field name="status">Negeri</field>
+            <field name="sequence" eval="60"/>
+        </record>
+        <record id="university_07_sekolah_tinggi_pertanahan_nasional" model="unitrade.university">
+            <field name="name">Sekolah Tinggi Pertanahan Nasional</field>
+            <field name="status">Negeri</field>
+            <field name="sequence" eval="70"/>
+        </record>
+        <record id="university_08_akademi_angkatan_udara" model="unitrade.university">
+            <field name="name">Akademi Angkatan Udara</field>
+            <field name="status">Negeri/Kedinasan</field>
+            <field name="sequence" eval="80"/>
+        </record>
+        <record id="university_09_universitas_islam_indonesia" model="unitrade.university">
+            <field name="name">Universitas Islam Indonesia</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="90"/>
+        </record>
+        <record id="university_10_universitas_muhammadiyah_yogyakarta" model="unitrade.university">
+            <field name="name">Universitas Muhammadiyah Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="100"/>
+        </record>
+        <record id="university_11_universitas_ahmad_dahlan" model="unitrade.university">
+            <field name="name">Universitas Ahmad Dahlan</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="110"/>
+        </record>
+        <record id="university_12_universitas_atma_jaya_yogyakarta" model="unitrade.university">
+            <field name="name">Universitas Atma Jaya Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="120"/>
+        </record>
+        <record id="university_13_universitas_sanata_dharma" model="unitrade.university">
+            <field name="name">Universitas Sanata Dharma</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="130"/>
+        </record>
+        <record id="university_14_universitas_kristen_duta_wacana" model="unitrade.university">
+            <field name="name">Universitas Kristen Duta Wacana</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="140"/>
+        </record>
+        <record id="university_15_universitas_mercu_buana_yogyakarta" model="unitrade.university">
+            <field name="name">Universitas Mercu Buana Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="150"/>
+        </record>
+        <record id="university_16_universitas_teknologi_yogyakarta" model="unitrade.university">
+            <field name="name">Universitas Teknologi Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="160"/>
+        </record>
+        <record id="university_17_universitas_pgri_yogyakarta" model="unitrade.university">
+            <field name="name">Universitas PGRI Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="170"/>
+        </record>
+        <record id="university_18_universitas_sarjanawiyata_tamansiswa" model="unitrade.university">
+            <field name="name">Universitas Sarjanawiyata Tamansiswa</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="180"/>
+        </record>
+        <record id="university_19_universitas_janabadra" model="unitrade.university">
+            <field name="name">Universitas Janabadra</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="190"/>
+        </record>
+        <record id="university_20_universitas_respati_yogyakarta" model="unitrade.university">
+            <field name="name">Universitas Respati Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="200"/>
+        </record>
+        <record id="university_21_universitas_widya_mataram" model="unitrade.university">
+            <field name="name">Universitas Widya Mataram</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="210"/>
+        </record>
+        <record id="university_22_universitas_cokroaminoto_yogyakarta" model="unitrade.university">
+            <field name="name">Universitas Cokroaminoto Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="220"/>
+        </record>
+        <record id="university_23_universitas_proklamasi_45" model="unitrade.university">
+            <field name="name">Universitas Proklamasi 45</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="230"/>
+        </record>
+        <record id="university_24_universitas_alma_ata" model="unitrade.university">
+            <field name="name">Universitas Alma Ata</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="240"/>
+        </record>
+        <record id="university_25_universitas_aisyiyah_yogyakarta" model="unitrade.university">
+            <field name="name">Universitas &apos;Aisyiyah Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="250"/>
+        </record>
+        <record id="university_26_universitas_nahdlatul_ulama_yogyakarta" model="unitrade.university">
+            <field name="name">Universitas Nahdlatul Ulama Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="260"/>
+        </record>
+        <record id="university_27_universitas_amikom_yogyakarta" model="unitrade.university">
+            <field name="name">Universitas AMIKOM Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="270"/>
+        </record>
+        <record id="university_28_universitas_mahakarya_asia" model="unitrade.university">
+            <field name="name">Universitas Mahakarya Asia</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="280"/>
+        </record>
+        <record id="university_29_universitas_kristen_immanuel" model="unitrade.university">
+            <field name="name">Universitas Kristen Immanuel</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="290"/>
+        </record>
+        <record id="university_30_universitas_gunung_kidul" model="unitrade.university">
+            <field name="name">Universitas Gunung Kidul</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="300"/>
+        </record>
+        <record id="university_31_universitas_teknologi_digital_indonesia" model="unitrade.university">
+            <field name="name">Universitas Teknologi Digital Indonesia</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="310"/>
+        </record>
+        <record id="university_32_universitas_siber_muhammadiyah" model="unitrade.university">
+            <field name="name">Universitas Siber Muhammadiyah</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="320"/>
+        </record>
+        <record id="university_33_universitas_cendekia_mitra_indonesia" model="unitrade.university">
+            <field name="name">Universitas Cendekia Mitra Indonesia</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="330"/>
+        </record>
+        <record id="university_34_universitas_akprind_indonesia" model="unitrade.university">
+            <field name="name">Universitas AKPRIND Indonesia</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="340"/>
+        </record>
+        <record id="university_35_institut_sains_dan_teknologi_akprind" model="unitrade.university">
+            <field name="name">Institut Sains dan Teknologi AKPRIND</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="350"/>
+        </record>
+        <record id="university_36_institut_teknologi_nasional_yogyakarta" model="unitrade.university">
+            <field name="name">Institut Teknologi Nasional Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="360"/>
+        </record>
+        <record id="university_37_institut_teknologi_dirgantara_adisutjipto" model="unitrade.university">
+            <field name="name">Institut Teknologi Dirgantara Adisutjipto</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="370"/>
+        </record>
+        <record id="university_38_institut_pertanian_stiper" model="unitrade.university">
+            <field name="name">Institut Pertanian STIPER</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="380"/>
+        </record>
+        <record id="university_39_institut_pertanian_yogyakarta" model="unitrade.university">
+            <field name="name">Institut Pertanian Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="390"/>
+        </record>
+        <record id="university_40_politeknik_negeri_media_kreatif_psdku_yogyakarta" model="unitrade.university">
+            <field name="name">Politeknik Negeri Media Kreatif PSDKU Yogyakarta</field>
+            <field name="status">Negeri</field>
+            <field name="sequence" eval="400"/>
+        </record>
+        <record id="university_41_politeknik_lpp" model="unitrade.university">
+            <field name="name">Politeknik LPP</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="410"/>
+        </record>
+        <record id="university_42_politeknik_ykpn" model="unitrade.university">
+            <field name="name">Politeknik YKPN</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="420"/>
+        </record>
+        <record id="university_43_politeknik_api" model="unitrade.university">
+            <field name="name">Politeknik API</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="430"/>
+        </record>
+        <record id="university_44_politeknik_kesehatan_bhakti_setya_indonesia" model="unitrade.university">
+            <field name="name">Politeknik Kesehatan Bhakti Setya Indonesia</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="440"/>
+        </record>
+        <record id="university_45_politeknik_kesehatan_permata_indonesia" model="unitrade.university">
+            <field name="name">Politeknik Kesehatan Permata Indonesia</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="450"/>
+        </record>
+        <record id="university_46_politeknik_kesehatan_ummi_khasanah" model="unitrade.university">
+            <field name="name">Politeknik Kesehatan Ummi Khasanah</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="460"/>
+        </record>
+        <record id="university_47_politeknik_seni_yogyakarta" model="unitrade.university">
+            <field name="name">Politeknik Seni Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="470"/>
+        </record>
+        <record id="university_48_stie_ykpn" model="unitrade.university">
+            <field name="name">STIE YKPN</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="480"/>
+        </record>
+        <record id="university_49_stikes_bethesda" model="unitrade.university">
+            <field name="name">STIKES Bethesda</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="490"/>
+        </record>
+        <record id="university_50_stikes_guna_bangsa" model="unitrade.university">
+            <field name="name">STIKES Guna Bangsa</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="500"/>
+        </record>
+        <record id="university_51_stikes_surya_global" model="unitrade.university">
+            <field name="name">STIKES Surya Global</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="510"/>
+        </record>
+        <record id="university_52_stipram_yogyakarta" model="unitrade.university">
+            <field name="name">STIPRAM Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="520"/>
+        </record>
+        <record id="university_53_stpmd_apmd" model="unitrade.university">
+            <field name="name">STPMD APMD</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="530"/>
+        </record>
+        <record id="university_54_stba_lia_yogyakarta" model="unitrade.university">
+            <field name="name">STBA LIA Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="540"/>
+        </record>
+        <record id="university_55_sttkd_yogyakarta" model="unitrade.university">
+            <field name="name">STTKD Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="550"/>
+        </record>
+        <record id="university_56_sttnas_yogyakarta" model="unitrade.university">
+            <field name="name">STTNAS Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="560"/>
+        </record>
+        <record id="university_57_stsrd_visi_indonesia" model="unitrade.university">
+            <field name="name">STSRD VISI Indonesia</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="570"/>
+        </record>
+        <record id="university_58_sekolah_tinggi_multi_media_mmtc" model="unitrade.university">
+            <field name="name">Sekolah Tinggi Multi Media MMTC</field>
+            <field name="status">Negeri</field>
+            <field name="sequence" eval="580"/>
+        </record>
+        <record id="university_59_stikes_jenderal_achmad_yani_yogyakarta" model="unitrade.university">
+            <field name="name">STIKES Jenderal Achmad Yani Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="590"/>
+        </record>
+        <record id="university_60_stikes_madani" model="unitrade.university">
+            <field name="name">STIKES Madani</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="600"/>
+        </record>
+        <record id="university_61_stikes_notokusumo" model="unitrade.university">
+            <field name="name">STIKES Notokusumo</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="610"/>
+        </record>
+        <record id="university_62_akademi_akuntansi_ykpn" model="unitrade.university">
+            <field name="name">Akademi Akuntansi YKPN</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="620"/>
+        </record>
+        <record id="university_63_akademi_farmasi_indonesia" model="unitrade.university">
+            <field name="name">Akademi Farmasi Indonesia</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="630"/>
+        </record>
+        <record id="university_64_akademi_analis_farmasi_al_islam" model="unitrade.university">
+            <field name="name">Akademi Analis Farmasi Al Islam</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="640"/>
+        </record>
+        <record id="university_65_akademi_pariwisata_stipary" model="unitrade.university">
+            <field name="name">Akademi Pariwisata STIPARY</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="650"/>
+        </record>
+        <record id="university_66_akademi_pariwisata_yogyakarta" model="unitrade.university">
+            <field name="name">Akademi Pariwisata Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="660"/>
+        </record>
+        <record id="university_67_akademi_maritim_yogyakarta" model="unitrade.university">
+            <field name="name">Akademi Maritim Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="670"/>
+        </record>
+        <record id="university_68_akademi_teknik_ykpn" model="unitrade.university">
+            <field name="name">Akademi Teknik YKPN</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="680"/>
+        </record>
+        <record id="university_69_akademi_teknik_piri" model="unitrade.university">
+            <field name="name">Akademi Teknik PIRI</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="690"/>
+        </record>
+        <record id="university_70_akademi_perikanan_yogyakarta" model="unitrade.university">
+            <field name="name">Akademi Perikanan Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="700"/>
+        </record>
+        <record id="university_71_akademi_pertanian_yogyakarta" model="unitrade.university">
+            <field name="name">Akademi Pertanian Yogyakarta</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="710"/>
+        </record>
+        <record id="university_72_universitas_jendral_ahmad_yani" model="unitrade.university">
+            <field name="name">Universitas Jendral Ahmad Yani</field>
+            <field name="status">Swasta</field>
+            <field name="sequence" eval="720"/>
+        </record>
+    </data>
+</odoo>

@@ -765,6 +765,190 @@ class UnitradePaymentController(http.Controller):
         ], limit=1)
         return '/unitrade/seller/orders/%s' % order.id if seller_line else ''
 
+    def _order_status_refund_records(self, order):
+        if not order or 'unitrade.dispute' not in request.env.registry:
+            return request.env['sale.order'].browse()
+        return request.env['unitrade.dispute'].sudo().search([('order_id', '=', order.id)], order='create_date desc')
+
+    def _order_status_refund_detail_url(self, order, dispute=False):
+        if not order or not dispute:
+            return ''
+        return '/unitrade/order/%s/refund/%s' % (order.id, dispute.id)
+
+    def _order_status_refund_progress_steps(self, order, dispute):
+        order = order.sudo()
+        dispute = dispute.sudo()
+        timeline_by_key = {item.event_key: item for item in dispute.timeline_ids}
+        refund_url = self._order_status_refund_detail_url(order, dispute)
+        state = dispute.state
+        final_success = state in ('approved', 'resolved') or order.x_escrow_state == 'refunded'
+        final_failed = state in ('rejected', 'cancelled')
+        has_buyer_return = bool(
+            timeline_by_key.get('buyer_return_sent')
+            or dispute.evidence_ids.filtered(lambda evidence: evidence.evidence_type == 'buyer_return_photo')
+        )
+        has_seller_confirmation = bool(
+            timeline_by_key.get('seller_return_confirmed')
+            or dispute.evidence_ids.filtered(lambda evidence: evidence.evidence_type == 'seller_return_photo')
+        )
+        review_done = (
+            final_success
+            or final_failed
+            or state in ('need_buyer_evidence', 'need_seller_response')
+            or bool(dispute.seller_decision_note)
+            or has_buyer_return
+            or has_seller_confirmation
+        )
+        review_active = state in ('submitted', 'under_review') and not review_done
+        return_active = state == 'need_buyer_evidence'
+        seller_confirm_active = state == 'need_seller_response'
+        admin_final_active = state == 'admin_review_final' and bool(dispute.seller_decision_note or has_seller_confirmation)
+
+        def step(key, label, done=False, active=False, failed=False, status='Pending', url=False):
+            return {
+                'key': key,
+                'label': label,
+                'status': status,
+                'done': bool(done),
+                'active': bool(active),
+                'failed': bool(failed),
+                'url': url or '',
+            }
+
+        return [
+            step(
+                'payment',
+                'Pembayaran berhasil',
+                done=order.x_payment_status in ('paid', 'refunded') or bool(dispute.payment_intent_id.paid_at),
+                status='Completed',
+            ),
+            step(
+                'refund_submitted',
+                'Pengembalian diajukan',
+                done=bool(dispute.submitted_at or dispute.create_date),
+                status='Completed',
+                url=refund_url,
+            ),
+            step(
+                'refund_review',
+                'Review admin/seller',
+                done=review_done,
+                active=review_active,
+                failed=final_failed and not (dispute.seller_decision_note or has_buyer_return or has_seller_confirmation),
+                status='Completed' if review_done else 'In Progress' if review_active else 'Pending',
+                url=refund_url,
+            ),
+            step(
+                'return_item',
+                'Barang dikembalikan',
+                done=has_buyer_return or has_seller_confirmation or final_success,
+                active=return_active,
+                status='Completed' if has_buyer_return or has_seller_confirmation or final_success else 'In Progress' if return_active else 'Pending',
+                url=refund_url,
+            ),
+            step(
+                'admin_final',
+                'Review final admin',
+                done=final_success,
+                active=admin_final_active,
+                failed=final_failed,
+                status='Completed' if final_success else 'Ditolak' if final_failed else 'In Progress' if admin_final_active else 'Pending',
+                url=refund_url,
+            ),
+            step(
+                'refund_done',
+                'Refund selesai',
+                done=final_success,
+                failed=final_failed,
+                status='Completed' if final_success else 'Ditolak' if final_failed else 'Pending',
+                url=refund_url,
+            ),
+        ]
+
+    def _order_status_progress_steps(self, order, ledgers=False, refund_disputes=False):
+        order = order.sudo()
+        ledgers = ledgers or request.env['unitrade.escrow.ledger'].sudo().search([('order_id', '=', order.id)])
+        if refund_disputes is False:
+            refund_disputes = self._order_status_refund_records(order)
+        latest_refund = refund_disputes[:1] if refund_disputes else False
+        if latest_refund:
+            return self._order_status_refund_progress_steps(order, latest_refund)
+        ledger_count = len(ledgers)
+        buyer_confirmed_count = len(ledgers.filtered(lambda ledger: ledger.buyer_confirmed_at))
+        seller_confirmed_count = len(ledgers.filtered(lambda ledger: ledger.seller_confirmed_at))
+        all_seller_confirmed = bool(ledgers) and seller_confirmed_count == ledger_count
+        all_buyer_confirmed = bool(ledgers) and buyer_confirmed_count == ledger_count
+        all_ledgers_confirmed = bool(ledgers) and all_seller_confirmed and all_buyer_confirmed
+
+        is_cancelled = (
+            order.state == 'cancel'
+            or order.x_payment_status in ('failed', 'expired', 'cancelled')
+            or order.x_unitrade_order_state == 'cancelled'
+            or order.x_escrow_state == 'cancelled'
+        )
+        is_refunded = (
+            order.x_payment_status == 'refunded'
+            or order.x_unitrade_order_state == 'refunded'
+            or order.x_escrow_state == 'refunded'
+        )
+        payment_done = order.x_payment_status in ('paid', 'refunded') or order.x_unitrade_order_state in ('processing', 'completed', 'refunded')
+        if ledgers:
+            order_done = all_ledgers_confirmed and (
+                order.x_unitrade_order_state == 'completed'
+                or order.x_escrow_state in ('releasable', 'released')
+                or all(ledger.state in ('releasable', 'released') for ledger in ledgers)
+            )
+        else:
+            order_done = order.x_unitrade_order_state == 'completed'
+
+        def step(key, label, done=False, active=False, status='Pending'):
+            return {
+                'key': key,
+                'label': label,
+                'status': status,
+                'done': bool(done),
+                'active': bool(active),
+            }
+
+        if is_cancelled:
+            return [
+                step('payment', 'Pembayaran berhasil', active=True, status='Dibatalkan'),
+                step('seller_handoff', 'Barang diserahkan'),
+                step('buyer_received', 'Barang diterima'),
+                step('completed', 'Selesai'),
+            ]
+
+        return [
+            step(
+                'payment',
+                'Pembayaran berhasil',
+                done=payment_done,
+                active=not payment_done and not is_refunded,
+                status='Completed' if payment_done else 'Pending',
+            ),
+            step(
+                'seller_handoff',
+                'Barang diserahkan',
+                done=all_seller_confirmed,
+                active=payment_done and not all_seller_confirmed and not is_refunded,
+                status='Completed' if all_seller_confirmed else ('In Progress' if payment_done and not is_refunded else 'Pending'),
+            ),
+            step(
+                'buyer_received',
+                'Barang diterima',
+                done=all_buyer_confirmed,
+                active=all_seller_confirmed and not all_buyer_confirmed and not is_refunded,
+                status='Completed' if all_buyer_confirmed else ('In Progress' if all_seller_confirmed and not is_refunded else 'Pending'),
+            ),
+            step(
+                'completed',
+                'Selesai',
+                done=order_done,
+                active=all_buyer_confirmed and not order_done and not is_refunded,
+                status='Completed' if order_done else ('Refund' if is_refunded else 'Pending'),
+            ),
+        ]
+
     def _order_status_values(self, order):
         order = order.sudo()
         intent = order.x_payment_intent_id.sudo() if order.x_payment_intent_id else request.env['unitrade.payment.intent'].sudo().search([
@@ -868,22 +1052,21 @@ class UnitradePaymentController(http.Controller):
         )
         cancel_blocker = order._unitrade_direct_cancel_blocker() if hasattr(order, '_unitrade_direct_cancel_blocker') else _('Pembatalan tidak tersedia.')
         can_cancel = not bool(cancel_blocker)
-        refund_disputes = request.env['sale.order'].browse()
-        active_refund = request.env['sale.order'].browse()
+        refund_disputes = self._order_status_refund_records(order)
+        active_refund = refund_disputes[:0] if refund_disputes else request.env['sale.order'].browse()
         can_refund = False
         refund_detail_url = ''
-        if 'unitrade.dispute' in request.env.registry:
+        if refund_disputes:
             Dispute = request.env['unitrade.dispute'].sudo()
-            refund_disputes = Dispute.search([('order_id', '=', order.id)], order='create_date desc')
             active_refund = refund_disputes.filtered(lambda dispute: dispute.state in Dispute.ACTIVE_STATES)[:1]
             if refund_disputes:
-                refund_detail_url = '/unitrade/order/%s/refund/%s' % (order.id, refund_disputes[0].id)
-            elif (
-                not request.env.user._is_public()
-                and hasattr(order, '_unitrade_refund_blocker')
-                and order.partner_id.commercial_partner_id == request.env.user.partner_id.commercial_partner_id
-            ):
-                can_refund = not bool(order._unitrade_refund_blocker(partner=request.env.user.partner_id))
+                refund_detail_url = self._order_status_refund_detail_url(order, refund_disputes[0])
+        elif (
+            not request.env.user._is_public()
+            and hasattr(order, '_unitrade_refund_blocker')
+            and order.partner_id.commercial_partner_id == request.env.user.partner_id.commercial_partner_id
+        ):
+            can_refund = not bool(order._unitrade_refund_blocker(partner=request.env.user.partner_id))
         refund_values = [{
             'name': dispute.name,
             'state': dispute.state,
@@ -894,38 +1077,9 @@ class UnitradePaymentController(http.Controller):
             'submitted_at': dispute.submitted_at,
             'decision_note': dispute.admin_decision_note or '',
             'evidence_count': len(dispute.evidence_ids),
-            'url': '/unitrade/order/%s/refund/%s' % (order.id, dispute.id),
+            'url': self._order_status_refund_detail_url(order, dispute),
         } for dispute in refund_disputes]
-        payment_done = order.x_payment_status in ('paid', 'refunded') or order.x_unitrade_order_state == 'completed'
-        seller_done = bool(ledgers) and seller_confirmed_count == len(ledgers)
-        buyer_done = bool(ledgers) and buyer_confirmed_count == len(ledgers)
-        order_done = order.x_unitrade_order_state == 'completed'
-        progress_steps = [
-            {
-                'label': 'Pembayaran berhasil',
-                'status': 'Completed' if payment_done else 'Pending',
-                'done': payment_done,
-                'active': order.x_payment_status == 'pending',
-            },
-            {
-                'label': 'Barang diserahkan',
-                'status': 'Completed' if seller_done else ('In Progress' if payment_done and not seller_done else 'Pending'),
-                'done': seller_done,
-                'active': payment_done and not seller_done and not order_done,
-            },
-            {
-                'label': 'Barang diterima',
-                'status': 'Completed' if buyer_done else ('In Progress' if seller_done and not buyer_done else 'Pending'),
-                'done': buyer_done,
-                'active': seller_done and not buyer_done and not order_done,
-            },
-            {
-                'label': 'Selesai',
-                'status': 'Completed' if order_done else 'Pending',
-                'done': order_done,
-                'active': order_done,
-            },
-        ]
+        progress_steps = self._order_status_progress_steps(order, ledgers=ledgers, refund_disputes=refund_disputes)
         return {
             'order': order,
             'payment_intent': intent,
@@ -944,6 +1098,7 @@ class UnitradePaymentController(http.Controller):
             'order_status_voucher_discount': self._format_money(amounts.get('voucher_discount'), order.currency_id),
             'order_status_voucher_code': amounts.get('voucher_code') or '',
             'order_status_progress_steps': progress_steps,
+            'order_status_progress_count': len(progress_steps),
             'order_status_buyer_confirmed_count': buyer_confirmed_count,
             'order_status_seller_confirmed_count': seller_confirmed_count,
             'order_status_ledger_count': len(ledgers),
@@ -953,6 +1108,7 @@ class UnitradePaymentController(http.Controller):
             'order_status_active_refund': active_refund,
             'order_status_can_refund': can_refund,
             'order_status_refund_detail_url': refund_detail_url,
+            'order_status_access_token': request.params.get('access_token') or '',
             'order_status_cancel_blocker': cancel_blocker or '',
             'order_status_confirm_received_url': '/unitrade/order/%s/confirm-received' % order.id,
             'order_status_cancel_url': '/unitrade/order/%s/cancel' % order.id,
@@ -1483,6 +1639,44 @@ class UnitradePaymentController(http.Controller):
                 return request.redirect(seller_detail_url)
             return request.not_found()
         return request.render('unitrade_payment.unitrade_order_status', self._order_status_values(order))
+
+    @http.route('/unitrade/order/status/<int:order_id>/data', type='json', auth='public', website=True, methods=['POST'])
+    def unitrade_order_status_data(self, order_id, access_token=None, **kwargs):
+        order = request.env['sale.order'].sudo().browse(order_id).exists()
+        token = access_token or kwargs.get('access_token') or request.params.get('access_token')
+        if not order or not self._can_view_order_status(order, access_token=token):
+            return {
+                'success': False,
+                'message': 'Status pesanan tidak tersedia.',
+            }
+        ledgers = request.env['unitrade.escrow.ledger'].sudo().search([('order_id', '=', order.id)])
+        refund_disputes = self._order_status_refund_records(order)
+        latest_refund = refund_disputes[:1] if refund_disputes else False
+        progress_steps = self._order_status_progress_steps(order, ledgers=ledgers, refund_disputes=refund_disputes)
+        can_refund = False
+        if (
+            not latest_refund
+            and not request.env.user._is_public()
+            and hasattr(order, '_unitrade_refund_blocker')
+            and order.partner_id.commercial_partner_id == request.env.user.partner_id.commercial_partner_id
+        ):
+            can_refund = not bool(order._unitrade_refund_blocker(partner=request.env.user.partner_id))
+        return {
+            'success': True,
+            'progress_steps': progress_steps,
+            'progress_count': len(progress_steps),
+            'refund_detail_url': self._order_status_refund_detail_url(order, latest_refund) if latest_refund else '',
+            'refund_create_url': '/unitrade/order/%s/refund/new' % order.id,
+            'has_refund': bool(latest_refund),
+            'can_refund': can_refund,
+            'payment_status': order.x_payment_status or '',
+            'escrow_state': order.x_escrow_state or '',
+            'unitrade_state': order.x_unitrade_order_state or '',
+            'seller_confirmed_count': len(ledgers.filtered(lambda ledger: ledger.seller_confirmed_at)),
+            'buyer_confirmed_count': len(ledgers.filtered(lambda ledger: ledger.buyer_confirmed_at)),
+            'ledger_count': len(ledgers),
+            'updated_at': fields.Datetime.to_string(fields.Datetime.now()),
+        }
 
     @http.route('/unitrade/order/<int:order_id>/confirm-received', type='http', auth='user', website=True, methods=['POST'], csrf=True, sitemap=False)
     def unitrade_order_confirm_received(self, order_id, **kwargs):

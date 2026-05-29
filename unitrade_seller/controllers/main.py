@@ -247,7 +247,7 @@ class UnitradeSellerController(http.Controller):
         }
 
     @staticmethod
-    def _seller_reviews(products, rating=None, limit=12):
+    def _seller_reviews(products, rating=None, sort='newest', limit=12):
         if not products or 'unitrade.review' not in request.env.registry:
             return request.env['ir.ui.view'].browse()
         domain = [
@@ -256,7 +256,13 @@ class UnitradeSellerController(http.Controller):
         ]
         if rating:
             domain.append(('rating', '=', rating))
-        return request.env['unitrade.review'].sudo().search(domain, order='create_date desc', limit=limit)
+        order_map = {
+            'newest': 'create_date desc, id desc',
+            'oldest': 'create_date asc, id asc',
+            'highest': 'rating desc, create_date desc, id desc',
+            'lowest': 'rating asc, create_date desc, id desc',
+        }
+        return request.env['unitrade.review'].sudo().search(domain, order=order_map.get(sort, order_map['newest']), limit=limit)
 
     @staticmethod
     def _seller_review_star_filters(review_summary, rating, active_rating=None):
@@ -287,6 +293,10 @@ class UnitradeSellerController(http.Controller):
         except (TypeError, ValueError):
             return 0
         return rating if 1 <= rating <= 5 else 0
+
+    @staticmethod
+    def _active_review_sort(value):
+        return value if value in ('newest', 'oldest', 'highest', 'lowest') else 'newest'
 
     @staticmethod
     def _format_money(amount, currency=None):
@@ -1728,6 +1738,7 @@ class UnitradeSellerController(http.Controller):
             'name': product.name or '',
             'description': product.description_sale or '',
             'category_id': product.categ_id.id if product.categ_id else 0,
+            'condition': _safe_get(product, 'x_condition', 'used') or 'used',
             'price': product.list_price or 0.0,
             'discount_percent': discount_percent,
             'discount_price': discount_price,
@@ -1895,6 +1906,14 @@ class UnitradeSellerController(http.Controller):
             return max(0.0, min(100.0, (price - discount_price) / price * 100.0))
         return 0.0
 
+    @staticmethod
+    def _seller_product_payload_condition(payload):
+        condition = (payload.get('condition') or payload.get('x_condition') or 'used')
+        condition = str(condition).strip()
+        if condition not in ('new', 'used'):
+            raise ValueError('Kondisi barang harus Baru atau Bekas.')
+        return condition
+
     def _create_seller_product(self, seller, payload):
         name = (payload.get('name') or '').strip()
         description = (payload.get('description') or '').strip()
@@ -1902,6 +1921,7 @@ class UnitradeSellerController(http.Controller):
         price = float(payload.get('price') or 0)
         discount_percent = self._seller_product_discount_percent(payload, price)
         stock = float(payload.get('stock') or 0)
+        condition = self._seller_product_payload_condition(payload)
         images = self._clean_product_image_payloads(payload.get('images') or [])
 
         if not name:
@@ -1938,7 +1958,7 @@ class UnitradeSellerController(http.Controller):
             'x_seller_location': seller_location,
             'x_item_province': 'diy',
             'x_item_district': district,
-            'x_condition': 'used',
+            'x_condition': condition,
             'x_discount_percent': discount_percent,
         }
         if 'company_id' in Product._fields:
@@ -1978,6 +1998,7 @@ class UnitradeSellerController(http.Controller):
         price = float(payload.get('price') or 0)
         discount_percent = self._seller_product_discount_percent(payload, price)
         stock = float(payload.get('stock') or 0)
+        condition = self._seller_product_payload_condition(payload)
         images = self._clean_product_edit_image_payloads(product, payload.get('images') or [])
 
         if not name:
@@ -2012,6 +2033,7 @@ class UnitradeSellerController(http.Controller):
             'sale_ok': should_be_active,
             'website_published': should_be_active,
             'x_is_marketplace': was_marketplace,
+            'x_condition': condition,
             'x_discount_percent': discount_percent,
         }
         if 'company_id' in product._fields:
@@ -2900,8 +2922,14 @@ class UnitradeSellerController(http.Controller):
             return {'tab_key': 'rejected', 'badge_key': 'rejected', 'label': 'Ditolak'}
         if state == 'cancelled':
             return {'tab_key': 'rejected', 'badge_key': 'rejected', 'label': 'Dibatalkan'}
-        if state in ('under_review', 'need_buyer_evidence', 'need_seller_response'):
+        if state == 'need_buyer_evidence':
+            return {'tab_key': 'waiting', 'badge_key': 'waiting', 'label': 'Menunggu Barang'}
+        if state == 'need_seller_response':
+            return {'tab_key': 'waiting', 'badge_key': 'waiting', 'label': 'Konfirmasi Barang'}
+        if state == 'under_review':
             return {'tab_key': 'waiting', 'badge_key': 'waiting', 'label': 'Diproses'}
+        if state == 'admin_review_final':
+            return {'tab_key': 'waiting', 'badge_key': 'waiting', 'label': 'Review Final Admin'}
         return {'tab_key': 'waiting', 'badge_key': 'new', 'label': 'Baru'}
 
     @staticmethod
@@ -2910,8 +2938,9 @@ class UnitradeSellerController(http.Controller):
             'draft': 'Draft',
             'submitted': 'Menunggu Review',
             'under_review': 'Menunggu Review',
-            'need_buyer_evidence': 'Butuh Bukti Pembeli',
-            'need_seller_response': 'Menunggu Review Seller',
+            'admin_review_final': 'Review Final Admin',
+            'need_buyer_evidence': 'Menunggu Barang Kembali',
+            'need_seller_response': 'Konfirmasi Barang Kembali',
             'approved': 'Disetujui',
             'rejected': 'Ditolak',
             'resolved': 'Selesai',
@@ -2926,7 +2955,7 @@ class UnitradeSellerController(http.Controller):
             return 'rejected'
         if state == 'cancelled':
             return 'cancelled'
-        if state in ('submitted', 'under_review', 'need_buyer_evidence', 'need_seller_response'):
+        if state in ('submitted', 'under_review', 'need_buyer_evidence', 'need_seller_response', 'admin_review_final'):
             return 'review'
         return 'draft'
 
@@ -3131,8 +3160,24 @@ class UnitradeSellerController(http.Controller):
         final_approved = dispute.state in ('approved', 'resolved')
         final_rejected = dispute.state == 'rejected'
         final_cancelled = dispute.state == 'cancelled'
-        review_active = dispute.state in ('submitted', 'under_review', 'need_buyer_evidence', 'need_seller_response')
+        review_active = dispute.state in ('submitted', 'under_review')
         timeline_by_key = {item.event_key: item for item in dispute.timeline_ids}
+        has_buyer_return = bool(timeline_by_key.get('buyer_return_sent'))
+        has_seller_confirmation = bool(timeline_by_key.get('seller_return_confirmed'))
+        review_done = (
+            final_approved
+            or final_rejected
+            or final_cancelled
+            or dispute.state in ('need_buyer_evidence', 'need_seller_response', 'admin_review_final')
+            or bool(dispute.seller_decision_note)
+            or has_buyer_return
+            or has_seller_confirmation
+        )
+        buyer_return_done = final_approved or has_buyer_return or dispute.state == 'need_seller_response'
+        buyer_return_active = dispute.state == 'need_buyer_evidence'
+        seller_confirm_active = dispute.state == 'need_seller_response'
+        seller_confirm_done = final_approved or has_seller_confirmation
+        admin_review_active = dispute.state == 'admin_review_final' and bool(has_seller_confirmation or dispute.seller_decision_note)
 
         def caption_for(key, fallback=''):
             event = timeline_by_key.get(key)
@@ -3183,7 +3228,7 @@ class UnitradeSellerController(http.Controller):
             step(
                 'seller_review',
                 'Menunggu Review Seller',
-                done=final_approved or final_rejected or final_cancelled,
+                done=review_done,
                 active=review_active,
                 caption=caption_for('seller_review', self._seller_refund_status_label(dispute.state)),
             ),
@@ -3200,6 +3245,28 @@ class UnitradeSellerController(http.Controller):
             steps.append(step('refund_cancelled', 'Refund Dibatalkan', done=True, failed=True, caption=caption_for('refund_cancelled', 'Dibatalkan')))
         else:
             steps.extend([
+                step(
+                    'buyer_return_sent',
+                    'Barang Dikembalikan Pembeli',
+                    done=buyer_return_done,
+                    active=buyer_return_active,
+                    caption=caption_for('buyer_return_sent', 'Menunggu pembeli mengirim atau menyerahkan barang kembali'),
+                ),
+                step(
+                    'seller_return_confirmed',
+                    'Konfirmasi Barang Kembali',
+                    done=seller_confirm_done,
+                    active=seller_confirm_active,
+                    caption=caption_for('seller_return_confirmed', 'Menunggu seller upload foto bukti penerimaan barang'),
+                ),
+                step(
+                    'admin_review',
+                    'Review Final Admin',
+                    done=final_approved,
+                    active=admin_review_active,
+                    failed=final_rejected,
+                    caption=caption_for('admin_review', 'Menunggu admin/CS meninjau final'),
+                ),
                 step('refund_processed', 'Refund Diproses', done=final_approved, caption=caption_for('refund_approved', self._seller_refund_status_label(dispute.state))),
                 step('refund_completed', 'Refund Selesai', done=final_approved, caption=caption_for('refund_completed', self._format_datetime_detail_label(dispute.resolved_at) if dispute.resolved_at else 'Menunggu keputusan')),
             ])
@@ -3223,6 +3290,9 @@ class UnitradeSellerController(http.Controller):
         unread_chat_count = self._seller_dashboard_chat_payloads(seller)[1]
         status_key = self._seller_refund_status_key(dispute.state)
         total_refund = dispute.total_refund_amount or dispute.approved_amount or dispute.requested_amount
+        can_decide = dispute.state in ('submitted', 'under_review') and not dispute.seller_decided_at
+        can_confirm_return = dispute.state == 'need_seller_response'
+        can_reject_return = dispute.state == 'need_seller_response'
         return {
             'seller': {
                 'name': seller.name,
@@ -3248,8 +3318,11 @@ class UnitradeSellerController(http.Controller):
                 'seller_note': dispute.seller_decision_note or '',
                 'submitted_at_label': self._format_datetime_detail_label(dispute.submitted_at or dispute.create_date),
                 'decision_at_label': self._format_datetime_detail_label(dispute.seller_decided_at or dispute.approved_at or dispute.rejected_at),
-                'can_decide': dispute.state not in ('approved', 'rejected', 'resolved', 'cancelled'),
+                'can_decide': can_decide,
+                'can_confirm_return': can_confirm_return,
+                'can_reject_return': can_reject_return,
                 'decision_url': '/unitrade/seller/refunds/%s/decision' % dispute.id,
+                'confirm_return_url': '/seller/refund/%s/confirm-return' % dispute.id,
                 'chat_url': '/unitrade/seller/refunds/%s/chat' % dispute.id,
             },
             'order': {
@@ -3359,7 +3432,7 @@ class UnitradeSellerController(http.Controller):
             return []
         domain = [
             ('seller_id', '=', seller.id),
-            ('state', 'in', ['submitted', 'under_review', 'need_buyer_evidence', 'need_seller_response']),
+            ('state', 'in', ['submitted', 'under_review', 'need_buyer_evidence', 'need_seller_response', 'admin_review_final']),
         ]
         if date_start:
             domain.append(('create_date', '>=', fields.Datetime.to_string(date_start)))
@@ -3369,8 +3442,9 @@ class UnitradeSellerController(http.Controller):
         state_labels = {
             'submitted': 'Baru',
             'under_review': 'Ditinjau',
-            'need_buyer_evidence': 'Butuh bukti pembeli',
-            'need_seller_response': 'Butuh respons seller',
+            'admin_review_final': 'Review final admin',
+            'need_buyer_evidence': 'Menunggu barang kembali',
+            'need_seller_response': 'Konfirmasi barang kembali',
         }
         return [{
             'id': dispute.id,
@@ -3383,6 +3457,7 @@ class UnitradeSellerController(http.Controller):
             'state_label': state_labels.get(dispute.state, dispute.state),
             'date_label': self._format_datetime_label(dispute.submitted_at or dispute.create_date),
             'detail_url': self._seller_refund_detail_url(dispute),
+            'can_decide': dispute.state in ('submitted', 'under_review') and not dispute.seller_decided_at,
             'approve_url': '/unitrade/seller/refund/%s/approve' % dispute.id,
             'reject_url': '/unitrade/seller/refund/%s/reject' % dispute.id,
         } for dispute in disputes]
@@ -3861,6 +3936,7 @@ class UnitradeSellerController(http.Controller):
         if tab not in self._PROFILE_TABS:
             tab = 'home'
         active_rating = self._active_review_rating(kwargs.get('rating')) if tab == 'reviews' else 0
+        active_sort = self._active_review_sort(kwargs.get('sort')) if tab == 'reviews' else 'newest'
 
         self._refresh_seller_product_listing_states(seller)
         Product = request.env['product.template'].sudo()
@@ -3876,7 +3952,7 @@ class UnitradeSellerController(http.Controller):
         review_summary = self._seller_review_summary(all_products)
         seller_rating = review_summary['rating'] or seller.average_rating or 0.0
         review_star_filters, review_star_display = self._seller_review_star_filters(review_summary, seller_rating, active_rating)
-        seller_reviews = self._seller_reviews(all_products, rating=active_rating)
+        seller_reviews = self._seller_reviews(all_products, rating=active_rating, sort=active_sort)
         total_sold = int(sum(all_products.mapped('sales_count'))) if all_products and 'sales_count' in all_products._fields else 0
         joined_date = seller.create_date.strftime('%d/%m/%Y') if seller.create_date else ''
         seller_map_lat, seller_map_lng = self._seller_map_coordinates(seller)
@@ -3899,6 +3975,7 @@ class UnitradeSellerController(http.Controller):
             'seller_review_star_filters': review_star_filters,
             'seller_review_star_display': review_star_display,
             'seller_review_active_rating': active_rating,
+            'seller_review_active_sort': active_sort,
             'seller_reviews': seller_reviews,
             'seller_total_sold': total_sold or seller.total_sold,
             'seller_joined_date': joined_date,
@@ -3927,6 +4004,7 @@ class UnitradeSellerController(http.Controller):
         if tab not in self._PROFILE_TABS:
             tab = 'home'
         active_rating = self._active_review_rating(kwargs.get('rating')) if tab == 'reviews' else 0
+        active_sort = self._active_review_sort(kwargs.get('sort')) if tab == 'reviews' else 'newest'
 
         seller = self._get_seller_by_public_ref(profile_ref=profile_ref)
         if not seller:
@@ -3956,13 +4034,14 @@ class UnitradeSellerController(http.Controller):
             {
                 'seller': seller,
                 'seller_products': products,
-                'seller_reviews': self._seller_reviews(all_products, rating=active_rating),
+                'seller_reviews': self._seller_reviews(all_products, rating=active_rating, sort=active_sort),
                 'seller_rating': seller_rating,
                 'seller_review_count': review_summary['review_count'],
                 'seller_review_counts': review_summary['counts'],
                 'seller_review_star_filters': review_star_filters,
                 'seller_review_star_display': review_star_display,
                 'seller_review_active_rating': active_rating,
+                'seller_review_active_sort': active_sort,
                 'seller_search': search,
             },
         )
@@ -3972,6 +4051,7 @@ class UnitradeSellerController(http.Controller):
             'tab': tab,
             'search': search,
             'rating': active_rating,
+            'sort': active_sort,
         }
 
     @http.route('/unitrade/seller/profile', type='http', auth='user', website=True)
@@ -4486,6 +4566,13 @@ class UnitradeSellerController(http.Controller):
                 'success': False,
                 'message': 'Keputusan refund tidak valid.',
             }
+        allow_initial_decision = dispute.state in ('submitted', 'under_review') and not dispute.seller_decided_at
+        allow_return_rejection = dispute.state == 'need_seller_response' and decision == 'reject'
+        if not allow_initial_decision and not allow_return_rejection:
+            return {
+                'success': False,
+                'message': 'Keputusan awal seller sudah diproses. Lanjutkan melalui langkah yang tersedia di detail refund.',
+            }
         if decision == 'reject' and not note:
             return {
                 'success': False,
@@ -4494,11 +4581,13 @@ class UnitradeSellerController(http.Controller):
         try:
             with request.env.cr.savepoint():
                 if decision == 'approve':
+                    if allow_return_rejection:
+                        raise UserError('Konfirmasi penerimaan barang harus memakai form upload bukti.')
                     dispute.with_user(request.env.user).action_seller_approve_refund(note=note)
-                    message = 'Refund berhasil disetujui.'
+                    message = 'Refund disetujui seller. Menunggu pembeli mengembalikan barang.'
                 else:
                     dispute.with_user(request.env.user).action_seller_reject_refund(note=note)
-                    message = 'Refund berhasil ditolak.'
+                    message = 'Penolakan seller dikirim. Customer Service/admin akan meninjau sebagai mediator.'
         except Exception as error:
             request.env.clear()
             _logger.exception('Seller refund decision failed for dispute %s', dispute_id)
@@ -4550,6 +4639,8 @@ class UnitradeSellerController(http.Controller):
         if not dispute or not dispute.seller_id or dispute.seller_id.id != seller.id:
             return request.not_found()
         try:
+            if dispute.state not in ('submitted', 'under_review') or dispute.seller_decided_at:
+                raise UserError('Keputusan awal seller sudah diproses. Lanjutkan melalui detail refund.')
             dispute.with_user(request.env.user).action_seller_approve_refund(note=kwargs.get('seller_note') or '')
             return request.redirect(self._seller_refund_detail_url(dispute) + '?refund_approved=1')
         except Exception as error:
@@ -4565,6 +4656,8 @@ class UnitradeSellerController(http.Controller):
         if not dispute or not dispute.seller_id or dispute.seller_id.id != seller.id:
             return request.not_found()
         try:
+            if dispute.state not in ('submitted', 'under_review') or dispute.seller_decided_at:
+                raise UserError('Keputusan awal seller sudah diproses. Lanjutkan melalui detail refund.')
             dispute.with_user(request.env.user).action_seller_reject_refund(note=kwargs.get('seller_note') or '')
             return request.redirect(self._seller_refund_detail_url(dispute) + '?refund_rejected=1')
         except Exception as error:

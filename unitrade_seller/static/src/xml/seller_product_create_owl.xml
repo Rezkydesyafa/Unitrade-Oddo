@@ -95,6 +95,19 @@
                                 <textarea t-att-value="state.form.description" t-on-input="(ev) => this.setField('description', ev)" placeholder="Tuliskan deskripsi produk Anda secara detail..."></textarea>
                                 <p>Menyediakan detailed informasi tentang fitur, bahan, dan manfaat</p>
                             </div>
+                            <div class="ut-product-create-field">
+                                <label>Kondisi Barang</label>
+                                <div class="ut-product-create-condition-list" role="radiogroup" aria-label="Kondisi barang">
+                                    <button type="button" t-att-class="conditionClass('used')" t-att-aria-pressed="state.form.condition === 'used' ? 'true' : 'false'" t-on-click="() => this.selectCondition('used')">
+                                        <span>Bekas</span>
+                                        <small>Barang pernah dipakai</small>
+                                    </button>
+                                    <button type="button" t-att-class="conditionClass('new')" t-att-aria-pressed="state.form.condition === 'new' ? 'true' : 'false'" t-on-click="() => this.selectCondition('new')">
+                                        <span>Baru</span>
+                                        <small>Barang belum dipakai</small>
+                                    </button>
+                                </div>
+                            </div>
                         </section>
 
                         <section class="ut-product-create-card tw-mb-6">
@@ -171,7 +184,6 @@
                                     <span t-esc="state.deleting ? 'Menghapus...' : state.deleteLabel"></span>
                                 </button>
                                 <button type="button" class="ut-product-create-submit" t-att-disabled="state.submitting || state.deleting ? true : undefined" t-on-click="submitProduct">
-                                    <i t-att-class="state.submitting ? 'fa fa-spinner fa-spin' : 'fa fa-floppy-o'"></i>
                                     <span t-esc="state.submitting ? 'Menyimpan...' : (isEditMode ? state.submitLabel : 'Lanjut Pembayaran')"></span>
                                 </button>
                             </div>
@@ -437,9 +449,9 @@
                                     <input type="checkbox" t-att-checked="state.acceptedTerms ? true : undefined" t-on-change="toggleTerms"/>
                                     <span>
                                         Saya menyetujui
-                                        <a href="/terms" target="_blank" rel="noopener">syarat dan ketentuan</a>
+                                        <a href="/terms#policy_seller-terms" target="_blank" rel="noopener">syarat dan ketentuan</a>
                                         serta
-                                        <a href="/help" target="_blank" rel="noopener">kebijakan posting produk</a>
+                                        <a href="/terms#policy_products-transactions" target="_blank" rel="noopener">kebijakan posting produk</a>
                                     </span>
                                 </label>
                                 <button type="button" class="ut-product-payment-submit" t-att-disabled="!canPay ? true : undefined" t-on-click="submitPayment">

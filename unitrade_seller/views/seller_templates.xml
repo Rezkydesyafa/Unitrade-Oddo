@@ -1055,6 +1055,7 @@
                                 t-att-data-profile-ref="seller_public_ref"
                                 t-att-data-initial-tab="active_tab"
                                 t-att-data-initial-rating="seller_review_active_rating"
+                                t-att-data-initial-sort="seller_review_active_sort"
                                 t-att-data-search="seller_search or ''">
                                 <div id="ut-seller-initial-products">
                                     <t t-if="active_tab == 'reviews'" t-call="unitrade_seller.seller_profile_reviews_fragment"/>
@@ -1112,9 +1113,24 @@
             <div class="ut-review-summary-card">
                 <div class="ut-review-filter-row">
                     <button type="button"
-                        data-rating=""
-                        t-att-class="'ut-review-chip ut-seller-review-filter %s' % ('ut-review-chip-active' if not seller_review_active_rating else '')">
-                        Semua (<t t-esc="seller_review_count"/>)
+                        data-sort="newest"
+                        t-att-class="'ut-review-chip ut-seller-review-sort %s' % ('ut-review-chip-active' if seller_review_active_sort == 'newest' else '')">
+                        Terbaru
+                    </button>
+                    <button type="button"
+                        data-sort="oldest"
+                        t-att-class="'ut-review-chip ut-seller-review-sort %s' % ('ut-review-chip-active' if seller_review_active_sort == 'oldest' else '')">
+                        Terlama
+                    </button>
+                    <button type="button"
+                        data-sort="highest"
+                        t-att-class="'ut-review-chip ut-seller-review-sort %s' % ('ut-review-chip-active' if seller_review_active_sort == 'highest' else '')">
+                        Tertinggi
+                    </button>
+                    <button type="button"
+                        data-sort="lowest"
+                        t-att-class="'ut-review-chip ut-seller-review-sort %s' % ('ut-review-chip-active' if seller_review_active_sort == 'lowest' else '')">
+                        Terendah
                     </button>
                     <t t-foreach="seller_review_star_filters" t-as="row">
                         <button type="button"
@@ -1123,6 +1139,7 @@
                             <t t-esc="row.get('star')"/> bintang (<t t-esc="row.get('count')"/>)
                         </button>
                     </t>
+                    <button t-if="seller_review_active_rating" type="button" data-rating="" class="ut-review-chip ut-seller-review-filter">Semua</button>
                 </div>
                 <div class="ut-review-score">
                     <div class="ut-review-score-line">

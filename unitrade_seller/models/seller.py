@@ -36,6 +36,16 @@ class UnitradeSeller(models.Model):
         store=True,
         readonly=True,
     )
+    university_id = fields.Many2one(
+        'unitrade.university',
+        string='Universitas',
+        ondelete='restrict',
+        tracking=True,
+    )
+    university_other = fields.Char(
+        string='Universitas Lainnya',
+        tracking=True,
+    )
     x_avatar_128 = fields.Image(
         string='Avatar',
         related='user_id.avatar_128',

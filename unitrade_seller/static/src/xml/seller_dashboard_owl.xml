@@ -294,11 +294,11 @@
                                                 <span class="tw-block tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[11px] tw-leading-4 tw-text-[#6a7282]" t-esc="refund.amount_label + ' / ' + refund.state_label"></span>
                                                 <span class="ut-dash-refund-actions">
                                                     <a t-att-href="refund.detail_url" class="ut-dash-refund-detail">Detail</a>
-                                                    <form t-att-action="refund.approve_url" method="post">
+                                                    <form t-if="refund.can_decide" t-att-action="refund.approve_url" method="post">
                                                         <input type="hidden" name="csrf_token" t-att-value="payload.csrf_token"/>
                                                         <button type="submit" class="ut-dash-refund-approve">Setuju</button>
                                                     </form>
-                                                    <form t-att-action="refund.reject_url" method="post">
+                                                    <form t-if="refund.can_decide" t-att-action="refund.reject_url" method="post">
                                                         <input type="hidden" name="csrf_token" t-att-value="payload.csrf_token"/>
                                                         <button type="submit" class="ut-dash-refund-reject">Tolak</button>
                                                     </form>

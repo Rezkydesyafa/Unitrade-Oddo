@@ -17,6 +17,11 @@
         'views/voucher_views.xml',
         'views/checkout_templates.xml',
     ],
+    'assets': {
+        'web.assets_frontend': [
+            'unitrade_payment/static/src/js/order_status.js',
+        ],
+    },
     'installable': True,
     'license': 'LGPL-3',
 }

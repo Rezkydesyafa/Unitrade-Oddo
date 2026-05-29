@@ -27,6 +27,8 @@
                     </div>
                     <group>
                         <group string="Informasi KTM">
+                            <field name="university_id"/>
+                            <field name="university_other" invisible="university_id"/>
                             <field name="ktm_image" widget="image" class="oe_avatar"/>
                             <field name="ktm_filename"/>
                             <field name="attachment_id"/>
@@ -82,6 +84,8 @@
         <field name="arch" type="xml">
             <tree string="Verifikasi KTM Seller" decoration-warning="state in ('pending', 'manual_review')" decoration-success="state == 'approved'" decoration-danger="state == 'rejected'">
                 <field name="partner_id"/>
+                <field name="university_id"/>
+                <field name="university_other" optional="hide"/>
                 <field name="nim_extracted"/>
                 <field name="nim_valid"/>
                 <field name="nim_registered"/>
@@ -111,6 +115,8 @@
         <field name="arch" type="xml">
             <search string="Cari Verifikasi">
                 <field name="partner_id"/>
+                <field name="university_id"/>
+                <field name="university_other"/>
                 <field name="nim_extracted"/>
                 <separator/>
                 <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
@@ -124,6 +130,7 @@
                 <filter name="filter_duplicate" string="Duplicate Warning" domain="[('duplicate_warning', '=', True)]"/>
                 <separator/>
                 <group expand="0" string="Group By">
+                    <filter name="group_university" string="Universitas" context="{'group_by': 'university_id'}"/>
                     <filter name="group_confidence" string="Confidence Flag" context="{'group_by': 'confidence_flag'}"/>
                     <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
                 </group>

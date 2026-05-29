@@ -144,6 +144,37 @@
                         transform: scale(1.05);
                         box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
                     }
+                    .ut-hero-arrow {
+                        box-sizing: border-box;
+                        width: 48px;
+                        height: 48px;
+                        min-width: 48px;
+                        min-height: 48px;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 0;
+                        border: 1px solid rgba(255, 255, 255, 0.58);
+                        border-radius: 50%;
+                        background: transparent;
+                        color: #fff;
+                        line-height: 1;
+                        appearance: none;
+                        transition: background-color 180ms ease, border-color 180ms ease, transform 160ms ease;
+                    }
+                    .ut-hero-arrow:hover {
+                        border-color: rgba(255, 255, 255, 0.78);
+                        background: rgba(255, 255, 255, 0.12);
+                    }
+                    .ut-hero-arrow:active {
+                        transform: scale(0.96);
+                    }
+                    .ut-hero-arrow svg {
+                        display: block;
+                        width: 20px;
+                        height: 20px;
+                        flex: 0 0 20px;
+                    }
                 </style>
                 <div id="unitradeHeroCarousel" class="carousel slide carousel-fade tw-relative tw-h-[400px] md:tw-h-[500px] tw-w-full tw-rounded-[30px] tw-overflow-hidden tw-shadow-lg" data-bs-ride="carousel" data-bs-interval="4000" data-bs-pause="hover" data-bs-touch="true">
                     
@@ -210,8 +241,8 @@
 
                         <!-- Pagination Controls -->
                         <div class="tw-flex tw-items-center tw-gap-5 tw-shrink-0 tw-ml-4">
-                            <button class="tw-w-[48px] tw-h-[48px] tw-rounded-full tw-bg-transparent tw-border tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-white hover:tw-bg-white/10 tw-transition-all active:tw-scale-95" type="button" data-bs-target="#unitradeHeroCarousel" data-bs-slide="prev">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-5 tw-h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                            <button class="ut-hero-arrow" type="button" data-bs-target="#unitradeHeroCarousel" data-bs-slide="prev">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
                                 <span class="visually-hidden">Previous</span>
                             </button>
                             
@@ -219,8 +250,8 @@
                                 <span id="heroSlideCurrent">1</span>/<span id="heroSlideTotal">5</span>
                             </div>
                             
-                            <button class="tw-w-[48px] tw-h-[48px] tw-rounded-full tw-bg-transparent tw-border tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-white hover:tw-bg-white/10 tw-transition-all active:tw-scale-95" type="button" data-bs-target="#unitradeHeroCarousel" data-bs-slide="next">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-5 tw-h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <button class="ut-hero-arrow" type="button" data-bs-target="#unitradeHeroCarousel" data-bs-slide="next">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                                 <span class="visually-hidden">Next</span>
                             </button>
                         </div>

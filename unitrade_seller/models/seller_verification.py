@@ -49,6 +49,16 @@ class SellerVerification(models.Model):
         tracking=True,
         ondelete='cascade',
     )
+    university_id = fields.Many2one(
+        'unitrade.university',
+        string='Universitas',
+        tracking=True,
+        ondelete='restrict',
+    )
+    university_other = fields.Char(
+        string='Universitas Lainnya',
+        tracking=True,
+    )
     ktm_image = fields.Binary(
         string='Foto KTM',
         attachment=True,
@@ -203,6 +213,8 @@ class SellerVerification(models.Model):
         self.ensure_one()
         return {
             'user_id': user.id,
+            'university_id': self.university_id.id,
+            'university_other': self.university_other or '',
             'nim': self.nim_extracted,
             'ktm_image': self.ktm_image,
             'ktm_filename': self.ktm_filename,

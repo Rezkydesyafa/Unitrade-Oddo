@@ -49,19 +49,19 @@
                 .ut-cart-layout-row {
                     position: relative;
                     margin: 0 0 48px !important;
-                    padding: 32px clamp(24px, 3vw, 48px) 48px !important;
+                    padding: 44px clamp(24px, 3vw, 48px) 56px !important;
                     row-gap: 0 !important;
                 }
                 .ut-cart-layout-row::before {
                     position: absolute;
                     z-index: 0;
-                    top: 108px;
+                    top: 0;
                     right: 0;
                     bottom: 0;
                     left: 0;
-                    border-radius: 18px;
+                    border-radius: 20px;
                     background: #ffffff;
-                    box-shadow: 0 10px 34px rgba(33, 37, 41, 0.04);
+                    box-shadow: 0 12px 38px rgba(33, 37, 41, 0.045);
                     content: "";
                 }
                 .ut-cart-layout-row > * {
@@ -73,6 +73,9 @@
                     padding-left: 0 !important;
                     padding-right: 0 !important;
                 }
+                body:has(.ut-cart-layout-row) .ut-cart-breadcrumb-row {
+                    display: none !important;
+                }
                 .ut-cart-breadcrumb-row > .tw-w-full {
                     margin-bottom: 0 !important;
                 }
@@ -82,7 +85,7 @@
                     display: flex;
                     width: 100%;
                     justify-content: flex-start;
-                    margin-bottom: 24px;
+                    margin-bottom: 26px;
                 }
                 .ut-cart-breadcrumb {
                     display: inline-flex;
@@ -94,7 +97,7 @@
                     border: 1px solid #edf0f3;
                     border-radius: 14px;
                     background: #ffffff;
-                    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+                    box-shadow: none;
                     color: #6b7280;
                     font-family: 'Urbanist', sans-serif !important;
                     font-size: 14px;
@@ -136,7 +139,7 @@
                 }
                 .ut-cart-layout-row .oe_cart,
                 .ut-cart-layout-row #o_cart_summary {
-                    margin-top: 48px;
+                    margin-top: 0;
                 }
 
                 /* ── Page title ─────────────────────────────────────── */
@@ -145,7 +148,10 @@
                     font-weight: 800;
                     font-size: 24px;
                     color: #212529;
-                    margin-bottom: 24px;
+                    margin: 0 0 16px;
+                }
+                .ut-cart-title-breadcrumb {
+                    margin-bottom: 26px;
                 }
                 .o_website_sale_checkout h1,
                 .o_website_sale_checkout h2,
@@ -161,6 +167,7 @@
                     flex-direction: column !important;
                     gap: 16px !important; /* Spacing antar elemen */
                     margin-bottom: 0 !important;
+                    max-width: 760px;
                 }
 
                 /* ── Product rows: card style ────────────────────────── */
@@ -558,15 +565,15 @@
                         padding: 0 !important;
                     }
                     .ut-cart-layout-row {
-                        padding: 18px 18px 32px !important;
+                        padding: 24px 18px 32px !important;
                     }
                     .ut-cart-layout-row::before {
-                        top: 88px;
+                        top: 0;
                         border-radius: 16px;
                     }
                     .ut-cart-layout-row .oe_cart,
                     .ut-cart-layout-row #o_cart_summary {
-                        margin-top: 32px;
+                        margin-top: 0;
                     }
                     .ut-cart-breadcrumb-row {
                         margin-bottom: 16px;
@@ -640,6 +647,22 @@
         <!-- Replace default "Order overview" h3 with custom title -->
         <xpath expr="//h3[normalize-space(text())='Order overview']" position="replace">
             <h1 class="unitrade-cart-title">Keranjang Belanja</h1>
+            <div class="ut-cart-breadcrumb-wrap ut-cart-title-breadcrumb">
+                <nav class="ut-cart-breadcrumb" aria-label="Breadcrumb">
+                    <a href="/" class="ut-cart-breadcrumb-link">
+                        <svg class="ut-cart-breadcrumb-home-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <path d="M12 16v-4"></path>
+                            <circle cx="12" cy="16" r="0.5" fill="currentColor"></circle>
+                        </svg>
+                        <span>Beranda</span>
+                    </a>
+                    <span class="ut-cart-breadcrumb-separator">/</span>
+                    <a href="/shop" class="ut-cart-breadcrumb-link">Belanja</a>
+                    <span class="ut-cart-breadcrumb-separator">/</span>
+                    <span class="ut-cart-breadcrumb-active">Keranjang Belanja</span>
+                </nav>
+            </div>
         </xpath>
 
     </template>
@@ -788,9 +811,6 @@
         <!-- Inject before the total table inside the summary card -->
         <xpath expr="//div[@id='o_cart_summary']//t[@t-call='website_sale.total']" position="before">
             <span class="unitrade-summary-title">Ringkasan Pesanan</span>
-            <a href="/help#terms" class="tw-mb-4 tw-inline-flex tw-text-[12px] tw-font-medium tw-text-gray-500 tw-no-underline hover:tw-text-black hover:tw-underline">
-                Syarat &amp; Kebijakan Transaksi
-            </a>
         </xpath>
     </template>
 

@@ -43,13 +43,13 @@
             </div>
 
             <div class="tw-w-full tw-bg-transparent tw-px-4 tw-py-[15px] md:tw-px-8">
-                <div class="tw-mx-auto tw-flex tw-h-[70px] tw-max-w-[1376px] tw-items-center tw-gap-5 tw-overflow-visible tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                <div class="tw-mx-auto tw-flex tw-h-[70px] tw-max-w-[1376px] tw-items-center tw-gap-5 tw-overflow-visible tw-rounded-[54px] tw-px-[14px]" style="background: rgba(255, 255, 255, 0.42); -webkit-backdrop-filter: blur(24px) saturate(175%); backdrop-filter: blur(24px) saturate(175%); border: 1px solid rgba(255, 255, 255, 0.46); box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.52);">
                     <a href="/" aria-label="UniTrade beranda" class="tw-flex tw-h-[52px] tw-w-[129px] tw-shrink-0 tw-items-center tw-justify-center tw-gap-2 tw-rounded-[36.5px] tw-text-[#212529] tw-no-underline hover:tw-text-[#212529] hover:tw-no-underline focus:tw-no-underline" style="text-decoration: none !important;">
                         <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="" class="tw-h-[37px] tw-w-auto tw-object-contain"/>
                         <span class="tw-whitespace-nowrap tw-text-[13px] tw-font-semibold tw-leading-none tw-text-[#212529]" style="text-decoration: none !important;">UniTrade</span>
                     </a>
 
-                    <form action="/shop" method="get" role="search" aria-label="Cari produk UniTrade" class="tw-relative tw-hidden tw-h-[48px] tw-min-w-[220px] tw-max-w-[760px] tw-flex-[1_1_560px] tw-rounded-full tw-border tw-border-[#DADADA] tw-bg-[#F9F9F9] tw-transition-colors focus-within:tw-border-[#212529] focus-within:tw-shadow-[0_0_0_2px_rgba(33,37,41,0.08)] lg:tw-block xl:tw-max-w-[820px]">
+                    <form action="/shop" method="get" role="search" aria-label="Cari produk UniTrade" class="tw-relative tw-hidden tw-h-[48px] tw-min-w-[220px] tw-max-w-[760px] tw-flex-[1_1_560px] tw-rounded-full tw-border tw-transition-colors focus-within:tw-border-white/70 focus-within:tw-shadow-[0_0_0_2px_rgba(255,255,255,0.18)] lg:tw-block xl:tw-max-w-[820px]" style="background: rgba(255, 255, 255, 0.34); -webkit-backdrop-filter: blur(18px) saturate(165%); backdrop-filter: blur(18px) saturate(165%); border-color: rgba(255, 255, 255, 0.46); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38), 0 4px 14px rgba(15, 23, 42, 0.035);">
                         <label for="unitrade_search_desktop" class="tw-sr-only">Cari produk di UniTrade</label>
                         <input id="unitrade_search_desktop" type="search" name="search" aria-label="Cari produk di UniTrade" autocomplete="off" class="unitrade-search tw-h-full tw-w-full tw-appearance-none tw-rounded-full tw-border-0 tw-bg-transparent tw-py-0 tw-pl-5 tw-pr-[58px] tw-text-[14px] tw-font-normal tw-text-[#212529] tw-shadow-none tw-outline-none placeholder:tw-text-[#8c8c8c] focus:tw-border-0 focus:tw-shadow-none focus:tw-outline-none focus:tw-ring-0" placeholder="Cari produk di UniTrade"/>
                         <button type="submit" aria-label="Cari produk" class="tw-absolute tw-right-[5px] tw-top-1/2 tw-flex tw-size-[38px] tw--translate-y-1/2 tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-[#212529] tw-p-0 tw-text-white tw-transition-colors hover:tw-bg-black">
@@ -93,7 +93,7 @@
                                     </svg>
                                 </button>
                                 <div class="tw-invisible tw-absolute tw-right-0 tw-top-full tw-z-[999] tw-w-[232px] tw-pt-3 tw-opacity-0 tw-transition-all tw-duration-200 group-hover:tw-visible group-hover:tw-opacity-100">
-                                    <div class="tw-rounded-[24px] tw-border tw-border-[#ececec] tw-bg-white tw-p-2 tw-shadow-[0_18px_45px_rgba(0,0,0,0.12)]">
+                                    <div class="tw-rounded-[24px] tw-border tw-p-2" style="background: rgba(255, 255, 255, 0.52); -webkit-backdrop-filter: blur(24px) saturate(175%); backdrop-filter: blur(24px) saturate(175%); border-color: rgba(255, 255, 255, 0.50); box-shadow: 0 14px 34px rgba(15, 23, 42, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.50);">
                                         <a href="/my/account" class="tw-flex tw-items-center tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-medium tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Profil Saya</a>
                                         <a href="/my/orders" class="tw-flex tw-items-center tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-medium tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Pesanan Saya</a>
                                         <a href="/my/wishlist" class="tw-flex tw-items-center tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-medium tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Wishlist</a>

@@ -156,10 +156,10 @@
                                                     <span t-att-class="conditionClass(product)" t-esc="product.condition_label"></span>
                                                 </td>
                                                 <td>
-                                                    <span t-att-class="statusClass(product)" t-esc="product.status_label"></span>
+                                                    <span t-att-class="statusClass(product)" t-att-title="product.status_label" t-esc="product.status_label"></span>
                                                 </td>
                                                 <td>
-                                                    <span t-att-class="expiryClass(product)" t-esc="product.expiry_label"></span>
+                                                    <span t-att-class="expiryClass(product)" t-att-title="product.expiry_label" t-esc="product.expiry_label"></span>
                                                 </td>
                                                 <td>
                                                     <div class="ut-products-actions">

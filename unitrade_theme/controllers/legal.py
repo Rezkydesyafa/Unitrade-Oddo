@@ -64,116 +64,173 @@ POLICY_SECTIONS = [
         "id": "general",
         "title": "Ketentuan Umum",
         "paragraphs": [
-            "UniTrade adalah platform marketplace C2C. Dengan menggunakan layanan ini, pengguna dianggap "
-            "telah membaca, memahami, dan menyetujui seluruh ketentuan yang berlaku."
+            "UniTrade adalah marketplace C2C berbasis Odoo 17 untuk mempertemukan pengguna yang ingin membeli "
+            "dan menjual produk atau jasa dalam lingkungan kampus. Dengan mendaftar, login, membeli, menjual, "
+            "mengirim pesan, atau menggunakan fitur lain di UniTrade, pengguna dianggap telah membaca dan "
+            "menyetujui syarat layanan serta kebijakan privasi ini.",
+            "UniTrade berperan sebagai penyedia platform. Penjual dan pembeli tetap bertanggung jawab atas "
+            "akurasi informasi, kualitas barang atau jasa, komunikasi, dan pemenuhan kewajiban transaksi masing-masing.",
         ],
     },
     {
-        "id": "account-security",
-        "title": "Akun dan Keamanan",
+        "id": "accounts",
+        "title": "Akun, Login, dan OTP",
         "items": [
-            "Pengguna wajib mendaftar menggunakan email atau nomor HP yang valid serta membuat username unik.",
-            "Aktivasi akun dilakukan melalui verifikasi OTP yang dikirim ke email atau nomor HP pengguna.",
-            "Pengguna bertanggung jawab penuh atas kerahasiaan akun dan password.",
-            "UniTrade berhak melakukan penguncian akun sementara jika terdeteksi aktivitas login yang mencurigakan atau kegagalan login berulang.",
-            "Pengguna dilarang menggunakan akun orang lain tanpa izin.",
+            "Pengguna wajib memakai data akun yang valid, termasuk nama, email, nomor WhatsApp atau nomor kontak, dan password yang aman.",
+            "Sistem dapat menggunakan OTP untuk memverifikasi registrasi, login, aktivasi penjual, atau perubahan data penting.",
+            "Pengguna bertanggung jawab menjaga kerahasiaan password, OTP, perangkat, dan sesi login miliknya.",
+            "UniTrade dapat membatasi, mengunci sementara, atau meninjau akun jika terdeteksi percobaan login berulang, pola spam, penyalahgunaan, atau aktivitas tidak wajar.",
+            "Pengguna dilarang memakai identitas orang lain, membuat akun untuk tujuan penipuan, atau memindahkan akun tanpa izin pemilik sah.",
         ],
     },
     {
-        "id": "profile",
-        "title": "Profil Pengguna",
-        "items": [
-            "Pengguna dapat mengubah data profil seperti nama lengkap, alamat, tanggal lahir, dan foto profil.",
-            "Email dan nomor HP tidak dapat diubah langsung dan memerlukan proses verifikasi tambahan.",
-            "Pengguna bertanggung jawab atas kebenaran data yang ditampilkan di profil.",
-        ],
-    },
-    {
-        "id": "seller-terms",
-        "title": "Ketentuan Penjual",
-        "items": [
-            "Untuk menjadi penjual, pengguna wajib melakukan verifikasi identitas mahasiswa (KTM).",
-            "Dokumen KTM harus asli, jelas, dan sesuai dengan identitas pengguna.",
-            "UniTrade berhak menyetujui atau menolak verifikasi penjual berdasarkan hasil pemeriksaan.",
-            "Penjual dilarang menjual barang terlarang, ilegal, atau melanggar hukum.",
-            "Penjual bertanggung jawab atas keaslian produk, kesesuaian deskripsi produk, dan ketersediaan stok.",
-        ],
-    },
-    {
-        "id": "products-transactions",
-        "title": "Produk dan Transaksi",
-        "items": [
-            "Semua transaksi dilakukan melalui sistem UniTrade.",
-            "Status transaksi terdiri dari: Menunggu, Diproses, Dikirim, Selesai, atau Dibatalkan.",
-            "Pembeli dapat membatalkan pesanan selama status masih Menunggu.",
-            "Transaksi dianggap selesai setelah pembeli melakukan konfirmasi barang diterima.",
-            "UniTrade tidak bertanggung jawab atas kesepakatan di luar sistem aplikasi.",
-        ],
-    },
-    {
-        "id": "seller-registration",
-        "title": "Bagaimana cara menjadi penjual di UniTrade?",
+        "id": "personal-data",
+        "title": "Data yang Dikumpulkan",
         "paragraphs": [
-            "Pengguna dapat mengajukan aktivasi akun penjual melalui menu Daftar sebagai Penjual, lalu "
-            "mengunggah KTM untuk verifikasi. Setelah disetujui admin, akun akan aktif sebagai penjual dan "
-            "siap digunakan untuk menjual produk atau jasa."
+            "UniTrade mengumpulkan data yang diperlukan agar marketplace dapat berjalan aman, terukur, dan dapat diaudit. Data tersebut dapat berasal dari input pengguna, aktivitas transaksi, proses verifikasi, serta integrasi layanan pendukung.",
         ],
-    },
-    {
-        "id": "chat-policy",
-        "title": "Ketentuan Chat",
         "items": [
-            "Fitur chat digunakan untuk komunikasi terkait transaksi.",
-            "Pengguna dilarang mengirim konten pornografi, ujaran kebencian, penipuan, atau spam.",
-            "UniTrade berhak menindak akun yang menyalahgunakan fitur chat.",
+            "Data profil: nama, email, nomor kontak, foto profil, alamat, kota, provinsi, dan preferensi akun.",
+            "Data penjual: nama toko, deskripsi toko, alamat pickup, koordinat lokasi, rekening atau channel payout, dan status toko.",
+            "Data verifikasi: foto KTM, universitas yang dipilih, NIM yang terbaca, hasil OCR, confidence score, catatan review admin, dan status verifikasi.",
+            "Data produk: nama produk, kategori, harga, stok, kondisi, deskripsi, foto, lokasi, dan status listing.",
+            "Data transaksi: keranjang, wishlist, order, pembayaran, pengiriman, refund, dispute, ulasan, dan riwayat status pesanan.",
+            "Data teknis: alamat IP, user agent, waktu akses, log keamanan, riwayat persetujuan syarat dan privasi, serta aktivitas sistem yang relevan.",
         ],
     },
     {
-        "id": "ratings",
-        "title": "Rating dan Ulasan",
+        "id": "data-purpose",
+        "title": "Tujuan Penggunaan Data",
+        "items": [
+            "Membuat dan mengamankan akun pengguna.",
+            "Memproses OTP, login, pendaftaran, dan perubahan informasi akun.",
+            "Memverifikasi penjual melalui KTM, OCR, dan review admin.",
+            "Menampilkan produk, profil toko, rating, wishlist, chat, dan informasi transaksi.",
+            "Memproses pembayaran, escrow internal, pengiriman, pembatalan, refund, dan dispute.",
+            "Mengirim notifikasi terkait chat, pembayaran, pesanan, pengiriman, ulasan, dan status verifikasi.",
+            "Mencegah penipuan, spam, duplikasi NIM, penyalahgunaan chat, dan pelanggaran kebijakan.",
+            "Membuat laporan operasional, audit admin, dan peningkatan kualitas layanan.",
+        ],
+    },
+    {
+        "id": "seller-verification",
+        "title": "Verifikasi Penjual, KTM, dan OCR",
         "paragraphs": [
-            "Rating dan ulasan hanya dapat diberikan untuk transaksi yang telah selesai. Ulasan diharapkan "
-            "bersifat jujur, objektif, dan relevan dengan pengalaman transaksi, baik berupa penilaian positif "
-            "maupun kritik.",
-            "Untuk menjaga kualitas dan keamanan interaksi, UniTrade menerapkan filter otomatis dan peninjauan "
-            "manual terhadap ulasan yang terindikasi melanggar.",
+            "Pengguna yang ingin menjadi penjual wajib melalui proses verifikasi. UniTrade dapat meminta foto KTM atau bukti identitas mahasiswa untuk memastikan akun penjual sesuai dengan konteks marketplace kampus.",
         ],
-        "bullets": [
-            "UniTrade berhak menghapus ulasan yang mengandung ujaran kebencian atau diskriminasi.",
-            "UniTrade berhak menghapus ulasan yang bersifat menyerang individu atau tidak relevan dengan transaksi.",
+        "items": [
+            "Foto KTM digunakan untuk membaca NIM, nama, universitas, dan indikator validitas lain melalui OCR serta review admin.",
+            "Data KTM tidak ditampilkan ke publik dan hanya digunakan untuk verifikasi, audit keamanan, dan penyelesaian sengketa yang relevan.",
+            "UniTrade dapat menolak pengajuan jika foto tidak jelas, data tidak cocok, NIM sudah digunakan, atau terdapat indikasi penyalahgunaan.",
+            "Admin dapat melakukan review manual jika hasil OCR rendah, nama kurang terbaca, atau verifikasi otomatis belum memadai.",
+            "Status penjual dapat dicabut jika kemudian ditemukan pelanggaran, data palsu, laporan serius, atau aktivitas yang merugikan pengguna lain.",
         ],
     },
     {
-        "id": "wishlist-cart",
-        "title": "Wishlist dan Keranjang",
+        "id": "products",
+        "title": "Produk, Jasa, dan Listing",
         "items": [
-            "Wishlist hanya dapat diakses oleh pengguna yang login.",
-            "Produk di wishlist tidak menjamin ketersediaan stok.",
-            "Produk di keranjang dapat berubah harga atau stok sewaktu-waktu.",
+            "Penjual wajib memastikan foto, deskripsi, harga, kondisi, stok, dan kategori produk sesuai dengan keadaan sebenarnya.",
+            "Produk yang dilarang meliputi barang ilegal, berbahaya, palsu, melanggar hak cipta, mengandung unsur diskriminatif, atau tidak sesuai hukum yang berlaku.",
+            "UniTrade dapat menurunkan, menyembunyikan, menolak, atau menghapus listing yang melanggar ketentuan atau menerima laporan valid.",
+            "Penjual bertanggung jawab memperbarui stok, menyiapkan pesanan, dan menanggapi pembeli dengan informasi yang benar.",
+            "Listing fee, masa aktif listing, atau aturan monetisasi lain dapat diterapkan sesuai konfigurasi platform yang berlaku.",
         ],
     },
     {
-        "id": "account-deletion",
-        "title": "Penghapusan Akun",
+        "id": "transactions",
+        "title": "Transaksi, Pembayaran, dan Escrow",
         "items": [
-            "Pengguna dapat mengajukan penghapusan akun melalui menu pengaturan.",
-            "Penghapusan akun bersifat soft delete.",
-            "Setelah akun dihapus, pengguna tidak dapat mengakses layanan UniTrade.",
+            "Transaksi sebaiknya dilakukan melalui sistem UniTrade agar status order, pembayaran, pengiriman, refund, dan dispute dapat dicatat.",
+            "Pembayaran dapat diproses melalui Midtrans atau penyedia pembayaran lain yang dikonfigurasi oleh UniTrade, seperti QRIS, e-wallet, virtual account, atau metode yang tersedia.",
+            "UniTrade dapat menahan dana secara internal sampai transaksi selesai, dibatalkan, atau masuk proses dispute sesuai status order.",
+            "Pembeli wajib memeriksa ringkasan pesanan, biaya layanan, ongkir, voucher, dan total pembayaran sebelum menyelesaikan checkout.",
+            "Penjual wajib memproses pesanan sesuai batas waktu dan informasi yang disepakati di sistem.",
+            "Kesepakatan pembayaran di luar sistem menjadi risiko pengguna sendiri dan tidak selalu dapat dibantu oleh UniTrade.",
+        ],
+    },
+    {
+        "id": "delivery",
+        "title": "Pengiriman dan COD",
+        "items": [
+            "Pengiriman dapat memakai kurir, pickup, atau metode serah terima yang tersedia di platform.",
+            "Alamat, titik koordinat, nomor kontak, dan catatan pengiriman hanya digunakan untuk menyelesaikan transaksi dan koordinasi pengiriman.",
+            "Pembeli wajib memberikan alamat yang akurat dan dapat dihubungi saat pengiriman berlangsung.",
+            "Penjual wajib mengemas barang dengan layak dan menyerahkan barang sesuai detail pesanan.",
+            "Risiko akibat alamat salah, pembeli tidak dapat dihubungi, atau kesepakatan pengiriman di luar sistem menjadi tanggung jawab pihak yang terkait.",
+        ],
+    },
+    {
+        "id": "chat-notifications",
+        "title": "Chat, Notifikasi, dan Komunikasi",
+        "items": [
+            "Fitur chat digunakan untuk komunikasi yang relevan dengan produk, toko, dan transaksi.",
+            "Pengguna dilarang mengirim spam, penipuan, link berbahaya, konten pornografi, ujaran kebencian, ancaman, atau data pribadi orang lain tanpa izin.",
+            "UniTrade dapat menyimpan riwayat chat untuk kebutuhan operasional, keamanan, moderasi laporan, dan penyelesaian sengketa.",
+            "Notifikasi dapat dikirim untuk aktivitas penting seperti chat masuk, status pesanan, pembayaran, refund, dispute, verifikasi seller, dan pengumuman sistem.",
+            "Admin dapat meninjau laporan chat jika ada dugaan pelanggaran kebijakan atau sengketa transaksi.",
+        ],
+    },
+    {
+        "id": "reviews-disputes",
+        "title": "Ulasan, Refund, dan Sengketa",
+        "items": [
+            "Ulasan hanya boleh diberikan berdasarkan pengalaman transaksi yang benar-benar terjadi.",
+            "Ulasan yang mengandung fitnah, diskriminasi, pelecehan, spam, atau informasi pribadi dapat disembunyikan atau dihapus.",
+            "Pembeli dapat mengajukan refund atau dispute sesuai alur dan batas waktu yang berlaku pada status transaksi.",
+            "Bukti pendukung seperti foto, keterangan masalah, chat, dan riwayat order dapat digunakan admin untuk menilai sengketa.",
+            "Keputusan penyelesaian sengketa mempertimbangkan bukti, status pembayaran, status pengiriman, respons penjual, dan riwayat transaksi.",
+        ],
+    },
+    {
+        "id": "sharing",
+        "title": "Pembagian Data kepada Pihak Terkait",
+        "paragraphs": [
+            "UniTrade tidak menjual data pribadi pengguna. Data dapat dibagikan secara terbatas hanya jika diperlukan untuk menjalankan layanan, memenuhi kewajiban hukum, atau menyelesaikan transaksi dan sengketa.",
+        ],
+        "items": [
+            "Kepada penjual atau pembeli terkait untuk kebutuhan transaksi, pengiriman, chat, dan konfirmasi pesanan.",
+            "Kepada penyedia pembayaran seperti Midtrans untuk memproses pembayaran dan status transaksi.",
+            "Kepada penyedia pengiriman atau kurir terkait untuk menghitung ongkir, pickup, dan pengantaran.",
+            "Kepada admin UniTrade untuk verifikasi, moderasi, customer service, audit, refund, dispute, dan keamanan platform.",
+            "Kepada pihak berwenang jika diwajibkan oleh hukum atau diperlukan untuk menanggapi dugaan penyalahgunaan serius.",
+        ],
+    },
+    {
+        "id": "security-retention",
+        "title": "Keamanan, Penyimpanan, dan Retensi Data",
+        "items": [
+            "UniTrade menerapkan kontrol akses berbasis role, validasi form, pencatatan aktivitas penting, dan pembatasan akses data sesuai kebutuhan operasional.",
+            "Data sensitif seperti KTM, hasil OCR, payout, log keamanan, dan catatan sengketa hanya dapat diakses oleh pihak yang memiliki kewenangan.",
+            "Data transaksi dan audit dapat tetap disimpan setelah akun dinonaktifkan untuk kepentingan pembukuan, keamanan, dispute, dan kepatuhan.",
+            "Data yang tidak lagi diperlukan dapat dianonimkan, disembunyikan, atau dihapus sesuai kebijakan internal dan batasan teknis sistem.",
+            "Tidak ada sistem yang sepenuhnya bebas risiko; pengguna tetap wajib menjaga perangkat, password, OTP, dan akses akunnya.",
+        ],
+    },
+    {
+        "id": "user-rights",
+        "title": "Hak Pengguna dan Penghapusan Akun",
+        "items": [
+            "Pengguna dapat memperbarui data profil yang tersedia di halaman akun.",
+            "Pengguna dapat menghubungi customer service untuk koreksi data yang tidak dapat diubah sendiri, termasuk data kontak atau status tertentu.",
+            "Pengguna dapat mengajukan penghapusan akun. UniTrade dapat melakukan deactivation, masking, atau anonymization terhadap data pribadi yang tidak lagi diperlukan.",
+            "Sebagian data tetap dapat disimpan jika terkait transaksi, pembayaran, pengiriman, dispute, audit keamanan, kewajiban hukum, atau pencatatan operasional.",
+            "Setelah akun dinonaktifkan, pengguna tidak dapat mengakses fitur yang membutuhkan login, termasuk wishlist, chat, order, dashboard seller, dan pengaturan akun.",
         ],
     },
     {
         "id": "liability",
         "title": "Pembatasan Tanggung Jawab",
         "paragraphs": [
-            "UniTrade bertindak sebagai penyedia platform, bukan pihak dalam transaksi. Segala risiko transaksi "
-            "menjadi tanggung jawab penjual dan pembeli."
+            "UniTrade menyediakan sistem marketplace, tetapi tidak memproduksi, memiliki, atau menjamin seluruh produk dan jasa yang dijual oleh penjual. UniTrade dapat membantu moderasi, refund, dispute, dan penindakan akun sesuai bukti yang tersedia.",
+            "UniTrade tidak bertanggung jawab atas kerugian akibat kelalaian pengguna, transaksi di luar sistem, informasi palsu yang diberikan pengguna, pelanggaran hukum oleh pengguna, atau gangguan layanan pihak ketiga seperti payment gateway dan pengiriman.",
         ],
     },
     {
         "id": "changes",
-        "title": "Perubahan Ketentuan",
+        "title": "Perubahan Kebijakan",
         "paragraphs": [
-            "UniTrade berhak mengubah Syarat & Ketentuan sewaktu-waktu. Perubahan akan diberitahukan melalui aplikasi."
+            "UniTrade dapat memperbarui syarat layanan dan kebijakan privasi ini untuk menyesuaikan fitur, kebutuhan operasional, integrasi pihak ketiga, atau perubahan aturan yang berlaku. Perubahan penting akan diinformasikan melalui website, notifikasi, atau media komunikasi UniTrade yang relevan.",
         ],
     },
 ]
@@ -193,7 +250,7 @@ class UnitradeLegalController(http.Controller):
         return request.render(
             "unitrade_theme.unitrade_faq_terms_page",
             {
-                "page_title": "FAQ & Syarat Kebijakan UniTrade",
+                "page_title": "Syarat & Kebijakan UniTrade",
                 "active_anchor": active_anchor,
                 "faq_items": FAQ_ITEMS,
                 "policy_sections": POLICY_SECTIONS,

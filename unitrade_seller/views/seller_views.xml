@@ -12,6 +12,8 @@
         <field name="arch" type="xml">
             <tree string="Daftar Penjual" decoration-success="status == 'verified'" decoration-danger="status in ('rejected', 'revoked')" decoration-warning="status == 'pending' or report_state in ('reported', 'under_review')">
                 <field name="name"/>
+                <field name="university_id"/>
+                <field name="university_other" optional="hide"/>
                 <field name="nim"/>
                 <field name="status" widget="badge" decoration-success="status == 'verified'" decoration-danger="status in ('rejected', 'revoked')" decoration-warning="status == 'pending'" decoration-info="status == 'draft'"/>
                 <field name="report_state" widget="badge" decoration-warning="report_state in ('reported', 'under_review')" decoration-success="report_state == 'resolved'" decoration-muted="report_state == 'none'"/>
@@ -50,6 +52,8 @@
                         <group string="Informasi Akun">
                             <field name="user_id" readonly="status != 'draft'"/>
                             <field name="partner_id" readonly="1"/>
+                            <field name="university_id"/>
+                            <field name="university_other" invisible="university_id"/>
                             <field name="nim" readonly="status != 'draft'"/>
                             <field name="x_profile_location"/>
                             <field name="x_profile_uuid" readonly="1"/>
@@ -150,6 +154,8 @@
         <field name="arch" type="xml">
             <search string="Cari Penjual">
                 <field name="name"/>
+                <field name="university_id"/>
+                <field name="university_other"/>
                 <field name="nim"/>
                 <filter name="filter_pending" string="Menunggu Verifikasi" domain="[('status', '=', 'pending')]"/>
                 <filter name="filter_verified" string="Terverifikasi" domain="[('status', '=', 'verified')]"/>
@@ -159,6 +165,7 @@
                 <separator/>
                 <filter name="filter_low_ocr" string="OCR &lt; 70%" domain="[('ocr_confidence', '&lt;', 70)]"/>
                 <group expand="0" string="Group By">
+                    <filter name="group_university" string="Universitas" context="{'group_by': 'university_id'}"/>
                     <filter name="group_status" string="Status" context="{'group_by': 'status'}"/>
                     <filter name="group_report_state" string="Status Laporan" context="{'group_by': 'report_state'}"/>
                     <filter name="group_date" string="Tanggal Daftar" context="{'group_by': 'create_date:month'}"/>
