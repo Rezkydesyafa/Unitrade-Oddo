@@ -392,15 +392,15 @@
 }
 
 .ut-refund-detail-shell {
-    width: min(980px, calc(100% - 32px));
+    width: min(1180px, calc(100% - 32px));
     margin: 0 auto;
     padding: 72px 0 96px;
 }
 
 .ut-refund-detail-title {
     margin: 0;
-    font-size: 36px;
-    font-weight: 700;
+    font-size: 30px;
+    font-weight: 600;
     line-height: 1.12;
 }
 
@@ -408,6 +408,209 @@
     margin: 10px 0 26px;
     color: #6b7280;
     font-size: 15px;
+    font-weight: 400;
+}
+
+.ut-refund-status-notice {
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+    margin-bottom: 18px;
+    border: 1px solid #bfdbfe;
+    border-radius: 22px;
+    background: #eff6ff;
+    padding: 20px;
+}
+
+.ut-refund-status-notice.is-warning {
+    border-color: #fde68a;
+    background: #fffbeb;
+}
+
+.ut-refund-status-notice.is-success {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+}
+
+.ut-refund-status-notice.is-danger {
+    border-color: #fecaca;
+    background: #fef2f2;
+}
+
+.ut-refund-state-pill {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    padding: 7px 13px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 18px;
+    text-align: center;
+}
+
+.ut-refund-state-pill.is-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.ut-refund-state-pill.is-success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.ut-refund-state-pill.is-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.ut-refund-status-notice h2 {
+    margin: 0;
+    color: #0c1014;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.ut-refund-status-notice p,
+.ut-refund-status-notice small {
+    display: block;
+    margin: 6px 0 0;
+    color: #475569;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.ut-refund-progress-card {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0;
+    position: relative;
+    margin-bottom: 22px;
+    border: 1px solid #e8e9ed;
+    border-radius: 16px;
+    background: #ffffff;
+    padding: 24px 28px 26px;
+}
+
+.ut-refund-progress-step {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: flex-start;
+    flex-direction: column;
+    text-align: center;
+}
+
+.ut-refund-progress-step::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    top: 12px;
+    left: -50%;
+    width: 100%;
+    height: 2px;
+    background: #e3e6ea;
+}
+
+.ut-refund-progress-step:first-child::before {
+    display: none;
+}
+
+.ut-refund-progress-step.is-done::before,
+.ut-refund-progress-step.is-current::before {
+    background: #212529;
+}
+
+.ut-refund-progress-step.is-failed::before {
+    background: #dc2626;
+}
+
+.ut-refund-progress-copy {
+    display: block;
+    min-width: 0;
+    margin-top: 12px;
+}
+
+.ut-refund-progress-dot {
+    display: inline-flex;
+    position: relative;
+    z-index: 1;
+    width: 24px;
+    height: 24px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #e5e7eb;
+    color: #ffffff;
+    font-size: 12px;
+}
+
+.ut-refund-progress-dot-core {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #212529;
+}
+
+.ut-refund-progress-step strong,
+.ut-refund-progress-step small {
+    display: block;
+    min-width: 0;
+}
+
+.ut-refund-progress-step strong {
+    color: #0c1014;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 18px;
+}
+
+.ut-refund-progress-step small {
+    margin-top: 10px;
+    color: #9ca3af;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 14px;
+}
+
+.ut-refund-progress-step.is-done .ut-refund-progress-dot {
+    background: #212529;
+}
+
+.ut-refund-progress-step.is-done small {
+    color: #00a86b;
+}
+
+.ut-refund-progress-step.is-current .ut-refund-progress-dot {
+    border: 2px solid #212529;
+    background: #ffffff;
+}
+
+.ut-refund-progress-step.is-current small {
+    color: #212529;
+}
+
+.ut-refund-progress-step.is-pending .ut-refund-progress-dot {
+    background: #e4e7eb;
+}
+
+.ut-refund-progress-step.is-pending strong {
+    color: #0c1014;
+}
+
+.ut-refund-progress-step.is-failed .ut-refund-progress-dot {
+    background: #dc2626;
+    color: #ffffff;
+}
+
+.ut-refund-progress-step.is-failed small {
+    color: #dc2626;
 }
 
 .ut-refund-detail-grid {
@@ -431,8 +634,54 @@
 .ut-refund-card h2 {
     margin: 0 0 16px;
     color: #0c1014;
-    font-size: 20px;
+    font-size: 19px;
+    font-weight: 600;
+}
+
+.ut-refund-return-card {
+    margin-bottom: 22px;
+}
+
+.ut-refund-return-card p {
+    margin: -6px 0 16px;
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.ut-refund-return-form {
+    display: grid;
+    gap: 14px;
+}
+
+.ut-refund-return-form label {
+    display: grid;
+    gap: 8px;
+    color: #111827;
+    font-size: 13px;
     font-weight: 700;
+}
+
+.ut-refund-return-form textarea,
+.ut-refund-return-form input[type="file"] {
+    width: 100%;
+    border: 1px solid #d6d8dd;
+    border-radius: 14px;
+    background: #fff;
+    padding: 12px 14px;
+    color: #111827;
+    font-size: 13px;
+}
+
+.ut-refund-return-form textarea {
+    min-height: 92px;
+    resize: vertical;
+}
+
+.ut-refund-return-form small {
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 500;
 }
 
 .ut-refund-kv {
@@ -460,14 +709,30 @@
 }
 
 .ut-refund-evidence-item {
-    display: flex;
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr) auto;
     align-items: center;
-    justify-content: space-between;
     gap: 12px;
     min-height: 48px;
     border: 1px solid #eef0f3;
     border-radius: 14px;
     padding: 12px 14px;
+}
+
+.ut-refund-evidence-item > div {
+    min-width: 0;
+}
+
+.ut-refund-evidence-thumb {
+    width: 72px;
+    height: 56px;
+    border-radius: 10px;
+    background: #eef0f3;
+    object-fit: cover;
+}
+
+.ut-refund-evidence-item:not(:has(.ut-refund-evidence-thumb)) {
+    grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .ut-refund-status-chip {
@@ -562,6 +827,25 @@
     }
 
     .ut-refund-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ut-refund-status-notice {
+        grid-template-columns: 1fr;
+    }
+
+    .ut-refund-progress-card {
+        grid-template-columns: repeat(6, minmax(128px, 1fr));
+        overflow-x: auto;
+        padding: 22px 20px 24px;
+    }
+
+    .ut-refund-progress-step {
+        min-width: 128px;
+    }
+
+    .ut-refund-evidence-item,
+    .ut-refund-evidence-item:not(:has(.ut-refund-evidence-thumb)) {
         grid-template-columns: 1fr;
     }
 }

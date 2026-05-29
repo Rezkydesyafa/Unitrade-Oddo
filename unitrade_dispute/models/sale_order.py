@@ -12,8 +12,9 @@ class SaleOrderUniTradeDispute(models.Model):
         ('none', 'Tidak Ada'),
         ('submitted', 'Diajukan'),
         ('under_review', 'Ditinjau'),
-        ('need_buyer_evidence', 'Butuh Bukti Buyer'),
-        ('need_seller_response', 'Butuh Respons Seller'),
+        ('need_buyer_evidence', 'Menunggu Barang Kembali'),
+        ('need_seller_response', 'Menunggu Konfirmasi Seller'),
+        ('admin_review_final', 'Review Final Admin'),
         ('approved', 'Disetujui'),
         ('rejected', 'Ditolak'),
         ('cancelled', 'Dibatalkan'),
@@ -108,6 +109,8 @@ class SaleOrderUniTradeDispute(models.Model):
     ):
         evidence_items = evidence_items or []
         for order in self.sudo():
+            # Serialize refund creation per order to prevent duplicate active disputes from parallel submits.
+            self.env.cr.execute('SELECT id FROM sale_order WHERE id = %s FOR UPDATE', [order.id])
             blocker = order._unitrade_refund_blocker(partner=partner, ledger=ledger)
             if blocker:
                 raise UserError(blocker)
@@ -131,6 +134,11 @@ class SaleOrderUniTradeDispute(models.Model):
                 raise UserError(_('Link Google Drive harus menggunakan domain drive.google.com atau docs.google.com.'))
 
             ledger = ledger.sudo() if ledger else order._unitrade_escrow_ledgers()[:1]
+            if ledger:
+                self.env.cr.execute('SELECT id FROM unitrade_escrow_ledger WHERE id = %s FOR UPDATE', [ledger.id])
+                blocker = order._unitrade_refund_blocker(partner=partner, ledger=ledger)
+                if blocker:
+                    raise UserError(blocker)
             amount = requested_amount or order._unitrade_refund_requested_amount(ledger=ledger, order_line=order_line)
             dispute = self.env['unitrade.dispute'].sudo().create({
                 'dispute_type': 'refund',

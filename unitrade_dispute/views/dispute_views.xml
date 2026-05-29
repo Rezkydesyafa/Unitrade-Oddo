@@ -7,7 +7,7 @@
             <tree string="Refund &amp; Dispute" create="false">
                 <field name="name"/>
                 <field name="state" widget="badge"
-                    decoration-info="state in ('submitted', 'under_review')"
+                    decoration-info="state in ('submitted', 'under_review', 'admin_review_final')"
                     decoration-warning="state in ('need_buyer_evidence', 'need_seller_response')"
                     decoration-success="state == 'approved'"
                     decoration-danger="state in ('rejected', 'cancelled')"/>
@@ -28,13 +28,13 @@
         <field name="arch" type="xml">
             <form string="Refund Case">
                 <header>
-                    <button name="action_start_review" type="object" string="Start Review" class="btn-primary" invisible="state not in ('submitted', 'need_buyer_evidence', 'need_seller_response')"/>
+                    <button name="action_start_review" type="object" string="Start Review" class="btn-primary" invisible="state not in ('submitted', 'under_review', 'need_buyer_evidence', 'need_seller_response', 'admin_review_final')"/>
                     <button name="action_need_buyer_evidence" type="object" string="Request Buyer Evidence" invisible="state not in ('submitted', 'under_review', 'need_seller_response')"/>
                     <button name="action_need_seller_response" type="object" string="Request Seller Response" invisible="state not in ('submitted', 'under_review', 'need_buyer_evidence')"/>
-                    <button name="action_approve_refund" type="object" string="Approve Refund" class="btn-primary" invisible="state in ('approved', 'rejected', 'resolved', 'cancelled')"/>
-                    <button name="action_reject_refund" type="object" string="Reject Refund" invisible="state in ('approved', 'rejected', 'resolved', 'cancelled')"/>
+                    <button name="action_approve_refund" type="object" string="Approve Refund" class="btn-primary" invisible="state != 'admin_review_final'"/>
+                    <button name="action_reject_refund" type="object" string="Reject Refund" invisible="state != 'admin_review_final'"/>
                     <button name="action_cancel" type="object" string="Cancel Case" invisible="state in ('approved', 'rejected', 'resolved', 'cancelled')"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,under_review,need_seller_response,approved,rejected"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,under_review,need_buyer_evidence,need_seller_response,admin_review_final,approved,rejected"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
@@ -60,6 +60,8 @@
                             <field name="requested_amount" readonly="1"/>
                             <field name="approved_amount"/>
                             <field name="admin_id" readonly="1"/>
+                            <field name="final_decision_user_id" readonly="1"/>
+                            <field name="final_decision_at" readonly="1"/>
                         </group>
                     </group>
                     <group>
@@ -68,6 +70,10 @@
                     </group>
                     <group string="Admin Decision">
                         <field name="admin_decision_note" placeholder="Catatan keputusan CS/Admin..."/>
+                    </group>
+                    <group string="Final Decision Snapshot">
+                        <field name="final_decision_role" readonly="1"/>
+                        <field name="final_decision_snapshot" readonly="1" widget="text"/>
                     </group>
                     <notebook>
                         <page string="Evidence">
@@ -106,7 +112,7 @@
                 <field name="order_id"/>
                 <field name="buyer_id"/>
                 <field name="seller_id"/>
-                <filter name="active" string="Active" domain="[('state','in',('submitted','under_review','need_buyer_evidence','need_seller_response'))]"/>
+                <filter name="active" string="Active" domain="[('state','in',('submitted','under_review','need_buyer_evidence','need_seller_response','admin_review_final'))]"/>
                 <filter name="approved" string="Approved" domain="[('state','=','approved')]"/>
                 <filter name="rejected" string="Rejected" domain="[('state','=','rejected')]"/>
                 <group expand="0" string="Group By">

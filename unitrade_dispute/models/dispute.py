@@ -1,3 +1,4 @@
+import json
 import logging
 
 from odoo import _, api, fields, models
@@ -11,7 +12,7 @@ class UnitradeDispute(models.Model):
     _description = 'UniTrade Refund Dispute'
     _order = 'create_date desc'
 
-    ACTIVE_STATES = ('submitted', 'under_review', 'need_buyer_evidence', 'need_seller_response')
+    ACTIVE_STATES = ('submitted', 'under_review', 'need_buyer_evidence', 'need_seller_response', 'admin_review_final')
     FINAL_STATES = ('approved', 'rejected', 'resolved', 'cancelled')
 
     name = fields.Char(required=True, readonly=True, copy=False, default='New')
@@ -24,6 +25,7 @@ class UnitradeDispute(models.Model):
         ('under_review', 'Under Review'),
         ('need_buyer_evidence', 'Need Buyer Evidence'),
         ('need_seller_response', 'Need Seller Response'),
+        ('admin_review_final', 'Admin Final Review'),
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
         ('resolved', 'Resolved'),
@@ -72,6 +74,14 @@ class UnitradeDispute(models.Model):
     approved_at = fields.Datetime(copy=False)
     rejected_at = fields.Datetime(copy=False)
     resolved_at = fields.Datetime(copy=False)
+    final_decision_user_id = fields.Many2one('res.users', string='Final Decision By', copy=False, readonly=True)
+    final_decision_role = fields.Selection([
+        ('admin', 'Admin/CS'),
+        ('seller', 'Seller'),
+        ('system', 'System'),
+    ], string='Final Decision Role', copy=False, readonly=True)
+    final_decision_at = fields.Datetime(string='Final Decision At', copy=False, readonly=True)
+    final_decision_snapshot = fields.Text(string='Final Decision Snapshot', copy=False, readonly=True)
     evidence_ids = fields.One2many('unitrade.dispute.evidence', 'dispute_id', string='Evidence')
     timeline_ids = fields.One2many('unitrade.dispute.timeline', 'dispute_id', string='Timeline')
 
@@ -114,6 +124,10 @@ class UnitradeDispute(models.Model):
             'return_requested': 50,
             'seller_review': 60,
             'seller_response': 65,
+            'buyer_return_sent': 66,
+            'seller_return_confirmed': 68,
+            'admin_review_started': 69,
+            'admin_review': 69,
             'refund_approved': 70,
             'refund_rejected': 70,
             'refund_completed': 80,
@@ -143,8 +157,8 @@ class UnitradeDispute(models.Model):
                 Timeline.create(values)
 
     def _check_seller_decision_access(self):
-        for dispute in self:
-            seller_user = dispute.seller_id.user_id if dispute.seller_id else False
+        for dispute in self.sudo():
+            seller_user = dispute.seller_id.sudo().user_id if dispute.seller_id else False
             if not seller_user or seller_user.id != self.env.user.id:
                 raise AccessError(_('Anda hanya bisa mengambil keputusan untuk refund dari toko Anda.'))
         return True
@@ -159,6 +173,52 @@ class UnitradeDispute(models.Model):
             if state == 'approved':
                 values['x_refunded_at'] = fields.Datetime.now()
             order.write(values)
+
+    def _require_admin_decision_note(self):
+        for dispute in self.sudo():
+            note = (dispute.admin_decision_note or '').strip()
+            if len(note) < 10:
+                raise UserError(_('Catatan keputusan admin minimal 10 karakter.'))
+
+    def _require_refund_final_state(self):
+        for dispute in self.sudo():
+            if dispute.state != 'admin_review_final':
+                raise UserError(_('Refund case %s belum masuk tahap review final admin.') % dispute.name)
+
+    def _validate_refund_final_evidence(self):
+        for dispute in self.sudo():
+            if dispute.reason_code == 'seller_no_handoff':
+                continue
+            has_buyer_return = bool(dispute.evidence_ids.filtered(
+                lambda evidence: evidence.evidence_type == 'buyer_return_photo' and evidence.attachment_id
+            ))
+            has_seller_return = bool(dispute.evidence_ids.filtered(
+                lambda evidence: evidence.evidence_type == 'seller_return_photo' and evidence.attachment_id
+            ))
+            if not has_buyer_return or not has_seller_return:
+                raise UserError(_('Bukti pengembalian buyer dan konfirmasi seller wajib lengkap sebelum refund diputuskan.'))
+
+    def _final_decision_snapshot(self, decision, approved_amount=False):
+        self.ensure_one()
+        evidences = self.evidence_ids
+        attachment_evidence = evidences.filtered(lambda evidence: evidence.attachment_id)
+        snapshot = {
+            'decision': decision,
+            'case': self.name,
+            'state_before': self.state,
+            'order_id': self.order_id.id,
+            'reason_code': self.reason_code,
+            'requested_amount': self.requested_amount,
+            'approved_amount': approved_amount or self.approved_amount or 0.0,
+            'admin_fee': self.refund_admin_fee_amount or 0.0,
+            'total_refund_amount': self.total_refund_amount or 0.0,
+            'buyer_return_evidence_count': len(evidences.filtered(lambda evidence: evidence.evidence_type == 'buyer_return_photo')),
+            'seller_return_evidence_count': len(evidences.filtered(lambda evidence: evidence.evidence_type == 'seller_return_photo')),
+            'attachment_evidence_count': len(attachment_evidence),
+            'evidence_ids': evidences.ids,
+            'admin_decision_note': (self.admin_decision_note or '').strip(),
+        }
+        return json.dumps(snapshot, ensure_ascii=False, sort_keys=True)
 
     def _hold_escrow_for_review(self):
         for dispute in self.sudo():
@@ -191,13 +251,32 @@ class UnitradeDispute(models.Model):
 
     def action_start_review(self):
         now = fields.Datetime.now()
-        self.sudo().write({
-            'state': 'under_review',
-            'review_started_at': now,
-            'admin_id': self.env.user.id,
-        })
-        self._record_timeline_event('seller_review', event_time=now)
-        self._set_order_refund_state('under_review')
+        for dispute in self.sudo():
+            has_seller_return_confirmation = dispute.evidence_ids.filtered(
+                lambda evidence: evidence.evidence_type == 'seller_return_photo' and evidence.attachment_id
+            )
+            next_state = 'admin_review_final' if (has_seller_return_confirmation or dispute.seller_decision_note) else 'under_review'
+            dispute.write({
+                'state': next_state,
+                'review_started_at': now,
+                'admin_id': self.env.user.id,
+            })
+            if has_seller_return_confirmation or dispute.seller_decision_note:
+                dispute._record_timeline_event(
+                    'admin_review_started',
+                    note=_('Admin/CS mulai meninjau keputusan final refund.'),
+                    status='current',
+                    event_time=now,
+                )
+                dispute._record_timeline_event(
+                    'admin_review',
+                    note=_('Admin/CS mulai meninjau pengembalian.'),
+                    status='current',
+                    event_time=now,
+                )
+            else:
+                dispute._record_timeline_event('seller_review', event_time=now)
+            dispute._set_order_refund_state(next_state)
         return True
 
     def action_need_buyer_evidence(self):
@@ -218,11 +297,15 @@ class UnitradeDispute(models.Model):
         return True
 
     def action_approve_refund(self):
+        self._require_refund_final_state()
+        self._require_admin_decision_note()
+        self._validate_refund_final_evidence()
         now = fields.Datetime.now()
         for dispute in self.sudo():
             if dispute.state in ('cancelled', 'rejected', 'resolved'):
                 raise UserError(_('Refund case %s sudah tidak bisa di-approve.') % dispute.name)
             approved_amount = dispute.approved_amount or dispute.total_refund_amount or dispute.requested_amount
+            snapshot = dispute._final_decision_snapshot('approve', approved_amount=approved_amount)
             ledger = dispute.escrow_ledger_id
             order = dispute.order_id
             intent = dispute.payment_intent_id or order.x_payment_intent_id
@@ -232,6 +315,10 @@ class UnitradeDispute(models.Model):
                 'approved_at': now,
                 'resolved_at': now,
                 'admin_id': self.env.user.id,
+                'final_decision_user_id': self.env.user.id,
+                'final_decision_role': 'admin',
+                'final_decision_at': now,
+                'final_decision_snapshot': snapshot,
             })
             if ledger:
                 ledger.write({
@@ -250,22 +337,35 @@ class UnitradeDispute(models.Model):
             })
             if ledger:
                 ledger._sync_order_escrow_state()
+            dispute._record_timeline_event(
+                'admin_review',
+                note=dispute.admin_decision_note or _('Admin/CS menyetujui pengembalian.'),
+                status='done',
+                event_time=now,
+            )
             dispute._record_timeline_event('refund_approved', event_time=now)
             dispute._record_timeline_event('refund_completed', event_time=now)
             _logger.info('Refund dispute %s approved by user %s', dispute.name, self.env.user.id)
         return True
 
     def action_reject_refund(self):
+        self._require_refund_final_state()
+        self._require_admin_decision_note()
         now = fields.Datetime.now()
         for dispute in self.sudo():
             if dispute.state in ('approved', 'cancelled', 'resolved'):
                 raise UserError(_('Refund case %s sudah tidak bisa ditolak.') % dispute.name)
+            snapshot = dispute._final_decision_snapshot('reject')
             ledger = dispute.escrow_ledger_id
             dispute.write({
                 'state': 'rejected',
                 'rejected_at': now,
                 'resolved_at': now,
                 'admin_id': self.env.user.id,
+                'final_decision_user_id': self.env.user.id,
+                'final_decision_role': 'admin',
+                'final_decision_at': now,
+                'final_decision_snapshot': snapshot,
             })
             if ledger and ledger.state == 'disputed':
                 ledger.write({'state': 'held'})
@@ -275,6 +375,12 @@ class UnitradeDispute(models.Model):
                 'x_refund_state': 'rejected',
                 'x_escrow_state': 'held',
             })
+            dispute._record_timeline_event(
+                'admin_review',
+                note=dispute.admin_decision_note or dispute.seller_decision_note or _('Admin/CS menolak pengembalian.'),
+                status='failed',
+                event_time=now,
+            )
             dispute._record_timeline_event('refund_rejected', note=dispute.seller_decision_note, status='failed', event_time=now)
             _logger.info('Refund dispute %s rejected by user %s', dispute.name, self.env.user.id)
         return True
@@ -283,12 +389,58 @@ class UnitradeDispute(models.Model):
         self._check_seller_decision_access()
         now = fields.Datetime.now()
         note = (note or '').strip()
-        self.sudo().write({
-            'seller_decision_note': note,
-            'seller_decision_user_id': self.env.user.id,
-            'seller_decided_at': now,
-        })
-        return self.action_approve_refund()
+        for dispute in self.sudo():
+            if dispute.state in ('submitted', 'under_review'):
+                dispute.write({
+                    'state': 'need_buyer_evidence',
+                    'seller_decision_note': note,
+                    'seller_decision_user_id': self.env.user.id,
+                    'seller_decided_at': now,
+                })
+                dispute._record_timeline_event(
+                    'seller_review',
+                    note=note or _('Seller menyetujui pengembalian. Menunggu pembeli mengirimkan barang kembali.'),
+                    event_time=now,
+                )
+                dispute._set_order_refund_state('need_buyer_evidence')
+                continue
+            if dispute.state == 'need_seller_response':
+                has_return_confirmation = dispute.evidence_ids.filtered(
+                    lambda evidence: evidence.evidence_type == 'seller_return_photo' and evidence.attachment_id
+                )
+                if not has_return_confirmation:
+                    raise UserError(_('Upload foto bukti barang sudah diterima kembali sebelum memproses refund.'))
+                dispute.write({
+                    'state': 'admin_review_final',
+                    'seller_decision_note': note or dispute.seller_decision_note,
+                    'seller_decision_user_id': self.env.user.id,
+                    'seller_decided_at': now,
+                    'review_started_at': dispute.review_started_at or now,
+                })
+                dispute._record_timeline_event(
+                    'seller_return_confirmed',
+                    note=note or _('Seller mengonfirmasi barang sudah diterima kembali. Menunggu review final admin/CS.'),
+                    event_time=now,
+                )
+                dispute._record_timeline_event(
+                    'admin_review',
+                    note=_('Menunggu admin/CS meninjau bukti pengembalian sebelum dana dikembalikan.'),
+                    status='current',
+                    event_time=now,
+                )
+                dispute._record_timeline_event(
+                    'admin_review_started',
+                    note=_('Seller selesai konfirmasi barang kembali. Menunggu review final admin/CS.'),
+                    status='current',
+                    event_time=now,
+                )
+                dispute._set_order_refund_state('admin_review_final')
+                continue
+            if dispute.state == 'need_buyer_evidence':
+                raise UserError(_('Menunggu pembeli mengirimkan bukti pengembalian barang.'))
+            if dispute.state in self.FINAL_STATES:
+                raise UserError(_('Refund case ini sudah selesai.'))
+        return True
 
     def action_seller_reject_refund(self, note=''):
         self._check_seller_decision_access()
@@ -296,12 +448,35 @@ class UnitradeDispute(models.Model):
         if not note:
             raise UserError(_('Catatan Seller wajib diisi sebelum menolak refund.'))
         now = fields.Datetime.now()
-        self.sudo().write({
-            'seller_decision_note': note,
-            'seller_decision_user_id': self.env.user.id,
-            'seller_decided_at': now,
-        })
-        return self.action_reject_refund()
+        for dispute in self.sudo():
+            if dispute.state in self.FINAL_STATES:
+                raise UserError(_('Refund case ini sudah selesai.'))
+            dispute.write({
+                'state': 'admin_review_final',
+                'seller_decision_note': note,
+                'seller_decision_user_id': self.env.user.id,
+                'seller_decided_at': now,
+                'review_started_at': dispute.review_started_at or now,
+            })
+            dispute._record_timeline_event(
+                'seller_response',
+                note=_('Seller tidak setuju: %s') % note,
+                event_time=now,
+            )
+            dispute._record_timeline_event(
+                'admin_review_started',
+                note=_('Pengajuan masuk ke review final admin/CS karena seller menolak refund.'),
+                status='current',
+                event_time=now,
+            )
+            dispute._record_timeline_event(
+                'admin_review',
+                note=_('Menunggu admin/CS menengahi pengajuan yang tidak disetujui seller.'),
+                status='current',
+                event_time=now,
+            )
+            dispute._set_order_refund_state('admin_review_final')
+        return True
 
     def action_cancel(self):
         for dispute in self.sudo():
@@ -354,11 +529,23 @@ class UnitradeDispute(models.Model):
                     'note': note,
                 })
             dispute.write({
-                'state': 'under_review',
+                'state': 'admin_review_final',
                 'review_started_at': dispute.review_started_at or now,
             })
             dispute._record_timeline_event('seller_response', note=note, event_time=now)
-        self._set_order_refund_state('under_review')
+            dispute._record_timeline_event(
+                'admin_review_started',
+                note=_('Respons seller diterima. Menunggu review final admin/CS.'),
+                status='current',
+                event_time=now,
+            )
+            dispute._record_timeline_event(
+                'admin_review',
+                note=_('Menunggu admin/CS meninjau respons seller.'),
+                status='current',
+                event_time=now,
+            )
+        self._set_order_refund_state('admin_review_final')
         return True
 
     def action_open_related_order(self):
@@ -383,6 +570,8 @@ class UnitradeDisputeEvidence(models.Model):
         ('unboxing_video', 'Unboxing Video'),
         ('packing_video', 'Packing Video'),
         ('seller_response', 'Seller Response'),
+        ('buyer_return_photo', 'Buyer Return Photo'),
+        ('seller_return_photo', 'Seller Return Photo'),
         ('google_drive_url', 'Google Drive URL'),
         ('other', 'Other'),
     ], default='other', required=True)
@@ -416,6 +605,10 @@ class UnitradeDisputeTimeline(models.Model):
         ('return_requested', 'Pengajuan Retur Dibuat'),
         ('seller_review', 'Menunggu Review Seller'),
         ('seller_response', 'Respons Seller Dikirim'),
+        ('buyer_return_sent', 'Barang Dikembalikan Buyer'),
+        ('seller_return_confirmed', 'Barang Kembali Dikonfirmasi Seller'),
+        ('admin_review_started', 'Review Final Admin Dimulai'),
+        ('admin_review', 'Review Final Admin/CS'),
         ('refund_approved', 'Refund Disetujui'),
         ('refund_rejected', 'Refund Ditolak'),
         ('refund_completed', 'Refund Selesai'),

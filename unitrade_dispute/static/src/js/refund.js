@@ -26,6 +26,7 @@ publicWidget.registry.UnitradeOrderRefundModal = publicWidget.Widget.extend({
     start() {
         this.modal = this.el.querySelector("[data-order-refund-modal]");
         this.photoPreviewUrls = [];
+        this.photoFiles = [];
         this._onKeydown = this._onKeydown.bind(this);
         document.addEventListener("keydown", this._onKeydown);
         this._syncUnboxingRequirement();
@@ -96,12 +97,12 @@ publicWidget.registry.UnitradeOrderRefundModal = publicWidget.Widget.extend({
         if (!driveInput) {
             return;
         }
-        driveInput.required = false;
+        driveInput.required = true;
         if (videoInput) {
             videoInput.required = false;
         }
         if (driveHint) {
-            driveHint.textContent = "Opsional. Isi jika ingin menambahkan video unboxing atau bukti tambahan melalui Google Drive.";
+            driveHint.textContent = "Wajib. Upload video unboxing ke Google Drive, lalu tempel link yang bisa diakses untuk proses review.";
         }
         if (videoHint) {
             videoHint.textContent = "MP4 atau WEBM. Opsional, maksimal 10 MB.";
@@ -121,6 +122,7 @@ publicWidget.registry.UnitradeOrderRefundModal = publicWidget.Widget.extend({
     },
 
     _onPhotoChange(ev) {
+        this._mergePhotoFiles(ev.currentTarget, Array.from(ev.currentTarget.files || []));
         this._validatePhotos(ev.currentTarget);
         this._renderFileList(ev.currentTarget, "[data-refund-photo-list]");
     },
@@ -151,12 +153,36 @@ publicWidget.registry.UnitradeOrderRefundModal = publicWidget.Widget.extend({
             return;
         }
         const droppedFiles = Array.from(ev.originalEvent.dataTransfer.files || []);
-        this._assignFiles(input, droppedFiles);
         if (input.matches("[data-refund-unboxing]")) {
+            this._assignFiles(input, droppedFiles.slice(0, 1));
             this._onVideoChange({ currentTarget: input });
         } else {
+            this._mergePhotoFiles(input, droppedFiles);
             this._onPhotoChange({ currentTarget: input });
         }
+    },
+
+    _mergePhotoFiles(input, files) {
+        if (!input) {
+            return;
+        }
+        const merged = [];
+        const seen = new Set();
+        const pushUnique = (file) => {
+            if (!file) {
+                return;
+            }
+            const key = [file.name, file.size, file.lastModified, file.type].join(":");
+            if (seen.has(key)) {
+                return;
+            }
+            seen.add(key);
+            merged.push(file);
+        };
+        (this.photoFiles || []).forEach(pushUnique);
+        (files || []).forEach(pushUnique);
+        this.photoFiles = merged;
+        this._assignFiles(input, this.photoFiles);
     },
 
     _onSubmit(ev) {
@@ -281,6 +307,10 @@ publicWidget.registry.UnitradeOrderRefundModal = publicWidget.Widget.extend({
             return;
         }
         this._revokePhotoPreviews();
+        this.photoFiles = [];
+        root.querySelectorAll("[data-refund-photos], [data-refund-unboxing]").forEach((input) => {
+            input.value = "";
+        });
         root.querySelectorAll(".ut-order-refund-upload-card").forEach((zone) => {
             zone.classList.remove("has-error", "is-dragging");
             const errorNode = zone.querySelector("[data-refund-upload-error]");

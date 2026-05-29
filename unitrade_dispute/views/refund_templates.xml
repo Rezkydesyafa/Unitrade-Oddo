@@ -30,10 +30,6 @@
                 </div>
             </section>
         </xpath>
-        <xpath expr="//div[hasclass('ut-order-status-actions')]/a[@href='/shop']" position="before">
-            <a t-if="order_status_refund_detail_url" t-att-href="order_status_refund_detail_url" class="ut-order-status-secondary">Lihat Pengembalian</a>
-            <a t-if="not order_status_refund_detail_url and order_status_can_refund" href="/my/orders" class="ut-order-status-danger">Ajukan Pengembalian dari Pesanan Saya</a>
-        </xpath>
     </template>
 
     <template id="unitrade_refund_create" name="UniTrade Create Return Request">
@@ -109,9 +105,9 @@
                             </div>
 
                             <div class="ut-order-refund-field">
-                                <label for="ut_refund_drive_url">Link Google Drive video unboxing (opsional)</label>
-                                <input id="ut_refund_drive_url" type="url" name="google_drive_url" placeholder="https://drive.google.com/..." data-refund-drive-url="1"/>
-                                <small class="ut-order-refund-help" data-refund-drive-hint="1">Opsional. Isi jika ingin menambahkan video unboxing atau bukti tambahan melalui Google Drive.</small>
+                                <label for="ut_refund_drive_url">Link Google Drive video unboxing</label>
+                                <input id="ut_refund_drive_url" type="url" name="google_drive_url" placeholder="https://drive.google.com/..." required="required" data-refund-drive-url="1"/>
+                                <small class="ut-order-refund-help" data-refund-drive-hint="1">Wajib. Upload video unboxing ke Google Drive, lalu tempel link yang bisa diakses untuk proses review.</small>
                             </div>
 
                             <footer class="ut-order-refund-actions">
@@ -130,8 +126,54 @@
             <t t-set="title">Detail Pengembalian</t>
             <div class="ut-refund-detail-page">
                 <main class="ut-refund-detail-shell">
-                    <h1 class="ut-refund-detail-title">Detail Pengembalian</h1>
-                    <p class="ut-refund-detail-subtitle">Pantau status pengajuan pengembalian dan bukti yang sudah dikirim.</p>
+                    <h1 class="ut-refund-detail-title">Status Pengembalian</h1>
+                    <p class="ut-refund-detail-subtitle">Pantau proses pengembalian, review seller/admin, dan bukti yang sudah dikirim.</p>
+
+                    <section t-att-class="'ut-refund-status-notice is-%s' % refund_status_notice.get('tone', 'review')">
+                        <span t-att-class="'ut-refund-state-pill is-%s' % refund_state_key" t-esc="refund_state_label"/>
+                        <div>
+                            <h2 t-esc="refund_status_notice.get('title')"/>
+                            <p t-esc="refund_status_notice.get('body')"/>
+                            <small>Jika seller tidak setuju, Customer Service/admin akan menjadi mediator dan meninjau bukti dari kedua pihak.</small>
+                        </div>
+                    </section>
+
+                    <section class="ut-refund-progress-card" aria-label="Progress pengembalian">
+                        <t t-foreach="refund_progress_steps" t-as="step">
+                            <article t-att-class="'ut-refund-progress-step is-%s' % step.get('status')">
+                                <span class="ut-refund-progress-dot">
+                                    <span t-if="step.get('status') == 'current'" class="ut-refund-progress-dot-core"></span>
+                                    <i t-elif="step.get('status') == 'failed'" class="fa fa-times"></i>
+                                </span>
+                                <span class="ut-refund-progress-copy">
+                                    <strong t-esc="step.get('label')"/>
+                                    <small t-esc="step.get('status_label')"/>
+                                </span>
+                            </article>
+                        </t>
+                    </section>
+
+                    <div t-if="request.params.get('refund_error')" class="ut-refund-form-alert" role="alert">
+                        <t t-esc="request.params.get('refund_error')"/>
+                    </div>
+
+                    <section t-if="can_submit_return_evidence" class="ut-refund-card ut-refund-return-card">
+                        <h2>Kirim Bukti Pengembalian Barang</h2>
+                        <p>Upload foto bukti barang sudah dikirim atau diserahkan kembali ke seller. Setelah dikirim, seller akan mengonfirmasi penerimaan barang dengan foto.</p>
+                        <form t-att-action="return_evidence_url" method="post" enctype="multipart/form-data" class="ut-refund-return-form">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <label>
+                                <span>Catatan pengiriman</span>
+                                <textarea name="return_note" placeholder="Contoh: Barang sudah diserahkan langsung ke seller, atau nomor resi/link bukti pengiriman."></textarea>
+                            </label>
+                            <label>
+                                <span>Foto bukti pengembalian</span>
+                                <input type="file" name="return_evidence" accept="image/jpeg,image/png,image/webp" multiple="multiple" required="required"/>
+                                <small>PNG, JPG, atau WEBP. Maksimal 3 foto, 2 MB per foto.</small>
+                            </label>
+                            <button type="submit" class="ut-refund-primary-link">Kirim Bukti Pengembalian</button>
+                        </form>
+                    </section>
 
                     <div class="ut-refund-detail-grid">
                         <div>
@@ -143,7 +185,7 @@
                                 </div>
                                 <div class="ut-refund-kv">
                                     <span>Status</span>
-                                    <strong t-esc="dict(dispute._fields['state'].selection).get(dispute.state, dispute.state)"/>
+                                    <strong t-esc="refund_state_label"/>
                                 </div>
                                 <div class="ut-refund-kv">
                                     <span>Alasan</span>
@@ -152,6 +194,10 @@
                                 <div class="ut-refund-kv">
                                     <span>Catatan Buyer</span>
                                     <strong t-esc="dispute.reason_note"/>
+                                </div>
+                                <div class="ut-refund-kv is-seller-note" t-if="dispute.seller_decision_note">
+                                    <span>Alasan Seller</span>
+                                    <strong t-esc="dispute.seller_decision_note"/>
                                 </div>
                                 <div class="ut-refund-kv">
                                     <span>Nominal Diajukan</span>
@@ -167,6 +213,8 @@
                                 <h2>Bukti</h2>
                                 <div t-if="dispute.evidence_ids" class="ut-refund-evidence-list">
                                     <article t-foreach="dispute.evidence_ids" t-as="evidence" class="ut-refund-evidence-item">
+                                        <t t-set="evidence_mimetype" t-value="evidence.attachment_id.mimetype or ''"/>
+                                        <img t-if="evidence.attachment_id and evidence_mimetype in ('image/jpeg', 'image/png', 'image/webp')" t-att-src="'/unitrade/refund/evidence/%s/image' % evidence.id" t-att-alt="evidence.attachment_id.name or 'Bukti pengembalian'" class="ut-refund-evidence-thumb"/>
                                         <div>
                                             <strong t-esc="dict(evidence._fields['evidence_type'].selection).get(evidence.evidence_type, evidence.evidence_type)"/>
                                             <p t-if="evidence.note" class="tw-m-0 tw-text-[13px] tw-text-[#6b7280]" t-esc="evidence.note"/>
@@ -180,13 +228,24 @@
                                 <p t-else="" class="tw-m-0 tw-text-[#6b7280]">Belum ada bukti.</p>
                             </section>
 
-                            <section class="ut-refund-card" t-if="is_seller_view and dispute.state not in ('approved', 'rejected', 'resolved', 'cancelled')">
+                            <section class="ut-refund-card" t-if="is_seller_view and dispute.state in ('submitted', 'under_review')">
                                 <h2>Respons Seller</h2>
                                 <form t-att-action="'/seller/refund/%s/respond' % dispute.id" method="post" enctype="multipart/form-data" class="ut-refund-seller-response">
                                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                     <textarea name="seller_response_note" placeholder="Tulis penjelasan atau klarifikasi seller."></textarea>
                                     <input type="file" name="seller_refund_evidence" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" multiple="multiple"/>
                                     <button type="submit" class="ut-refund-primary-link">Kirim Respons</button>
+                                </form>
+                            </section>
+
+                            <section class="ut-refund-card" t-if="is_seller_view and dispute.state == 'need_seller_response'">
+                                <h2>Konfirmasi Barang Kembali</h2>
+                                <p class="tw-m-0 tw-mb-3 tw-text-[13px] tw-leading-5 tw-text-[#6b7280]">Upload foto bukti bahwa barang sudah diterima kembali. Setelah itu admin/CS akan meninjau final sebelum dana dikembalikan.</p>
+                                <form t-att-action="'/seller/refund/%s/confirm-return' % dispute.id" method="post" enctype="multipart/form-data" class="ut-refund-seller-response">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <textarea name="seller_return_note" placeholder="Catatan konfirmasi penerimaan barang."></textarea>
+                                    <input type="file" name="seller_return_evidence" accept="image/jpeg,image/png,image/webp" multiple="multiple" required="required"/>
+                                    <button type="submit" class="ut-refund-primary-link">Konfirmasi &amp; Kirim ke Admin</button>
                                 </form>
                             </section>
                         </div>
