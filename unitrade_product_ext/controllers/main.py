@@ -180,6 +180,27 @@ def _unitrade_normalize_category_name(category):
 
 class UnitradeProductController(http.Controller):
 
+    def _unitrade_can_view_historical_review_product(self, product):
+        """Allow review-notification owners to open old product targets."""
+        user = request.env.user
+        if user._is_public() or not product or not product.exists():
+            return False
+        if 'unitrade.notification' not in request.env.registry:
+            return False
+
+        target_prefix = '/unitrade/product/%s' % product.id
+        notifications = request.env['unitrade.notification'].sudo().search([
+            ('user_id', '=', user.id),
+            ('category', '=', 'review'),
+            ('action_url', 'ilike', target_prefix),
+        ], limit=20)
+        for notification in notifications:
+            action_url = notification.action_url or ''
+            action_path = action_url.split('?', 1)[0].split('#', 1)[0]
+            if action_path == target_prefix:
+                return True
+        return False
+
     def _unitrade_category_banner(self, category):
         if not category:
             return False
@@ -284,7 +305,11 @@ class UnitradeProductController(http.Controller):
                 else bool(product.x_is_marketplace and product.sale_ok and product.website_published)
             )
         )
-        if not is_available:
+        is_historical_review_target = (
+            not is_available
+            and self._unitrade_can_view_historical_review_product(product)
+        )
+        if not (is_available or is_historical_review_target):
             return request.not_found()
 
         # Get similar products
