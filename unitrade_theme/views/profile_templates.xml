@@ -164,7 +164,7 @@
 
                                     <label class="ut-user-profile-field">
                                         <span>Email</span>
-                                        <input type="email" name="email" t-att-value="form_values.get('email') or partner.email or user_profile.login" class="ut-user-profile-input" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                        <input type="email" name="email_display" t-att-value="partner.email or user_profile.login" class="ut-user-profile-input ut-user-profile-email-locked" disabled="disabled" readonly="readonly" aria-readonly="true" title="Email akun digunakan untuk login dan tidak dapat diubah dari halaman profil."/>
                                     </label>
 
                                     <label class="ut-user-profile-field">
