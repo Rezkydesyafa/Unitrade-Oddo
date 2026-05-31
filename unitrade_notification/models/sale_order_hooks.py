@@ -144,7 +144,7 @@ class SaleOrderNotificationHooks(models.Model):
                     payload={
                         'reference_model': 'sale.order',
                         'reference_id': order.id,
-                        'action_url': '/my/seller/orders/%d' % order.id,
+                        'action_url': '/unitrade/seller/orders/%d' % order.id,
                     },
                     idempotency_discriminator=str(seller_uid),
                 )
@@ -158,7 +158,7 @@ class SaleOrderNotificationHooks(models.Model):
                     payload={
                         'reference_model': 'sale.order',
                         'reference_id': order.id,
-                        'action_url': '/my/orders/%d' % order.id,
+                        'action_url': '/unitrade/order/status/%d' % order.id,
                     },
                 )
         return result
@@ -178,7 +178,7 @@ class SaleOrderNotificationHooks(models.Model):
             payload = {
                 'reference_model': 'sale.order',
                 'reference_id': order.id,
-                'action_url': '/my/orders/%d' % order.id,
+                'action_url': '/unitrade/order/status/%d' % order.id,
             }
             if reason:
                 payload['message_override'] = (
@@ -261,7 +261,7 @@ class UnitradeEscrowLedgerNotificationHooks(models.Model):
             payload = {
                 'reference_model': 'sale.order',
                 'reference_id': order.id,
-                'action_url': '/my/orders/%d' % order.id,
+                'action_url': '/unitrade/order/status/%d' % order.id,
             }
             resi = self._unitrade_resi_for_order(order)
             if resi:
@@ -310,7 +310,7 @@ class UnitradeEscrowLedgerNotificationHooks(models.Model):
             payload = {
                 'reference_model': 'sale.order',
                 'reference_id': order.id,
-                'action_url': '/my/orders/%d' % order.id,
+                'action_url': '/unitrade/order/status/%d' % order.id,
             }
             for uid in recipients:
                 # Per-(ledger, recipient) discriminator so each party

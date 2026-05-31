@@ -306,8 +306,22 @@ export class NotificationBell extends Component {
         if (notif && notif.id) {
             await notificationService.markRead(notif.id);
         }
-        const target = (notif && notif.action_url) || "/my/notifications";
+        const target = this._normalizeNotificationTarget(notif);
         window.location = target;
+    }
+
+    _normalizeNotificationTarget(notif) {
+        const target = (notif && notif.action_url) || "/my/notifications";
+        if (!notif || notif.category !== "review" || !target.startsWith("/unitrade/product/")) {
+            return target;
+        }
+        let [baseTarget] = target.split("#");
+        if (!baseTarget.includes("?")) {
+            baseTarget += "?tab=reviews";
+        } else if (!baseTarget.includes("tab=reviews")) {
+            baseTarget += "&tab=reviews";
+        }
+        return `${baseTarget}#tab-ulasan`;
     }
 
     /**

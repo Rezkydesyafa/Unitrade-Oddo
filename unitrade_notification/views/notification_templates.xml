@@ -251,10 +251,23 @@
                         });
                     });
 
+                    function normalizeReviewTarget(row, target) {
+                        if (!row || row.dataset.category !== "review" || !target || target.indexOf("/unitrade/product/") !== 0) {
+                            return target;
+                        }
+                        var baseTarget = target.split("#")[0];
+                        if (baseTarget.indexOf("?") === -1) {
+                            baseTarget += "?tab=reviews";
+                        } else if (baseTarget.indexOf("tab=reviews") === -1) {
+                            baseTarget += "&tab=reviews";
+                        }
+                        return baseTarget + "#tab-ulasan";
+                    }
+
                     document.querySelectorAll(".ut-notification-center-row").forEach(function (row) {
                         function openNotification() {
                             var id = row.dataset.notificationId;
-                            var target = row.dataset.actionUrl || "";
+                            var target = normalizeReviewTarget(row, row.dataset.actionUrl || "");
                             hideError();
                             if (!id || row.dataset.isRead === "1") {
                                 if (target) {

@@ -7183,7 +7183,7 @@
 }
 
 .ut-about-v2-stage-cart {
-  min-height: 330px;
+  min-height: 352px;
   background: #f0f0f2;
 }
 
@@ -7195,9 +7195,9 @@
 }
 
 .ut-about-v2-cart {
-  right: 70px;
-  bottom: 30px;
-  width: min(40vw, 330px);
+  right: 82px;
+  bottom: 34px;
+  width: min(36vw, 292px);
 }
 
 .ut-about-v2-guide {
@@ -7216,7 +7216,12 @@
   }
 
   .ut-about-v2-stage-cart {
-    min-height: 320px;
+    min-height: 340px;
+  }
+
+  .ut-about-v2-cart {
+    right: 58px;
+    width: min(58vw, 292px);
   }
 }
 
@@ -7231,7 +7236,13 @@
   }
 
   .ut-about-v2-stage-cart {
-    min-height: 278px;
+    min-height: 300px;
+  }
+
+  .ut-about-v2-cart {
+    right: 32px;
+    bottom: 28px;
+    width: min(76vw, 248px);
   }
 }
 
@@ -9135,6 +9146,13 @@ body:has(.ut-user-profile-page) .ut-user-profile-form {
 .ut-user-profile-form.is-editing .ut-user-profile-input,
 .ut-user-profile-form.is-editing .ut-user-profile-textarea {
   background: #fff;
+}
+
+.ut-user-profile-email-locked,
+.ut-user-profile-form.is-editing .ut-user-profile-email-locked {
+  cursor: not-allowed;
+  background: rgba(245, 245, 247, 0.96);
+  color: rgba(0, 0, 0, 0.48);
 }
 
 .ut-user-profile-form.is-editing .ut-user-profile-avatar-action {

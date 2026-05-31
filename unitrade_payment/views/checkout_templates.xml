@@ -534,20 +534,35 @@
                         var countdownTimer = null;
                         var pollTimer = null;
 
-                        function writeClipboard(value) {
-                            if (navigator.clipboard && navigator.clipboard.writeText) {
-                                return navigator.clipboard.writeText(value);
-                            }
+                        function fallbackCopy(value) {
                             var textarea = document.createElement("textarea");
                             textarea.value = value;
                             textarea.setAttribute("readonly", "readonly");
-                            textarea.style.position = "absolute";
+                            textarea.style.position = "fixed";
                             textarea.style.left = "-9999px";
                             document.body.appendChild(textarea);
+                            textarea.focus();
                             textarea.select();
-                            document.execCommand("copy");
+                            try {
+                                document.execCommand("copy");
+                            } catch (err) {
+                                console.warn("[UniTrade] Fallback copy failed:", err);
+                            }
                             document.body.removeChild(textarea);
                             return Promise.resolve();
+                        }
+
+                        function writeClipboard(value) {
+                            if (!navigator.clipboard || !navigator.clipboard.writeText || !document.hasFocus()) {
+                                return fallbackCopy(value);
+                            }
+                            try {
+                                return Promise.resolve(navigator.clipboard.writeText(value)).catch(function () {
+                                    return fallbackCopy(value);
+                                });
+                            } catch (err) {
+                                return fallbackCopy(value);
+                            }
                         }
 
                         document.querySelectorAll("[data-copy-value]").forEach(function (button) {
@@ -566,6 +581,8 @@
                                     window.setTimeout(function () {
                                         label.textContent = original;
                                     }, 1400);
+                                }).catch(function (err) {
+                                    console.warn("[UniTrade] Copy action failed:", err);
                                 });
                             });
                         });

@@ -129,7 +129,7 @@ class UnitradeReviewNotificationHook(models.Model):
                 ),
             }
             if product:
-                payload['action_url'] = '/unitrade/product/%s' % product.id
+                payload['action_url'] = '/unitrade/product/%s?tab=reviews#tab-ulasan' % product.id
 
             Notification = self.env['unitrade.notification'].sudo()
             Notification.emit(

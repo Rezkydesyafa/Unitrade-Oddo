@@ -15,6 +15,7 @@ intentionally left out here.
 import copy
 import hashlib
 import logging
+import re
 import traceback
 from datetime import timedelta
 from urllib.parse import urlparse
@@ -487,18 +488,193 @@ class UnitradeNotification(models.Model):
     def _get_effective_action_url(self):
         """Return the best click target for this notification.
 
-        Review notifications should take users to the related product detail
-        page. Older rows may not have ``action_url`` populated, and some
-        review reminders can point at an order, so this derives the product
-        URL from the referenced business record before falling back to the
-        stored URL.
+        Prefer a route derived from the referenced business record so older
+        notifications with legacy URLs keep navigating to the current
+        UniTrade pages. Stored ``action_url`` is still respected when no
+        stronger project-specific target can be derived.
         """
         self.ensure_one()
+        resolved_url = self._resolve_reference_action_url()
+        if resolved_url:
+            return resolved_url
+
+        review_url = self._normalize_review_product_action_url(self.action_url)
+        if review_url:
+            return review_url
+
+        legacy_url = self._normalize_legacy_action_url(self.action_url)
+        if legacy_url:
+            return legacy_url
+
+        if self.action_url:
+            return self.action_url
+
+        return self._default_category_action_url()
+
+    def _resolve_reference_action_url(self):
+        """Resolve a notification target from ``reference_model``/``id``."""
+        self.ensure_one()
+        if not self.reference_model or not self.reference_id:
+            return False
+
+        try:
+            Model = self.env[self.reference_model].sudo()
+        except KeyError:
+            return False
+
+        record = Model.browse(self.reference_id).exists()
+        if not record:
+            return False
+
+        if self.reference_model == 'sale.order':
+            if self.category == 'review':
+                return self._resolve_review_product_action_url()
+            return self._resolve_order_action_url(record)
+
+        if self.reference_model == 'unitrade.dispute':
+            return self._resolve_refund_action_url(record)
+
+        if self.reference_model == 'unitrade.chat.conversation':
+            return self._resolve_chat_action_url(record)
+
+        if self.reference_model in (
+            'unitrade.review',
+            'product.template',
+            'product.product',
+        ):
+            return self._resolve_review_product_action_url()
+
+        if self.reference_model == 'unitrade.seller':
+            if self.event_code == 'seller.approved':
+                return '/unitrade/seller/dashboard'
+            return '/seller-onboarding'
+
+        return False
+
+    def _resolve_order_action_url(self, order):
+        """Return buyer/seller order page for the notification recipient."""
+        self.ensure_one()
+        if not order:
+            return False
+        if self._is_recipient_seller_for_order(order):
+            return '/unitrade/seller/orders/%s' % order.id
+        return '/unitrade/order/status/%s' % order.id
+
+    def _is_recipient_seller_for_order(self, order):
+        self.ensure_one()
+        if not order or not self.user_id:
+            return False
+        try:
+            if hasattr(order, '_unitrade_seller_user_ids'):
+                return self.user_id.id in order._unitrade_seller_user_ids()
+        except Exception:
+            _logger.debug(
+                "Failed to resolve seller recipient for order notification %s",
+                self.id,
+                exc_info=True,
+            )
+        for line in order.order_line:
+            product = line.product_id
+            tmpl = product.product_tmpl_id if product else False
+            seller = getattr(tmpl, 'x_seller_id', False) if tmpl else False
+            if seller and seller.user_id and seller.user_id.id == self.user_id.id:
+                return True
+        return False
+
+    def _resolve_refund_action_url(self, dispute):
+        """Return buyer/seller refund status page for the recipient."""
+        self.ensure_one()
+        if not dispute:
+            return False
+        seller_user = dispute.seller_id.user_id if dispute.seller_id else False
+        if seller_user and seller_user.id == self.user_id.id:
+            return '/unitrade/seller/refunds/%s' % dispute.id
+        if dispute.order_id:
+            return '/unitrade/order/%s/refund/%s' % (
+                dispute.order_id.id,
+                dispute.id,
+            )
+        return False
+
+    def _resolve_chat_action_url(self, conversation):
+        """Return the buyer or seller chat page for the recipient."""
+        self.ensure_one()
+        if not conversation:
+            return False
+        if (
+            conversation.seller_user_id
+            and conversation.seller_user_id.id == self.user_id.id
+        ):
+            return '/unitrade/seller/chat?conversation_id=%s' % conversation.id
+        return '/unitrade/chat?conversation_id=%s' % conversation.id
+
+    def _normalize_legacy_action_url(self, url):
+        """Map older notification URLs to current project routes."""
+        self.ensure_one()
+        url = (url or '').strip()
+        if not url:
+            return False
+
+        match = re.match(r'^/my/orders/(\d+)(?:[/?#].*)?$', url)
+        if match:
+            order = self.env['sale.order'].sudo().browse(int(match.group(1))).exists()
+            if order:
+                return self._resolve_order_action_url(order)
+            return '/unitrade/order/status/%s' % match.group(1)
+
+        match = re.match(r'^/(?:my/)?seller/orders/(\d+)(?:[/?#].*)?$', url)
+        if match:
+            return '/unitrade/seller/orders/%s' % match.group(1)
+
+        match = re.match(r'^/(?:my/)?seller/refunds/(\d+)(?:[/?#].*)?$', url)
+        if match:
+            return '/unitrade/seller/refunds/%s' % match.group(1)
+
+        return False
+
+    def _normalize_review_product_action_url(self, url):
+        """Map stored review product URLs to a clickable product detail."""
+        self.ensure_one()
+        if self.category != 'review':
+            return False
+
+        parsed = urlparse((url or '').strip())
+        path = parsed.path or (url or '').strip()
+        match = re.match(r'^/unitrade/product/(\d+)(?:[/?#].*)?$', path)
+        if not match:
+            return False
+
+        product = self.env['product.template'].sudo().browse(
+            int(match.group(1))
+        ).exists()
+        if not product:
+            return False
+
+        product = self._review_public_product(product)
+        if product and product.exists():
+            return self._review_product_action_url(product)
+        return False
+
+    def _default_category_action_url(self):
+        """Fallback target when a notification has no usable reference."""
+        self.ensure_one()
+        if self.category == 'account':
+            return '/my/account'
+        if self.category == 'seller':
+            return (
+                '/unitrade/seller/dashboard'
+                if self.event_code == 'seller.approved'
+                else '/seller-onboarding'
+            )
+        if self.category == 'order':
+            return '/my/orders'
+        if self.category == 'payment':
+            return '/my/orders?status=unpaid'
+        if self.category == 'chat':
+            return '/unitrade/chat'
         if self.category == 'review':
-            review_product_url = self._resolve_review_product_action_url()
-            if review_product_url:
-                return review_product_url
-        return self.action_url or False
+            return '/my/orders?status=done'
+        return '/my/notifications'
 
     def _resolve_review_product_action_url(self):
         """Resolve ``/unitrade/product/<id>`` for review notifications."""
@@ -543,8 +719,40 @@ class UnitradeNotification(models.Model):
                     product = order_line.product_id.product_tmpl_id
 
         if product and product.exists():
-            return '/unitrade/product/%s' % product.id
+            product = self._review_public_product(product)
+        if product and product.exists():
+            return self._review_product_action_url(product)
         return False
+
+    def _review_public_product(self, product):
+        """Return a clickable marketplace product for review notifications."""
+        product = product.exists()
+        if not product:
+            return product
+
+        is_available = (
+            product._unitrade_is_publicly_available()
+            if hasattr(product, '_unitrade_is_publicly_available')
+            else bool(product.active and product.sale_ok and product.website_published)
+        )
+        if is_available:
+            return product
+
+        replacement = self.env['product.template'].sudo().search([
+            ('id', '!=', product.id),
+            ('name', '=', product.name),
+            ('active', '=', True),
+            ('sale_ok', '=', True),
+            ('website_published', '=', True),
+        ], order='id desc', limit=1)
+        if replacement and hasattr(replacement, '_unitrade_is_publicly_available'):
+            return replacement if replacement._unitrade_is_publicly_available() else product
+        return replacement or product
+
+    def _review_product_action_url(self, product):
+        """Return product detail URL with review tab opened."""
+        product.ensure_one()
+        return '/unitrade/product/%s?tab=reviews#tab-ulasan' % product.id
 
     @api.model
     def _render_title_and_message(self, event_code, payload):
@@ -1229,15 +1437,16 @@ class UnitradeNotification(models.Model):
                     )
 
             try:
-                action_url = '/my/orders/%s' % order.id
+                action_url = '/unitrade/order/status/%s' % order.id
                 order_line = order.order_line.filtered(
                     lambda line: (
                         line.product_id and line.product_id.product_tmpl_id
                     )
                 )[:1]
                 if order_line:
-                    action_url = '/unitrade/product/%s' % (
-                        order_line.product_id.product_tmpl_id.id
+                    action_url = (
+                        '/unitrade/product/%s?tab=reviews#tab-ulasan'
+                        % order_line.product_id.product_tmpl_id.id
                     )
                 result = Notification.emit(
                     buyer.id,

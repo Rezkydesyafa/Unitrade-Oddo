@@ -124,25 +124,8 @@
             <!-- Hero Section (Carousel) -->
             <section class="tw-py-8 tw-px-4 md:tw-px-8 tw-max-w-7xl tw-mx-auto tw-relative tw-z-10">
                 <style>
-                    .slide-anim { 
-                        opacity: 0; 
-                        transform: translateX(-30px); 
-                        transition: opacity 0.6s ease-out, transform 0.6s ease-out; 
-                    }
-                    .delay-100 { transition-delay: 0.1s; }
-                    .delay-200 { transition-delay: 0.2s; }
-                    .delay-300 { transition-delay: 0.3s; }
-                    
-                    /* Custom Button Styles to guarantee rendering */
-                    .btn-beli {
-                        border: 1px solid rgba(255, 255, 255, 0.8);
-                        transition: all 0.3s ease;
-                    }
-                    .btn-beli:hover {
-                        background-color: white;
-                        color: #1a1a1a !important;
-                        transform: scale(1.05);
-                        box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+                    #unitradeHeroCarousel {
+                        background: #f8fafc;
                     }
                     .ut-hero-arrow {
                         box-sizing: border-box;
@@ -154,17 +137,17 @@
                         align-items: center;
                         justify-content: center;
                         padding: 0;
-                        border: 1px solid rgba(255, 255, 255, 0.58);
+                        border: 1px solid rgba(15, 23, 42, 0.12);
                         border-radius: 50%;
-                        background: transparent;
-                        color: #fff;
+                        background: rgba(255, 255, 255, 0.64);
+                        color: #111827;
                         line-height: 1;
                         appearance: none;
                         transition: background-color 180ms ease, border-color 180ms ease, transform 160ms ease;
                     }
                     .ut-hero-arrow:hover {
-                        border-color: rgba(255, 255, 255, 0.78);
-                        background: rgba(255, 255, 255, 0.12);
+                        border-color: rgba(15, 23, 42, 0.2);
+                        background: rgba(255, 255, 255, 0.92);
                     }
                     .ut-hero-arrow:active {
                         transform: scale(0.96);
@@ -175,137 +158,96 @@
                         height: 20px;
                         flex: 0 0 20px;
                     }
+                    @media (max-width: 767.98px) {
+                        .ut-hero-control-bar {
+                            right: 12px;
+                            bottom: 12px;
+                            padding: 10px;
+                            gap: 12px;
+                        }
+                        .ut-hero-arrow {
+                            width: 40px;
+                            height: 40px;
+                            min-width: 40px;
+                            min-height: 40px;
+                        }
+                    }
                 </style>
                 <div id="unitradeHeroCarousel" class="carousel slide carousel-fade tw-relative tw-h-[400px] md:tw-h-[500px] tw-w-full tw-rounded-[30px] tw-overflow-hidden tw-shadow-lg" data-bs-ride="carousel" data-bs-interval="4000" data-bs-pause="hover" data-bs-touch="true">
-                    
                     <!-- Carousel Slides Images -->
                     <div class="carousel-inner tw-h-full tw-w-full">
                         <!-- Slide 1 -->
                         <div class="carousel-item active tw-h-full tw-w-full">
-                            <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=1400&amp;q=80" alt="Promo Sepatu" class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover"/>
+                            <picture class="tw-absolute tw-inset-0 tw-block tw-h-full tw-w-full">
+                                <source type="image/webp" srcset="/unitrade_theme/static/src/img/hero/hero-banner-1-960.webp 960w, /unitrade_theme/static/src/img/hero/hero-banner-1-1920.webp 1920w" sizes="(max-width: 768px) 100vw, 1280px"/>
+                                <img src="/unitrade_theme/static/src/img/hero/hero-banner-1.png" alt="Promo big sale UniTrade" fetchpriority="high" decoding="async" class="tw-h-full tw-w-full tw-object-contain"/>
+                            </picture>
                         </div>
                         <!-- Slide 2 -->
                         <div class="carousel-item tw-h-full tw-w-full">
-                            <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=1400&amp;q=80" alt="Promo Fashion" class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover tw-object-center"/>
+                            <picture class="tw-absolute tw-inset-0 tw-block tw-h-full tw-w-full">
+                                <source type="image/webp" srcset="/unitrade_theme/static/src/img/hero/hero-banner-2-960.webp 960w, /unitrade_theme/static/src/img/hero/hero-banner-2-1920.webp 1920w" sizes="(max-width: 768px) 100vw, 1280px"/>
+                                <img src="/unitrade_theme/static/src/img/hero/hero-banner-2.png" alt="Promo diskon besar UniTrade Shopping Day" fetchpriority="low" decoding="async" class="tw-h-full tw-w-full tw-object-contain"/>
+                            </picture>
                         </div>
                         <!-- Slide 3 -->
                         <div class="carousel-item tw-h-full tw-w-full">
-                            <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=1400&amp;q=80" alt="Promo Elektronik" class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover tw-object-right"/>
+                            <picture class="tw-absolute tw-inset-0 tw-block tw-h-full tw-w-full">
+                                <source type="image/webp" srcset="/unitrade_theme/static/src/img/hero/hero-banner-3-960.webp 960w, /unitrade_theme/static/src/img/hero/hero-banner-3-1920.webp 1920w" sizes="(max-width: 768px) 100vw, 1280px"/>
+                                <img src="/unitrade_theme/static/src/img/hero/hero-banner-3.png" alt="Promo Campus dan Lifestyle UniTrade" fetchpriority="low" decoding="async" class="tw-h-full tw-w-full tw-object-contain"/>
+                            </picture>
                         </div>
                         <!-- Slide 4 -->
                         <div class="carousel-item tw-h-full tw-w-full">
-                            <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=1400&amp;q=80" alt="Promo Aksesoris" class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover tw-object-center"/>
+                            <picture class="tw-absolute tw-inset-0 tw-block tw-h-full tw-w-full">
+                                <source type="image/webp" srcset="/unitrade_theme/static/src/img/hero/hero-banner-4-960.webp 960w, /unitrade_theme/static/src/img/hero/hero-banner-4-1920.webp 1920w" sizes="(max-width: 768px) 100vw, 1280px"/>
+                                <img src="/unitrade_theme/static/src/img/hero/hero-banner-4.png" alt="Voucher khusus UniTrade" fetchpriority="low" decoding="async" class="tw-h-full tw-w-full tw-object-cover tw-object-center"/>
+                            </picture>
                         </div>
                         <!-- Slide 5 -->
                         <div class="carousel-item tw-h-full tw-w-full">
-                            <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=1400&amp;q=80" alt="Promo Headphone" class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover tw-object-center"/>
+                            <picture class="tw-absolute tw-inset-0 tw-block tw-h-full tw-w-full">
+                                <source type="image/webp" srcset="/unitrade_theme/static/src/img/hero/hero-banner-5-960.webp 960w, /unitrade_theme/static/src/img/hero/hero-banner-5-1920.webp 1920w" sizes="(max-width: 768px) 100vw, 1280px"/>
+                                <img src="/unitrade_theme/static/src/img/hero/hero-banner-5.png" alt="Promo Weekend Helper UniTrade" fetchpriority="low" decoding="async" class="tw-h-full tw-w-full tw-object-cover tw-object-center"/>
+                            </picture>
+                        </div>
+                        <!-- Slide 6 -->
+                        <div class="carousel-item tw-h-full tw-w-full">
+                            <picture class="tw-absolute tw-inset-0 tw-block tw-h-full tw-w-full">
+                                <source type="image/webp" srcset="/unitrade_theme/static/src/img/hero/hero-banner-6-960.webp 960w, /unitrade_theme/static/src/img/hero/hero-banner-6-1920.webp 1920w" sizes="(max-width: 768px) 100vw, 1280px"/>
+                                <img src="/unitrade_theme/static/src/img/hero/hero-banner-6.png" alt="Belanja Cerdas UniTrade" fetchpriority="low" decoding="async" class="tw-h-full tw-w-full tw-object-cover tw-object-center"/>
+                            </picture>
                         </div>
                     </div>
 
-                    <!-- Floating Glassmorphism Container at Bottom -->
-                    <div class="tw-absolute tw-bottom-6 tw-left-6 tw-right-6 tw-bg-[#1a1a1a]/60 tw-backdrop-blur-md tw-border tw-border-white/10 tw-rounded-[30px] tw-p-6 md:tw-p-8 tw-flex tw-justify-between tw-items-center tw-z-20">
-                        
-                        <!-- Dynamic Text Container -->
-                        <div class="tw-w-full md:tw-w-auto tw-relative tw-min-h-[100px] tw-flex-1">
-                            <!-- Slide 1 Text -->
-                            <div class="slide-text-group tw-absolute tw-top-0 tw-left-0 tw-w-full tw-transition-opacity tw-duration-500 tw-opacity-100" id="textGroup-0">
-                                <span class="tw-text-gray-300 tw-text-sm tw-mb-1 tw-block slide-anim delay-100">Sepatu adidi</span>
-                                <h1 class="tw-text-white tw-text-2xl md:tw-text-4xl tw-font-bold tw-mb-4 slide-anim delay-200">Ayo beli doskon 70%</h1>
-                                <a href="/shop" class="tw-inline-flex tw-items-center tw-justify-center tw-w-[140px] tw-py-2 tw-text-white tw-rounded-full tw-text-sm btn-beli slide-anim delay-300">Beli</a>
-                            </div>
-                            <!-- Slide 2 Text -->
-                            <div class="slide-text-group tw-absolute tw-top-0 tw-left-0 tw-w-full tw-transition-opacity tw-duration-500 tw-opacity-0 tw-pointer-events-none" id="textGroup-1">
-                                <span class="tw-text-gray-300 tw-text-sm tw-mb-1 tw-block slide-anim delay-100">Fashion Pria &amp; Wanita</span>
-                                <h1 class="tw-text-white tw-text-2xl md:tw-text-4xl tw-font-bold tw-mb-4 slide-anim delay-200">Tren Terkini 2025</h1>
-                                <a href="/shop" class="tw-inline-flex tw-items-center tw-justify-center tw-w-[140px] tw-py-2 tw-text-white tw-rounded-full tw-text-sm btn-beli slide-anim delay-300">Beli</a>
-                            </div>
-                            <!-- Slide 3 Text -->
-                            <div class="slide-text-group tw-absolute tw-top-0 tw-left-0 tw-w-full tw-transition-opacity tw-duration-500 tw-opacity-0 tw-pointer-events-none" id="textGroup-2">
-                                <span class="tw-text-gray-300 tw-text-sm tw-mb-1 tw-block slide-anim delay-100">Gadget Mahasiswa</span>
-                                <h1 class="tw-text-white tw-text-2xl md:tw-text-4xl tw-font-bold tw-mb-4 slide-anim delay-200">Elektronik Berkualitas</h1>
-                                <a href="/shop" class="tw-inline-flex tw-items-center tw-justify-center tw-w-[140px] tw-py-2 tw-text-white tw-rounded-full tw-text-sm btn-beli slide-anim delay-300">Beli</a>
-                            </div>
-                            <!-- Slide 4 Text -->
-                            <div class="slide-text-group tw-absolute tw-top-0 tw-left-0 tw-w-full tw-transition-opacity tw-duration-500 tw-opacity-0 tw-pointer-events-none" id="textGroup-3">
-                                <span class="tw-text-gray-300 tw-text-sm tw-mb-1 tw-block slide-anim delay-100">Aksesoris Eksklusif</span>
-                                <h1 class="tw-text-white tw-text-2xl md:tw-text-4xl tw-font-bold tw-mb-4 slide-anim delay-200">Koleksi Jam Tangan</h1>
-                                <a href="/shop" class="tw-inline-flex tw-items-center tw-justify-center tw-w-[140px] tw-py-2 tw-text-white tw-rounded-full tw-text-sm btn-beli slide-anim delay-300">Beli</a>
-                            </div>
-                            <!-- Slide 5 Text -->
-                            <div class="slide-text-group tw-absolute tw-top-0 tw-left-0 tw-w-full tw-transition-opacity tw-duration-500 tw-opacity-0 tw-pointer-events-none" id="textGroup-4">
-                                <span class="tw-text-gray-300 tw-text-sm tw-mb-1 tw-block slide-anim delay-100">Audio Premium</span>
-                                <h1 class="tw-text-white tw-text-2xl md:tw-text-4xl tw-font-bold tw-mb-4 slide-anim delay-200">Headphone Sony WH</h1>
-                                <a href="/shop" class="tw-inline-flex tw-items-center tw-justify-center tw-w-[140px] tw-py-2 tw-text-white tw-rounded-full tw-text-sm btn-beli slide-anim delay-300">Beli</a>
-                            </div>
+                    <!-- Floating Glassmorphism Controls -->
+                    <div class="ut-hero-control-bar tw-absolute tw-bottom-6 tw-right-6 tw-z-20 tw-flex tw-items-center tw-gap-5 tw-rounded-full tw-border tw-border-white/70 tw-bg-white/70 tw-p-3 tw-shadow-lg tw-backdrop-blur-md">
+                        <button class="ut-hero-arrow" type="button" data-bs-target="#unitradeHeroCarousel" data-bs-slide="prev">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+
+                        <div class="tw-w-[38px] tw-text-center tw-text-base tw-font-semibold tw-text-[#111827]">
+                            <span id="heroSlideCurrent">1</span>/<span id="heroSlideTotal">6</span>
                         </div>
 
-                        <!-- Pagination Controls -->
-                        <div class="tw-flex tw-items-center tw-gap-5 tw-shrink-0 tw-ml-4">
-                            <button class="ut-hero-arrow" type="button" data-bs-target="#unitradeHeroCarousel" data-bs-slide="prev">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                                <span class="visually-hidden">Previous</span>
-                            </button>
-                            
-                            <div class="tw-text-white tw-font-normal tw-text-base tw-w-[30px] tw-text-center">
-                                <span id="heroSlideCurrent">1</span>/<span id="heroSlideTotal">5</span>
-                            </div>
-                            
-                            <button class="ut-hero-arrow" type="button" data-bs-target="#unitradeHeroCarousel" data-bs-slide="next">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                                <span class="visually-hidden">Next</span>
-                            </button>
-                        </div>
+                        <button class="ut-hero-arrow" type="button" data-bs-target="#unitradeHeroCarousel" data-bs-slide="next">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <span class="visually-hidden">Next</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- JS to handle fading text groups and indicator -->
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
                         var heroCarousel = document.getElementById('unitradeHeroCarousel');
                         if (heroCarousel) {
-                            // Initial trigger
-                            triggerTextAnimation(0);
-
                             heroCarousel.addEventListener('slide.bs.carousel', function (e) {
-                                // Update indicator
                                 var currentSpan = document.getElementById('heroSlideCurrent');
                                 if (currentSpan) {
                                     currentSpan.textContent = e.to + 1;
                                 }
-
-                                // Handle Text Transitions
-                                var allGroups = document.querySelectorAll('.slide-text-group');
-                                allGroups.forEach(function(group) {
-                                    group.classList.remove('tw-opacity-100');
-                                    group.classList.add('tw-opacity-0', 'tw-pointer-events-none');
-                                    
-                                    var anims = group.querySelectorAll('.slide-anim');
-                                    anims.forEach(function(el) {
-                                        el.style.opacity = '0';
-                                        el.style.transform = 'translateX(-30px)';
-                                    });
-                                });
-
-                                var targetGroup = document.getElementById('textGroup-' + e.to);
-                                if (targetGroup) {
-                                    targetGroup.classList.remove('tw-opacity-0', 'tw-pointer-events-none');
-                                    targetGroup.classList.add('tw-opacity-100');
-                                    triggerTextAnimation(e.to);
-                                }
                             });
-                        }
-
-                        function triggerTextAnimation(index) {
-                            var group = document.getElementById('textGroup-' + index);
-                            if (group) {
-                                setTimeout(function() {
-                                    var anims = group.querySelectorAll('.slide-anim');
-                                    anims.forEach(function(el) {
-                                        el.style.opacity = '1';
-                                        el.style.transform = 'translateX(0)';
-                                    });
-                                }, 50);
-                            }
                         }
                     });
                 </script>

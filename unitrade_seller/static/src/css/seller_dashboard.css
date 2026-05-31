@@ -43,11 +43,11 @@ body:has(.ut-seller-dashboard-page) {
     z-index: 1200;
     width: calc(100% - 64px) !important;
     margin: 24px 32px 0 !important;
-    border: 1px solid rgba(255, 255, 255, 0.46);
+    border: 1px solid rgba(17, 24, 39, 0.10);
     background: rgba(255, 255, 255, 0.42) !important;
     -webkit-backdrop-filter: blur(24px) saturate(175%);
     backdrop-filter: blur(24px) saturate(175%);
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.52) !important;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.58) !important;
 }
 
 .ut-seller-dashboard-page .ut-dash-navbar div:has(> input[placeholder="Cari produk di UniTrade"]) {

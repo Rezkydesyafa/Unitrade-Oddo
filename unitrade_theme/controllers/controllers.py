@@ -1082,7 +1082,6 @@ class UnitradePortalProfile(CustomerPortal):
         user_vals = {}
 
         name = (post.get('name') or '').strip()
-        email = (post.get('email') or '').strip()
         gender = (post.get('x_gender') or '').strip()
         birth_date = (post.get('x_birth_date') or '').strip()
         phone = re.sub(r'[\s-]+', '', (post.get('phone') or '').strip())
@@ -1093,10 +1092,6 @@ class UnitradePortalProfile(CustomerPortal):
         if not name:
             error['name'] = 'missing'
             error_message.append(_('Nama pengguna wajib diisi.'))
-
-        if email and not tools.single_email_re.match(email):
-            error['email'] = 'error'
-            error_message.append(_('Masukkan email yang valid.'))
 
         if birth_date:
             try:
@@ -1156,7 +1151,6 @@ class UnitradePortalProfile(CustomerPortal):
 
         partner_vals.update({
             'name': name,
-            'email': email,
             'phone': phone,
         })
         if has_legacy_address_fields:
