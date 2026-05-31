@@ -43,7 +43,7 @@
             </div>
 
             <div class="tw-w-full tw-bg-transparent tw-px-4 tw-py-[15px] md:tw-px-8">
-                <div class="tw-mx-auto tw-flex tw-h-[70px] tw-max-w-[1376px] tw-items-center tw-gap-5 tw-overflow-visible tw-rounded-[54px] tw-px-[14px]" style="background: rgba(255, 255, 255, 0.42); -webkit-backdrop-filter: blur(24px) saturate(175%); backdrop-filter: blur(24px) saturate(175%); border: 1px solid rgba(255, 255, 255, 0.46); box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.52);">
+                <div class="tw-mx-auto tw-flex tw-h-[70px] tw-max-w-[1376px] tw-items-center tw-gap-5 tw-overflow-visible tw-rounded-[54px] tw-px-[14px]" style="background: rgba(255, 255, 255, 0.42); -webkit-backdrop-filter: blur(24px) saturate(175%); backdrop-filter: blur(24px) saturate(175%); border: 1px solid rgba(17, 24, 39, 0.10); box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.58);">
                     <a href="/" aria-label="UniTrade beranda" class="tw-flex tw-h-[52px] tw-w-[129px] tw-shrink-0 tw-items-center tw-justify-center tw-gap-2 tw-rounded-[36.5px] tw-text-[#212529] tw-no-underline hover:tw-text-[#212529] hover:tw-no-underline focus:tw-no-underline" style="text-decoration: none !important;">
                         <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="" class="tw-h-[37px] tw-w-auto tw-object-contain"/>
                         <span class="tw-whitespace-nowrap tw-text-[13px] tw-font-semibold tw-leading-none tw-text-[#212529]" style="text-decoration: none !important;">UniTrade</span>
@@ -71,7 +71,7 @@
                                 </t>
                             </a>
 
-                            <a id="unitrade-navbar-notification-link" href="/my/orders" title="Notifikasi" aria-label="Notifikasi" class="tw-flex tw-size-[38px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#212529] tw-text-white tw-no-underline tw-transition-colors hover:tw-bg-black">
+                            <a id="unitrade-navbar-notification-link" href="/my/notifications" title="Notifikasi" aria-label="Notifikasi" class="tw-flex tw-size-[38px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#212529] tw-text-white tw-no-underline tw-transition-colors hover:tw-bg-black">
                                 <img src="/unitrade_theme/static/src/img/navbar-bell.svg" alt="" class="tw-size-6"/>
                             </a>
 
