@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ==============================================
+         TREE
+         ============================================== -->
+    <record id="view_unitrade_seller_payout_tree" model="ir.ui.view">
+        <field name="name">unitrade.seller.payout.tree</field>
+        <field name="model">unitrade.seller.payout</field>
+        <field name="arch" type="xml">
+            <tree string="Manual Payout" default_order="create_date desc">
+                <field name="name"/>
+                <field name="create_date"/>
+                <field name="seller_id"/>
+                <field name="payout_channel_code"/>
+                <field name="payout_account_number"/>
+                <field name="payout_account_name"/>
+                <field name="ledger_count"/>
+                <field name="total_amount" widget="monetary" sum="total_amount"/>
+                <field name="currency_id" invisible="1"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'ready'"
+                       decoration-success="state == 'paid'"
+                       decoration-danger="state == 'cancelled'"/>
+                <field name="paid_at" optional="show"/>
+                <field name="payment_reference" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ==============================================
+         FORM
+         ============================================== -->
+    <record id="view_unitrade_seller_payout_form" model="ir.ui.view">
+        <field name="name">unitrade.seller.payout.form</field>
+        <field name="model">unitrade.seller.payout</field>
+        <field name="arch" type="xml">
+            <form string="Manual Payout">
+                <header>
+                    <button name="action_recompute_ledgers" type="object" string="Refresh Ledger" invisible="state != 'draft'"/>
+                    <button name="action_mark_ready" type="object" string="Tandai Siap Bayar" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_mark_paid" type="object" string="Tandai PAID" class="btn-primary" invisible="state != 'ready'"/>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state in ('paid', 'cancelled')"
+                            confirm="Yakin batalkan payout ini? Ledger akan kembali ke pool releasable."/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,ready,paid"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_seller" type="object" class="oe_stat_button" icon="fa-user">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Seller</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Seller">
+                            <field name="seller_id" readonly="state != 'draft'"
+                                   options="{'no_create': True, 'no_open': False}"/>
+                            <field name="seller_user_id" readonly="1"/>
+                            <field name="payout_channel_code" readonly="1"/>
+                            <field name="payout_account_number" readonly="1"/>
+                            <field name="payout_account_name" readonly="1"/>
+                            <field name="payout_ready" readonly="1" widget="boolean_toggle"/>
+                        </group>
+                        <group string="Total">
+                            <field name="ledger_count"/>
+                            <field name="total_amount" widget="monetary"/>
+                            <field name="currency_id"/>
+                            <field name="created_by_id" readonly="1"/>
+                            <field name="paid_by_id" readonly="1" invisible="state != 'paid'"/>
+                            <field name="paid_at" readonly="1" invisible="state != 'paid'"/>
+                            <field name="cancelled_at" readonly="1" invisible="state != 'cancelled'"/>
+                        </group>
+                    </group>
+
+                    <group string="Bukti Transfer" invisible="state == 'draft'">
+                        <field name="payment_reference"
+                               placeholder="Mis: BCA-20260524-001 atau Reference dari mobile banking"
+                               required="state == 'ready'" readonly="state == 'paid'"/>
+                        <field name="proof_image" widget="image" filename="proof_filename"
+                               readonly="state == 'paid'"/>
+                        <field name="proof_filename" invisible="1"/>
+                    </group>
+
+                    <group string="Catatan / Cancel Reason">
+                        <field name="note" placeholder="Catatan internal admin..."/>
+                        <field name="cancel_reason" invisible="state != 'cancelled'"/>
+                    </group>
+
+                    <notebook>
+                        <page string="Escrow Ledgers">
+                            <field name="ledger_ids" readonly="state != 'draft'">
+                                <tree create="false" delete="false">
+                                    <field name="name"/>
+                                    <field name="order_id"/>
+                                    <field name="buyer_id"/>
+                                    <field name="amount_seller" widget="monetary"/>
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="state" widget="badge"
+                                           decoration-info="state == 'releasable'"
+                                           decoration-success="state == 'released'"/>
+                                    <field name="payout_status" widget="badge"
+                                           decoration-success="payout_status == 'succeeded'"/>
+                                    <field name="completed_at"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==============================================
+         SEARCH
+         ============================================== -->
+    <record id="view_unitrade_seller_payout_search" model="ir.ui.view">
+        <field name="name">unitrade.seller.payout.search</field>
+        <field name="model">unitrade.seller.payout</field>
+        <field name="arch" type="xml">
+            <search string="Manual Payout">
+                <field name="name"/>
+                <field name="seller_id"/>
+                <field name="payment_reference"/>
+                <filter name="state_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="state_ready" string="Ready to Pay" domain="[('state', '=', 'ready')]"/>
+                <filter name="state_paid" string="Paid" domain="[('state', '=', 'paid')]"/>
+                <filter name="state_cancelled" string="Cancelled" domain="[('state', '=', 'cancelled')]"/>
+                <separator/>
+                <filter name="this_month" string="Bulan Ini"
+                        domain="[('create_date', '&gt;=', (context_today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="gb_seller" string="Seller" context="{'group_by': 'seller_id'}"/>
+                    <filter name="gb_state" string="State" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ==============================================
+         ACTION + MENU
+         ============================================== -->
+    <record id="action_unitrade_seller_payout" model="ir.actions.act_window">
+        <field name="name">Manual Payout</field>
+        <field name="res_model">unitrade.seller.payout</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_unitrade_seller_payout_search"/>
+        <field name="context">{'search_default_state_ready': 1, 'search_default_state_draft': 1}</field>
+    </record>
+
+    <menuitem id="menu_unitrade_seller_payout"
+              name="Manual Payout"
+              parent="menu_unitrade_payment_root"
+              action="action_unitrade_seller_payout"
+              sequence="25"
+              groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
+
+    <!-- Server action: Create payout from selected escrow ledgers -->
+    <record id="action_create_payout_from_ledgers" model="ir.actions.server">
+        <field name="name">Buat Payout dari Ledger Terpilih</field>
+        <field name="model_id" ref="unitrade_payment.model_unitrade_escrow_ledger"/>
+        <field name="binding_model_id" ref="unitrade_payment.model_unitrade_escrow_ledger"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_create_seller_payout()</field>
+    </record>
+
+</odoo>

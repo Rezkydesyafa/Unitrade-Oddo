@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, _
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessDenied, ValidationError
 import logging
 import re
+
+from .unitrade_audit import log_admin_action
 
 _logger = logging.getLogger(__name__)
 
@@ -255,6 +257,7 @@ class SellerVerification(models.Model):
 
     def action_approve(self):
         """Admin approves the KTM verification."""
+        self._check_admin_verification('approve_ktm')
         for record in self:
             try:
                 seller = record._approve_to_seller()
@@ -269,6 +272,20 @@ class SellerVerification(models.Model):
                 )
                 if template:
                     template.sudo().send_mail(seller.id, force_send=True)
+                log_admin_action(
+                    self.env,
+                    'ktm.approve',
+                    description=_('Verifikasi KTM untuk %s disetujui oleh %s.') % (
+                        record.partner_id.name, self.env.user.name,
+                    ),
+                    record=record,
+                    severity='warning',
+                    payload={
+                        'verification_id': record.id,
+                        'partner_id': record.partner_id.id,
+                        'seller_id': seller.id,
+                    },
+                )
                 _logger.info(
                     'Verification %s approved for partner %s by %s',
                     record.id, record.partner_id.name, self.env.user.name,
@@ -279,6 +296,7 @@ class SellerVerification(models.Model):
 
     def action_reject(self):
         """Admin rejects the KTM verification."""
+        self._check_admin_verification('reject_ktm')
         for record in self:
             try:
                 reason = record.rejection_reason or _('Verifikasi ditolak oleh admin.')
@@ -292,6 +310,20 @@ class SellerVerification(models.Model):
                 if user:
                     user.sudo().write({'x_is_seller': False})
                 record._send_verification_template('unitrade_seller.mail_template_seller_verification_rejected')
+                log_admin_action(
+                    self.env,
+                    'ktm.reject',
+                    description=_('Verifikasi KTM untuk %s ditolak oleh %s. Alasan: %s') % (
+                        record.partner_id.name, self.env.user.name, reason,
+                    ),
+                    record=record,
+                    severity='warning',
+                    payload={
+                        'verification_id': record.id,
+                        'partner_id': record.partner_id.id,
+                        'reason': reason,
+                    },
+                )
                 _logger.info(
                     'Verification %s rejected for partner %s by %s',
                     record.id, record.partner_id.name, self.env.user.name,
@@ -299,3 +331,17 @@ class SellerVerification(models.Model):
             except Exception as e:
                 _logger.exception('Failed to reject verification %s: %s', record.id, e)
                 raise
+
+    def _check_admin_verification(self, action_label):
+        """Reusable admin gate for verification actions."""
+        user = self.env.user
+        is_admin = (
+            user.has_group('unitrade_seller.group_unitrade_admin')
+            or user.has_group('base.group_system')
+        )
+        if not is_admin:
+            _logger.warning(
+                'Verification %s: unauthorized %s attempt by uid=%s',
+                self.mapped('id') or '-', action_label, self.env.uid,
+            )
+            raise AccessDenied(_('Aksi ini hanya boleh dilakukan oleh admin UniTrade.'))

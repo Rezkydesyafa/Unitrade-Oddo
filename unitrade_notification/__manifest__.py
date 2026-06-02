@@ -4,7 +4,20 @@
     'summary': 'System notifications for orders, payments, and deliveries',
     'author': 'Tim 1 - UNISA Yogyakarta',
     'category': 'Website',
+<<<<<<< HEAD
     'depends': ['mail', 'unitrade_payment', 'unitrade_delivery'],
+=======
+    'depends': [
+        'mail',
+        'auth_signup',
+        'unitrade_theme',
+        'unitrade_seller',
+        'unitrade_payment',
+        'unitrade_delivery',
+        'unitrade_chat',
+        'unitrade_review',
+    ],
+>>>>>>> ca9bf47 (feat : admin fajar anjay sadboy)
     'data': [
         'security/ir.model.access.csv',
         'views/notification_templates.xml',

@@ -48,9 +48,9 @@
                                             <!-- Email Field -->
                                             <div>
                                                 <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[20px] tw-py-[12px] tw-flex tw-items-center tw-bg-white">
-                                                    <input type="email" placeholder="Email" name="login" t-att-value="login" required="required" autofocus="autofocus" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[15px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
+                                                    <input type="text" placeholder="Email atau Nomor HP" name="login" t-att-value="login" required="required" autofocus="autofocus" autocomplete="username" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[15px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
                                                 </div>
-                                                <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[11px] tw-text-[#666] tw-mt-[4px] tw-ml-[16px] tw-m-0">Masukan email anda</p>
+                                                <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[11px] tw-text-[#666] tw-mt-[4px] tw-ml-[16px] tw-m-0">Masukkan email atau nomor HP</p>
                                             </div>
                                             
                                             <!-- Password Field -->
@@ -240,9 +240,9 @@
                                             <!-- Email Field -->
                                             <div>
                                                 <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[20px] tw-py-[10px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
-                                                    <input type="text" id="signupLoginInput" placeholder="Email atau Nomor hp" name="login" t-att-value="login" required="required" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
+                                                    <input type="text" id="signupLoginInput" placeholder="Email atau Nomor HP" name="login" t-att-value="login" required="required" autocomplete="username" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
                                                 </div>
-                                                <p id="signupLoginHint" class="tw-font-['Urbanist'] tw-font-normal tw-text-[11px] tw-text-[#666] tw-mt-[2px] tw-ml-[16px] tw-m-0">@gmail atau +62</p>
+                                                <p id="signupLoginHint" class="tw-font-['Urbanist'] tw-font-normal tw-text-[11px] tw-text-[#666] tw-mt-[2px] tw-ml-[16px] tw-m-0">contoh: nama@gmail.com atau 08xxx</p>
                                                 <p id="signupEmailError" class="tw-font-['Urbanist'] tw-font-normal tw-text-[11px] tw-text-red-500 tw-mt-[2px] tw-ml-[16px] tw-hidden tw-m-0"></p>
                                             </div>
                                             
@@ -388,10 +388,14 @@
                                             const emailError = document.getElementById("signupEmailError");
                                             const emailFieldWrapper = loginInput ? loginInput.closest('.tw-border') : null;
                                             let checkTimeout = null;
+                                            const normalizePhoneInput = function(value) {
+                                                return (value || '').replace(/[\s\-.()]/g, '');
+                                            };
 
                                             if (loginInput) {
                                                 loginInput.addEventListener('input', function() {
                                                     const val = this.value.trim();
+                                                    const normalizedPhone = normalizePhoneInput(val);
                                                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                                                     const phoneRegex = /^(\+62|62|08)[0-9]{8,13}$/;
 
@@ -405,7 +409,7 @@
                                                         this.setCustomValidity('Wajib diisi');
                                                         setSubmitState();
                                                         return;
-                                                    } else if (!emailRegex.test(val) &amp;&amp; !phoneRegex.test(val)) {
+                                                    } else if (!emailRegex.test(val) &amp;&amp; !phoneRegex.test(normalizedPhone)) {
                                                         isLoginFormatValid = false;
                                                         this.setCustomValidity('Masukkan email yang valid (contoh: nama@gmail.com) atau nomor HP (contoh: 08xxx)');
                                                         setSubmitState();
@@ -415,6 +419,7 @@
                                                         this.setCustomValidity('');
                                                     }
                                                     setSubmitState();
+                                                    const lookupVal = emailRegex.test(val) ? val.toLowerCase() : normalizedPhone;
 
                                                     // Debounced duplicate check
                                                     if (checkTimeout) clearTimeout(checkTimeout);
@@ -422,11 +427,13 @@
                                                         fetch('/web/signup/check_email', {
                                                             method: 'POST',
                                                             headers: {'Content-Type': 'application/json'},
-                                                            body: JSON.stringify({jsonrpc: '2.0', method: 'call', params: {login: val}})
+                                                            body: JSON.stringify({jsonrpc: '2.0', method: 'call', params: {login: lookupVal}})
                                                         })
                                                         .then(function(r) { return r.json(); })
                                                         .then(function(data) {
-                                                            if (loginInput.value.trim() !== val) {
+                                                            const currentVal = loginInput.value.trim();
+                                                            const currentLookupVal = emailRegex.test(currentVal) ? currentVal.toLowerCase() : normalizePhoneInput(currentVal);
+                                                            if (currentLookupVal !== lookupVal) {
                                                                 setSubmitState();
                                                                 return;
                                                             }
@@ -451,6 +458,17 @@
                                                 signupForm.addEventListener('input', setSubmitState);
                                                 signupForm.addEventListener('change', setSubmitState);
                                                 signupForm.addEventListener('submit', function(event) {
+                                                    if (loginInput) {
+                                                        const rawLogin = loginInput.value.trim();
+                                                        const normalizedPhone = normalizePhoneInput(rawLogin);
+                                                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                                                        const phoneRegex = /^(\+62|62|08)[0-9]{8,13}$/;
+                                                        if (phoneRegex.test(normalizedPhone)) {
+                                                            loginInput.value = normalizedPhone;
+                                                        } else if (emailRegex.test(rawLogin)) {
+                                                            loginInput.value = rawLogin.toLowerCase();
+                                                        }
+                                                    }
                                                     if (termsAccepted &amp;&amp; !termsAccepted.checked) {
                                                         if (termsError) { termsError.classList.remove('tw-hidden'); }
                                                         termsAccepted.setCustomValidity('Anda harus menyetujui Syarat Ketentuan &amp; Kebijakan Privasi.');

@@ -8,6 +8,7 @@
     'data': [
         'security/ir.model.access.csv',
         'views/product_views.xml',
+        'views/product_wizards_views.xml',
         'views/product_templates.xml',
     ],
     'assets': {

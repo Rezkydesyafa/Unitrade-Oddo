@@ -7,6 +7,7 @@ _logger = logging.getLogger(__name__)
 class UnitradeDelivery(models.Model):
     _name = 'unitrade.delivery'
     _description = 'UniTrade Delivery (GoSend)'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'create_date desc'
 
     order_id = fields.Many2one('sale.order', string='Pesanan', required=True, ondelete='cascade', index=True)

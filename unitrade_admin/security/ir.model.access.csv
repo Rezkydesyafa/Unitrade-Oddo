@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_unitrade_admin_stats_user,unitrade.admin.stats user,model_unitrade_admin_stats,base.group_user,1,0,0,0
+access_unitrade_admin_stats_admin,unitrade.admin.stats admin,model_unitrade_admin_stats,unitrade_seller.group_unitrade_admin,1,1,1,1
+access_unitrade_admin_audit_log_admin,unitrade.admin.audit.log admin,model_unitrade_admin_audit_log,unitrade_seller.group_unitrade_admin,1,1,1,0
+access_unitrade_admin_audit_log_system,unitrade.admin.audit.log system,model_unitrade_admin_audit_log,base.group_system,1,1,1,1

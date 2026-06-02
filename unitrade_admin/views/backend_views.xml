@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ================================================================
+         TRANSACTION OPERATIONS
+         ================================================================ -->
+    <record id="view_unitrade_transaction_monitor_tree" model="ir.ui.view">
+        <field name="name">sale.order.unitrade.transaction.monitor.tree</field>
+        <field name="model">sale.order</field>
+        <field name="arch" type="xml">
+            <tree string="Monitoring Transaksi UniTrade" create="false" delete="false">
+                <field name="date_order"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="x_payment_status" widget="badge"
+                       decoration-success="x_payment_status == 'paid'"
+                       decoration-warning="x_payment_status == 'pending'"
+                       decoration-danger="x_payment_status in ('failed', 'expired', 'cancelled', 'refunded')"/>
+                <field name="x_unitrade_order_state" widget="badge"
+                       decoration-success="x_unitrade_order_state == 'completed'"
+                       decoration-info="x_unitrade_order_state == 'processing'"
+                       decoration-warning="x_unitrade_order_state in ('cart', 'payment_pending', 'paid_escrow')"
+                       decoration-danger="x_unitrade_order_state in ('cancelled', 'refunded')"/>
+                <field name="x_escrow_state" widget="badge"
+                       decoration-success="x_escrow_state in ('releasable', 'released')"
+                       decoration-info="x_escrow_state == 'held'"
+                       decoration-danger="x_escrow_state in ('disputed', 'refunded', 'cancelled')"/>
+                <field name="x_payment_intent_id" optional="show"/>
+                <field name="amount_total"/>
+                <field name="x_admin_flagged" widget="boolean_toggle" optional="show" readonly="1"/>
+                <field name="x_admin_flag_reason" optional="hide"/>
+                <field name="x_admin_flagged_at" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_unitrade_transaction_monitor_search" model="ir.ui.view">
+        <field name="name">sale.order.unitrade.transaction.monitor.search</field>
+        <field name="model">sale.order</field>
+        <field name="arch" type="xml">
+            <search string="Monitoring Transaksi UniTrade">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="x_payment_intent_id"/>
+                <field name="x_payment_status"/>
+                <field name="x_unitrade_order_state"/>
+                <field name="x_escrow_state"/>
+                <filter name="payment_pending" string="Payment Pending" domain="[('x_payment_status','=','pending')]"/>
+                <filter name="payment_paid" string="Paid" domain="[('x_payment_status','=','paid')]"/>
+                <filter name="payment_failed" string="Failed / Expired"
+                        domain="[('x_payment_status','in',('failed','expired','cancelled'))]"/>
+                <filter name="processing" string="Processing"
+                        domain="[('x_unitrade_order_state','in',('paid_escrow','processing'))]"/>
+                <filter name="escrow_held" string="Escrow Held" domain="[('x_escrow_state','=','held')]"/>
+                <filter name="escrow_releasable" string="Escrow Releasable" domain="[('x_escrow_state','=','releasable')]"/>
+                <filter name="refunded" string="Refunded"
+                        domain="['|', ('x_payment_status','=','refunded'), ('x_unitrade_order_state','=','refunded')]"/>
+                <filter name="flagged" string="Bermasalah" domain="[('x_admin_flagged','=',True)]"/>
+                <separator/>
+                <filter name="today" string="Hari Ini"
+                        domain="[('date_order', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_payment_status" string="Payment Status" context="{'group_by':'x_payment_status'}"/>
+                    <filter name="group_unitrade_state" string="UniTrade State" context="{'group_by':'x_unitrade_order_state'}"/>
+                    <filter name="group_escrow_state" string="Escrow State" context="{'group_by':'x_escrow_state'}"/>
+                    <filter name="group_buyer" string="Buyer" context="{'group_by':'partner_id'}"/>
+                    <filter name="group_date" string="Tanggal Order" context="{'group_by':'date_order:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_sale_order_form_unitrade_admin_ops" model="ir.ui.view">
+        <field name="name">sale.order.form.unitrade.admin.ops</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_unitrade_payment_intents" type="object"
+                        class="oe_stat_button" icon="fa-credit-card"
+                        invisible="x_unitrade_payment_intent_count == 0"
+                        groups="base.group_system,unitrade_seller.group_unitrade_admin">
+                    <field name="x_unitrade_payment_intent_count" widget="statinfo" string="Payment"/>
+                </button>
+                <button name="action_open_unitrade_payment_events" type="object"
+                        class="oe_stat_button" icon="fa-bolt"
+                        invisible="x_unitrade_payment_event_count == 0"
+                        groups="base.group_system,unitrade_seller.group_unitrade_admin">
+                    <field name="x_unitrade_payment_event_count" widget="statinfo" string="Events"/>
+                </button>
+                <button name="action_open_unitrade_escrow_ledgers" type="object"
+                        class="oe_stat_button" icon="fa-lock"
+                        invisible="x_unitrade_escrow_ledger_count == 0"
+                        groups="base.group_system,unitrade_seller.group_unitrade_admin">
+                    <field name="x_unitrade_escrow_ledger_count" widget="statinfo" string="Escrow"/>
+                </button>
+                <button name="action_open_unitrade_disputes" type="object"
+                        class="oe_stat_button" icon="fa-life-ring"
+                        invisible="x_unitrade_dispute_count == 0"
+                        groups="base.group_system,unitrade_seller.group_unitrade_admin">
+                    <field name="x_unitrade_dispute_count" widget="statinfo" string="Dispute"/>
+                </button>
+                <button name="action_open_unitrade_seller_payouts" type="object"
+                        class="oe_stat_button" icon="fa-money"
+                        invisible="x_unitrade_seller_payout_count == 0"
+                        groups="base.group_system,unitrade_seller.group_unitrade_admin">
+                    <field name="x_unitrade_seller_payout_count" widget="statinfo" string="Payout"/>
+                </button>
+                <button name="action_open_unitrade_audit_logs" type="object"
+                        class="oe_stat_button" icon="fa-history"
+                        invisible="x_unitrade_audit_log_count == 0"
+                        groups="base.group_system,unitrade_seller.group_unitrade_admin">
+                    <field name="x_unitrade_audit_log_count" widget="statinfo" string="Audit"/>
+                </button>
+            </xpath>
+            <xpath expr="//field[@name='payment_term_id']" position="after">
+                <field name="x_admin_flagged" readonly="1"/>
+                <field name="x_admin_flag_reason" readonly="1" invisible="not x_admin_flagged"/>
+                <field name="x_admin_flagged_at" readonly="1" invisible="not x_admin_flagged"/>
+                <field name="x_admin_flagged_by" readonly="1" invisible="not x_admin_flagged"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_unitrade_transaction_monitor" model="ir.actions.act_window">
+        <field name="name">Monitoring Transaksi</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_unitrade_transaction_monitor_tree"/>
+        <field name="search_view_id" ref="view_unitrade_transaction_monitor_search"/>
+        <field name="domain">[('x_payment_status', '!=', False)]</field>
+        <field name="context">{'search_default_processing': 1}</field>
+    </record>
+
+    <menuitem id="menu_unitrade_transaction_monitor"
+              name="Monitoring Transaksi"
+              parent="unitrade_payment.menu_unitrade_payment_root"
+              action="action_unitrade_transaction_monitor"
+              sequence="3"
+              groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
+
+    <!-- ================================================================
+         ADMIN NOTIFICATIONS
+         ================================================================ -->
+    <record id="view_unitrade_admin_notification_tree" model="ir.ui.view">
+        <field name="name">unitrade.notification.admin.tree</field>
+        <field name="model">unitrade.notification</field>
+        <field name="arch" type="xml">
+            <tree default_order="is_read asc, create_date desc" create="false" delete="false">
+                <field name="create_date"/>
+                <field name="is_read"/>
+                <field name="priority" widget="badge"
+                       decoration-info="priority == 'info'"
+                       decoration-warning="priority == 'warning'"
+                       decoration-danger="priority in ('urgent', 'critical')"/>
+                <field name="notification_type"/>
+                <field name="title"/>
+                <field name="user_id"/>
+                <field name="target_model" optional="hide"/>
+                <field name="target_id" optional="hide"/>
+                <field name="dedupe_key" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_unitrade_admin_notification_form" model="ir.ui.view">
+        <field name="name">unitrade.notification.admin.form</field>
+        <field name="model">unitrade.notification</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false">
+                <sheet>
+                    <h1>
+                        <field name="title"/>
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="audience"/>
+                            <field name="user_id"/>
+                            <field name="priority" widget="badge"/>
+                            <field name="notification_type"/>
+                            <field name="is_read"/>
+                        </group>
+                        <group>
+                            <field name="target_model"/>
+                            <field name="target_id"/>
+                            <field name="target_url"/>
+                            <field name="dedupe_key"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="message"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_unitrade_admin_notification_search" model="ir.ui.view">
+        <field name="name">unitrade.notification.admin.search</field>
+        <field name="model">unitrade.notification</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="title"/>
+                <field name="message"/>
+                <field name="user_id"/>
+                <filter name="admin_audience" string="Admin" domain="[('audience','=','admin')]"/>
+                <filter name="unread" string="Unread" domain="[('is_read','=',False)]"/>
+                <filter name="urgent" string="Urgent" domain="[('priority','in',('urgent','critical'))]"/>
+                <filter name="warning" string="Warning" domain="[('priority','=','warning')]"/>
+                <separator/>
+                <filter name="today" string="Hari Ini"
+                        domain="[('create_date', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="gb_priority" string="Prioritas" context="{'group_by':'priority'}"/>
+                    <filter name="gb_type" string="Tipe" context="{'group_by':'notification_type'}"/>
+                    <filter name="gb_read" string="Read" context="{'group_by':'is_read'}"/>
+                    <filter name="gb_user" string="Admin" context="{'group_by':'user_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_unitrade_admin_notification" model="ir.actions.act_window">
+        <field name="name">Notifikasi Admin</field>
+        <field name="res_model">unitrade.notification</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('audience','=','admin')]</field>
+        <field name="context">{'search_default_admin_audience': 1, 'search_default_unread': 1}</field>
+        <field name="search_view_id" ref="view_unitrade_admin_notification_search"/>
+    </record>
+
+    <menuitem id="menu_unitrade_admin_notification"
+              name="Notifikasi Admin"
+              parent="unitrade_seller.menu_unitrade_root"
+              action="action_unitrade_admin_notification"
+              sequence="8"
+              groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
+
+    <!-- ================================================================
+         AUDIT LOG (model unik unitrade_admin)
+         ================================================================ -->
+    <record id="view_unitrade_audit_log_tree" model="ir.ui.view">
+        <field name="name">unitrade.admin.audit.log.tree</field>
+        <field name="model">unitrade.admin.audit.log</field>
+        <field name="arch" type="xml">
+            <tree default_order="create_date desc" create="false" delete="false">
+                <field name="create_date"/>
+                <field name="user_id"/>
+                <field name="action"/>
+                <field name="severity" widget="badge"
+                       decoration-info="severity == 'info'"
+                       decoration-warning="severity == 'warning'"
+                       decoration-danger="severity == 'critical'"/>
+                <field name="res_model"/>
+                <field name="res_name"/>
+                <field name="description"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_unitrade_audit_log_form" model="ir.ui.view">
+        <field name="name">unitrade.admin.audit.log.form</field>
+        <field name="model">unitrade.admin.audit.log</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false">
+                <sheet>
+                    <h1>
+                        <field name="action"/>
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="create_date"/>
+                            <field name="user_id"/>
+                            <field name="severity" widget="badge"/>
+                        </group>
+                        <group>
+                            <field name="res_model"/>
+                            <field name="res_id"/>
+                            <field name="res_name"/>
+                        </group>
+                    </group>
+                    <field name="description"/>
+                    <field name="payload" widget="text"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_unitrade_audit_log_search" model="ir.ui.view">
+        <field name="name">unitrade.admin.audit.log.search</field>
+        <field name="model">unitrade.admin.audit.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="action"/>
+                <field name="user_id"/>
+                <field name="description"/>
+                <field name="res_model"/>
+                <filter name="severity_critical" string="Critical" domain="[('severity', '=', 'critical')]"/>
+                <filter name="severity_warning" string="Warning" domain="[('severity', '=', 'warning')]"/>
+                <separator/>
+                <filter name="this_week" string="Minggu Ini"
+                        domain="[('create_date', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <filter name="today_only" string="Hari Ini"
+                        domain="[('create_date', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="gb_action" string="Action" context="{'group_by': 'action'}"/>
+                    <filter name="gb_user" string="Aktor" context="{'group_by': 'user_id'}"/>
+                    <filter name="gb_severity" string="Severity" context="{'group_by': 'severity'}"/>
+                    <filter name="gb_model" string="Model" context="{'group_by': 'res_model'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_unitrade_audit_log" model="ir.actions.act_window">
+        <field name="name">Audit Log Admin</field>
+        <field name="res_model">unitrade.admin.audit.log</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_unitrade_audit_log_search"/>
+    </record>
+
+    <!-- ================================================================
+         AUDIT LOG MENU — anak dari "Keuangan & Dispute" yang dideklarasikan
+         di unitrade_payment/views/payment_views.xml.
+         Refund, Escrow, Payment Intent, Payment Event, dan Voucher
+         dideklarasikan oleh modul asal (unitrade_payment, unitrade_dispute).
+         Module ini hanya menambahkan Audit Log.
+         ================================================================ -->
+    <menuitem id="menu_unitrade_finance_audit_log"
+              name="Audit Log"
+              parent="unitrade_payment.menu_unitrade_payment_root"
+              action="action_unitrade_audit_log"
+              sequence="90"
+              groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
+
+</odoo>

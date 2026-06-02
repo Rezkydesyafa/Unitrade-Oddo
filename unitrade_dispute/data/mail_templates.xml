@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+
+    <!-- ================================================================
+         Notifikasi: Refund diajukan (ke buyer + seller, untuk konfirmasi)
+         ================================================================ -->
+    <record id="mail_template_dispute_submitted" model="mail.template">
+        <field name="name">UniTrade: Refund Diajukan</field>
+        <field name="model_id" ref="model_unitrade_dispute"/>
+        <field name="subject">[UniTrade] Pengajuan Refund {{ object.name }} Telah Diterima</field>
+        <field name="email_from">{{ (object.env.company.email or 'no-reply@unitrade.dev') }}</field>
+        <field name="email_to">{{ object.buyer_id.email or '' }}</field>
+        <field name="body_html" type="html">
+<div style="font-family: 'Helvetica Neue', Arial, sans-serif; color:#333;">
+    <h2 style="margin:0 0 12px;">Pengajuan refund <t t-out="object.name"/> diterima</h2>
+    <p>Hai <t t-out="object.buyer_id.name or 'Buyer'"/>,</p>
+    <p>Pengajuan refund kamu untuk pesanan <strong t-out="object.order_id.name or '-'"/> telah kami terima dan akan diproses oleh tim UniTrade dalam 1x24 jam.</p>
+    <p>
+        <strong>Alasan:</strong> <t t-out="dict(object._fields['reason_code'].selection).get(object.reason_code, object.reason_code)"/><br/>
+        <strong>Nominal refund:</strong> Rp <t t-out="'{:,.0f}'.format(object.requested_amount).replace(',', '.')"/>
+    </p>
+    <p>Status case bisa kamu cek lewat halaman akun UniTrade. Kami akan kirim email lagi saat ada keputusan.</p>
+    <p style="color:#888;font-size:12px;">Terima kasih atas kesabaran kamu.<br/>Tim UniTrade</p>
+</div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <!-- ================================================================
+         Notifikasi: Admin minta tambahan bukti dari buyer
+         ================================================================ -->
+    <record id="mail_template_dispute_need_buyer_evidence" model="mail.template">
+        <field name="name">UniTrade: Refund Butuh Bukti Tambahan</field>
+        <field name="model_id" ref="model_unitrade_dispute"/>
+        <field name="subject">[UniTrade] {{ object.name }} - Mohon Lengkapi Bukti Tambahan</field>
+        <field name="email_from">{{ (object.env.company.email or 'no-reply@unitrade.dev') }}</field>
+        <field name="email_to">{{ object.buyer_id.email or '' }}</field>
+        <field name="body_html" type="html">
+<div style="font-family: 'Helvetica Neue', Arial, sans-serif; color:#333;">
+    <h2 style="margin:0 0 12px;">Bukti tambahan dibutuhkan</h2>
+    <p>Hai <t t-out="object.buyer_id.name or 'Buyer'"/>,</p>
+    <p>Tim UniTrade meninjau pengajuan refund <strong t-out="object.name"/> dan membutuhkan bukti tambahan untuk melanjutkan proses.</p>
+    <p>Mohon upload foto / video unboxing / link Google Drive sebelum
+        <strong t-out="object.buyer_response_deadline_at and object.buyer_response_deadline_at.strftime('%d %b %Y %H:%M') or '-'"/>.</p>
+    <p>Refund akan diputuskan berdasarkan bukti yang tersedia. Kalau bukti tidak diterima sebelum deadline, case akan diputuskan apa adanya.</p>
+    <p style="color:#888;font-size:12px;">Tim UniTrade</p>
+</div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <!-- ================================================================
+         Notifikasi: Admin minta respons seller
+         ================================================================ -->
+    <record id="mail_template_dispute_need_seller_response" model="mail.template">
+        <field name="name">UniTrade: Refund Butuh Respons Seller</field>
+        <field name="model_id" ref="model_unitrade_dispute"/>
+        <field name="subject">[UniTrade] {{ object.name }} - Mohon Berikan Respons</field>
+        <field name="email_from">{{ (object.env.company.email or 'no-reply@unitrade.dev') }}</field>
+        <field name="email_to">{{ object.seller_id and object.seller_id.user_id and object.seller_id.user_id.email or '' }}</field>
+        <field name="body_html" type="html">
+<div style="font-family: 'Helvetica Neue', Arial, sans-serif; color:#333;">
+    <h2 style="margin:0 0 12px;">Refund case butuh respons kamu</h2>
+    <p>Hai <t t-out="object.seller_id and object.seller_id.name or 'Seller'"/>,</p>
+    <p>Buyer mengajukan refund pada pesanan <strong t-out="object.order_id.name or '-'"/> (case <t t-out="object.name"/>). Tim UniTrade meminta respons / bukti dari sisi kamu.</p>
+    <p>
+        <strong>Alasan refund:</strong> <t t-out="dict(object._fields['reason_code'].selection).get(object.reason_code, object.reason_code)"/><br/>
+        <strong>Catatan buyer:</strong> <t t-out="object.reason_note or '-'"/><br/>
+        <strong>Deadline respons:</strong> <t t-out="object.seller_response_deadline_at and object.seller_response_deadline_at.strftime('%d %b %Y %H:%M') or '-'"/>
+    </p>
+    <p>Mohon respons segera lewat halaman seller atau email balasan. Kalau tidak ada respons sebelum deadline, case akan diputuskan berdasarkan bukti buyer.</p>
+    <p style="color:#888;font-size:12px;">Tim UniTrade</p>
+</div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <!-- ================================================================
+         Notifikasi: Refund disetujui (ke buyer)
+         ================================================================ -->
+    <record id="mail_template_dispute_approved" model="mail.template">
+        <field name="name">UniTrade: Refund Disetujui</field>
+        <field name="model_id" ref="model_unitrade_dispute"/>
+        <field name="subject">[UniTrade] Refund {{ object.name }} Disetujui</field>
+        <field name="email_from">{{ (object.env.company.email or 'no-reply@unitrade.dev') }}</field>
+        <field name="email_to">{{ object.buyer_id.email or '' }}</field>
+        <field name="body_html" type="html">
+<div style="font-family: 'Helvetica Neue', Arial, sans-serif; color:#333;">
+    <h2 style="margin:0 0 12px;color:#1f7a3a;">Refund disetujui</h2>
+    <p>Hai <t t-out="object.buyer_id.name or 'Buyer'"/>,</p>
+    <p>Pengajuan refund <strong t-out="object.name"/> untuk pesanan <strong t-out="object.order_id.name or '-'"/> telah disetujui oleh tim UniTrade.</p>
+    <p>
+        <strong>Nominal refund:</strong> Rp <t t-out="'{:,.0f}'.format(object.approved_amount or object.requested_amount).replace(',', '.')"/><br/>
+        <strong>Catatan admin:</strong> <t t-out="object.admin_decision_note or '-'"/>
+    </p>
+    <p>Dana akan dikembalikan ke metode pembayaran semula dalam 3-7 hari kerja.</p>
+    <p style="color:#888;font-size:12px;">Terima kasih sudah menggunakan UniTrade.<br/>Tim UniTrade</p>
+</div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <!-- ================================================================
+         Notifikasi: Refund ditolak (ke buyer)
+         ================================================================ -->
+    <record id="mail_template_dispute_rejected" model="mail.template">
+        <field name="name">UniTrade: Refund Ditolak</field>
+        <field name="model_id" ref="model_unitrade_dispute"/>
+        <field name="subject">[UniTrade] Refund {{ object.name }} Tidak Disetujui</field>
+        <field name="email_from">{{ (object.env.company.email or 'no-reply@unitrade.dev') }}</field>
+        <field name="email_to">{{ object.buyer_id.email or '' }}</field>
+        <field name="body_html" type="html">
+<div style="font-family: 'Helvetica Neue', Arial, sans-serif; color:#333;">
+    <h2 style="margin:0 0 12px;">Refund tidak disetujui</h2>
+    <p>Hai <t t-out="object.buyer_id.name or 'Buyer'"/>,</p>
+    <p>Setelah mempelajari bukti dan respons, tim UniTrade memutuskan untuk <strong>tidak menyetujui</strong> refund <t t-out="object.name"/>.</p>
+    <p><strong>Catatan keputusan:</strong><br/><t t-out="object.admin_decision_note or '-'"/></p>
+    <p>Kalau kamu merasa keputusan ini tidak tepat, kamu bisa membuka case banding lewat halaman bantuan UniTrade dengan bukti tambahan.</p>
+    <p style="color:#888;font-size:12px;">Tim UniTrade</p>
+</div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+</odoo>

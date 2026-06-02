@@ -8,6 +8,12 @@
             <field name="faculty">Teknik Informatika</field>
         </record>
 
+        <record id="demo_student_1" model="unisa.student">
+            <field name="nim">2411501058</field>
+            <field name="name">Fajar Muflihun</field>
+            <field name="faculty">Teknik Informatika</field>
+        </record>
+
         <record id="demo_student_2" model="unisa.student">
             <field name="nim">2411201078</field>
             <field name="name">Dewi Lestari</field>

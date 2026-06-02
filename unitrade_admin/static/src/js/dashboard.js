@@ -1,0 +1,1827 @@
+/* UniTrade Admin Dashboard — frontend script.
+ *
+ * Scope: only runs when .ut-admin-root exists (yaitu di halaman
+ * /unitrade/admin*). Vanilla JS, tidak menyentuh OWL atau bundle backend.
+ */
+(function () {
+    "use strict";
+
+    function ready(fn) {
+        if (document.readyState !== "loading") {
+            fn();
+        } else {
+            document.addEventListener("DOMContentLoaded", fn);
+        }
+    }
+
+    function callJsonRpc(url, params) {
+        return fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({
+                jsonrpc: "2.0",
+                method: "call",
+                params: params || {},
+            }),
+        }).then(function (r) { return r.json(); });
+    }
+
+    ready(function () {
+        var root = document.querySelector(".ut-admin-root");
+        if (!root) return;
+
+        // ---- Modal helpers -----------------------------------------------
+        function openModal(id) {
+            var el = document.getElementById(id);
+            if (el) el.classList.add("ut-admin-show");
+        }
+        function closeModal(id) {
+            var el = document.getElementById(id);
+            if (el) el.classList.remove("ut-admin-show");
+        }
+        function escapeHtml(s) {
+            return String(s == null ? "" : s)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        function ensureToastStack() {
+            var stack = document.getElementById("utAdminToastStack");
+            if (!stack) {
+                stack = document.createElement("div");
+                stack.id = "utAdminToastStack";
+                stack.className = "ut-admin-toast-stack";
+                root.appendChild(stack);
+            }
+            return stack;
+        }
+
+        function showToast(message, tone) {
+            if (!message) return;
+            var toast = document.createElement("div");
+            toast.className = "ut-admin-toast ut-admin-toast-" + (tone || "info");
+            toast.textContent = message;
+            ensureToastStack().appendChild(toast);
+            window.setTimeout(function () {
+                toast.classList.add("ut-admin-toast-hide");
+                window.setTimeout(function () { toast.remove(); }, 220);
+            }, 2600);
+        }
+
+        function askAdmin(options) {
+            options = options || {};
+            return new Promise(function (resolve) {
+                var overlay = document.createElement("div");
+                var isPrompt = options.type === "prompt";
+                var inputHtml = "";
+                if (isPrompt) {
+                    var inputTag = options.multiline ? "textarea" : "input";
+                    inputHtml = "<" + inputTag +
+                        ' class="ut-admin-dialog-input" ' +
+                        (options.multiline ? "rows=\"4\"" : "type=\"text\"") +
+                        ' placeholder="' + escapeHtml(options.placeholder || "") + '">' +
+                        (options.multiline ? "</textarea>" : "");
+                }
+                overlay.className = "ut-admin-dialog-overlay";
+                overlay.innerHTML =
+                    '<div class="ut-admin-dialog" role="dialog" aria-modal="true">' +
+                        '<div class="ut-admin-dialog-title">' + escapeHtml(options.title || "Konfirmasi") + '</div>' +
+                        '<div class="ut-admin-dialog-message">' + escapeHtml(options.message || "") + '</div>' +
+                        inputHtml +
+                        '<div class="ut-admin-dialog-actions">' +
+                            '<button type="button" class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm" data-dialog-cancel>' +
+                                escapeHtml(options.cancelLabel || "Batal") +
+                            '</button>' +
+                            '<button type="button" class="ut-admin-btn ut-admin-btn-primary ut-admin-btn-sm" data-dialog-confirm>' +
+                                escapeHtml(options.confirmLabel || "Ya") +
+                            '</button>' +
+                        '</div>' +
+                    '</div>';
+                root.appendChild(overlay);
+
+                var input = overlay.querySelector(".ut-admin-dialog-input");
+                var cleanup = function (value) {
+                    overlay.remove();
+                    resolve(value);
+                };
+                overlay.querySelector("[data-dialog-cancel]").addEventListener("click", function () {
+                    cleanup(isPrompt ? null : false);
+                });
+                overlay.querySelector("[data-dialog-confirm]").addEventListener("click", function () {
+                    if (!isPrompt) {
+                        cleanup(true);
+                        return;
+                    }
+                    cleanup(input ? input.value : "");
+                });
+                overlay.addEventListener("click", function (ev) {
+                    if (ev.target === overlay) cleanup(isPrompt ? null : false);
+                });
+                overlay.addEventListener("keydown", function (ev) {
+                    if (ev.key === "Escape") cleanup(isPrompt ? null : false);
+                    if (ev.key === "Enter" && !options.multiline) {
+                        ev.preventDefault();
+                        overlay.querySelector("[data-dialog-confirm]").click();
+                    }
+                });
+                if (input) input.focus();
+                else overlay.querySelector("[data-dialog-confirm]").focus();
+            });
+        }
+
+        function confirmAdmin(message, options) {
+            options = options || {};
+            options.message = message;
+            options.type = "confirm";
+            return askAdmin(options);
+        }
+
+        function promptAdmin(message, options) {
+            options = options || {};
+            options.message = message;
+            options.type = "prompt";
+            options.confirmLabel = options.confirmLabel || "Simpan";
+            return askAdmin(options);
+        }
+
+        function openUserDetail(userId) {
+            var body = document.getElementById("utAdminUserModalBody");
+            if (!body) return;
+            body.innerHTML = '<div style="text-align:center;color:var(--utad-muted);padding:40px">Memuat...</div>';
+            openModal("utAdminUserModal");
+            callJsonRpc("/unitrade/admin/api/users/detail", { user_id: userId })
+                .then(function (res) {
+                    var d = res.result || {};
+                    var seller = d.seller || { status: "none" };
+                    var stats = d.stats || {};
+                    var sellerStatusLabel = {
+                        none: "Non-Penjual",
+                        draft: "Draft",
+                        pending: "Pending KTM",
+                        verified: "Verified",
+                        rejected: "Rejected",
+                        revoked: "Revoked",
+                    }[seller.status] || seller.status;
+
+                    var statusBadge = d.is_blocked
+                        ? '<span class="ut-admin-badge ut-admin-badge-red"><span class="ut-admin-badge-dot"></span>Diblokir</span>'
+                        : '<span class="ut-admin-badge ut-admin-badge-green"><span class="ut-admin-badge-dot"></span>Aktif</span>';
+
+                    var html = '';
+                    html += '<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">';
+                    html += '<div class="ut-admin-avatar" style="width:52px;height:52px;font-size:18px">' +
+                            escapeHtml((d.name || "?")[0].toUpperCase()) + '</div>';
+                    html += '<div style="flex:1"><div style="font-size:17px;font-weight:700">' + escapeHtml(d.name) + '</div>';
+                    html += '<div style="font-size:13px;color:var(--utad-muted)">' + escapeHtml(d.email) + '</div></div>';
+                    html += statusBadge + '</div>';
+
+                    html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">Status Akun</span><span class="ut-admin-detail-value">' +
+                            (d.is_blocked ? 'Diblokir' : 'Aktif') + '</span></div>';
+                    html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">Email Verified</span><span class="ut-admin-detail-value">' +
+                            (d.is_email_verified ? 'Ya' : 'Belum') + '</span></div>';
+                    html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">Telepon</span><span class="ut-admin-detail-value">' +
+                            escapeHtml(d.phone || '-') + '</span></div>';
+                    html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">Bergabung</span><span class="ut-admin-detail-value">' +
+                            escapeHtml(d.create_date || '-') + '</span></div>';
+                    html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">Status Seller</span><span class="ut-admin-detail-value">' +
+                            escapeHtml(sellerStatusLabel) + '</span></div>';
+                    if (seller.nim) {
+                        html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">NIM</span><span class="ut-admin-detail-value" style="font-family:monospace">' +
+                                escapeHtml(seller.nim) + '</span></div>';
+                    }
+                    if (d.block_reason) {
+                        html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">Alasan Blokir</span><span class="ut-admin-detail-value" style="color:var(--utad-red)">' +
+                                escapeHtml(d.block_reason) + '</span></div>';
+                    }
+
+                    html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">Total Order (Buyer)</span><span class="ut-admin-detail-value">' +
+                            (stats.orders || 0) + ' transaksi · Rp ' + (stats.orders_total || '0') + '</span></div>';
+                    html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">Total Produk</span><span class="ut-admin-detail-value">' +
+                            (stats.products || 0) + ' produk</span></div>';
+
+                    if (d.ktm && d.ktm.has_record) {
+                        var ktm = d.ktm;
+                        var confidence = Number(ktm.confidence || 0);
+                        var barWidth = Math.max(0, Math.min(100, confidence));
+                        html += '<div class="ut-admin-modal-section">';
+                        html += '<div class="ut-admin-modal-section-title">Verifikasi KTM</div>';
+                        html += '<div class="ut-admin-ktm-panel">';
+                        html += '<div class="ut-admin-ktm-info">';
+                        html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">Nama Penjual</span><span class="ut-admin-detail-value">' +
+                                escapeHtml(ktm.seller_name || d.name || '-') + '</span></div>';
+                        html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">NIM</span><span class="ut-admin-detail-value" style="font-family:monospace">' +
+                                escapeHtml(ktm.nim || '-') + '</span></div>';
+                        html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">Status Verifikasi</span><span class="ut-admin-detail-value">' +
+                                escapeHtml(ktm.state_label || '-') + '</span></div>';
+                        html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">OCR Confidence</span><span class="ut-admin-detail-value">' +
+                                '<span class="ut-admin-ktm-score"><span class="ut-admin-ktm-score-track"><span class="ut-admin-ktm-score-fill" style="width:' +
+                                barWidth + '%"></span></span><strong>' + escapeHtml(confidence.toFixed(confidence % 1 ? 1 : 0)) + '%</strong></span></span></div>';
+                        html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">NIM Match</span><span class="ut-admin-detail-value">' +
+                                (ktm.nim_match ? 'Ya' : 'Belum') + '</span></div>';
+                        html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">Name Match</span><span class="ut-admin-detail-value">' +
+                                (ktm.name_match ? 'Ya' : 'Belum') + '</span></div>';
+                        html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">Created On</span><span class="ut-admin-detail-value">' +
+                                escapeHtml(ktm.created_on || '-') + '</span></div>';
+                        html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">Tanggal Verifikasi</span><span class="ut-admin-detail-value">' +
+                                escapeHtml(ktm.verified_on || '-') + '</span></div>';
+                        if (ktm.rejection_reason) {
+                            html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">Alasan Tolak</span><span class="ut-admin-detail-value" style="color:var(--utad-red)">' +
+                                    escapeHtml(ktm.rejection_reason) + '</span></div>';
+                        }
+                        html += '</div>';
+                        html += '<div class="ut-admin-ktm-preview">';
+                        if (ktm.has_image && ktm.image_url) {
+                            html += '<a href="' + escapeHtml(ktm.image_url) + '" target="_blank" rel="noopener" class="ut-admin-ktm-image-link">';
+                            html += '<img src="' + escapeHtml(ktm.image_url) + '" alt="Foto KTM ' + escapeHtml(ktm.seller_name || d.name || '') + '"/>';
+                            html += '</a>';
+                            html += '<div class="ut-admin-ktm-caption">' + escapeHtml(ktm.filename || 'Foto KTM') + '</div>';
+                        } else {
+                            html += '<div class="ut-admin-ktm-empty">Foto KTM belum tersedia.</div>';
+                        }
+                        html += '</div>';
+                        html += '</div>';
+                        html += '</div>';
+                    }
+
+                    // Admin note
+                    html += '<div class="ut-admin-modal-section">';
+                    html += '<div class="ut-admin-modal-section-title">Catatan Internal Admin</div>';
+                    html += '<textarea class="ut-admin-textarea" id="utAdminUserNote" placeholder="Catatan internal yang tidak terlihat user...">' +
+                            escapeHtml(d.admin_note || '') + '</textarea>';
+                    html += '<div style="display:flex;gap:8px;margin-top:10px">';
+                    html += '<button type="button" class="ut-admin-btn ut-admin-btn-primary ut-admin-btn-sm" data-action="save-user-note" data-user-id="' +
+                            d.id + '">Simpan Catatan</button>';
+                    html += '<button type="button" class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm" data-action="resend-otp" data-user-id="' +
+                            d.id + '">Kirim Ulang OTP</button>';
+                    html += '</div></div>';
+
+                    // Audit log
+                    if (d.audit_log && d.audit_log.length) {
+                        html += '<div class="ut-admin-modal-section">';
+                        html += '<div class="ut-admin-modal-section-title">Riwayat Tindakan Admin</div>';
+                        html += '<div class="ut-admin-log-list">';
+                        d.audit_log.forEach(function (log) {
+                            html += '<div class="ut-admin-log-item">';
+                            html += '<div class="ut-admin-log-meta">' + escapeHtml(log.date) + ' · ' + escapeHtml(log.author || 'Sistem') + '</div>';
+                            html += '<div>' + log.body + '</div>';
+                            html += '</div>';
+                        });
+                        html += '</div></div>';
+                    }
+
+                    body.innerHTML = html;
+                });
+        }
+
+        function openOrderDetail(orderId) {
+            var body = document.getElementById("utAdminOrderModalBody");
+            if (!body) return;
+            body.innerHTML = '<div style="text-align:center;color:var(--utad-muted);padding:40px">Memuat...</div>';
+            openModal("utAdminOrderModal");
+            callJsonRpc("/unitrade/admin/api/orders/detail", { order_id: orderId })
+                .then(function (res) {
+                    var d = res.result || {};
+                    var escrow = d.escrow || {};
+                    var refund = d.refund || {};
+                    var payout = d.payout || {};
+                    var html = '';
+                    var badgeClassByTone = {
+                        green: "ut-admin-badge-green",
+                        yellow: "ut-admin-badge-yellow",
+                        red: "ut-admin-badge-red",
+                        blue: "ut-admin-badge-blue",
+                        gray: "ut-admin-badge-gray",
+                    };
+
+                    function badge(text, color) {
+                        if (!text) return "";
+                        return '<span class="ut-admin-badge ' + (badgeClassByTone[color] || "ut-admin-badge-gray") + '">' +
+                            escapeHtml(text) + '</span>';
+                    }
+
+                    function detailRow(label, value, strong) {
+                        return '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">' +
+                            escapeHtml(label) + '</span><span class="ut-admin-detail-value"' +
+                            (strong ? ' style="font-weight:700"' : '') + '>' +
+                            escapeHtml(value || "-") + '</span></div>';
+                    }
+
+                    function section(title, content) {
+                        if (!content) return "";
+                        return '<div class="ut-admin-modal-section"><div class="ut-admin-modal-section-title">' +
+                            escapeHtml(title) + '</div>' + content + '</div>';
+                    }
+
+                    function linkButton(label, url) {
+                        if (!url) return "";
+                        return '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener" ' +
+                            'class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm">' +
+                            escapeHtml(label) + '</a>';
+                    }
+
+                    html += '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">';
+                    html += '<span style="font-family:monospace;font-size:13px">' + escapeHtml(d.name || '') + '</span>';
+                    html += badge(d.state_label || "", "blue");
+                    html += badge(d.unitrade_state_label || "", "gray");
+                    html += badge(d.payment_status_label || "", d.payment_status === "paid" ? "green" : "yellow");
+                    html += badge(d.escrow_state_label || "", d.escrow_state === "disputed" ? "red" : "blue");
+                    if (d.is_flagged) {
+                        html += badge("Bermasalah", "red");
+                    }
+                    html += '</div>';
+
+                    html += detailRow("Buyer", (d.buyer_name || "-") + (d.buyer_email ? " (" + d.buyer_email + ")" : ""));
+                    html += detailRow("Seller", d.seller_name || "-");
+                    html += detailRow("Nominal", d.amount_display, true);
+                    html += detailRow("Waktu Order", d.create_date);
+
+                    var paymentHtml = "";
+                    paymentHtml += detailRow("Provider", d.payment_provider_label || "-");
+                    paymentHtml += detailRow("Metode", d.payment_method || "-");
+                    paymentHtml += detailRow("Status Intent", d.payment_intent_state_label || d.payment_status_label || "-");
+                    paymentHtml += detailRow("Referensi", d.payment_reference || d.payment_intent_name || "-");
+                    if (d.payment_paid_at) paymentHtml += detailRow("Dibayar Pada", d.payment_paid_at);
+                    if (d.payment_expires_at) paymentHtml += detailRow("Expired Pembayaran", d.payment_expires_at);
+                    if (d.payment_intent_url) {
+                        paymentHtml += '<div style="display:flex;justify-content:flex-end;margin-top:10px">' +
+                            linkButton("Buka Payment Intent", d.payment_intent_url) + '</div>';
+                    }
+                    html += section("Pembayaran", paymentHtml);
+
+                    var escrowHtml = "";
+                    escrowHtml += detailRow("Status Escrow", escrow.state_label || d.escrow_state_label || "-");
+                    escrowHtml += detailRow("Jumlah Ledger", escrow.count ? String(escrow.count) : "0");
+                    escrowHtml += detailRow("Dana Seller", escrow.total_seller_display || "Rp 0", true);
+                    if (escrow.rows && escrow.rows.length) {
+                        escrowHtml += '<div class="ut-admin-log-list" style="margin-top:10px">';
+                        escrow.rows.forEach(function (row) {
+                            escrowHtml += '<div class="ut-admin-log-item">';
+                            escrowHtml += '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">';
+                            escrowHtml += '<strong>' + escapeHtml(row.name || "Ledger") + '</strong>';
+                            escrowHtml += badge(row.state_label || "", row.state === "disputed" ? "red" : "blue");
+                            escrowHtml += '</div>';
+                            escrowHtml += '<div class="ut-admin-log-meta">' +
+                                escapeHtml(row.seller_name || "-") + ' · ' +
+                                escapeHtml(row.amount_seller_display || "Rp 0") + ' · Payout: ' +
+                                escapeHtml(row.payout_status_label || "-") + '</div>';
+                            escrowHtml += '</div>';
+                        });
+                        escrowHtml += '</div>';
+                    }
+                    if (escrow.url) {
+                        escrowHtml += '<div style="display:flex;justify-content:flex-end;margin-top:10px">' +
+                            linkButton("Buka Escrow", escrow.url) + '</div>';
+                    }
+                    html += section("Escrow", escrowHtml);
+
+                    var mediationHtml = "";
+                    mediationHtml += detailRow("Status Refund", refund.state_label || "-");
+                    mediationHtml += detailRow("Kasus Refund", refund.latest_name || "-");
+                    mediationHtml += detailRow("Admin Penengah", refund.admin_name || "-");
+                    if (refund.requested_amount_display) mediationHtml += detailRow("Nominal Diajukan", refund.requested_amount_display);
+                    if (refund.approved_amount_display) mediationHtml += detailRow("Nominal Disetujui", refund.approved_amount_display);
+                    mediationHtml += detailRow("Status Payout", payout.latest_state_label || "-");
+                    if (payout.latest_name) mediationHtml += detailRow("Batch Payout", payout.latest_name);
+                    if (payout.total_amount_display) mediationHtml += detailRow("Nominal Payout", payout.total_amount_display);
+                    var mediationLinks = "";
+                    mediationLinks += linkButton("Buka Refund", refund.url);
+                    mediationLinks += linkButton("Buka Payout", payout.url);
+                    if (mediationLinks) {
+                        mediationHtml += '<div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:10px">' +
+                            mediationLinks + '</div>';
+                    }
+                    html += section("Refund & Payout", mediationHtml);
+
+                    if (d.lines && d.lines.length) {
+                        var itemHtml = "";
+                        d.lines.forEach(function (line) {
+                            itemHtml += '<div class="ut-admin-detail-row">';
+                            itemHtml += '<span class="ut-admin-detail-label">' + escapeHtml(line.qty) + 'x</span>';
+                            itemHtml += '<span class="ut-admin-detail-value">' + escapeHtml(line.name) +
+                                ' <span style="color:var(--utad-muted);float:right">Rp ' + escapeHtml(line.subtotal) + '</span></span>';
+                            itemHtml += '</div>';
+                        });
+                        html += section("Item", itemHtml);
+                    }
+
+                    if (d.is_flagged && d.flag_reason) {
+                        html += '<div class="ut-admin-modal-section">';
+                        html += '<div class="ut-admin-modal-section-title" style="color:var(--utad-red)">Alasan Flag</div>';
+                        html += '<div style="background:var(--utad-red-light);padding:10px;border-radius:6px;font-size:13px">' +
+                                escapeHtml(d.flag_reason) + '</div>';
+                        html += '</div>';
+                    }
+
+                    if (d.status_steps && d.status_steps.length) {
+                        var statusHtml = '<div class="ut-admin-log-list">';
+                        d.status_steps.forEach(function (step) {
+                            statusHtml += '<div class="ut-admin-log-item">';
+                            statusHtml += '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">';
+                            statusHtml += '<strong>' + escapeHtml(step.title || "-") + '</strong>';
+                            statusHtml += badge(step.status || "", step.tone || "gray");
+                            statusHtml += '</div>';
+                            statusHtml += '<div class="ut-admin-log-meta">' + escapeHtml(step.date || "-") + '</div>';
+                            if (step.note) {
+                                statusHtml += '<div style="font-size:13px;color:var(--utad-text-2);margin-top:4px">' +
+                                    escapeHtml(step.note) + '</div>';
+                            }
+                            statusHtml += '</div>';
+                        });
+                        statusHtml += '</div>';
+                        html += section("Riwayat Status", statusHtml);
+                    }
+
+                    if (d.payment_events && d.payment_events.length) {
+                        var eventHtml = '<div class="ut-admin-log-list">';
+                        d.payment_events.forEach(function (event) {
+                            eventHtml += '<div class="ut-admin-log-item">';
+                            eventHtml += '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">';
+                            eventHtml += '<strong>' + escapeHtml(event.event_key || "Payment Event") + '</strong>';
+                            eventHtml += badge(event.state_label || "", event.state_label === "Failed" ? "red" : "gray");
+                            eventHtml += '</div>';
+                            eventHtml += '<div class="ut-admin-log-meta">' +
+                                escapeHtml(event.date || "-") + ' · ' + escapeHtml(event.provider || "-") + '</div>';
+                            eventHtml += '</div>';
+                        });
+                        eventHtml += '</div>';
+                        html += section("Event Pembayaran", eventHtml);
+                    }
+
+                    if (d.timeline && d.timeline.length) {
+                        var chatterHtml = '<div class="ut-admin-log-list">';
+                        d.timeline.forEach(function (log) {
+                            chatterHtml += '<div class="ut-admin-log-item">';
+                            chatterHtml += '<div class="ut-admin-log-meta">' + escapeHtml(log.date) + ' · ' + escapeHtml(log.author || 'Sistem') + '</div>';
+                            if (log.subject) chatterHtml += '<div style="font-weight:600">' + escapeHtml(log.subject) + '</div>';
+                            chatterHtml += '<div>' + log.body + '</div>';
+                            chatterHtml += '</div>';
+                        });
+                        chatterHtml += '</div>';
+                        html += section("Catatan Sistem", chatterHtml);
+                    }
+
+                    // Footer actions
+                    html += '<div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">';
+                    if (d.is_flagged) {
+                        html += '<button type="button" class="ut-admin-btn ut-admin-btn-success ut-admin-btn-sm" data-action="unflag-order" data-order-id="' +
+                                d.id + '">Hapus Tanda Bermasalah</button>';
+                    } else {
+                        html += '<button type="button" class="ut-admin-btn ut-admin-btn-danger ut-admin-btn-sm" data-action="flag-order" data-order-id="' +
+                                d.id + '">Tandai Bermasalah</button>';
+                    }
+                    html += '<a href="/web#id=' + d.id + '&model=sale.order&view_type=form" target="_blank" class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm">Buka di Odoo</a>';
+                    html += '</div>';
+
+                    body.innerHTML = html;
+                });
+        }
+
+        function openProductDetail(productId) {
+            var body = document.getElementById("utAdminProductModalBody");
+            if (!body) return;
+            body.innerHTML = '<div style="text-align:center;color:var(--utad-muted);padding:40px">Memuat...</div>';
+            openModal("utAdminProductModal");
+            callJsonRpc("/unitrade/admin/api/products/detail", { product_id: productId })
+                .then(function (res) {
+                    var d = res.result || {};
+                    if (!d.ok) {
+                        body.innerHTML = '<div style="text-align:center;color:var(--utad-red);padding:40px">' +
+                            escapeHtml(d.error || "Produk tidak ditemukan.") + '</div>';
+                        return;
+                    }
+
+                    function badge(text, color) {
+                        if (!text) return "";
+                        return '<span class="ut-admin-badge ut-admin-badge-' + escapeHtml(color || "gray") + '">' +
+                            '<span class="ut-admin-badge-dot"></span>' + escapeHtml(text) + '</span>';
+                    }
+
+                    function row(label, value) {
+                        return '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">' +
+                            escapeHtml(label) + '</span><span class="ut-admin-detail-value">' +
+                            escapeHtml(value || "-") + '</span></div>';
+                    }
+
+                    function section(title, content) {
+                        if (!content) return "";
+                        return '<div class="ut-admin-modal-section"><div class="ut-admin-modal-section-title">' +
+                            escapeHtml(title) + '</div>' + content + '</div>';
+                    }
+
+                    function productAction(label, productActionName, cssClass, extraAttrs) {
+                        return '<button type="button" class="' + escapeHtml(cssClass) + '" ' +
+                            'data-action="product-action" data-product-id="' + escapeHtml(d.id) + '" ' +
+                            'data-product-action="' + escapeHtml(productActionName) + '" ' +
+                            (extraAttrs || "") + '>' + escapeHtml(label) + '</button>';
+                    }
+
+                    var html = '';
+                    var images = d.images || [];
+                    var actions = d.actions || {};
+
+                    html += '<div class="ut-admin-product-detail-head">';
+                    html += '<div>';
+                    html += '<div class="ut-admin-product-detail-title">' + escapeHtml(d.name || "-") + '</div>';
+                    html += '<div class="ut-admin-product-detail-meta">' +
+                        escapeHtml(d.default_code || d.category || "-") + '</div>';
+                    html += '</div>';
+                    html += '<div class="ut-admin-product-detail-badges">';
+                    html += badge(d.listing_status_label, d.listing_badge_class);
+                    html += badge(d.fee_status_label, d.fee_badge_class);
+                    html += '</div>';
+                    html += '</div>';
+
+                    html += '<div class="ut-admin-product-detail-grid">';
+                    html += '<div>';
+                    html += '<div class="ut-admin-product-detail-gallery">';
+                    images.forEach(function (image) {
+                        html += '<a href="' + escapeHtml(image.url) + '" target="_blank" rel="noopener" ' +
+                            'class="ut-admin-product-detail-image">';
+                        html += '<img src="' + escapeHtml(image.url) + '" alt="' + escapeHtml(image.label || d.name) + '"/>';
+                        html += '<span>' + escapeHtml(image.label || "Foto Produk") + '</span>';
+                        html += '</a>';
+                    });
+                    html += '</div>';
+                    html += section("Deskripsi Produk",
+                        '<p class="ut-admin-product-detail-description">' + escapeHtml(d.description || "-") + '</p>');
+                    html += '</div>';
+
+                    html += '<div>';
+                    var infoHtml = "";
+                    infoHtml += row("Harga", d.price);
+                    infoHtml += row("Stok", d.stock);
+                    infoHtml += row("Kategori", d.category);
+                    infoHtml += row("Kondisi", d.condition);
+                    infoHtml += row("Brand", d.brand);
+                    infoHtml += row("Aktif Listing", d.activated_at);
+                    infoHtml += row("Expired Listing", d.expires_at);
+                    infoHtml += row("Biaya Listing", d.listing_fee);
+                    infoHtml += row("Fee Dibayar", d.fee_paid_at);
+                    html += section("Informasi Listing", infoHtml);
+
+                    var sellerHtml = "";
+                    sellerHtml += row("Nama Seller", d.seller && d.seller.name);
+                    sellerHtml += row("Status Seller", d.seller && d.seller.status);
+                    sellerHtml += row("Email", d.seller && d.seller.email);
+                    sellerHtml += row("NIM", d.seller && d.seller.nim);
+                    if (d.seller && d.seller.admin_user_url) {
+                        sellerHtml += '<div style="display:flex;justify-content:flex-end;margin-top:10px">' +
+                            '<a href="' + escapeHtml(d.seller.admin_user_url) + '" class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs">' +
+                            'Buka User</a></div>';
+                    }
+                    html += section("Seller", sellerHtml);
+
+                    if (d.waive_reason || d.rejection_reason || actions.publish_blocked_reason) {
+                        var noteHtml = "";
+                        if (actions.publish_blocked_reason) noteHtml += row("Catatan Fee", actions.publish_blocked_reason);
+                        if (d.waive_reason) noteHtml += row("Alasan Waive", d.waive_reason);
+                        if (d.rejection_reason) noteHtml += row("Alasan Tolak", d.rejection_reason);
+                        html += section("Catatan Admin", noteHtml);
+                    }
+
+                    var actionHtml = '<div class="ut-admin-product-detail-actions">';
+                    if (actions.can_publish) {
+                        actionHtml += productAction("Publish", "publish", "ut-admin-btn ut-admin-btn-primary ut-admin-btn-sm");
+                    }
+                    if (actions.can_unpublish) {
+                        actionHtml += productAction("Unpublish", "unpublish", "ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm");
+                    }
+                    if (actions.can_waive) {
+                        actionHtml += productAction(
+                            "Waive Fee & Publish",
+                            "waive",
+                            "ut-admin-btn ut-admin-btn-success ut-admin-btn-sm",
+                            'data-publish-after="true"'
+                        );
+                    }
+                    if (actions.can_reject) {
+                        actionHtml += productAction("Tolak Listing", "reject", "ut-admin-btn ut-admin-btn-danger ut-admin-btn-sm");
+                    }
+                    if (d.public_url) {
+                        actionHtml += '<a href="' + escapeHtml(d.public_url) + '" target="_blank" rel="noopener" ' +
+                            'class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm">Lihat Publik</a>';
+                    }
+                    actionHtml += '</div>';
+                    html += section("Aksi Admin", actionHtml);
+                    html += '</div>';
+                    html += '</div>';
+
+                    var history = d.listing_fee_history || [];
+                    if (history.length) {
+                        var historyHtml = '<div class="ut-admin-log-list">';
+                        history.forEach(function (intent) {
+                            var tone = intent.state === "paid" ? "green"
+                                : (intent.state === "failed" || intent.state === "expired" || intent.state === "cancelled") ? "red"
+                                : "yellow";
+                            historyHtml += '<div class="ut-admin-log-item">';
+                            historyHtml += '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">';
+                            historyHtml += '<strong>' + escapeHtml(intent.name || "Listing Fee") + '</strong>';
+                            historyHtml += badge(intent.state_label || intent.state, tone);
+                            historyHtml += '</div>';
+                            historyHtml += '<div class="ut-admin-log-meta">' +
+                                escapeHtml(intent.provider || "-") + ' · ' +
+                                escapeHtml(intent.method || "-") + ' · ' +
+                                escapeHtml(intent.amount || "Rp 0") + '</div>';
+                            historyHtml += '<div style="font-size:12px;color:var(--utad-text-2)">Referensi: ' +
+                                escapeHtml(intent.reference || "-") + '</div>';
+                            historyHtml += '<div style="font-size:12px;color:var(--utad-muted);margin-top:4px">Dibuat: ' +
+                                escapeHtml(intent.created || "-") + ' · Expired: ' +
+                                escapeHtml(intent.expires_at || "-") + ' · Paid: ' +
+                                escapeHtml(intent.paid_at || "-") + '</div>';
+                            if (intent.error) {
+                                historyHtml += '<div style="font-size:12px;color:var(--utad-red);margin-top:4px">' +
+                                    escapeHtml(intent.error) + '</div>';
+                            }
+                            historyHtml += '</div>';
+                        });
+                        historyHtml += '</div>';
+                        html += section("Riwayat Listing Fee", historyHtml);
+                    } else {
+                        html += section("Riwayat Listing Fee",
+                            '<div class="ut-admin-empty-inline">Belum ada pembayaran listing fee untuk produk ini.</div>');
+                    }
+
+                    body.innerHTML = html;
+                })
+                .catch(function () {
+                    body.innerHTML = '<div style="text-align:center;color:var(--utad-red);padding:40px">' +
+                        'Gagal memuat detail produk.</div>';
+                });
+        }
+
+        function openAnnouncementDetail(announcementId, sourceButton) {
+            var body = document.getElementById("utAdminAnnouncementDetailBody");
+            if (!body) return;
+
+            function row(label, value) {
+                return '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">' +
+                    escapeHtml(label) + '</span><span class="ut-admin-detail-value">' +
+                    escapeHtml(value || "-") + '</span></div>';
+            }
+
+            function section(title, content) {
+                return '<div class="ut-admin-modal-section"><div class="ut-admin-modal-section-title">' +
+                    escapeHtml(title) + '</div>' + content + '</div>';
+            }
+
+            function datasetFallback() {
+                if (!sourceButton || !sourceButton.dataset.annTitle) return null;
+                return {
+                    ok: true,
+                    id: announcementId,
+                    title: sourceButton.dataset.annTitle,
+                    body: sourceButton.dataset.annBody,
+                    action_url: sourceButton.dataset.annActionUrl,
+                    state_label: sourceButton.dataset.annStateLabel,
+                    badge_class: sourceButton.dataset.annBadgeClass,
+                    created: "-",
+                    published_at: sourceButton.dataset.annPublishedAt,
+                    published_by: sourceButton.dataset.annPublishedBy,
+                    target_user_count: sourceButton.dataset.annTargetCount,
+                    emitted_count: sourceButton.dataset.annEmittedCount,
+                    failed_batches: sourceButton.dataset.annFailedCount,
+                    notification_stats: {
+                        total: sourceButton.dataset.annEmittedCount,
+                        unread: "-",
+                        read: "-",
+                    },
+                };
+            }
+
+            function renderDetail(d, partial) {
+                var stats = d.notification_stats || {};
+                var html = '';
+                html += '<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:14px">';
+                html += '<div><div class="ut-admin-product-detail-title">' + escapeHtml(d.title || "-") + '</div>';
+                html += '<div class="ut-admin-product-detail-meta">Dibuat: ' + escapeHtml(d.created || "-") + '</div></div>';
+                html += '<span class="ut-admin-badge ut-admin-badge-' + escapeHtml(d.badge_class || "gray") + '">' +
+                    escapeHtml(d.state_label || "-") + '</span>';
+                html += '</div>';
+
+                if (partial) {
+                    html += '<div class="ut-admin-empty-inline" style="margin-bottom:12px">' +
+                        'Detail ditampilkan dari data tabel admin.' +
+                        '</div>';
+                }
+
+                html += section("Isi Pengumuman",
+                    '<p class="ut-admin-product-detail-description">' + escapeHtml(d.body || "-") + '</p>');
+
+                var broadcastHtml = "";
+                broadcastHtml += row("Target saat publish", d.target_user_count);
+                broadcastHtml += row("Notifikasi tersedia", stats.total || d.emitted_count);
+                broadcastHtml += row("Belum dibaca", stats.unread);
+                broadcastHtml += row("Sudah dibaca", stats.read);
+                broadcastHtml += row("Batch gagal", d.failed_batches);
+                html += section("Status Notifikasi User", broadcastHtml);
+
+                var metaHtml = "";
+                metaHtml += row("Link aksi user", d.action_url);
+                metaHtml += row("Dipublish pada", d.published_at);
+                metaHtml += row("Dipublish oleh", d.published_by);
+                html += section("Informasi", metaHtml);
+
+                body.innerHTML = html;
+            }
+
+            var fallback = datasetFallback();
+            if (fallback) {
+                renderDetail(fallback, true);
+            } else {
+                body.innerHTML = '<div style="text-align:center;color:var(--utad-muted);padding:40px">Memuat...</div>';
+            }
+            openModal("utAdminAnnouncementDetailModal");
+
+            callJsonRpc("/unitrade/admin/api/announcements/detail", { announcement_id: announcementId })
+                .then(function (res) {
+                    var d = res.result || {};
+                    if (d.ok) {
+                        renderDetail(d, false);
+                    } else if (!fallback) {
+                        body.innerHTML = '<div style="text-align:center;color:var(--utad-red);padding:40px">' +
+                            escapeHtml(d.error || "Pengumuman tidak ditemukan.") + '</div>';
+                    }
+                })
+                .catch(function () {
+                    if (!fallback) {
+                        body.innerHTML = '<div style="text-align:center;color:var(--utad-red);padding:40px">' +
+                            'Gagal memuat detail pengumuman.</div>';
+                    }
+                });
+        }
+
+        function openCustomerServiceDetail(caseType, caseId) {
+            var body = document.getElementById("utAdminCsCaseModalBody");
+            if (!body) return;
+
+            function badge(text, tone) {
+                return '<span class="ut-admin-badge ut-admin-badge-' + escapeHtml(tone || "gray") + '">' +
+                    '<span class="ut-admin-badge-dot"></span>' + escapeHtml(text || "-") + '</span>';
+            }
+
+            function row(label, value) {
+                return '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">' +
+                    escapeHtml(label || "-") + '</span><span class="ut-admin-detail-value">' +
+                    escapeHtml(value == null || value === "" ? "-" : value) + '</span></div>';
+            }
+
+            function section(title, content) {
+                if (!content) return "";
+                return '<div class="ut-admin-modal-section"><div class="ut-admin-modal-section-title">' +
+                    escapeHtml(title || "-") + '</div>' + content + '</div>';
+            }
+
+            function mediaGrid(items) {
+                items = items || [];
+                if (!items.length) {
+                    return '<div class="ut-admin-empty-inline">Belum ada bukti gambar atau lampiran.</div>';
+                }
+                var html = '<div class="ut-admin-cs-media-grid">';
+                items.forEach(function (item) {
+                    var caption = escapeHtml(item.name || item.label || "Bukti");
+                    var meta = [item.mimetype, item.size_label].filter(Boolean).join(" · ");
+                    html += '<div class="ut-admin-cs-media-item">';
+                    if (item.is_image) {
+                        html += '<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener" class="ut-admin-cs-media-preview">';
+                        html += '<img src="' + escapeHtml(item.url) + '" alt="' + caption + '"/>';
+                        html += '</a>';
+                    } else if (item.is_video) {
+                        html += '<video class="ut-admin-cs-media-preview" src="' + escapeHtml(item.url) + '" controls></video>';
+                    } else {
+                        html += '<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener" class="ut-admin-cs-file-preview">';
+                        html += '<i class="fa fa-paperclip" aria-hidden="true"></i><span>Lihat lampiran</span></a>';
+                    }
+                    html += '<div class="ut-admin-cs-media-caption">' + caption + '</div>';
+                    if (meta) html += '<div class="ut-admin-cs-media-meta">' + escapeHtml(meta) + '</div>';
+                    if (item.note) html += '<div class="ut-admin-cs-media-note">' + escapeHtml(item.note) + '</div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+                return html;
+            }
+
+            function renderDetail(d) {
+                var html = '';
+                html += '<div class="ut-admin-cs-detail-head">';
+                html += '<div><div class="ut-admin-product-detail-title">' + escapeHtml(d.title || "-") + '</div>';
+                html += '<div class="ut-admin-product-detail-meta">' + escapeHtml(d.type_label || "Laporan") + '</div></div>';
+                html += '<div class="ut-admin-product-detail-badges">' +
+                    badge(d.status || "-", d.urgency === "urgent" ? "red" : "yellow") + '</div>';
+                html += '</div>';
+
+                var infoHtml = "";
+                (d.rows || []).forEach(function (item) {
+                    infoHtml += row(item.label, item.value);
+                });
+                html += section("Informasi Kasus", infoHtml);
+
+                if (d.description) {
+                    html += section("Isi Laporan",
+                        '<p class="ut-admin-product-detail-description">' + escapeHtml(d.description) + '</p>');
+                }
+
+                html += section("Bukti / Media", mediaGrid(d.evidence || []));
+
+                if (d.messages && d.messages.length) {
+                    var messageHtml = '<div class="ut-admin-cs-message-list">';
+                    d.messages.forEach(function (message) {
+                        messageHtml += '<div class="ut-admin-cs-message">';
+                        messageHtml += '<div class="ut-admin-cs-message-meta">' +
+                            escapeHtml(message.author || "-") + ' · ' + escapeHtml(message.time || "-") +
+                            ' · ' + escapeHtml(message.type || "-") + '</div>';
+                        if (message.body) {
+                            messageHtml += '<div class="ut-admin-cs-message-body">' + escapeHtml(message.body) + '</div>';
+                        }
+                        if (message.media) {
+                            messageHtml += mediaGrid([message.media]);
+                        }
+                        messageHtml += '</div>';
+                    });
+                    messageHtml += '</div>';
+                    html += section("Cuplikan Chat", messageHtml);
+                }
+
+                if (d.notes && d.notes.length) {
+                    var notesHtml = '<div class="ut-admin-log-list">';
+                    d.notes.forEach(function (note) {
+                        notesHtml += '<div class="ut-admin-log-item">';
+                        notesHtml += '<div class="ut-admin-log-meta">' + escapeHtml(note.label || "Catatan") + '</div>';
+                        notesHtml += '<div>' + escapeHtml(note.value || "-") + '</div>';
+                        notesHtml += '</div>';
+                    });
+                    notesHtml += '</div>';
+                    html += section("Catatan", notesHtml);
+                }
+
+                if (d.timeline && d.timeline.length) {
+                    var timelineHtml = '<div class="ut-admin-log-list">';
+                    d.timeline.forEach(function (item) {
+                        timelineHtml += '<div class="ut-admin-log-item">';
+                        timelineHtml += '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">';
+                        timelineHtml += '<strong>' + escapeHtml(item.title || "-") + '</strong>';
+                        if (item.status) timelineHtml += badge(item.status, "blue");
+                        timelineHtml += '</div>';
+                        timelineHtml += '<div class="ut-admin-log-meta">' + escapeHtml(item.time || item.date || "-") + '</div>';
+                        if (item.note) timelineHtml += '<div>' + escapeHtml(item.note) + '</div>';
+                        timelineHtml += '</div>';
+                    });
+                    timelineHtml += '</div>';
+                    html += section("Timeline", timelineHtml);
+                }
+
+                if (d.actions && (d.actions.can_start || d.actions.can_done)) {
+                    var actionHtml = '<div class="ut-admin-product-detail-actions">';
+                    if (d.actions.can_start) {
+                        actionHtml += '<button type="button" class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm" ' +
+                            'data-action="ticket-status" data-ticket-id="' + escapeHtml(d.actions.ticket_id) + '" ' +
+                            'data-status="in_progress">Proses Tiket</button>';
+                    }
+                    if (d.actions.can_done) {
+                        actionHtml += '<button type="button" class="ut-admin-btn ut-admin-btn-primary ut-admin-btn-sm" ' +
+                            'data-action="ticket-status" data-ticket-id="' + escapeHtml(d.actions.ticket_id) + '" ' +
+                            'data-status="done">Selesaikan Tiket</button>';
+                    }
+                    actionHtml += '</div>';
+                    html += section("Aksi Admin", actionHtml);
+                }
+
+                body.innerHTML = html;
+            }
+
+            body.innerHTML = '<div style="text-align:center;color:var(--utad-muted);padding:40px">Memuat...</div>';
+            openModal("utAdminCsCaseModal");
+            callJsonRpc("/unitrade/admin/api/customer-service/detail", {
+                case_type: caseType,
+                case_id: caseId,
+            }).then(function (res) {
+                var d = res.result || {};
+                if (d.ok) {
+                    renderDetail(d);
+                } else {
+                    body.innerHTML = '<div style="text-align:center;color:var(--utad-red);padding:40px">' +
+                        escapeHtml(d.error || "Laporan tidak ditemukan.") + '</div>';
+                }
+            }).catch(function () {
+                body.innerHTML = '<div style="text-align:center;color:var(--utad-red);padding:40px">' +
+                    'Gagal memuat detail laporan.</div>';
+            });
+        }
+
+        function openAuditLogDetail(logId) {
+            var body = document.getElementById("utAdminAuditLogModalBody");
+            if (!body) return;
+
+            function badge(text, tone) {
+                return '<span class="ut-admin-badge ut-admin-badge-' + escapeHtml(tone || "gray") + '">' +
+                    '<span class="ut-admin-badge-dot"></span>' + escapeHtml(text || "-") + '</span>';
+            }
+
+            function row(label, value) {
+                return '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">' +
+                    escapeHtml(label || "-") + '</span><span class="ut-admin-detail-value">' +
+                    escapeHtml(value == null || value === "" ? "-" : value) + '</span></div>';
+            }
+
+            function section(title, content) {
+                if (!content) return "";
+                return '<div class="ut-admin-modal-section"><div class="ut-admin-modal-section-title">' +
+                    escapeHtml(title || "-") + '</div>' + content + '</div>';
+            }
+
+            function renderDetail(d) {
+                var target = d.target || {};
+                var html = '';
+                html += '<div class="ut-admin-cs-detail-head">';
+                html += '<div><div class="ut-admin-product-detail-title">' + escapeHtml(d.action_label || "-") + '</div>';
+                html += '<div class="ut-admin-product-detail-meta">' + escapeHtml(d.action || "-") + '</div></div>';
+                html += '<div class="ut-admin-product-detail-badges">' + badge(d.severity_label || "-", d.badge_class || "gray") + '</div>';
+                html += '</div>';
+
+                var infoHtml = "";
+                infoHtml += row("Waktu", d.date || "-");
+                infoHtml += row("Aktor", (d.actor || "-") + (d.actor_email ? " (" + d.actor_email + ")" : ""));
+                infoHtml += row("Record", target.name || "-");
+                infoHtml += row("Model", target.model || "-");
+                infoHtml += row("Record ID", target.id || "-");
+                infoHtml += row("Record Masih Ada", target.exists ? "Ya" : "Tidak / tidak bisa dicek");
+                html += section("Informasi Log", infoHtml);
+
+                html += section("Deskripsi",
+                    '<p class="ut-admin-product-detail-description">' + escapeHtml(d.description || "-") + '</p>');
+
+                if (d.payload) {
+                    html += section("Payload",
+                        '<pre class="ut-admin-audit-payload">' + escapeHtml(d.payload) + '</pre>');
+                }
+
+                if (target.admin_url) {
+                    html += section("Halaman Admin Terkait",
+                        '<a href="' + escapeHtml(target.admin_url) + '" class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm">' +
+                        'Buka di Dashboard Admin</a>');
+                }
+
+                body.innerHTML = html;
+            }
+
+            body.innerHTML = '<div style="text-align:center;color:var(--utad-muted);padding:40px">Memuat...</div>';
+            openModal("utAdminAuditLogModal");
+            callJsonRpc("/unitrade/admin/api/audit-logs/detail", {
+                log_id: logId,
+            }).then(function (res) {
+                var d = res.result || {};
+                if (d.ok) {
+                    renderDetail(d);
+                } else {
+                    body.innerHTML = '<div style="text-align:center;color:var(--utad-red);padding:40px">' +
+                        escapeHtml(d.error || "Log aktivitas tidak ditemukan.") + '</div>';
+                }
+            }).catch(function () {
+                body.innerHTML = '<div style="text-align:center;color:var(--utad-red);padding:40px">' +
+                    'Gagal memuat detail log.</div>';
+            });
+        }
+
+        // ---- Sidebar mobile toggle ----------------------------------------
+        var hamburger = root.querySelector("#utAdminHamburger");
+        var sidebar = root.querySelector(".ut-admin-sidebar");
+        if (hamburger && sidebar) {
+            hamburger.addEventListener("click", function () {
+                sidebar.classList.toggle("ut-admin-open");
+            });
+        }
+
+        // ---- Profile dropdown --------------------------------------------
+        var profileBtn = root.querySelector("#utAdminProfileBtn");
+        if (profileBtn) {
+            profileBtn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                profileBtn.classList.toggle("ut-admin-open");
+            });
+            document.addEventListener("click", function (e) {
+                if (!profileBtn.contains(e.target)) {
+                    profileBtn.classList.remove("ut-admin-open");
+                }
+            });
+            profileBtn.addEventListener("keydown", function (e) {
+                if (e.key === "Escape") profileBtn.classList.remove("ut-admin-open");
+            });
+        }
+
+        // ---- Notification button + dropdown -------------------------------
+        var notifWrap = root.querySelector("#utAdminNotifWrap");
+        var notifBtn = root.querySelector("#utAdminNotifBtn");
+        var notifList = root.querySelector("#utAdminNotifList");
+        var notifBadge = root.querySelector("#utAdminNotifBadge");
+        var notifClear = root.querySelector("#utAdminNotifClear");
+
+        function markRead(id) {
+            if (!id || String(id) === "0") {
+                return Promise.resolve({ result: { ok: true } });
+            }
+            return callJsonRpc("/unitrade/admin/api/notifications/read", {
+                notification_id: id,
+            });
+        }
+
+        function renderNotif(items) {
+            if (!notifList) return;
+            if (!items.length) {
+                notifList.innerHTML = '<div style="padding:24px;text-align:center;color:var(--utad-muted);font-size:12px">' +
+                    'Tidak ada notifikasi.</div>';
+                if (notifBadge) notifBadge.style.display = "none";
+                return;
+            }
+            var unreadCount = 0;
+            var html = items.map(function (it) {
+                var unread = it.id && !it.is_read;
+                if (unread) unreadCount++;
+                var levelClass = it.level === "urgent" ? "ut-admin-urgent"
+                              : it.level === "warning" ? "ut-admin-warning"
+                              : "ut-admin-info";
+                return '' +
+                    '<a class="ut-admin-notif-item ' + (unread ? 'ut-admin-unread' : '') + '" ' +
+                       'href="' + escapeHtml(it.target_url || '#') + '" ' +
+                       'data-notif-id="' + escapeHtml(it.id) + '">' +
+                        '<div class="ut-admin-notif-dot ' + levelClass + '"></div>' +
+                        '<div style="flex:1;min-width:0">' +
+                            '<div class="ut-admin-notif-text">' + escapeHtml(it.title) + '</div>' +
+                            (it.message
+                                ? '<div class="ut-admin-notif-msg">' + escapeHtml(it.message) + '</div>'
+                                : '') +
+                            (it.time_label
+                                ? '<div class="ut-admin-notif-time">' + escapeHtml(it.time_label) + '</div>'
+                                : '') +
+                        '</div>' +
+                    '</a>';
+            }).join("");
+            notifList.innerHTML = html;
+            if (notifBadge) {
+                if (unreadCount > 0) {
+                    notifBadge.style.display = "flex";
+                    notifBadge.textContent = unreadCount;
+                } else {
+                    notifBadge.style.display = "none";
+                }
+            }
+        }
+
+        function loadNotifications() {
+            callJsonRpc("/unitrade/admin/api/notifications", {}).then(function (res) {
+                var data = res.result || { items: [] };
+                renderNotif(data.items || []);
+            });
+        }
+
+        if (notifBtn && notifWrap) {
+            notifBtn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                var willOpen = !notifWrap.classList.contains("ut-admin-open");
+                notifWrap.classList.toggle("ut-admin-open");
+                if (profileBtn) profileBtn.classList.remove("ut-admin-open");
+                if (willOpen) loadNotifications();
+            });
+
+            document.addEventListener("click", function (e) {
+                if (!notifWrap.contains(e.target)) {
+                    notifWrap.classList.remove("ut-admin-open");
+                }
+            });
+
+            // Click on notification item → mark as read
+            notifList.addEventListener("click", function (e) {
+                var item = e.target.closest("[data-notif-id]");
+                if (!item) return;
+                e.preventDefault();
+                var href = item.getAttribute("href") || "#";
+                markRead(item.dataset.notifId).finally(function () {
+                    if (href && href !== "#") {
+                        window.location.href = href;
+                    }
+                });
+            });
+
+            // "Tandai semua dibaca"
+            if (notifClear) {
+                notifClear.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    callJsonRpc("/unitrade/admin/api/notifications/read_all", {}).then(function () {
+                        notifList.querySelectorAll("[data-notif-id]").forEach(function (el) {
+                            el.classList.remove("ut-admin-unread");
+                        });
+                        if (notifBadge) notifBadge.style.display = "none";
+                    });
+                });
+            }
+
+            // Initial load (so badge count is correct without opening dropdown)
+            loadNotifications();
+            // Refresh every 60 seconds
+            setInterval(loadNotifications, 60000);
+        }
+
+        // ---- Action buttons on users table -------------------------------
+        function refresh() { window.location.reload(); }
+
+        function collectNamedValues(form) {
+            var values = {};
+            if (!form) return values;
+            form.querySelectorAll("[name]").forEach(function (el) {
+                values[el.name] = el.value;
+            });
+            return values;
+        }
+
+        var voucherDiscountType = root.querySelector("#utAdminVoucherDiscountType");
+        var voucherFixedBox = root.querySelector("#utAdminVoucherFixedBox");
+        var voucherPercentBox = root.querySelector("#utAdminVoucherPercentBox");
+        function syncVoucherDiscountFields() {
+            if (!voucherDiscountType || !voucherFixedBox || !voucherPercentBox) return;
+            var isPercent = voucherDiscountType.value === "percent";
+            voucherFixedBox.style.display = isPercent ? "none" : "";
+            voucherPercentBox.style.display = isPercent ? "" : "none";
+        }
+        function setNamedValue(form, name, value) {
+            if (!form) return;
+            var field = form.querySelector('[name="' + name + '"]');
+            if (field) field.value = value == null ? "" : value;
+        }
+        function setElementValue(id, value) {
+            var field = document.getElementById(id);
+            if (field) field.value = value == null ? "" : value;
+        }
+        function openVoucherModal(button) {
+            var voucherForm = document.getElementById("utAdminVoucherForm");
+            var title = document.getElementById("utAdminVoucherModalTitle");
+            var submit = document.getElementById("utAdminVoucherSubmit");
+            if (voucherForm) voucherForm.reset();
+            if (button.dataset.mode === "edit") {
+                setNamedValue(voucherForm, "voucher_id", button.dataset.voucherId);
+                setNamedValue(voucherForm, "name", button.dataset.name);
+                setNamedValue(voucherForm, "code", button.dataset.code);
+                setNamedValue(voucherForm, "discount_type", button.dataset.discountType || "fixed");
+                setNamedValue(voucherForm, "discount_amount", button.dataset.discountAmount);
+                setNamedValue(voucherForm, "discount_percent", button.dataset.discountPercent);
+                setNamedValue(voucherForm, "min_order_amount", button.dataset.minOrderAmount);
+                setNamedValue(voucherForm, "date_start", button.dataset.dateStart);
+                setNamedValue(voucherForm, "date_end", button.dataset.dateEnd);
+                setNamedValue(voucherForm, "usage_limit", button.dataset.usageLimit);
+                setNamedValue(voucherForm, "usage_limit_per_user", button.dataset.usageLimitPerUser);
+                setNamedValue(voucherForm, "active", button.dataset.active === "true" ? "true" : "false");
+                if (title) title.textContent = "Edit Voucher";
+                if (submit) {
+                    submit.textContent = "Simpan Perubahan";
+                    submit.dataset.action = "save-voucher";
+                }
+            } else {
+                setNamedValue(voucherForm, "voucher_id", "");
+                if (title) title.textContent = "Buat Voucher";
+                if (submit) {
+                    submit.textContent = "Simpan Voucher";
+                    submit.dataset.action = "save-voucher";
+                }
+            }
+            syncVoucherDiscountFields();
+            openModal("utAdminVoucherModal");
+        }
+        function openSponsorshipModal(button) {
+            var sponsorshipForm = document.getElementById("utAdminSponsorshipForm");
+            var submit = document.getElementById("utAdminSponsorshipSubmit");
+            var sponsorshipId = button.dataset.sponsorshipId || "";
+            if (!sponsorshipForm) return;
+
+            sponsorshipForm.reset();
+            sponsorshipForm.dataset.sponsorshipRow = sponsorshipId;
+            setNamedValue(sponsorshipForm, "sponsorship_id", sponsorshipId);
+            setNamedValue(sponsorshipForm, "sponsorship_status", button.dataset.status || "new");
+            setNamedValue(sponsorshipForm, "sponsorship_note", button.dataset.note || "");
+
+            setElementValue("utAdminSponsorshipName", button.dataset.name || "-");
+            setElementValue("utAdminSponsorshipContact", button.dataset.contactName || "-");
+            setElementValue("utAdminSponsorshipEmail", button.dataset.email || "-");
+            setElementValue("utAdminSponsorshipPhone", button.dataset.phone || "-");
+            setElementValue("utAdminSponsorshipBudget", button.dataset.budgetNote || "-");
+            setElementValue("utAdminSponsorshipCreated", button.dataset.created || "-");
+            setElementValue("utAdminSponsorshipGoal", button.dataset.campaignGoal || "-");
+
+            if (submit) submit.dataset.sponsorshipId = sponsorshipId;
+            openModal("utAdminSponsorshipModal");
+        }
+        if (voucherDiscountType) {
+            voucherDiscountType.addEventListener("change", syncVoucherDiscountFields);
+            syncVoucherDiscountFields();
+        }
+
+        root.addEventListener("click", async function (e) {
+            var btn = e.target.closest("[data-action]");
+            if (btn) {
+                var action = btn.dataset.action;
+                var userId = btn.dataset.userId;
+                var sellerId = btn.dataset.sellerId;
+                var verificationId = btn.dataset.verificationId;
+                var orderId = btn.dataset.orderId;
+                var notificationId = btn.dataset.notificationId;
+                var voucherId = btn.dataset.voucherId;
+                var ticketId = btn.dataset.ticketId;
+                var sponsorshipId = btn.dataset.sponsorshipId;
+                var productId = btn.dataset.productId;
+                var deliveryId = btn.dataset.deliveryId;
+                var reviewId = btn.dataset.reviewId;
+                var payoutId = btn.dataset.payoutId;
+                var announcementId = btn.dataset.announcementId;
+                var caseType = btn.dataset.caseType;
+                var caseId = btn.dataset.caseId;
+                var logId = btn.dataset.logId;
+
+                if (action === "block-user") {
+                    var reason = await promptAdmin("Alasan blokir user ini?", {
+                        title: "Blokir User",
+                        multiline: true,
+                        placeholder: "Tuliskan alasan singkat untuk catatan admin.",
+                    });
+                    if (!reason || !reason.trim()) return;
+                    callJsonRpc("/unitrade/admin/api/users/block", { user_id: userId, reason: reason })
+                        .then(function (res) {
+                            if (res.result && res.result.ok) refresh();
+                            else showToast("Gagal memblokir user.", "error");
+                        });
+                } else if (action === "unblock-user") {
+                    if (!await confirmAdmin("Aktifkan kembali user ini?", { title: "Aktifkan User" })) return;
+                    callJsonRpc("/unitrade/admin/api/users/unblock", { user_id: userId })
+                        .then(function (res) {
+                            if (res.result && res.result.ok) refresh();
+                            else showToast("Gagal mengaktifkan user.", "error");
+                        });
+                } else if (action === "open-admin-modal") {
+                    var adminForm = document.getElementById("utAdminCreateAdminForm");
+                    if (adminForm) adminForm.reset();
+                    openModal("utAdminCreateAdminModal");
+                } else if (action === "create-admin") {
+                    var createAdminForm = document.getElementById("utAdminCreateAdminForm");
+                    var adminValues = collectNamedValues(createAdminForm);
+                    if (!adminValues.name || !adminValues.email) {
+                        showToast("Nama dan email admin wajib diisi.", "warning");
+                        return;
+                    }
+                    var originalAdminLabel = btn.textContent;
+                    btn.disabled = true;
+                    btn.textContent = "Menyimpan...";
+                    callJsonRpc("/unitrade/admin/api/admins/create", { values: adminValues })
+                        .then(function (res) {
+                            btn.disabled = false;
+                            if (res.result && res.result.ok) {
+                                showToast(res.result.message || "Admin berhasil disimpan.", "success");
+                                refresh();
+                            } else {
+                                btn.textContent = originalAdminLabel;
+                                showToast((res.result && res.result.error) || "Gagal menambahkan admin.", "error");
+                            }
+                        })
+                        .catch(function () {
+                            btn.disabled = false;
+                            btn.textContent = originalAdminLabel;
+                            showToast("Gagal menambahkan admin.", "error");
+                        });
+                } else if (action === "approve-seller") {
+                    if (!await confirmAdmin("Approve verifikasi KTM seller ini?", { title: "Approve Seller" })) return;
+                    var approveUrl = verificationId
+                        ? "/unitrade/admin/api/verifications/approve"
+                        : "/unitrade/admin/api/sellers/approve";
+                    var approvePayload = verificationId
+                        ? { verification_id: verificationId }
+                        : { seller_id: sellerId };
+                    callJsonRpc(approveUrl, approvePayload)
+                        .then(async function (res) {
+                            if (res.result && res.result.ok) refresh();
+                            else if (res.result && res.result.error_code === "nim_required" && verificationId) {
+                                var manualNim = await promptAdmin(res.result.error, {
+                                    title: "Lengkapi NIM",
+                                    placeholder: "Contoh: 2411501058",
+                                });
+                                if (!manualNim || !manualNim.trim()) return;
+                                callJsonRpc(approveUrl, {
+                                    verification_id: verificationId,
+                                    nim: manualNim.trim()
+                                }).then(function (retryRes) {
+                                    if (retryRes.result && retryRes.result.ok) refresh();
+                                    else showToast((retryRes.result && retryRes.result.error) || "Gagal approve seller.", "error");
+                                });
+                            } else {
+                                showToast((res.result && res.result.error) || "Gagal approve seller.", "error");
+                            }
+                        });
+                } else if (action === "reject-seller") {
+                    var rreason = await promptAdmin("Alasan penolakan KTM?", {
+                        title: "Tolak KTM",
+                        multiline: true,
+                        placeholder: "Contoh: Foto KTM tidak jelas.",
+                    });
+                    if (!rreason || !rreason.trim()) return;
+                    var rejectUrl = verificationId
+                        ? "/unitrade/admin/api/verifications/reject"
+                        : "/unitrade/admin/api/sellers/reject";
+                    var rejectPayload = verificationId
+                        ? { verification_id: verificationId, reason: rreason }
+                        : { seller_id: sellerId, reason: rreason };
+                    callJsonRpc(rejectUrl, rejectPayload)
+                        .then(function (res) {
+                            if (res.result && res.result.ok) refresh();
+                            else showToast((res.result && res.result.error) || "Gagal menolak seller.", "error");
+                        });
+                } else if (action === "reset-seller") {
+                    if (!await confirmAdmin("Reset verifikasi seller ke draft?", { title: "Reset Seller" })) return;
+                    callJsonRpc("/unitrade/admin/api/sellers/reset", { seller_id: sellerId })
+                        .then(function (res) {
+                            if (res.result && res.result.ok) refresh();
+                            else showToast("Gagal reset seller.", "error");
+                        });
+                } else if (action === "user-detail") {
+                    openUserDetail(userId);
+                } else if (action === "save-user-note") {
+                    var noteEl = document.getElementById("utAdminUserNote");
+                    var nuserId = btn.dataset.userId;
+                    callJsonRpc("/unitrade/admin/api/users/note",
+                                { user_id: nuserId, note: noteEl ? noteEl.value : "" })
+                        .then(function (res) {
+                            if (res.result && res.result.ok) {
+                                btn.textContent = "Tersimpan ✓";
+                                setTimeout(function () { btn.textContent = "Simpan Catatan"; }, 1500);
+                            } else {
+                                showToast("Gagal menyimpan catatan.", "error");
+                            }
+                        });
+                } else if (action === "resend-otp") {
+                    callJsonRpc("/unitrade/admin/api/users/resend_otp", { user_id: btn.dataset.userId })
+                        .then(function (res) {
+                            if (res.result && res.result.ok) showToast("OTP terkirim.", "success");
+                            else showToast("Gagal kirim OTP.", "error");
+                        });
+                } else if (action === "order-detail") {
+                    openOrderDetail(orderId);
+                } else if (action === "flag-order") {
+                    var freason = await promptAdmin("Alasan tandai bermasalah?", {
+                        title: "Tandai Transaksi",
+                        multiline: true,
+                    });
+                    if (!freason || !freason.trim()) return;
+                    callJsonRpc("/unitrade/admin/api/orders/flag", { order_id: orderId, reason: freason })
+                        .then(function (res) {
+                            if (res.result && res.result.ok) refresh();
+                            else showToast("Gagal menandai.", "error");
+                        });
+                } else if (action === "unflag-order") {
+                    if (!await confirmAdmin("Hapus tanda bermasalah?", { title: "Pulihkan Transaksi" })) return;
+                    callJsonRpc("/unitrade/admin/api/orders/unflag", { order_id: orderId })
+                        .then(function (res) {
+                            if (res.result && res.result.ok) refresh();
+                            else showToast("Gagal menghapus tanda.", "error");
+                        });
+                } else if (action === "mark-notification-read") {
+                    callJsonRpc("/unitrade/admin/api/notifications/read", { notification_id: notificationId })
+                        .then(function (res) {
+                            if (res.result && res.result.ok) refresh();
+                            else showToast("Gagal menandai notifikasi.", "error");
+                        });
+                } else if (action === "mark-all-notifications") {
+                    callJsonRpc("/unitrade/admin/api/notifications/read_all", {})
+                        .then(function (res) {
+                            if (res.result && res.result.ok) refresh();
+                            else showToast("Gagal menandai semua notifikasi.", "error");
+                        });
+                } else if (action === "open-voucher-modal") {
+                    openVoucherModal(btn);
+                } else if (action === "create-voucher" || action === "save-voucher") {
+                    var form = document.getElementById("utAdminVoucherForm");
+                    var originalLabel = btn.textContent;
+                    var voucherValues = collectNamedValues(form);
+                    var isEditVoucher = !!voucherValues.voucher_id;
+                    btn.disabled = true;
+                    btn.textContent = "Menyimpan...";
+                    callJsonRpc(
+                        isEditVoucher ? "/unitrade/admin/api/vouchers/update" : "/unitrade/admin/api/vouchers/create",
+                        { voucher_id: voucherValues.voucher_id, values: voucherValues }
+                    )
+                        .then(function (res) {
+                            btn.disabled = false;
+                            if (res.result && res.result.ok) {
+                                refresh();
+                            } else {
+                                btn.textContent = originalLabel;
+                                showToast((res.result && res.result.error) || "Gagal menyimpan voucher.", "error");
+                            }
+                        })
+                        .catch(function () {
+                            btn.disabled = false;
+                            btn.textContent = originalLabel;
+                            showToast("Gagal menyimpan voucher.", "error");
+                        });
+                } else if (action === "toggle-voucher") {
+                    var shouldActivate = btn.dataset.active === "true";
+                    if (!await confirmAdmin((shouldActivate ? "Aktifkan" : "Nonaktifkan") + " voucher ini?", {
+                        title: shouldActivate ? "Aktifkan Voucher" : "Nonaktifkan Voucher",
+                    })) return;
+                    callJsonRpc("/unitrade/admin/api/vouchers/toggle", {
+                        voucher_id: voucherId,
+                        active: shouldActivate,
+                    }).then(function (res) {
+                        if (res.result && res.result.ok) refresh();
+                        else showToast((res.result && res.result.error) || "Gagal memperbarui voucher.", "error");
+                    });
+                } else if (action === "product-detail") {
+                    openProductDetail(productId);
+                } else if (action === "cs-detail") {
+                    openCustomerServiceDetail(caseType, caseId);
+                } else if (action === "audit-log-detail") {
+                    openAuditLogDetail(logId);
+                } else if (action === "product-action") {
+                    var productActionName = btn.dataset.productAction;
+                    var productPayload = {
+                        product_id: productId,
+                        action: productActionName,
+                        publish_after: btn.dataset.publishAfter !== "false",
+                    };
+                    if (productActionName === "publish") {
+                        if (!await confirmAdmin("Publish produk ini ke marketplace?", { title: "Publish Produk" })) return;
+                    } else if (productActionName === "unpublish") {
+                        if (!await confirmAdmin("Sembunyikan produk ini dari marketplace?", { title: "Unpublish Produk" })) return;
+                    } else if (productActionName === "waive") {
+                        var waiveReason = await promptAdmin("Alasan waive fee listing produk:", {
+                            title: "Waive Fee Produk",
+                            multiline: true,
+                            placeholder: "Contoh: kompensasi admin setelah validasi manual.",
+                        });
+                        if (!waiveReason || !waiveReason.trim()) return;
+                        productPayload.reason = waiveReason.trim();
+                    } else if (productActionName === "reject") {
+                        var rejectReason = await promptAdmin("Alasan produk ditolak:", {
+                            title: "Tolak Listing Produk",
+                            multiline: true,
+                            placeholder: "Contoh: Foto produk tidak jelas atau deskripsi tidak sesuai.",
+                        });
+                        if (!rejectReason || !rejectReason.trim()) return;
+                        productPayload.reason = rejectReason.trim();
+                    } else {
+                        return;
+                    }
+                    var originalProductLabel = btn.textContent;
+                    btn.disabled = true;
+                    btn.textContent = "Memproses...";
+                    callJsonRpc("/unitrade/admin/api/products/action", productPayload)
+                        .then(function (res) {
+                            btn.disabled = false;
+                            if (res.result && res.result.ok) {
+                                showToast("Aksi produk berhasil diproses.", "success");
+                                refresh();
+                            } else {
+                                btn.textContent = originalProductLabel;
+                                showToast((res.result && res.result.error) || "Gagal memproses produk.", "error");
+                            }
+                        })
+                        .catch(function () {
+                            btn.disabled = false;
+                            btn.textContent = originalProductLabel;
+                            showToast("Gagal memproses produk.", "error");
+                        });
+                } else if (action === "ticket-status") {
+                    var ticketStatus = btn.dataset.status;
+                    callJsonRpc("/unitrade/admin/api/customer-tickets/status", {
+                        ticket_id: ticketId,
+                        status: ticketStatus,
+                    }).then(function (res) {
+                        if (res.result && res.result.ok) refresh();
+                        else showToast((res.result && res.result.error) || "Gagal memperbarui tiket.", "error");
+                    });
+                } else if (action === "open-sponsorship-modal") {
+                    openSponsorshipModal(btn);
+                } else if (action === "sponsorship-update") {
+                    var sponsorshipForm = btn.closest("[data-sponsorship-row]");
+                    var sponsorshipRequestId = sponsorshipId || (
+                        sponsorshipForm && sponsorshipForm.querySelector('[name="sponsorship_id"]')
+                            ? sponsorshipForm.querySelector('[name="sponsorship_id"]').value
+                            : ""
+                    );
+                    var sponsorshipStatus = sponsorshipForm
+                        ? sponsorshipForm.querySelector('[name="sponsorship_status"]').value
+                        : "";
+                    var sponsorshipNote = sponsorshipForm
+                        ? sponsorshipForm.querySelector('[name="sponsorship_note"]').value
+                        : "";
+                    var originalSponsorshipLabel = btn.textContent;
+                    btn.disabled = true;
+                    btn.textContent = "Menyimpan...";
+                    callJsonRpc("/unitrade/admin/api/sponsorships/update", {
+                        request_id: sponsorshipRequestId,
+                        status: sponsorshipStatus,
+                        note: sponsorshipNote,
+                    }).then(function (res) {
+                        btn.disabled = false;
+                        if (res.result && res.result.ok) refresh();
+                        else {
+                            btn.textContent = originalSponsorshipLabel;
+                            showToast((res.result && res.result.error) || "Gagal memperbarui sponsorship.", "error");
+                        }
+                    }).catch(function () {
+                        btn.disabled = false;
+                        btn.textContent = originalSponsorshipLabel;
+                        showToast("Gagal memperbarui sponsorship.", "error");
+                    });
+                } else if (action === "delivery-status") {
+                    var deliveryStatus = btn.dataset.status;
+                    callJsonRpc("/unitrade/admin/api/deliveries/status", {
+                        delivery_id: deliveryId,
+                        status: deliveryStatus,
+                    }).then(function (res) {
+                        if (res.result && res.result.ok) refresh();
+                        else showToast((res.result && res.result.error) || "Gagal memperbarui delivery.", "error");
+                    });
+                } else if (action === "review-visibility") {
+                    var visible = btn.dataset.visible === "true" || btn.dataset.visible === "True";
+                    var message = visible ? "Tampilkan ulasan ini lagi?" : "Sembunyikan ulasan ini dari storefront?";
+                    if (!await confirmAdmin(message, { title: visible ? "Tampilkan Ulasan" : "Sembunyikan Ulasan" })) return;
+                    callJsonRpc("/unitrade/admin/api/reviews/visibility", {
+                        review_id: reviewId,
+                        visible: visible,
+                    }).then(function (res) {
+                        if (res.result && res.result.ok) refresh();
+                        else showToast((res.result && res.result.error) || "Gagal memperbarui ulasan.", "error");
+                    });
+                } else if (action === "payout-action") {
+                    var payoutAction = btn.dataset.payoutAction;
+                    var payload = {
+                        payout_id: payoutId,
+                        action: payoutAction,
+                    };
+                    if (payoutAction === "ready" && !await confirmAdmin("Tandai payout ini siap dibayar?", { title: "Payout Siap" })) return;
+                    if (payoutAction === "recompute" && !await confirmAdmin("Refresh ledger payout dari escrow eligible terbaru?", { title: "Refresh Payout" })) return;
+                    if (payoutAction === "paid") {
+                        var paymentReference = await promptAdmin("Isi payment reference / nomor bukti transfer:", {
+                            title: "Tandai Payout Paid",
+                            placeholder: "Contoh: TRF-2026-001",
+                        });
+                        if (!paymentReference || !paymentReference.trim()) return;
+                        payload.payment_reference = paymentReference.trim();
+                    }
+                    if (payoutAction === "cancel") {
+                        var cancelReason = await promptAdmin("Alasan pembatalan payout:", {
+                            title: "Batalkan Payout",
+                            multiline: true,
+                        });
+                        if (!cancelReason || !cancelReason.trim()) return;
+                        payload.cancel_reason = cancelReason.trim();
+                    }
+                    callJsonRpc("/unitrade/admin/api/payouts/action", payload)
+                        .then(function (res) {
+                            if (res.result && res.result.ok) refresh();
+                            else showToast((res.result && res.result.error) || "Gagal menjalankan aksi payout.", "error");
+                        });
+                } else if (action === "open-announcement-modal") {
+                    var announcementForm = document.getElementById("utAdminAnnouncementForm");
+                    if (announcementForm) announcementForm.reset();
+                    openModal("utAdminAnnouncementModal");
+                } else if (action === "announcement-detail") {
+                    openAnnouncementDetail(announcementId, btn);
+                } else if (action === "announcement-create") {
+                    var annForm = document.getElementById("utAdminAnnouncementForm");
+                    var annValues = collectNamedValues(annForm);
+                    if (!annValues.title || !annValues.body) {
+                        showToast("Judul dan isi pengumuman wajib diisi.", "warning");
+                        return;
+                    }
+                    var originalAnnLabel = btn.textContent;
+                    btn.disabled = true;
+                    btn.textContent = "Menyimpan...";
+                    callJsonRpc("/unitrade/admin/api/announcements/create", { values: annValues })
+                        .then(function (res) {
+                            btn.disabled = false;
+                            if (res.result && res.result.ok) refresh();
+                            else {
+                                btn.textContent = originalAnnLabel;
+                                showToast((res.result && res.result.error) || "Gagal membuat pengumuman.", "error");
+                            }
+                        })
+                        .catch(function () {
+                            btn.disabled = false;
+                            btn.textContent = originalAnnLabel;
+                            showToast("Gagal membuat pengumuman.", "error");
+                        });
+                } else if (action === "announcement-publish") {
+                    if (!await confirmAdmin("Publish pengumuman ini ke semua user aktif?", { title: "Publish Pengumuman" })) return;
+                    var originalPublishLabel = btn.textContent;
+                    btn.disabled = true;
+                    btn.textContent = "Memproses...";
+                    callJsonRpc("/unitrade/admin/api/announcements/publish", {
+                        announcement_id: announcementId,
+                    }).then(function (res) {
+                        btn.disabled = false;
+                        if (res.result && res.result.ok) {
+                            showToast(
+                                "Pengumuman terkirim ke " + (res.result.visible || 0) + " user.",
+                                "success"
+                            );
+                            window.setTimeout(refresh, 650);
+                        } else {
+                            btn.textContent = originalPublishLabel;
+                            showToast((res.result && res.result.error) || "Gagal publish pengumuman.", "error");
+                        }
+                    }).catch(function () {
+                        btn.disabled = false;
+                        btn.textContent = originalPublishLabel;
+                        showToast("Gagal publish pengumuman.", "error");
+                    });
+                } else if (action === "announcement-sync") {
+                    if (!await confirmAdmin("Sinkronkan ulang notifikasi pengumuman ini?", { title: "Sinkron Notifikasi" })) return;
+                    var originalSyncLabel = btn.textContent;
+                    btn.disabled = true;
+                    btn.textContent = "Sinkron...";
+                    callJsonRpc("/unitrade/admin/api/announcements/sync", {
+                        announcement_id: announcementId,
+                    }).then(function (res) {
+                        btn.disabled = false;
+                        if (res.result && res.result.ok) {
+                            showToast(
+                                "Notifikasi tersedia untuk " + (res.result.visible || 0) + " user.",
+                                "success"
+                            );
+                            window.setTimeout(refresh, 650);
+                        } else {
+                            btn.textContent = originalSyncLabel;
+                            showToast((res.result && res.result.error) || "Gagal sinkron notifikasi.", "error");
+                        }
+                    }).catch(function () {
+                        btn.disabled = false;
+                        btn.textContent = originalSyncLabel;
+                        showToast("Gagal sinkron notifikasi.", "error");
+                    });
+                }
+                return;
+            }
+
+            // Modal close button / overlay click
+            var closer = e.target.closest("[data-modal-close]");
+            if (closer) {
+                closeModal(closer.dataset.modalClose);
+                return;
+            }
+            // Click on overlay background closes modal
+            if (e.target.classList && e.target.classList.contains("ut-admin-modal-overlay")) {
+                closeModal(e.target.id);
+            }
+        });
+
+        // ---- Settings save ------------------------------------------------
+        var FEE_DEFAULTS = {
+            "unitrade.seller.listing_fee.enabled": "True",
+            "unitrade.seller.listing_fee.threshold": "1000000",
+            "unitrade.seller.listing_fee.low_amount": "2000",
+            "unitrade.seller.listing_fee.high_amount": "5000",
+            "unitrade.seller.listing_fee.validity_days": "30",
+            "unitrade.seller.posting_admin_fee": "0",
+        };
+        var FEE_NUMERIC_RULES = {
+            "unitrade.seller.listing_fee.threshold": { label: "Batas Harga Produk", min: 0 },
+            "unitrade.seller.listing_fee.low_amount": { label: "Fee Harga di Bawah Batas", min: 0 },
+            "unitrade.seller.listing_fee.high_amount": { label: "Fee Harga di Atas/Sama Batas", min: 0 },
+            "unitrade.seller.listing_fee.validity_days": { label: "Masa Berlaku Listing", min: 1 },
+            "unitrade.seller.posting_admin_fee": { label: "Admin Fee Tambahan", min: 0 },
+            "unitrade.xendit.payment_expiry_minutes": { label: "Expired Pembayaran Xendit", min: 1 },
+        };
+
+        function setFormValue(form, name, value) {
+            var field = form.querySelector('[name="' + name + '"]');
+            if (field) field.value = value;
+        }
+
+        function collectSettingsValues(form) {
+            var values = {};
+            form.querySelectorAll("[name]").forEach(function (el) {
+                values[el.name] = el.value;
+            });
+            return values;
+        }
+
+        function validateSettings(values) {
+            var names = Object.keys(FEE_NUMERIC_RULES);
+            for (var i = 0; i < names.length; i += 1) {
+                var name = names[i];
+                var rule = FEE_NUMERIC_RULES[name];
+                var raw = values[name];
+                var numberValue = Number(raw);
+                if (raw === "" || !Number.isFinite(numberValue)) {
+                    return rule.label + " harus berupa angka.";
+                }
+                if (numberValue < rule.min) {
+                    if (rule.min === 1) {
+                        return rule.label + " minimal 1 hari.";
+                    }
+                    return rule.label + " tidak boleh negatif.";
+                }
+            }
+            return "";
+        }
+
+        function saveSettings(button, successLabel) {
+            var form = document.getElementById("utAdminSettingsForm");
+            if (!form) return;
+            var values = collectSettingsValues(form);
+            var validationError = validateSettings(values);
+            if (validationError) {
+                showToast(validationError, "warning");
+                return;
+            }
+            var origLabel = button.textContent;
+            button.textContent = "Menyimpan...";
+            button.disabled = true;
+            callJsonRpc("/unitrade/admin/api/settings/save", { values: values })
+                .then(function (res) {
+                    button.disabled = false;
+                    if (res.result && res.result.ok) {
+                        button.textContent = successLabel || "Tersimpan ✓";
+                        setTimeout(function () { button.textContent = origLabel; }, 1800);
+                    } else {
+                        button.textContent = origLabel;
+                        showToast((res.result && res.result.error) || "Gagal menyimpan pengaturan.", "error");
+                    }
+                })
+                .catch(function () {
+                    button.disabled = false;
+                    button.textContent = origLabel;
+                    showToast("Gagal menyimpan pengaturan.", "error");
+                });
+        }
+        var saveBtnTop = root.querySelector("#utAdminSettingsSave");
+        var saveBtnBottom = root.querySelector("#utAdminSettingsSaveBottom");
+        var resetFeeBtn = root.querySelector("#utAdminFeeDefaults");
+        if (saveBtnTop) saveBtnTop.addEventListener("click", function () { saveSettings(saveBtnTop); });
+        if (saveBtnBottom) saveBtnBottom.addEventListener("click", function () { saveSettings(saveBtnBottom); });
+        if (resetFeeBtn) {
+            resetFeeBtn.addEventListener("click", function () {
+                var form = document.getElementById("utAdminSettingsForm");
+                if (!form) return;
+                Object.keys(FEE_DEFAULTS).forEach(function (name) {
+                    setFormValue(form, name, FEE_DEFAULTS[name]);
+                });
+                saveSettings(resetFeeBtn, "Default diterapkan");
+            });
+        }
+
+        // ---- GMV chart (only on dashboard page) --------------------------
+        var canvas = root.querySelector("#utAdminGmvChart");
+        if (canvas && window.Chart) {
+            try {
+                var series = JSON.parse(canvas.dataset.series || "[]");
+                var ctx = canvas.getContext("2d");
+                var grad = ctx.createLinearGradient(0, 0, 0, 220);
+                grad.addColorStop(0, "rgba(17,24,39,.18)");
+                grad.addColorStop(1, "rgba(17,24,39,.01)");
+
+                new window.Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: series.map(function (p) { return p.label; }),
+                        datasets: [{
+                            label: "GMV (Rp)",
+                            data: series.map(function (p) { return p.value; }),
+                            borderColor: "#111827",
+                            borderWidth: 2.5,
+                            backgroundColor: grad,
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: "#111827",
+                            pointRadius: 3,
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (ctx) {
+                                        return "Rp " + Number(ctx.parsed.y || 0).toLocaleString("id-ID");
+                                    },
+                                },
+                            },
+                        },
+                        scales: {
+                            x: { grid: { display: false } },
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function (v) {
+                                        return "Rp " + Number(v).toLocaleString("id-ID", { notation: "compact" });
+                                    },
+                                },
+                            },
+                        },
+                    },
+                });
+            } catch (err) {
+                console.warn("GMV chart render failed", err);
+            }
+        }
+    });
+})();

@@ -6,3 +6,7 @@ access_unitrade_product_image_system,unitrade.product.image.system,website_sale.
 access_unitrade_product_template_admin,unitrade.product.template.admin,product.model_product_template,unitrade_seller.group_unitrade_admin,1,1,1,1
 access_unitrade_product_image_admin,unitrade.product.image.admin,website_sale.model_product_image,unitrade_seller.group_unitrade_admin,1,1,1,1
 access_unitrade_product_category_admin,unitrade.product.category.admin,product.model_product_category,unitrade_seller.group_unitrade_admin,1,0,0,0
+access_unitrade_product_waive_wizard_admin,unitrade.product.waive.wizard.admin,model_unitrade_product_waive_wizard,unitrade_seller.group_unitrade_admin,1,1,1,1
+access_unitrade_product_waive_wizard_system,unitrade.product.waive.wizard.system,model_unitrade_product_waive_wizard,base.group_system,1,1,1,1
+access_unitrade_product_reject_wizard_admin,unitrade.product.reject.wizard.admin,model_unitrade_product_reject_wizard,unitrade_seller.group_unitrade_admin,1,1,1,1
+access_unitrade_product_reject_wizard_system,unitrade.product.reject.wizard.system,model_unitrade_product_reject_wizard,base.group_system,1,1,1,1

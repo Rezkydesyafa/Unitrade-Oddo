@@ -65,24 +65,6 @@
                             Anda mendaftar dengan nomor HP <strong><t t-esc="masked_email"/></strong>
                         </p>
 
-                        <!-- Dev Mode: Show OTP Code for phone users -->
-                        <div class="tw-bg-[#fffbeb] tw-border tw-border-[#f59e0b] tw-rounded-[8px] tw-p-[16px] tw-mb-[16px]">
-                            <p class="tw-font-['Inter'] tw-font-semibold tw-text-[13px] tw-text-[#92400e] tw-mb-[8px] tw-m-0">
-                                ⚠️ Mode Development — SMS belum aktif
-                            </p>
-                            <p class="tw-font-['Inter'] tw-font-normal tw-text-[13px] tw-text-[#92400e] tw-mb-[8px] tw-m-0">
-                                Kode OTP Anda:
-                            </p>
-                            <div class="tw-bg-white tw-rounded-[6px] tw-p-[12px] tw-text-center tw-mb-[8px]">
-                                <span class="tw-font-['Inter'] tw-font-bold tw-text-[28px] tw-text-[#171717] tw-tracking-[8px]" id="devOtpCode">
-                                    <t t-esc="otp_code_dev"/>
-                                </span>
-                            </div>
-                            <p class="tw-font-['Inter'] tw-font-normal tw-text-[11px] tw-text-[#b45309] tw-m-0">
-                                Untuk mengirim SMS secara otomatis, diperlukan integrasi API SMS (Twilio/Fonnte).
-                            </p>
-                        </div>
-
                         <!-- Option: Send to Email Instead -->
                         <div class="tw-bg-[#f0f9ff] tw-border tw-border-[#0ea5e9] tw-rounded-[8px] tw-p-[16px] tw-mb-[24px]" id="sendEmailSection">
                             <p class="tw-font-['Inter'] tw-font-medium tw-text-[13px] tw-text-[#0c4a6e] tw-mb-[10px] tw-m-0">
@@ -102,6 +84,26 @@
                         </div>
                     </t>
 
+                    <!-- Development mode: show OTP code while email/SMS provider is not configured. -->
+                    <t t-if="show_dev_otp and otp_code_dev">
+                        <div class="tw-bg-[#fffbeb] tw-border tw-border-[#f59e0b] tw-rounded-[8px] tw-p-[16px] tw-mb-[16px]">
+                            <p class="tw-font-['Inter'] tw-font-semibold tw-text-[13px] tw-text-[#92400e] tw-mb-[8px] tw-m-0">
+                                Mode Development - pengiriman OTP belum aktif penuh
+                            </p>
+                            <p class="tw-font-['Inter'] tw-font-normal tw-text-[13px] tw-text-[#92400e] tw-mb-[8px] tw-m-0">
+                                Kode OTP Anda:
+                            </p>
+                            <div class="tw-bg-white tw-rounded-[6px] tw-p-[12px] tw-text-center tw-mb-[8px]">
+                                <span class="tw-font-['Inter'] tw-font-bold tw-text-[28px] tw-text-[#171717] tw-tracking-[8px]" id="devOtpCode">
+                                    <t t-esc="otp_code_dev"/>
+                                </span>
+                            </div>
+                            <p class="tw-font-['Inter'] tw-font-normal tw-text-[11px] tw-text-[#b45309] tw-m-0">
+                                Gunakan kode ini untuk testing lokal. Di produksi, nonaktifkan parameter unitrade.otp.show_dev_code.
+                            </p>
+                        </div>
+                    </t>
+
                     <!-- OTP Form -->
                     <form action="/web/verify-otp/submit" method="post" id="otpForm">
                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
@@ -115,7 +117,7 @@
 
                         <!-- Label -->
                         <label class="tw-block tw-font-['Inter'] tw-font-normal tw-text-[14px] tw-text-[#404040] tw-mb-[12px]">
-                            Masukan kode verikasi
+                            Masukkan kode verifikasi
                         </label>
 
                         <!-- 6-Digit Input Boxes -->

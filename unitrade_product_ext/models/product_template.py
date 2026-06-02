@@ -110,6 +110,68 @@ class ProductTemplateUniTrade(models.Model):
         string='Listing Berakhir',
         help='Tanggal berakhir listing untuk label dashboard penjual. Tidak otomatis unpublish produk.',
     )
+
+    # === Operational state for admin ===
+    x_listing_status = fields.Selection(
+        [
+            ('draft', 'Draft'),
+            ('fee_pending', 'Menunggu Fee'),
+            ('published', 'Terpublikasi'),
+            ('rejected', 'Ditolak'),
+            ('archived', 'Diarsipkan'),
+            ('expired', 'Kadaluarsa'),
+        ],
+        string='Status Listing',
+        compute='_compute_x_listing_status',
+        store=True,
+        index=True,
+    )
+    x_listing_fee_status = fields.Selection(
+        [
+            ('not_required', 'Tidak Wajib'),
+            ('unpaid', 'Belum Bayar'),
+            ('pending', 'Menunggu Pembayaran'),
+            ('paid', 'Lunas'),
+            ('failed', 'Gagal'),
+            ('waived', 'Diwaiver'),
+        ],
+        string='Status Fee Listing',
+        default='not_required',
+        copy=False,
+        index=True,
+    )
+    x_listing_fee_payment_id = fields.Many2one(
+        'unitrade.payment.intent',
+        string='Pembayaran Fee Listing',
+        copy=False,
+        readonly=True,
+        help='Payment intent yang melunasi fee listing produk ini.',
+    )
+    x_listing_fee_paid_at = fields.Datetime(
+        string='Fee Dibayar Pada',
+        copy=False,
+        readonly=True,
+    )
+    x_listing_fee_waived_by_id = fields.Many2one(
+        'res.users',
+        string='Fee Diwaiver Oleh',
+        copy=False,
+        readonly=True,
+    )
+    x_listing_fee_waive_reason = fields.Text(
+        string='Alasan Waive Fee',
+        copy=False,
+    )
+    x_listing_rejected_by_id = fields.Many2one(
+        'res.users',
+        string='Direjeksi Oleh',
+        copy=False,
+        readonly=True,
+    )
+    x_listing_rejection_reason = fields.Text(
+        string='Alasan Rejeksi',
+        copy=False,
+    )
     x_unitrade_stock_qty = fields.Float(
         string='Stok UniTrade',
         compute='_compute_unitrade_stock_qty',
@@ -370,6 +432,141 @@ class ProductTemplateUniTrade(models.Model):
             domain.append(('x_seller_location', 'ilike', location))
 
         return self.search(domain, order=sort_by, limit=limit, offset=offset)
+
+    # ------------------------------------------------------------------
+    # Listing operational status — admin orchestration
+    # ------------------------------------------------------------------
+    @api.depends(
+        'x_is_marketplace',
+        'x_listing_fee_status',
+        'x_listing_expires_at',
+        'website_published',
+        'sale_ok',
+        'active',
+    )
+    def _compute_x_listing_status(self):
+        now = fields.Datetime.now()
+        for record in self:
+            if not record.x_is_marketplace:
+                record.x_listing_status = 'draft'
+                continue
+            if not record.active:
+                record.x_listing_status = 'archived'
+                continue
+            if record.x_listing_fee_status == 'failed':
+                record.x_listing_status = 'rejected'
+                continue
+            if record.x_listing_fee_status in ('unpaid', 'pending'):
+                record.x_listing_status = 'fee_pending'
+                continue
+            # Check expired
+            if record.x_listing_expires_at and record.x_listing_expires_at < now:
+                record.x_listing_status = 'expired'
+                continue
+            if record.website_published and record.sale_ok:
+                record.x_listing_status = 'published'
+                continue
+            record.x_listing_status = 'draft'
+
+    def _unitrade_is_admin(self):
+        return (
+            self.env.user.has_group('unitrade_seller.group_unitrade_admin')
+            or self.env.user.has_group('base.group_system')
+        )
+
+    def _check_admin(self, action_label):
+        if not self._unitrade_is_admin():
+            from odoo.exceptions import AccessDenied
+            _logger.warning(
+                'Product %s: unauthorized %s by uid=%s',
+                self.mapped('id') or '-', action_label, self.env.uid,
+            )
+            raise AccessDenied(_('Aksi ini hanya boleh dilakukan oleh admin UniTrade.'))
+
+    def _audit(self, action, description, severity='info', payload=None):
+        if 'unitrade.admin.audit.log' not in self.env.registry:
+            return
+        AuditLog = self.env['unitrade.admin.audit.log']
+        for product in self:
+            try:
+                AuditLog.sudo().log_action(
+                    action,
+                    description=description,
+                    record=product,
+                    severity=severity,
+                    payload=payload,
+                )
+            except Exception:  # noqa: BLE001
+                _logger.exception('Failed to write product audit log: %s', action)
+
+    def action_unitrade_waive_listing_fee(self):
+        """Open wizard untuk waive fee dengan alasan wajib."""
+        self._check_admin('waive_listing_fee')
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Waive Fee Listing'),
+            'res_model': 'unitrade.product.waive.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'default_product_id': self.id},
+        }
+
+    def action_unitrade_reject_listing(self):
+        """Open wizard untuk reject produk dengan alasan wajib."""
+        self._check_admin('reject_listing')
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Reject Listing'),
+            'res_model': 'unitrade.product.reject.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'default_product_id': self.id},
+        }
+
+    def action_unitrade_publish_admin(self):
+        """Admin manually publish marketplace product."""
+        self._check_admin('publish_admin')
+        for product in self:
+            product.write({
+                'x_is_marketplace': True,
+                'sale_ok': True,
+                'website_published': True,
+                'active': True,
+            })
+            product._audit(
+                'product.publish',
+                _('Produk %s dipublish manual oleh %s.') % (product.display_name, self.env.user.name),
+                severity='info',
+                payload={'seller_id': product.x_seller_id.id, 'product_id': product.id},
+            )
+        return True
+
+    def action_unitrade_unpublish_admin(self):
+        """Admin manually unpublish marketplace product."""
+        self._check_admin('unpublish_admin')
+        for product in self:
+            product.write({'website_published': False})
+            product._audit(
+                'product.unpublish',
+                _('Produk %s di-unpublish manual oleh %s.') % (product.display_name, self.env.user.name),
+                severity='warning',
+                payload={'seller_id': product.x_seller_id.id, 'product_id': product.id},
+            )
+        return True
+
+    def action_open_listing_fee_payment(self):
+        """Open the related payment intent record."""
+        self.ensure_one()
+        if not self.x_listing_fee_payment_id:
+            return False
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'unitrade.payment.intent',
+            'res_id': self.x_listing_fee_payment_id.id,
+            'view_mode': 'form',
+        }
 
 
 class ProductImageUniTrade(models.Model):

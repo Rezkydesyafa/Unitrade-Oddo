@@ -1,10 +1,12 @@
 from odoo import models, fields, api, _
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessDenied, ValidationError
 import logging
 import re
 import base64
 import uuid
 from datetime import datetime
+
+from .unitrade_audit import log_admin_action
 
 _logger = logging.getLogger(__name__)
 
@@ -449,9 +451,24 @@ class UnitradeSeller(models.Model):
                 'ocr_confidence': 0.0,
             })
 
+    def _unitrade_is_admin(self):
+        return (
+            self.env.user.has_group('unitrade_seller.group_unitrade_admin')
+            or self.env.user.has_group('base.group_system')
+        )
+
+    def _check_admin(self, action_label):
+        if not self._unitrade_is_admin():
+            _logger.warning(
+                'Seller %s: unauthorized %s attempt by uid=%s',
+                self.mapped('name') or '-', action_label, self.env.uid,
+            )
+            raise AccessDenied(_('Aksi ini hanya boleh dilakukan oleh admin UniTrade.'))
+
     def action_verify(self):
         """Admin approves seller verification"""
         self.ensure_one()
+        self._check_admin('verify_seller')
         self.write({
             'status': 'verified',
             'verified_date': fields.Datetime.now(),
@@ -472,11 +489,20 @@ class UnitradeSeller(models.Model):
         if template:
             template.sudo().send_mail(self.id, force_send=True)
 
+        log_admin_action(
+            self.env,
+            'seller.verify',
+            description=_('Seller %s diverifikasi oleh %s.') % (self.name, self.env.user.name),
+            record=self,
+            severity='warning',
+            payload={'seller_id': self.id, 'user_id': self.user_id.id},
+        )
         _logger.info('Seller %s verified by %s', self.name, self.env.user.name)
 
     def action_reject(self):
         """Admin rejects seller verification"""
         self.ensure_one()
+        self._check_admin('reject_seller')
         if not self.rejection_reason:
             raise ValidationError(_('Isi alasan penolakan terlebih dahulu!'))
 
@@ -490,6 +516,20 @@ class UnitradeSeller(models.Model):
         if template:
             template.sudo().send_mail(self.id, force_send=True)
 
+        log_admin_action(
+            self.env,
+            'seller.reject',
+            description=_('Seller %s ditolak oleh %s. Alasan: %s') % (
+                self.name, self.env.user.name, self.rejection_reason,
+            ),
+            record=self,
+            severity='warning',
+            payload={
+                'seller_id': self.id,
+                'user_id': self.user_id.id,
+                'reason': self.rejection_reason,
+            },
+        )
         _logger.info('Seller %s rejected by %s. Reason: %s', self.name, self.env.user.name, self.rejection_reason)
 
     def action_start_report_review(self):
@@ -527,6 +567,7 @@ class UnitradeSeller(models.Model):
 
     def action_revoke_seller_verification(self):
         """Revoke seller verification and return the account to regular-user status."""
+        self._check_admin('revoke_seller')
         for record in self:
             if record.status != 'verified':
                 continue
@@ -574,6 +615,21 @@ class UnitradeSeller(models.Model):
                 self.env.user.name,
                 hidden_count,
                 reason,
+            )
+            log_admin_action(
+                self.env,
+                'seller.revoke',
+                description=_(
+                    'Verifikasi seller %s dicabut oleh %s. %s produk dinonaktifkan. Alasan: %s'
+                ) % (record.name, self.env.user.name, hidden_count, reason),
+                record=record,
+                severity='critical',
+                payload={
+                    'seller_id': record.id,
+                    'user_id': record.user_id.id,
+                    'hidden_products': hidden_count,
+                    'reason': reason,
+                },
             )
 
     def action_reset_to_draft(self):

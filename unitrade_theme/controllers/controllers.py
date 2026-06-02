@@ -23,12 +23,25 @@ _logger = logging.getLogger(__name__)
 
 def _is_email(value):
     """Check if a string looks like an email address."""
-    return bool(re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', value or ''))
+    return bool(re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', (value or '').strip()))
+
+
+def _normalize_phone(value):
+    """Keep phone digits/prefix only, while accepting common visual separators."""
+    return re.sub(r'[\s\-.()]+', '', (value or '').strip())
+
+
+def _normalize_login(value):
+    """Normalize signup/login input without changing the accepted formats."""
+    value = (value or '').strip()
+    if _is_email(value):
+        return value.lower()
+    return _normalize_phone(value)
 
 
 def _is_phone(value):
     """Check if a string looks like a phone number."""
-    return bool(re.match(r'^(\+62|62|08)[0-9]{8,13}$', (value or '').replace(' ', '')))
+    return bool(re.match(r'^(\+62|62|08)[0-9]{8,13}$', _normalize_phone(value)))
 
 
 class UnitradeAuthSignup(OAuthLogin):
@@ -37,6 +50,9 @@ class UnitradeAuthSignup(OAuthLogin):
     @http.route()
     def web_login(self, *args, **kw):
         """Override web_login to enforce OTP verification for unverified portal users."""
+        if request.httprequest.method == 'POST' and request.params.get('login'):
+            request.params['login'] = _normalize_login(request.params.get('login'))
+
         response = super().web_login(*args, **kw)
 
         if request.httprequest.method == 'POST' and request.session.uid:
@@ -66,6 +82,13 @@ class UnitradeAuthSignup(OAuthLogin):
 
         if 'error' not in qcontext and request.httprequest.method == 'POST':
             try:
+                login_value = _normalize_login(qcontext.get('login'))
+                if login_value:
+                    qcontext['login'] = login_value
+                    request.params['login'] = login_value
+                if not (_is_email(login_value) or _is_phone(login_value)):
+                    raise UserError(_("Masukkan email yang valid atau nomor HP yang diawali 08, 62, atau +62."))
+
                 if request.params.get('terms_accepted') != '1':
                     raise UserError(_("Anda harus menyetujui Syarat Ketentuan & Kebijakan Privasi."))
 
@@ -79,12 +102,32 @@ class UnitradeAuthSignup(OAuthLogin):
                     request.update_env(user=public_user)
 
                 # --- OTP FLOW ---
-                login_value = qcontext.get('login', '')
                 user_sudo = request.env['res.users'].sudo().search(
                     [('login', '=', login_value)], limit=1
                 )
 
                 if user_sudo:
+<<<<<<< HEAD
+=======
+                    if _is_phone(login_value) and user_sudo.partner_id:
+                        user_sudo.partner_id.sudo().write({
+                            'phone': user_sudo.partner_id.phone or login_value,
+                            'mobile': user_sudo.partner_id.mobile or login_value,
+                        })
+                    user_sudo.unitrade_record_security_activity(
+                        'register',
+                        title=_('Akun dibuat'),
+                        detail=_('Registrasi akun UniTrade.'),
+                        ip_address=request.httprequest.remote_addr,
+                        user_agent=request.httprequest.headers.get('User-Agent', ''),
+                        session_id=request.session.sid,
+                    )
+                    user_sudo.unitrade_accept_terms_privacy(
+                        ip_address=request.httprequest.remote_addr,
+                        user_agent=request.httprequest.headers.get('User-Agent', ''),
+                        session_id=request.session.sid,
+                    )
+>>>>>>> ca9bf47 (feat : admin fajar anjay sadboy)
                     return self._generate_and_redirect_otp(user_sudo, login_value)
                 else:
                     return self.web_login(*args, **kw)
@@ -93,12 +136,12 @@ class UnitradeAuthSignup(OAuthLogin):
                 qcontext['error'] = e.args[0]
             except (SignupError, AssertionError) as e:
                 existing_user = request.env["res.users"].sudo().search(
-                    [("login", "=", qcontext.get("login"))], limit=1
+                    [("login", "=", _normalize_login(qcontext.get("login")))], limit=1
                 )
                 if existing_user:
                     # User already exists — try to authenticate and send OTP
                     try:
-                        login_value = qcontext.get('login', '')
+                        login_value = _normalize_login(qcontext.get('login'))
                         pre_uid = request.session.authenticate(
                             request.db, login_value, qcontext.get('password')
                         )
@@ -130,7 +173,7 @@ class UnitradeAuthSignup(OAuthLogin):
     @http.route('/web/signup/check_email', type='json', auth='public', methods=['POST'], csrf=False)
     def check_email_exists(self, **kw):
         """Check if an email or phone number already exists in the database."""
-        login = kw.get('login', '').strip()
+        login = _normalize_login(kw.get('login', ''))
         if not login:
             return {'exists': False}
         existing_user = request.env['res.users'].sudo().search(
@@ -416,6 +459,10 @@ class UnitradeOTPController(http.Controller):
             return request.redirect('/web/login')
 
         masked = self._mask_value(email)
+        show_dev_otp = request.env['ir.config_parameter'].sudo().get_param(
+            'unitrade.otp.show_dev_code',
+            '1',
+        ) not in ('0', 'false', 'False', 'no', 'No')
 
         values = {
             'masked_email': masked,
@@ -424,6 +471,7 @@ class UnitradeOTPController(http.Controller):
             'is_phone': _is_phone(email),
             'is_email': _is_email(email),
             'otp_code_dev': otp_code_dev,  # Dev only
+            'show_dev_otp': show_dev_otp,
             'otp_title': (
                 _('Verifikasi Password') if purpose == 'settings_password_reset'
                 else _('Verifikasi Penjual') if purpose == 'seller_onboarding'
