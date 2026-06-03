@@ -4,17 +4,29 @@ Status: Updated after source audit
 Priority: P0
 Last reviewed: 2026-05-18
 
+## Progress per 2026-05-24
+
+- [x] Backend action `Monitoring Transaksi` di bawah menu `UniTrade > Keuangan & Dispute`.
+- [x] Tree/search monitoring transaksi berbasis `sale.order` dengan filter payment status, UniTrade state, escrow state, flagged, dan tanggal.
+- [x] Smart button dari order ke Payment Intent, Payment Event, Escrow Ledger, Refund/Dispute, Manual Payout, dan Audit Log.
+- [x] Escrow ledger search view lengkap: state, seller, buyer, payout status, tanggal, order, amount total, dan seller amount.
+- [x] Tombol form escrow untuk membuat payout manual langsung dari ledger releasable.
+- [x] Aksi manual escrow `Tandai Releasable` dan `Tandai Released Manual` wajib memakai wizard alasan dan masuk audit log.
+- [x] Flag/unflag transaksi bermasalah sekarang lewat helper `sale.order`, alasan wajib untuk flag, dan keduanya membuat audit log.
+- [x] Helper `ensure_for_order()` ditambahkan agar sinkronisasi escrow dari perubahan status order tidak gagal diam-diam.
+- [ ] Halaman operasi tunggal yang benar-benar menggabungkan semua record dalam satu layar custom masih bisa menjadi P2 jika admin membutuhkan console yang lebih padat daripada smart button/action Odoo.
+
 ## Update 2026-05-18
 
 Transaction dan escrow model sudah ada. `sale.order` sudah punya `x_payment_status`, `x_unitrade_order_state`, `x_escrow_state`, cancel deadline, cancel reason, completed time, dan payment intent relation. `unitrade.payment.intent` menyimpan provider, state, Midtrans/Xendit identifiers, raw request/response, dan intent type. `unitrade.payment.event` menyimpan webhook/event idempotency data. `unitrade.escrow.ledger` sudah menyimpan split dana per seller, platform fee, gateway fee, bukti seller/buyer, state escrow, dan payout status.
 
-Gap admin sekarang:
+Gap awal yang sudah ditutup/dikurangi:
 
-- Belum ada transaction operation view yang menggabungkan order, payment intent, payment event, escrow ledger, dispute, dan payout.
-- Escrow ledger belum punya search view lengkap untuk state, seller, buyer, payout status, date, dan amount.
-- Belum ada flag `marked_problem` atau `admin_hold` untuk menahan transaksi tanpa langsung membuat dispute.
-- Action manual `Tandai Releasable` dan `Tandai Released Manual` perlu alasan wajib, group gate, dan audit log.
-- Payment/dispute menu masih tersebar di Sales/Payment root; perlu konsolidasi di menu `UniTrade`.
+- Transaction operation view sekarang tersedia sebagai action backend `Monitoring Transaksi`, dengan smart button ke payment intent, event, escrow, dispute, payout, dan audit log.
+- Escrow ledger sudah punya search view untuk state, seller, buyer, payout status, tanggal, dan amount.
+- Flag transaksi bermasalah memakai `x_admin_flagged` + alasan wajib + audit log. `admin_hold` terpisah belum dibuat karena belum ada kebutuhan operasional selain flag.
+- Action manual `Tandai Releasable` dan `Tandai Released Manual` sudah memakai wizard alasan, group gate, dan audit log.
+- Payment/dispute menu sudah dikonsolidasikan di root `UniTrade > Keuangan & Dispute`.
 - Plan lama menyebut cancel window 10 menit dan auto complete 24 jam. Source saat ini memakai `unitrade.order.cancel_window_minutes = 30` dan auto confirm receipt default 48 jam. Admin settings harus menampilkan nilai aktual ini.
 
 ## Tujuan

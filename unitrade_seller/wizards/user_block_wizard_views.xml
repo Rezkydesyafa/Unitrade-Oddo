@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_unitrade_user_block_wizard_form" model="ir.ui.view">
+        <field name="name">unitrade.user.block.wizard.form</field>
+        <field name="model">unitrade.user.block.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Blokir Akun UniTrade">
+                <sheet>
+                    <div class="alert alert-warning" role="alert">
+                        <strong>Perhatian:</strong> user yang diblokir tidak bisa login, transaksi, chat, maupun mengelola produk. Alasan akan disimpan di audit log.
+                    </div>
+                    <group>
+                        <group string="Target User">
+                            <field name="user_id" invisible="1"/>
+                            <field name="user_name"/>
+                            <field name="user_login"/>
+                            <field name="user_is_seller"/>
+                        </group>
+                        <group string="Opsi">
+                            <field name="revoke_seller" invisible="not user_is_seller"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="reason_category"/>
+                        <field name="reason_detail" placeholder="Tuliskan detail alasan blokir yang spesifik dan dapat diaudit..."/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm_block" type="object" string="Blokir Sekarang" class="btn-danger"
+                            confirm="Yakin ingin memblokir akun ini? User akan tidak bisa login."/>
+                    <button string="Batal" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

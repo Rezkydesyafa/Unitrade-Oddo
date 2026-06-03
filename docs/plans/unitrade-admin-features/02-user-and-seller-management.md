@@ -1,8 +1,16 @@
 # User and Seller Management Plan
 
-Status: Updated after source audit
+Status: In progress - global block guard implemented
 Priority: P0
-Last reviewed: 2026-05-18
+Last reviewed: 2026-05-24
+
+## Update 2026-05-24
+
+Global account block sudah diperluas dari sekadar login/admin flag menjadi guard runtime marketplace. Helper terpusat ditambahkan di `res.users`, lalu dipakai oleh controller checkout, cart, payment handoff/confirm/cancel, refund/dispute, chat, seller dashboard/product/settings/payout, dan seller onboarding/KTM upload.
+
+Progress task ini: sekitar 90%. Sisa kecilnya adalah polish UI notifikasi khusus blocked user di halaman profil/cart dan uji manual end-to-end dengan akun dummy yang sedang diblokir.
+
+Progress fitur admin keseluruhan: sekitar 82%. Porsi besar yang sudah ada adalah foundation admin, audit, user/seller management, product/listing fee management, transaction monitoring, escrow controls, dan global block enforcement. Sisa utama ada di dashboard/task queue terpadu, hardening refund final, manual payout batch penuh, reports/export, system settings UI, dan admin notification center.
 
 ## Update 2026-05-18
 
@@ -27,7 +35,9 @@ Admin dapat mengelola seluruh akun pengguna, status seller, verifikasi KTM, blok
 - Seller backend view sudah ada.
 - Seller verification view sudah ada.
 - Approve/reject/revoke seller sudah ada sebagian.
-- Belum ada satu halaman manajemen user yang menggabungkan user, seller status, dan risk status.
+- Halaman manajemen user UniTrade dan action block/unblock sudah ada melalui `res.users`.
+- Guard global block sudah menutup aksi marketplace berisiko lintas checkout, chat, refund, dan seller.
+- Belum ada satu dashboard risk terpadu yang menggabungkan user, seller status, dispute, security activity, dan SLA task.
 
 ## Scope MVP
 
@@ -70,7 +80,7 @@ Admin dapat mengelola seluruh akun pengguna, status seller, verifikasi KTM, blok
 - Extend `res.users` dengan flag block reason jika belum ada.
 - Hubungkan user detail ke seller verification dan seller record.
 - Audit semua action.
-- Tambah guard di controller checkout/chat/seller product/refund agar user yang diblokir global tidak bisa memakai fitur marketplace.
+- Tambah guard di controller checkout/chat/seller product/refund agar user yang diblokir global tidak bisa memakai fitur marketplace. **Selesai untuk guard utama.**
 - Tambah smart button dari user ke seller, verification, orders, disputes, chat reports, security activity, dan audit log.
 
 ## Acceptance Criteria
@@ -80,5 +90,5 @@ Admin dapat mengelola seluruh akun pengguna, status seller, verifikasi KTM, blok
 - Admin bisa approve/reject KTM dari detail pengajuan.
 - Reject wajib alasan.
 - Block user wajib alasan.
-- User yang diblokir tidak bisa transaksi/chat/upload produk.
+- User yang diblokir tidak bisa transaksi/chat/upload produk/refund/seller onboarding.
 - Semua action masuk audit log.

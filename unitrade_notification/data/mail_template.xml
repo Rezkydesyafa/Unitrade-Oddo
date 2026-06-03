@@ -55,7 +55,7 @@
         <field name="name">UniTrade: Account Welcome</field>
         <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
         <field name="subject">{{ object.title }}</field>
-        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_from">{{ object._get_email_from() or 'noreply@unitrade.dev' }}</field>
         <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
         <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
         <field name="auto_delete" eval="True"/>
@@ -84,7 +84,7 @@
         <field name="name">UniTrade: Account Password Reset</field>
         <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
         <field name="subject">{{ object.title }}</field>
-        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_from">{{ object._get_email_from() or 'noreply@unitrade.dev' }}</field>
         <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
         <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
         <field name="auto_delete" eval="True"/>
@@ -117,7 +117,7 @@
         <field name="name">UniTrade: Seller Application Received</field>
         <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
         <field name="subject">{{ object.title }}</field>
-        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_from">{{ object._get_email_from() or 'noreply@unitrade.dev' }}</field>
         <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
         <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
         <field name="auto_delete" eval="True"/>
@@ -146,7 +146,7 @@
         <field name="name">UniTrade: Seller Approved</field>
         <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
         <field name="subject">{{ object.title }}</field>
-        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_from">{{ object._get_email_from() or 'noreply@unitrade.dev' }}</field>
         <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
         <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
         <field name="auto_delete" eval="True"/>
@@ -175,7 +175,7 @@
         <field name="name">UniTrade: Seller Rejected</field>
         <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
         <field name="subject">{{ object.title }}</field>
-        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_from">{{ object._get_email_from() or 'noreply@unitrade.dev' }}</field>
         <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
         <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
         <field name="auto_delete" eval="True"/>
@@ -208,7 +208,7 @@
         <field name="name">UniTrade: Order New For Seller</field>
         <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
         <field name="subject">{{ object.title }}</field>
-        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_from">{{ object._get_email_from() or 'noreply@unitrade.dev' }}</field>
         <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
         <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
         <field name="auto_delete" eval="True"/>
@@ -237,7 +237,7 @@
         <field name="name">UniTrade: Order Shipped</field>
         <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
         <field name="subject">{{ object.title }}</field>
-        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_from">{{ object._get_email_from() or 'noreply@unitrade.dev' }}</field>
         <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
         <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
         <field name="auto_delete" eval="True"/>
@@ -266,7 +266,7 @@
         <field name="name">UniTrade: Order Cancelled</field>
         <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
         <field name="subject">{{ object.title }}</field>
-        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_from">{{ object._get_email_from() or 'noreply@unitrade.dev' }}</field>
         <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
         <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
         <field name="auto_delete" eval="True"/>
@@ -299,7 +299,7 @@
         <field name="name">UniTrade: Payment Success</field>
         <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
         <field name="subject">{{ object.title }}</field>
-        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_from">{{ object._get_email_from() or 'noreply@unitrade.dev' }}</field>
         <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
         <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
         <field name="auto_delete" eval="True"/>
@@ -328,7 +328,7 @@
         <field name="name">UniTrade: Payment Pending</field>
         <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
         <field name="subject">{{ object.title }}</field>
-        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_from">{{ object._get_email_from() or 'noreply@unitrade.dev' }}</field>
         <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
         <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
         <field name="auto_delete" eval="True"/>
@@ -357,7 +357,7 @@
         <field name="name">UniTrade: Payment Failed</field>
         <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
         <field name="subject">{{ object.title }}</field>
-        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_from">{{ object._get_email_from() or 'noreply@unitrade.dev' }}</field>
         <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
         <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
         <field name="auto_delete" eval="True"/>
@@ -386,7 +386,7 @@
         <field name="name">UniTrade: Payment Expired</field>
         <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
         <field name="subject">{{ object.title }}</field>
-        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_from">{{ object._get_email_from() or 'noreply@unitrade.dev' }}</field>
         <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
         <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
         <field name="auto_delete" eval="True"/>
@@ -419,7 +419,7 @@
         <field name="name">UniTrade: System Announcement</field>
         <field name="model_id" ref="unitrade_notification.model_unitrade_notification"/>
         <field name="subject">{{ object.title }}</field>
-        <field name="email_from">{{ object._get_email_from() or (object.company_id and object.company_id.email) or 'noreply@unitrade.dev' }}</field>
+        <field name="email_from">{{ object._get_email_from() or 'noreply@unitrade.dev' }}</field>
         <field name="email_to">{{ object.user_id.partner_id.email or object.user_id.email or '' }}</field>
         <field name="lang">{{ object.user_id.lang or 'id_ID' }}</field>
         <field name="auto_delete" eval="True"/>
@@ -443,5 +443,4 @@
             </div>
         </field>
     </record>
-
 </odoo>

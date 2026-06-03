@@ -18,6 +18,11 @@
                 <field name="requested_amount"/>
                 <field name="approved_amount"/>
                 <field name="submitted_at"/>
+                <field name="is_overdue" widget="boolean_toggle" optional="show"/>
+                <field name="decision_deadline_at" optional="hide"/>
+                <field name="buyer_response_deadline_at" optional="hide"/>
+                <field name="seller_response_deadline_at" optional="hide"/>
+                <field name="admin_id" optional="show"/>
             </tree>
         </field>
     </record>
@@ -28,9 +33,9 @@
         <field name="arch" type="xml">
             <form string="Refund Case">
                 <header>
-                    <button name="action_start_review" type="object" string="Start Review" class="btn-primary" invisible="state not in ('submitted', 'under_review', 'need_buyer_evidence', 'need_seller_response', 'admin_review_final')"/>
-                    <button name="action_need_buyer_evidence" type="object" string="Request Buyer Evidence" invisible="state not in ('submitted', 'under_review', 'need_seller_response')"/>
-                    <button name="action_need_seller_response" type="object" string="Request Seller Response" invisible="state not in ('submitted', 'under_review', 'need_buyer_evidence')"/>
+                    <button name="action_start_review" type="object" string="Jadi Penengah" class="btn-primary" invisible="state not in ('submitted', 'under_review', 'need_buyer_evidence', 'need_seller_response', 'admin_review_final')"/>
+                    <button name="action_need_buyer_evidence" type="object" string="Minta Bukti Buyer" invisible="state not in ('submitted', 'under_review', 'need_seller_response')"/>
+                    <button name="action_need_seller_response" type="object" string="Minta Respons Seller" invisible="state not in ('submitted', 'under_review', 'need_buyer_evidence')"/>
                     <button name="action_approve_refund" type="object" string="Approve Refund" class="btn-primary" invisible="state != 'admin_review_final'"/>
                     <button name="action_reject_refund" type="object" string="Reject Refund" invisible="state != 'admin_review_final'"/>
                     <button name="action_cancel" type="object" string="Cancel Case" invisible="state in ('approved', 'rejected', 'resolved', 'cancelled')"/>
@@ -68,8 +73,9 @@
                         <field name="reason_code" readonly="1"/>
                         <field name="reason_note" readonly="1"/>
                     </group>
-                    <group string="Admin Decision">
-                        <field name="admin_decision_note" placeholder="Catatan keputusan CS/Admin..."/>
+                    <group string="Mediasi Admin">
+                        <field name="admin_id" readonly="1"/>
+                        <field name="admin_decision_note" placeholder="Catatan keputusan admin penengah sebelum approve/reject..."/>
                     </group>
                     <group string="Final Decision Snapshot">
                         <field name="final_decision_role" readonly="1"/>
@@ -90,11 +96,19 @@
                         </page>
                         <page string="Timeline">
                             <group>
-                                <field name="submitted_at" readonly="1"/>
-                                <field name="review_started_at" readonly="1"/>
-                                <field name="approved_at" readonly="1"/>
-                                <field name="rejected_at" readonly="1"/>
-                                <field name="resolved_at" readonly="1"/>
+                                <group string="Histori">
+                                    <field name="submitted_at" readonly="1"/>
+                                    <field name="review_started_at" readonly="1"/>
+                                    <field name="approved_at" readonly="1"/>
+                                    <field name="rejected_at" readonly="1"/>
+                                    <field name="resolved_at" readonly="1"/>
+                                </group>
+                                <group string="SLA / Deadline">
+                                    <field name="decision_deadline_at"/>
+                                    <field name="buyer_response_deadline_at"/>
+                                    <field name="seller_response_deadline_at"/>
+                                    <field name="is_overdue" widget="boolean_toggle" readonly="1"/>
+                                </group>
                             </group>
                         </page>
                     </notebook>
@@ -113,10 +127,12 @@
                 <field name="buyer_id"/>
                 <field name="seller_id"/>
                 <filter name="active" string="Active" domain="[('state','in',('submitted','under_review','need_buyer_evidence','need_seller_response','admin_review_final'))]"/>
+                <filter name="overdue" string="Lewat SLA" domain="[('is_overdue','=',True)]"/>
                 <filter name="approved" string="Approved" domain="[('state','=','approved')]"/>
                 <filter name="rejected" string="Rejected" domain="[('state','=','rejected')]"/>
                 <group expand="0" string="Group By">
                     <filter name="group_state" string="State" context="{'group_by':'state'}"/>
+                    <filter name="group_admin" string="Admin Penengah" context="{'group_by':'admin_id'}"/>
                     <filter name="group_seller" string="Seller" context="{'group_by':'seller_id'}"/>
                 </group>
             </search>
@@ -158,5 +174,10 @@
         </field>
     </record>
 
-    <menuitem id="menu_unitrade_dispute" name="Refund &amp; Dispute" parent="unitrade_payment.menu_unitrade_payment_root" action="action_unitrade_dispute" sequence="35"/>
+    <menuitem id="menu_unitrade_dispute"
+              name="Refund &amp; Dispute"
+              parent="unitrade_payment.menu_unitrade_payment_root"
+              action="action_unitrade_dispute"
+              sequence="5"
+              groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
 </odoo>

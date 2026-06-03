@@ -1,8 +1,13 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_unitrade_payment_intent_system,unitrade.payment.intent system,model_unitrade_payment_intent,base.group_system,1,1,1,1
-access_unitrade_payment_intent_sale_manager,unitrade.payment.intent sale manager,model_unitrade_payment_intent,sales_team.group_sale_manager,1,1,1,0
+access_unitrade_payment_intent_admin,unitrade.payment.intent admin,model_unitrade_payment_intent,unitrade_seller.group_unitrade_admin,1,1,1,0
 access_unitrade_escrow_ledger_system,unitrade.escrow.ledger system,model_unitrade_escrow_ledger,base.group_system,1,1,1,1
-access_unitrade_escrow_ledger_sale_manager,unitrade.escrow.ledger sale manager,model_unitrade_escrow_ledger,sales_team.group_sale_manager,1,1,1,0
+access_unitrade_escrow_ledger_admin,unitrade.escrow.ledger admin,model_unitrade_escrow_ledger,unitrade_seller.group_unitrade_admin,1,1,1,0
 access_unitrade_payment_event_system,unitrade.payment.event system,model_unitrade_payment_event,base.group_system,1,1,1,1
-access_unitrade_payment_event_sale_manager,unitrade.payment.event sale manager,model_unitrade_payment_event,sales_team.group_sale_manager,1,1,1,0
+access_unitrade_payment_event_admin,unitrade.payment.event admin,model_unitrade_payment_event,unitrade_seller.group_unitrade_admin,1,1,1,0
 access_unitrade_voucher_system,unitrade.voucher system,model_unitrade_voucher,base.group_system,1,1,1,1
+access_unitrade_voucher_admin,unitrade.voucher admin,model_unitrade_voucher,unitrade_seller.group_unitrade_admin,1,1,1,0
+access_unitrade_seller_payout_system,unitrade.seller.payout system,model_unitrade_seller_payout,base.group_system,1,1,1,1
+access_unitrade_seller_payout_admin,unitrade.seller.payout admin,model_unitrade_seller_payout,unitrade_seller.group_unitrade_admin,1,1,1,1
+access_unitrade_escrow_manual_action_wizard_admin,unitrade.escrow.manual.action.wizard admin,model_unitrade_escrow_manual_action_wizard,unitrade_seller.group_unitrade_admin,1,1,1,1
+access_unitrade_escrow_manual_action_wizard_system,unitrade.escrow.manual.action.wizard system,model_unitrade_escrow_manual_action_wizard,base.group_system,1,1,1,1

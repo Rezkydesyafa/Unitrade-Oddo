@@ -1,5 +1,12 @@
 <odoo>
     <function model="ir.config_parameter" name="set_param">
+<<<<<<< HEAD
+        <value>unitrade.seller.listing_fee.enabled</value>
+        <value>True</value>
+    </function>
+    <function model="ir.config_parameter" name="set_param">
+=======
+>>>>>>> origin/main
         <value>unitrade.seller.listing_fee.threshold</value>
         <value>1000000</value>
     </function>
@@ -12,6 +19,13 @@
         <value>5000</value>
     </function>
     <function model="ir.config_parameter" name="set_param">
+<<<<<<< HEAD
+        <value>unitrade.seller.listing_fee.validity_days</value>
+        <value>30</value>
+    </function>
+    <function model="ir.config_parameter" name="set_param">
+=======
+>>>>>>> origin/main
         <value>unitrade.seller.posting_admin_fee</value>
         <value>0</value>
     </function>

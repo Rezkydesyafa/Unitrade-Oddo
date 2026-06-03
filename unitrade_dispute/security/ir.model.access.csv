@@ -1,7 +1,9 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_unitrade_dispute_user,unitrade.dispute user,model_unitrade_dispute,base.group_user,1,1,1,0
-access_unitrade_dispute_admin,unitrade.dispute admin,model_unitrade_dispute,base.group_system,1,1,1,1
+access_unitrade_dispute_system,unitrade.dispute system,model_unitrade_dispute,base.group_system,1,1,1,1
+access_unitrade_dispute_admin,unitrade.dispute admin,model_unitrade_dispute,unitrade_seller.group_unitrade_admin,1,1,1,1
 access_unitrade_dispute_evidence_user,unitrade.dispute.evidence user,model_unitrade_dispute_evidence,base.group_user,1,1,1,0
-access_unitrade_dispute_evidence_admin,unitrade.dispute.evidence admin,model_unitrade_dispute_evidence,base.group_system,1,1,1,1
+access_unitrade_dispute_evidence_system,unitrade.dispute.evidence system,model_unitrade_dispute_evidence,base.group_system,1,1,1,1
+access_unitrade_dispute_evidence_admin,unitrade.dispute.evidence admin,model_unitrade_dispute_evidence,unitrade_seller.group_unitrade_admin,1,1,1,1
 access_unitrade_dispute_timeline_user,unitrade.dispute.timeline user,model_unitrade_dispute_timeline,base.group_user,1,1,1,0
 access_unitrade_dispute_timeline_admin,unitrade.dispute.timeline admin,model_unitrade_dispute_timeline,base.group_system,1,1,1,1

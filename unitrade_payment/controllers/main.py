@@ -3,19 +3,13 @@ import hashlib
 import io
 import json
 import logging
-from datetime import timedelta
 from urllib.parse import quote
 
 import qrcode
-import qrcode.image.svg
 import requests
 
 from odoo import _, fields, http
-from odoo.exceptions import UserError
 from odoo.http import request
-from odoo.osv import expression
-from odoo.tools.image import image_data_uri
-from odoo.addons.unitrade_payment.midtrans_methods import MIDTRANS_PAYMENT_METHODS
 
 _logger = logging.getLogger(__name__)
 
@@ -251,6 +245,11 @@ class UnitradePaymentController(http.Controller):
             headers=[('Content-Type', 'application/json')],
             status=status,
         )
+
+    def _check_marketplace_access(self, feature_label):
+        user = request.env.user
+        if not user._is_public() and hasattr(user, '_check_unitrade_marketplace_access'):
+            user._check_unitrade_marketplace_access(feature_label)
 
     def _payment_intent_by_reference(self, reference):
         if not reference:
@@ -1685,6 +1684,7 @@ class UnitradePaymentController(http.Controller):
             return request.not_found()
         status_url = self._order_status_url(order)
         try:
+            self._check_marketplace_access(_('mengonfirmasi penerimaan barang'))
             ledger = False
             ledger_id = int(kwargs.get('ledger_id') or 0)
             if ledger_id:
@@ -1707,6 +1707,7 @@ class UnitradePaymentController(http.Controller):
             return request.not_found()
         status_url = self._order_status_url(order)
         try:
+            self._check_marketplace_access(_('membatalkan pesanan'))
             order.action_unitrade_cancel_by_buyer(
                 partner=request.env.user.partner_id,
                 reason=(kwargs.get('reason') or '').strip(),
@@ -1735,6 +1736,7 @@ class UnitradePaymentController(http.Controller):
         if not return_url and return_url_value == '/unitrade/seller/orders/%s' % ledger.order_id.id:
             return_url = return_url_value
         try:
+            self._check_marketplace_access(_('mengonfirmasi serah terima seller'))
             evidence, filename = self._read_evidence_upload('seller_evidence', 'barang diserahkan')
             ledger.action_seller_confirm_handoff(
                 evidence=evidence,

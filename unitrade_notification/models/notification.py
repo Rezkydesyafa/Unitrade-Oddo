@@ -1,30 +1,8 @@
-"""Core ORM model for the UniTrade Notification System.
-
-This module hosts the ``unitrade.notification`` model that backs the
-in-app notification center, the navbar bell, and the email queue.
-
-Task 3.1 only extends the schema (fields, indexes, sql_constraints,
-``init``) and the ``create`` override that keeps the legacy
-``notification_type`` column in sync with the new 7-value ``category``
-selection. Helper functions and the ``emit`` / ``broadcast`` /
-``_send_email_via_template`` / retention / review-reminder methods are
-implemented in subsequent tasks (6.1, 7.1, 7.2, 7.3, 9.3, 9.4) and
-intentionally left out here.
-"""
-
-import copy
 import hashlib
 import logging
-import re
-import traceback
 from datetime import timedelta
-from urllib.parse import urlparse
 
-from psycopg2 import IntegrityError
-
-from odoo import api, fields, models, tools
-
-from .event_registry import CRITICAL_CATEGORIES, EVENT_REGISTRY
+from odoo import _, api, fields, models, tools
 
 _logger = logging.getLogger(__name__)
 
@@ -138,9 +116,15 @@ _SENSITIVE_KEYS = frozenset({
 class UnitradeNotification(models.Model):
     _name = 'unitrade.notification'
     _description = 'UniTrade System Notification'
+<<<<<<< HEAD
+    # Unread first for admin/user inboxes; ``id desc`` is the deterministic
+    # tie-breaker used by list query invariants.
+    _order = 'is_read asc, create_date desc, id desc'
+=======
     # Newest first; ``id desc`` is the deterministic tie-breaker used by
     # Property 5 (List Query Invariants).
     _order = 'create_date desc, id desc'
+>>>>>>> origin/main
 
     # ------------------------------------------------------------------
     # Identity / addressing
@@ -152,6 +136,19 @@ class UnitradeNotification(models.Model):
         ondelete='cascade',
         index=True,
     )
+<<<<<<< HEAD
+    audience = fields.Selection(
+        [
+            ('user', 'User'),
+            ('admin', 'Admin'),
+        ],
+        string='Audience',
+        required=True,
+        default='user',
+        index=True,
+    )
+=======
+>>>>>>> origin/main
     title = fields.Char(string='Judul', required=True)
     message = fields.Text(string='Pesan')
 
@@ -189,12 +186,32 @@ class UnitradeNotification(models.Model):
             ('payment', 'Pembayaran'),
             ('delivery', 'Pengiriman'),
             ('chat', 'Chat'),
+<<<<<<< HEAD
+            ('moderation', 'Moderasi'),
+            ('refund', 'Refund'),
+            ('payout', 'Payout'),
+=======
+>>>>>>> origin/main
             ('system', 'Sistem'),
         ],
         string='Tipe (legacy)',
         default='system',
         help="Backward-compatible coarse type derived from `category`.",
     )
+<<<<<<< HEAD
+    priority = fields.Selection(
+        [
+            ('info', 'Info'),
+            ('warning', 'Warning'),
+            ('urgent', 'Urgent'),
+            ('critical', 'Critical'),
+        ],
+        string='Prioritas',
+        default='info',
+        index=True,
+    )
+=======
+>>>>>>> origin/main
 
     # ------------------------------------------------------------------
     # Reference to the originating business object
@@ -207,6 +224,14 @@ class UnitradeNotification(models.Model):
              "when the notification is clicked. Validated by the "
              "dispatcher against the configured allow-list.",
     )
+<<<<<<< HEAD
+    target_model = fields.Char(string='Target Model', index=True)
+    target_id = fields.Integer(string='Target ID', index=True)
+    target_url = fields.Char(string='Target URL')
+    action_xmlid = fields.Char(string='Action XMLID')
+    dedupe_key = fields.Char(string='Dedupe Key', copy=False, index=True)
+=======
+>>>>>>> origin/main
 
     # ------------------------------------------------------------------
     # Read state
@@ -216,7 +241,17 @@ class UnitradeNotification(models.Model):
         default=False,
         index=True,
     )
+<<<<<<< HEAD
+    read_at = fields.Datetime(string='Dibaca pada', copy=False)
+    read_by_id = fields.Many2one(
+        'res.users',
+        string='Dibaca Oleh',
+        readonly=True,
+        copy=False,
+    )
+=======
     read_at = fields.Datetime(string='Dibaca pada')
+>>>>>>> origin/main
 
     # ------------------------------------------------------------------
     # Idempotency
@@ -261,6 +296,14 @@ class UnitradeNotification(models.Model):
             'UNIQUE(user_id, idempotency_key)',
             'Notifikasi duplikat untuk user yang sama tidak diperbolehkan.',
         ),
+<<<<<<< HEAD
+        (
+            'unitrade_notification_dedupe_unique',
+            'UNIQUE(user_id, audience, dedupe_key)',
+            'Notifikasi dengan dedupe key yang sama sudah ada untuk user ini.',
+        ),
+=======
+>>>>>>> origin/main
     ]
 
     # ------------------------------------------------------------------
@@ -303,6 +346,19 @@ class UnitradeNotification(models.Model):
         their original behaviour (Req 1.7 / Property 2).
         """
         for vals in vals_list:
+<<<<<<< HEAD
+            if vals.get('target_model') and not vals.get('reference_model'):
+                vals['reference_model'] = vals['target_model']
+            if vals.get('target_id') and not vals.get('reference_id'):
+                vals['reference_id'] = vals['target_id']
+            if vals.get('target_url') and not vals.get('action_url'):
+                vals['action_url'] = vals['target_url']
+            if vals.get('dedupe_key') and not vals.get('idempotency_key'):
+                vals['idempotency_key'] = vals['dedupe_key']
+            vals.setdefault('category', 'system')
+            vals.setdefault('event_code', 'system.announcement')
+=======
+>>>>>>> origin/main
             # Only auto-fill when the caller did not provide a value at
             # all. ``False`` / empty string is treated as "not provided"
             # because Odoo sometimes serialises missing Selection values
@@ -316,6 +372,21 @@ class UnitradeNotification(models.Model):
                 vals['notification_type'] = mapped
         return super().create(vals_list)
 
+<<<<<<< HEAD
+    def write(self, vals):
+        vals = dict(vals)
+        if vals.get('target_model') and not vals.get('reference_model'):
+            vals['reference_model'] = vals['target_model']
+        if vals.get('target_id') and not vals.get('reference_id'):
+            vals['reference_id'] = vals['target_id']
+        if vals.get('target_url') and not vals.get('action_url'):
+            vals['action_url'] = vals['target_url']
+        if vals.get('dedupe_key') and not vals.get('idempotency_key'):
+            vals['idempotency_key'] = vals['dedupe_key']
+        return super().write(vals)
+
+=======
+>>>>>>> origin/main
     # ------------------------------------------------------------------
     # User-facing actions
     # ------------------------------------------------------------------
@@ -334,6 +405,10 @@ class UnitradeNotification(models.Model):
             unread.write({
                 'is_read': True,
                 'read_at': fields.Datetime.now(),
+<<<<<<< HEAD
+                'read_by_id': self.env.user.id,
+=======
+>>>>>>> origin/main
             })
 
     # ------------------------------------------------------------------
@@ -1472,3 +1547,126 @@ class UnitradeNotification(models.Model):
             emitted, len(candidates),
         )
         return emitted
+<<<<<<< HEAD
+
+    def action_mark_unread(self):
+        self.write({
+            'is_read': False,
+            'read_at': False,
+            'read_by_id': False,
+        })
+
+    @api.model
+    def create_admin_notification(
+        self,
+        title,
+        message='',
+        priority='info',
+        notification_type='system',
+        target_model='',
+        target_id=0,
+        target_url='',
+        action_xmlid='',
+        dedupe_key='',
+        user_id=False,
+    ):
+        """Create or update one persistent admin notification.
+
+        The dashboard may call this repeatedly from live task domains, so
+        ``dedupe_key`` keeps the inbox clean while still refreshing changed
+        counts/messages.
+        """
+        user_id = user_id or self.env.user.id
+        values = {
+            'user_id': user_id,
+            'audience': 'admin',
+            'title': title,
+            'message': message or False,
+            'priority': priority if priority in ('info', 'warning', 'urgent', 'critical') else 'info',
+            'notification_type': notification_type or 'system',
+            'target_model': target_model or False,
+            'target_id': int(target_id or 0),
+            'target_url': target_url or False,
+            'action_xmlid': action_xmlid or False,
+            'dedupe_key': dedupe_key or False,
+        }
+
+        existing = self.sudo().search([
+            ('audience', '=', 'admin'),
+            ('user_id', '=', user_id),
+            ('dedupe_key', '=', dedupe_key),
+        ], limit=1) if dedupe_key else self.browse()
+        if existing:
+            changed = any(existing[field] != values[field] for field in (
+                'title',
+                'message',
+                'priority',
+                'notification_type',
+                'target_model',
+                'target_id',
+                'target_url',
+                'action_xmlid',
+            ))
+            if changed:
+                values.update({
+                    'is_read': False,
+                    'read_at': False,
+                    'read_by_id': False,
+                })
+                existing.write(values)
+            return existing
+        return self.sudo().create(values)
+
+    def _target_url(self):
+        self.ensure_one()
+        if self.target_url:
+            return self.target_url
+        if self.action_xmlid:
+            return '/odoo/action-%s' % self.action_xmlid
+        if self.target_model and self.target_id:
+            return '/odoo?model=%s&id=%s' % (self.target_model, self.target_id)
+        return '/unitrade/admin/notifications'
+
+    def _admin_payload(self):
+        self.ensure_one()
+        level = self.priority
+        if level == 'critical':
+            level = 'urgent'
+        return {
+            'id': self.id,
+            'dedupe_key': self.dedupe_key or str(self.id),
+            'level': level,
+            'priority': self.priority,
+            'title': self.title,
+            'message': self.message or '',
+            'time_label': self._humanize_time(self.create_date),
+            'target_url': self._target_url(),
+            'is_read': bool(self.is_read),
+            'notification_type': self.notification_type,
+        }
+
+    @staticmethod
+    def _humanize_time(dt):
+        if not dt:
+            return ''
+        try:
+            now = fields.Datetime.now()
+            delta = now - dt
+            seconds = int(delta.total_seconds())
+            if seconds < 60:
+                return 'Baru saja'
+            minutes = seconds // 60
+            if minutes < 60:
+                return '%s menit lalu' % minutes
+            hours = minutes // 60
+            if hours < 24:
+                return '%s jam lalu' % hours
+            days = hours // 24
+            if days < 7:
+                return '%s hari lalu' % days
+            return dt.strftime('%d %b %Y')
+        except Exception:
+            _logger.exception('Failed humanizing notification time')
+            return ''
+=======
+>>>>>>> origin/main
