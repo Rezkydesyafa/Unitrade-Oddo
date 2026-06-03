@@ -26,7 +26,6 @@ _logger = logging.getLogger(__name__)
 class SaleOrderUniTrade(models.Model):
     _inherit = 'sale.order'
 
-<<<<<<< HEAD
     x_payment_intent_id = fields.Many2one(
         'unitrade.payment.intent',
         string='Payment Intent',
@@ -34,29 +33,15 @@ class SaleOrderUniTrade(models.Model):
         readonly=True,
         ondelete='set null',
     )
-    x_payment_provider = fields.Selection(
-        [
-            ('midtrans', 'Midtrans'),
-            ('xendit', 'Xendit'),
-            ('doku', 'DOKU'),
-        ],
-        string='Payment Provider',
-        compute='_compute_unitrade_payment_provider',
-    )
-=======
     x_payment_provider = fields.Selection([
         ('xendit', 'Xendit'),
         ('doku', 'DOKU'),
         ('midtrans', 'Midtrans'),
     ], string='Provider Pembayaran', default='midtrans', readonly=True, copy=False)
     x_midtrans_order_id = fields.Char(string='Midtrans Order ID', readonly=True, copy=False)
->>>>>>> origin/main
     x_midtrans_transaction_id = fields.Char(string='Midtrans Transaction ID', readonly=True, copy=False)
     x_midtrans_payment_type = fields.Char(string='Midtrans Payment Type', readonly=True, copy=False)
     x_midtrans_snap_token = fields.Char(string='Snap Token', readonly=True, copy=False)
-<<<<<<< HEAD
-    x_midtrans_payment_type = fields.Char(string='Midtrans Payment Type', readonly=True, copy=False)
-=======
     x_doku_invoice_number = fields.Char(string='DOKU Invoice', readonly=True, copy=False)
     x_doku_payment_url = fields.Char(string='DOKU Payment URL', readonly=True, copy=False)
     x_doku_token_id = fields.Char(string='DOKU Token', readonly=True, copy=False)
@@ -65,8 +50,6 @@ class SaleOrderUniTrade(models.Model):
     x_xendit_payment_request_id = fields.Char(string='Xendit Payment Request', readonly=True, copy=False)
     x_xendit_payment_url = fields.Char(string='Xendit Payment URL', readonly=True, copy=False)
     x_xendit_channel_code = fields.Char(string='Xendit Channel', readonly=True, copy=False)
-    x_payment_intent_id = fields.Many2one('unitrade.payment.intent', string='Payment Intent', readonly=True, copy=False)
->>>>>>> origin/main
     x_payment_status = fields.Selection([
         ('pending', 'Menunggu Pembayaran'),
         ('paid', 'Dibayar'),
@@ -77,22 +60,16 @@ class SaleOrderUniTrade(models.Model):
     ], string='Status Pembayaran', default='pending', tracking=True)
     x_payment_method = fields.Char(string='Metode Pembayaran', readonly=True)
     x_paid_at = fields.Datetime(string='Waktu Pembayaran', readonly=True)
-<<<<<<< HEAD
-    x_completed_at = fields.Datetime(string='Waktu Selesai', readonly=True, copy=False)
-    x_escrow_state = fields.Selection([
-        ('none', 'No Escrow'),
-=======
+    x_completed_at = fields.Datetime(string='Waktu Selesai UniTrade', readonly=True, copy=False)
     x_escrow_state = fields.Selection([
         ('none', 'Belum Ada'),
->>>>>>> origin/main
         ('held', 'Held'),
         ('releasable', 'Releasable'),
         ('released', 'Released'),
         ('disputed', 'Disputed'),
         ('refunded', 'Refunded'),
         ('cancelled', 'Cancelled'),
-<<<<<<< HEAD
-    ], string='Escrow State', default='none', tracking=True, copy=False)
+    ], string='Status Escrow', default='none', tracking=True, readonly=True, copy=False)
     x_unitrade_order_state = fields.Selection([
         ('cart', 'Cart'),
         ('payment_pending', 'Menunggu Pembayaran'),
@@ -101,85 +78,11 @@ class SaleOrderUniTrade(models.Model):
         ('completed', 'Selesai'),
         ('cancelled', 'Dibatalkan'),
         ('refunded', 'Refund'),
-    ], string='Status UniTrade', default='cart', tracking=True, copy=False)
-    x_midtrans_order_id = fields.Char(
-        string='Midtrans Order ID',
-        compute='_compute_unitrade_midtrans_order_id',
-        store=False,
-    )
-    x_xendit_reference_id = fields.Char(
-        string='Xendit Reference ID',
-        compute='_compute_unitrade_xendit_fields',
-        store=False,
-    )
-    x_xendit_payment_request_id = fields.Char(
-        string='Xendit Payment Request ID',
-        compute='_compute_unitrade_xendit_fields',
-        store=False,
-    )
-    x_xendit_payment_url = fields.Char(
-        string='Xendit Payment URL',
-        compute='_compute_unitrade_xendit_fields',
-        store=False,
-    )
-    x_xendit_channel_code = fields.Char(
-        string='Xendit Channel',
-        compute='_compute_unitrade_xendit_fields',
-        store=False,
-    )
-    x_cancel_deadline_at = fields.Datetime(string='Cancel Deadline', copy=False)
-    x_cancelled_by_id = fields.Many2one('res.users', string='Cancelled By', copy=False)
-    x_cancelled_at = fields.Datetime(string='Cancelled At', copy=False)
-    x_cancel_reason = fields.Text(string='Cancel Reason', copy=False)
-
-    @api.depends('x_payment_intent_id.provider', 'x_midtrans_transaction_id')
-    def _compute_unitrade_payment_provider(self):
-        for order in self:
-            if order.x_payment_intent_id:
-                order.x_payment_provider = order.x_payment_intent_id.provider
-            elif order.x_midtrans_transaction_id:
-                order.x_payment_provider = 'midtrans'
-            else:
-                order.x_payment_provider = False
-
-    @api.depends('x_payment_intent_id.midtrans_order_id', 'x_midtrans_transaction_id', 'name')
-    def _compute_unitrade_midtrans_order_id(self):
-        for order in self:
-            order.x_midtrans_order_id = (
-                order.x_payment_intent_id.midtrans_order_id
-                if order.x_payment_intent_id and order.x_payment_intent_id.midtrans_order_id
-                else order.x_midtrans_transaction_id or order.name
-            )
-
-    @api.depends(
-        'x_payment_intent_id.xendit_reference_id',
-        'x_payment_intent_id.xendit_payment_request_id',
-        'x_payment_intent_id.payment_url',
-        'x_payment_intent_id.xendit_channel_code',
-    )
-    def _compute_unitrade_xendit_fields(self):
-        for order in self:
-            intent = order.x_payment_intent_id
-            order.x_xendit_reference_id = intent.xendit_reference_id if intent else False
-            order.x_xendit_payment_request_id = intent.xendit_payment_request_id if intent else False
-            order.x_xendit_payment_url = intent.payment_url if intent else False
-            order.x_xendit_channel_code = intent.xendit_channel_code if intent else False
-=======
-    ], string='Status Escrow', default='none', readonly=True, copy=False)
-    x_unitrade_order_state = fields.Selection([
-        ('cart', 'Cart'),
-        ('payment_pending', 'Payment Pending'),
-        ('paid_escrow', 'Paid - Escrow'),
-        ('processing', 'Di Proses'),
-        ('completed', 'Completed'),
-        ('cancelled', 'Cancelled'),
-        ('refunded', 'Refunded'),
-    ], string='Status UniTrade', default='cart', readonly=True, copy=False)
+    ], string='Status UniTrade', default='cart', tracking=True, readonly=True, copy=False)
     x_cancel_deadline_at = fields.Datetime(string='Batas Cancel Langsung', readonly=True, copy=False)
     x_cancelled_by_id = fields.Many2one('res.users', string='Dibatalkan Oleh', readonly=True, copy=False)
     x_cancelled_at = fields.Datetime(string='Waktu Pembatalan', readonly=True, copy=False)
     x_cancel_reason = fields.Text(string='Alasan Pembatalan', readonly=True, copy=False)
-    x_completed_at = fields.Datetime(string='Waktu Selesai UniTrade', readonly=True, copy=False)
     x_unitrade_voucher_id = fields.Many2one('unitrade.voucher', string='Voucher UniTrade', readonly=True, copy=False)
     x_unitrade_voucher_code = fields.Char(string='Kode Voucher UniTrade', readonly=True, copy=False)
     x_unitrade_voucher_discount = fields.Monetary(
@@ -188,7 +91,6 @@ class SaleOrderUniTrade(models.Model):
         readonly=True,
         copy=False,
     )
->>>>>>> origin/main
 
     def _get_midtrans_key(self, key_name):
         return self.env['ir.config_parameter'].sudo().get_param(key_name, default='')

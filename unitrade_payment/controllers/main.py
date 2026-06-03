@@ -3,6 +3,7 @@ import hashlib
 import io
 import json
 import logging
+from datetime import timedelta
 from urllib.parse import quote
 
 import qrcode
@@ -10,6 +11,7 @@ import requests
 
 from odoo import _, fields, http
 from odoo.http import request
+from odoo.addons.unitrade_payment.midtrans_methods import MIDTRANS_PAYMENT_METHODS
 
 _logger = logging.getLogger(__name__)
 

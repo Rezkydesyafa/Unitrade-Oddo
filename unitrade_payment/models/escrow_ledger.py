@@ -622,6 +622,9 @@ class UnitradeEscrowLedger(models.Model):
 
             payout = Payout.create({
                 'seller_id': seller_id,
+                'state': 'draft',
+                'amount': sum(ledgers.mapped('amount_seller')),
+                'currency_id': ledgers[:1].currency_id.id or self.env.company.currency_id.id,
                 'ledger_ids': [(6, 0, ledgers.ids)],
             })
             created |= payout

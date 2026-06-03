@@ -27,9 +27,9 @@ _logger = logging.getLogger(__name__)
 
 class UnitradeSellerPayout(models.Model):
     _name = 'unitrade.seller.payout'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['unitrade.seller.payout', 'mail.thread', 'mail.activity.mixin']
     _description = 'UniTrade Manual Seller Payout Batch'
-    _order = 'create_date desc'
+    _order = 'requested_at desc, id desc'
     _rec_name = 'name'
 
     name = fields.Char(
@@ -39,12 +39,21 @@ class UnitradeSellerPayout(models.Model):
         copy=False,
         default='New',
     )
-    state = fields.Selection([
-        ('draft', 'Draft'),
-        ('ready', 'Ready to Pay'),
-        ('paid', 'Paid'),
-        ('cancelled', 'Cancelled'),
-    ], default='draft', required=True, index=True, tracking=True)
+    state = fields.Selection(
+        selection_add=[
+            ('draft', 'Draft'),
+            ('ready', 'Ready to Pay'),
+            ('paid', 'Paid'),
+            ('cancelled', 'Cancelled'),
+        ],
+        ondelete={
+            'draft': 'set default',
+            'ready': 'set default',
+            'paid': 'set default',
+            'cancelled': 'set default',
+        },
+        tracking=True,
+    )
 
     seller_id = fields.Many2one(
         'unitrade.seller',
@@ -186,9 +195,36 @@ class UnitradeSellerPayout(models.Model):
     def create(self, vals_list):
         sequence = self.env['ir.sequence'].sudo()
         for vals in vals_list:
-            if vals.get('name', 'New') == 'New':
+            is_manual_batch = bool(vals.get('ledger_ids')) or vals.get('state') in {
+                'draft',
+                'ready',
+                'paid',
+                'cancelled',
+            }
+            if is_manual_batch:
+                vals.setdefault('state', 'draft')
+                ledger_ids = self._ledger_ids_from_commands(vals.get('ledger_ids'))
+                if ledger_ids:
+                    ledgers = self.env['unitrade.escrow.ledger'].sudo().browse(ledger_ids).exists()
+                    vals.setdefault('amount', sum(ledgers.mapped('amount_seller')) if ledgers else 0.0)
+                    if ledgers and not vals.get('currency_id'):
+                        vals['currency_id'] = ledgers[:1].currency_id.id or self.env.company.currency_id.id
+            if is_manual_batch and vals.get('name', 'New') == 'New':
                 vals['name'] = sequence.next_by_code('unitrade.seller.payout') or 'PB%05d' % (self.search_count([]) + 1)
         return super().create(vals_list)
+
+    @staticmethod
+    def _ledger_ids_from_commands(commands):
+        ledger_ids = []
+        for command in commands or []:
+            if not isinstance(command, (list, tuple)) or not command:
+                continue
+            opcode = command[0]
+            if opcode == 6 and len(command) >= 3:
+                ledger_ids.extend(command[2] or [])
+            elif opcode == 4 and len(command) >= 2:
+                ledger_ids.append(command[1])
+        return [int(ledger_id) for ledger_id in ledger_ids if ledger_id]
 
     # ------------------------------------------------------------------
     # Security & audit helpers
@@ -412,6 +448,9 @@ class UnitradeSellerPayout(models.Model):
             ) % seller.display_name)
         payout = self.create({
             'seller_id': seller.id,
+            'state': 'draft',
+            'amount': sum(ledgers.mapped('amount_seller')),
+            'currency_id': ledgers[:1].currency_id.id or self.env.company.currency_id.id,
             'ledger_ids': [(6, 0, ledgers.ids)],
         })
         return {
