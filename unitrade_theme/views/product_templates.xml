@@ -68,7 +68,6 @@
                     </div>
 
                     <div class="ut-pd-sk-tabs">
-                        <span class="ut-pd-sk-tab-label ut-pd-sk-block"></span>
                         <span class="ut-pd-sk-tab ut-pd-sk-block"></span>
                         <span class="ut-pd-sk-tab ut-pd-sk-block"></span>
                     </div>
@@ -203,12 +202,11 @@
                                 <t t-if="ut_has_discount">
                                     <div style="display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 12px;">
                                         <span style="font-size:30px; line-height:36px; color:#121212; font-weight:600;">
-                                            <span t-esc="ut_discounted_price"
-                                                t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
-                                        </span>
-                                        <span style="font-size:18px; line-height:24px; color:var(--ut-color-text-subtle); text-decoration:line-through; font-weight:500;">
-                                            <span t-esc="ut_original_price"
-                                                t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                                            <span>
+                                                <t t-set="ut_money_amount" t-value="ut_discounted_price"/>
+                                                <t t-set="ut_money_currency" t-value="website.currency_id"/>
+                                                <t t-call="unitrade_theme.unitrade_money"/>
+                                            </span>
                                         </span>
                                         <span style="display:inline-flex; align-items:center; height:24px; padding:0 8px; border-radius:4px; background:#fff1f0; color:#f04438; font-size:13px; font-weight:700;">
                                             -<t t-esc="'{:,.0f}'.format(ut_discount_percent)"/>%
@@ -217,8 +215,11 @@
                                 </t>
                                 <t t-else="">
                                     <div style="font-size:30px; line-height:36px; color:#121212; font-weight:400;">
-                                        <span t-field="product.list_price"
-                                            t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                                        <span>
+                                            <t t-set="ut_money_amount" t-value="product.list_price"/>
+                                            <t t-set="ut_money_currency" t-value="website.currency_id"/>
+                                            <t t-call="unitrade_theme.unitrade_money"/>
+                                        </span>
                                     </div>
                                 </t>
                             </div>
@@ -229,6 +230,7 @@
                                 <t t-if="product.x_free_shipping"> • Gratis Ongkir</t>
                             </p>
 
+                            <t t-set="ut_is_out_of_stock" t-value="not ut_allow_out_of_stock_order and (ut_available_qty or 0) &lt;= 0"/>
                             <!-- Add to cart form -->
                             <form t-if="product._is_add_to_cart_possible()" action="/shop/cart/update" method="POST" class="tw-my-2" data-unitrade-stock-form="1">
                                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" t-nocache="csrf"/>
@@ -294,10 +296,13 @@
                                         </t>
                                         <t t-else="">
                                             <button id="add_to_cart" type="submit"
+                                                t-att-disabled="ut_is_out_of_stock and 'disabled' or None"
+                                                t-att-data-stock-blocked="ut_is_out_of_stock and '1' or '0'"
                                                 class="tw-flex-1 tw-flex tw-items-center tw-justify-center tw-gap-2"
-                                                style="background:var(--ut-color-button-bg); color:var(--ut-color-button-text); height:48px; border-radius:24px; border:none; font-size:16px; cursor:pointer; width:100%;">
-                                                <i class="fa fa-shopping-cart"></i>
-                                                Belanja
+                                                t-att-style="'background:var(--ut-color-button-bg); color:var(--ut-color-button-text); height:48px; border-radius:24px; border:none; font-size:16px; cursor:' + ('not-allowed' if ut_is_out_of_stock else 'pointer') + '; width:100%; opacity:' + ('0.62' if ut_is_out_of_stock else '1') + ';'">
+                                                <i t-att-class="'fa fa-ban' if ut_is_out_of_stock else 'fa fa-shopping-cart'"></i>
+                                                <t t-if="ut_is_out_of_stock">Stok Habis</t>
+                                                <t t-else="">Belanja</t>
                                             </button>
                                             <button type="button"
                                                 t-att-class="'ut-product-wishlist-direct is-active' if ut_is_in_wishlist else 'ut-product-wishlist-direct'"
@@ -344,8 +349,9 @@
                                 </div>
                                 <!-- Action buttons -->
                                 <div class="tw-flex tw-gap-4">
+                                    <t t-set="ut_product_seller_ref" t-value="product.x_seller_id and (product.x_seller_id.x_store_slug or product.x_seller_id.x_profile_uuid or product.x_seller_id.id)"/>
                                     <a t-if="product.x_seller_id"
-                                        t-attf-href="/seller-profile/#{product.x_seller_id.x_profile_uuid or product.x_seller_id.id}"
+                                        t-attf-href="/seller-profile/#{ut_product_seller_ref}"
                                         class="ut-btn-outline"
                                         style="width:163px; height:48px; border:2px solid var(--ut-color-heading); border-radius:24px; color:var(--ut-color-heading); font-size:16px; display:flex; align-items:center; justify-content:center; text-decoration:none; background:transparent; box-sizing:border-box;">
                                         Kunjungi profile
@@ -357,7 +363,7 @@
                                         Kunjungi profile
                                     </a>
                                     <a t-if="product.x_seller_id"
-                                        t-attf-href="/seller-profile/#{product.x_seller_id.x_profile_uuid or product.x_seller_id.id}/chat?product_id=#{product.id}"
+                                        t-attf-href="/seller-profile/#{ut_product_seller_ref}/chat?product_id=#{product.id}"
                                         class="ut-btn-dark"
                                         style="width:217px; height:48px; border:1px solid var(--ut-color-border-strong); border-radius:24px; background:var(--ut-color-button-bg); color:var(--ut-color-button-text); font-size:16px; display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; box-sizing:border-box;">
                                         <i class="fa fa-commenting-o"></i> Chat penjual
@@ -413,7 +419,6 @@
 
                         <!-- Tab Headers -->
                         <div class="ut-product-detail-tabbar">
-                            <span class="ut-product-detail-tabbar-label">Produk</span>
                             <button id="ut-tab-deskripsi" type="button"
                                 onclick="utSwitchTab(this, 'deskripsi')"
                                 class="ut-product-detail-tab-btn ut-product-detail-tab-active">
@@ -472,9 +477,9 @@
                     <!-- Related Products -->
                     <div class="tw-mb-8">
                         <h2 style="font-size:32px; font-weight:600; color:var(--ut-color-heading); margin-bottom:32px;">Pilihan lainnya untukmu</h2>
-                        <div t-if="ut_recommended_products" class="tw-flex tw-gap-[30px] tw-overflow-x-auto tw-pt-5 tw-pb-6 tw-px-2">
+                        <div t-if="ut_recommended_products" class="ut-related-products-row tw-grid tw-gap-4 tw-pt-5 tw-pb-6 tw-px-2">
                             <t t-foreach="ut_recommended_products" t-as="p">
-                                <div class="oe_product tw-w-[188px] tw-min-w-[188px] tw-shrink-0 tw-h-full">
+                                <div class="oe_product ut-related-product-item tw-h-full">
                                     <t t-set="ut_card_product" t-value="p"/>
                                     <t t-set="ut_card_href" t-value="p.website_url"/>
                                     <t t-set="ut_card_class" t-value="'tw-bg-white tw-border tw-border-solid tw-border-gray-200 tw-rounded-[14px] tw-overflow-hidden tw-shadow-sm hover:tw-shadow-md hover:-tw-translate-y-1 tw-transition-all tw-duration-300 tw-flex tw-flex-col tw-h-full tw-no-underline tw-group'"/>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 52" role="img" aria-label="Visa Mastercard JCB">
+  <rect width="220" height="52" rx="10" fill="#fff"/>
+  <text x="18" y="33" fill="#1a1f71" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">VISA</text>
+  <circle cx="92" cy="26" r="14" fill="#eb001b"/>
+  <circle cx="108" cy="26" r="14" fill="#f79e1b" fill-opacity=".9"/>
+  <rect x="139" y="12" width="52" height="28" rx="5" fill="#f7f8fb" stroke="#d8dce2"/>
+  <text x="148" y="32" fill="#0b7a3b" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700">JCB</text>
+</svg>

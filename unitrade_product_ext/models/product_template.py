@@ -1,5 +1,8 @@
-from odoo import models, fields, api, _
-from odoo.exceptions import ValidationError
+from datetime import timedelta
+
+from odoo import SUPERUSER_ID, models, fields, api, _
+from odoo.exceptions import UserError, ValidationError
+from odoo.osv import expression
 from odoo.tools.float_utils import float_compare
 import logging
 
@@ -12,6 +15,8 @@ DIY_DISTRICT_COORDINATES = {
     'kulon_progo': (-7.8267000, 110.1641000),
     'gunungkidul': (-7.9656000, 110.6036000),
 }
+
+UNITRADE_LISTING_DURATION_DAYS = 30
 
 
 class ProductTemplateUniTrade(models.Model):
@@ -106,9 +111,18 @@ class ProductTemplateUniTrade(models.Model):
         default=0.0,
         help='Biaya listing yang ditampilkan pada dashboard penjual UniTrade.',
     )
+    x_listing_activated_at = fields.Datetime(
+        string='Listing Aktif Sejak',
+        help='Waktu produk mulai aktif setelah pembayaran biaya listing berhasil.',
+    )
     x_listing_expires_at = fields.Datetime(
         string='Listing Berakhir',
-        help='Tanggal berakhir listing untuk label dashboard penjual. Tidak otomatis unpublish produk.',
+        help='Tanggal berakhir listing. Sistem otomatis menonaktifkan produk setelah tanggal ini.',
+    )
+    x_unitrade_manual_stock_qty = fields.Float(
+        string='Stok Manual UniTrade',
+        default=0.0,
+        help='Fallback stok untuk produk marketplace lama yang tidak bisa dikonversi menjadi stockable product.',
     )
 
     # === Operational state for admin ===
@@ -195,11 +209,340 @@ class ProductTemplateUniTrade(models.Model):
             warehouse = self.env['stock.warehouse'].sudo().search([('company_id', '=', company.id)], limit=1)
         return warehouse
 
-    @api.depends('product_variant_ids.qty_available', 'product_variant_ids.free_qty')
+    def _unitrade_discount_percent(self):
+        self.ensure_one()
+        return max(min(self.x_discount_percent or 0.0, 100.0), 0.0)
+
+    def _unitrade_discounted_price(self):
+        self.ensure_one()
+        original_price = self.list_price or 0.0
+        discount_percent = self._unitrade_discount_percent()
+        if not discount_percent or original_price <= 0:
+            return original_price
+        return original_price * (100.0 - discount_percent) / 100.0
+
+    def _unitrade_price_info(self):
+        self.ensure_one()
+        discount_percent = self._unitrade_discount_percent()
+        original_price = self.list_price or 0.0
+        discounted_price = self._unitrade_discounted_price()
+        return {
+            'original_price': original_price,
+            'discounted_price': discounted_price,
+            'discount_percent': discount_percent,
+            'has_discount': bool(discount_percent and original_price > 0 and discounted_price < original_price),
+        }
+
+    @api.model
+    def _unitrade_listing_duration_days(self):
+        try:
+            duration = int(self.env['ir.config_parameter'].sudo().get_param(
+                'unitrade.seller.listing_duration_days',
+                UNITRADE_LISTING_DURATION_DAYS,
+            ) or UNITRADE_LISTING_DURATION_DAYS)
+        except (TypeError, ValueError):
+            duration = UNITRADE_LISTING_DURATION_DAYS
+        return max(1, duration)
+
+    def _unitrade_listing_expiry_from(self, paid_at=False):
+        paid_at = fields.Datetime.to_datetime(paid_at) if paid_at else fields.Datetime.now()
+        return paid_at + timedelta(days=self._unitrade_listing_duration_days())
+
+    @api.model
+    def _unitrade_public_active_domain(self):
+        """Canonical public visibility rule for UniTrade marketplace products."""
+        domain = [
+            ('x_is_marketplace', '=', True),
+            ('sale_ok', '=', True),
+            ('website_published', '=', True),
+        ]
+        if 'x_seller_id' not in self._fields or 'x_listing_expires_at' not in self._fields:
+            return domain
+
+        now = fields.Datetime.now()
+        return expression.AND([
+            domain,
+            expression.OR([
+                [('x_seller_id', '=', False)],
+                [
+                    ('x_seller_id', '!=', False),
+                    ('x_listing_expires_at', '!=', False),
+                    ('x_listing_expires_at', '>=', now),
+                ],
+            ]),
+        ])
+
+    def _unitrade_is_publicly_available(self):
+        self.ensure_one()
+        if not self.x_is_marketplace or not self.sale_ok or not self.website_published:
+            return False
+        if self.x_seller_id:
+            return bool(
+                self.x_listing_expires_at
+                and self.x_listing_expires_at >= fields.Datetime.now()
+                and self._unitrade_has_paid_listing_fee()
+            )
+        return True
+
+    @api.model
+    def _unitrade_paid_listing_product_ids(self, products):
+        products = products.exists()
+        if not products or 'unitrade.payment.intent' not in self.env.registry:
+            return set()
+        intents = self.env['unitrade.payment.intent'].sudo().search([
+            ('intent_type', '=', 'listing_fee'),
+            ('state', '=', 'paid'),
+            ('product_template_id', 'in', products.ids),
+        ])
+        return set(intents.mapped('product_template_id').ids)
+
+    def _unitrade_has_paid_listing_fee(self):
+        self.ensure_one()
+        if not self.x_seller_id:
+            return True
+        if 'unitrade.payment.intent' not in self.env.registry:
+            return False
+        return bool(self.env['unitrade.payment.intent'].sudo().search_count([
+            ('intent_type', '=', 'listing_fee'),
+            ('state', '=', 'paid'),
+            ('product_template_id', '=', self.id),
+        ]))
+
+    def _unitrade_apply_listing_payment(self, listing_fee=0.0, paid_at=False):
+        paid_at = fields.Datetime.to_datetime(paid_at) if paid_at else fields.Datetime.now()
+        values = {
+            'sale_ok': True,
+            'website_published': True,
+            'x_listing_activated_at': paid_at,
+            'x_listing_expires_at': self._unitrade_listing_expiry_from(paid_at),
+        }
+        if 'x_listing_fee' in self._fields:
+            values['x_listing_fee'] = listing_fee or 0.0
+        self.sudo().write(values)
+
+    def _unitrade_listing_state_payload(self):
+        self.ensure_one()
+        now = fields.Datetime.now()
+        expires_at = self.x_listing_expires_at
+        is_published = bool(self.sale_ok and self.website_published)
+        if not expires_at:
+            if self.x_seller_id:
+                return {
+                    'is_active': False,
+                    'status_label': 'Nonaktif',
+                    'label': 'Belum aktif',
+                    'expiry_label': 'Belum aktif',
+                    'state': 'inactive',
+                    'expiry_state': 'inactive',
+                    'days_remaining': False,
+                    'expires_at': False,
+                }
+            label = 'Tanpa batas' if is_published else 'Belum aktif'
+            return {
+                'is_active': is_published,
+                'status_label': 'Aktif' if is_published else 'Nonaktif',
+                'label': label,
+                'expiry_label': label,
+                'state': 'neutral' if is_published else 'inactive',
+                'expiry_state': 'neutral' if is_published else 'inactive',
+                'days_remaining': False,
+                'expires_at': False,
+            }
+
+        if expires_at < now:
+            return {
+                'is_active': False,
+                'status_label': 'Nonaktif',
+                'label': 'Masa aktif habis',
+                'expiry_label': 'Masa aktif habis',
+                'state': 'expired',
+                'expiry_state': 'expired',
+                'days_remaining': 0,
+                'expires_at': fields.Datetime.to_string(expires_at),
+            }
+
+        days_remaining = max(0, int((expires_at.date() - now.date()).days))
+        if days_remaining <= 0:
+            label = 'Aktif sampai hari ini'
+            expiry_state = 'warning'
+        else:
+            label = 'Sisa %s hari' % days_remaining
+            expiry_state = 'warning' if days_remaining <= 3 else 'active'
+        return {
+            'is_active': is_published,
+            'status_label': 'Aktif' if is_published else 'Nonaktif',
+            'label': label,
+            'expiry_label': label,
+            'state': expiry_state,
+            'expiry_state': expiry_state,
+            'days_remaining': days_remaining,
+            'expires_at': fields.Datetime.to_string(expires_at),
+        }
+
+    @api.model
+    def _unitrade_backfill_listing_expiry_from_paid_intents(self, seller=False):
+        if 'unitrade.payment.intent' not in self.env.registry:
+            return 0
+
+        domain = [
+            ('x_is_marketplace', '=', True),
+            ('x_listing_expires_at', '=', False),
+            ('x_seller_id', '!=', False),
+        ]
+        if seller:
+            domain.append(('x_seller_id', '=', seller.id))
+        products = self.sudo().search(domain)
+        if not products:
+            return 0
+
+        intents = self.env['unitrade.payment.intent'].sudo().search([
+            ('intent_type', '=', 'listing_fee'),
+            ('state', '=', 'paid'),
+            ('product_template_id', 'in', products.ids),
+        ], order='paid_at desc, write_date desc, create_date desc, id desc')
+        latest_by_product = {}
+        for intent in intents:
+            if intent.product_template_id.id not in latest_by_product:
+                latest_by_product[intent.product_template_id.id] = intent
+
+        updated = 0
+        for product in products:
+            intent = latest_by_product.get(product.id)
+            if intent:
+                paid_at = intent.paid_at or intent.write_date or intent.create_date or fields.Datetime.now()
+            else:
+                continue
+            values = {
+                'x_listing_activated_at': paid_at,
+                'x_listing_expires_at': product._unitrade_listing_expiry_from(paid_at),
+            }
+            if intent and not product.x_listing_fee:
+                values['x_listing_fee'] = intent.amount
+            product.sudo().write(values)
+            updated += 1
+        return updated
+
+    @api.model
+    def _unitrade_deactivate_unpaid_seller_listings(self, seller=False):
+        domain = [
+            ('x_is_marketplace', '=', True),
+            ('x_seller_id', '!=', False),
+            '|',
+            ('x_listing_expires_at', '!=', False),
+            '|',
+            ('website_published', '=', True),
+            ('sale_ok', '=', True),
+        ]
+        if seller:
+            domain.insert(1, ('x_seller_id', '=', seller.id))
+        candidates = self.sudo().with_context(active_test=False).search(domain)
+        paid_product_ids = self._unitrade_paid_listing_product_ids(candidates)
+        unpaid_products = candidates.filtered(lambda product: product.id not in paid_product_ids)
+        if not unpaid_products:
+            return 0
+        unpaid_products.write({
+            'website_published': False,
+            'sale_ok': False,
+            'x_listing_activated_at': False,
+            'x_listing_expires_at': False,
+        })
+        _logger.info('Deactivated %s unpaid UniTrade seller listing(s).', len(unpaid_products))
+        return len(unpaid_products)
+
+    @api.model
+    def _unitrade_deactivate_expired_listings(self, seller=False):
+        now = fields.Datetime.now()
+        domain = [
+            ('x_is_marketplace', '=', True),
+            ('x_listing_expires_at', '!=', False),
+            ('x_listing_expires_at', '<', now),
+            '|',
+            ('website_published', '=', True),
+            ('sale_ok', '=', True),
+        ]
+        if seller:
+            domain.insert(1, ('x_seller_id', '=', seller.id))
+        expired_products = self.sudo().search(domain)
+        if not expired_products:
+            return 0
+        expired_products.write({
+            'website_published': False,
+            'sale_ok': False,
+        })
+        _logger.info('Deactivated %s expired UniTrade listing(s).', len(expired_products))
+        return len(expired_products)
+
+    @api.model
+    def _unitrade_reactivate_current_listings(self, seller=False):
+        now = fields.Datetime.now()
+        domain = [
+            ('x_is_marketplace', '=', True),
+            ('x_listing_expires_at', '!=', False),
+            ('x_listing_expires_at', '>=', now),
+            '|',
+            ('website_published', '=', False),
+            ('sale_ok', '=', False),
+        ]
+        if seller:
+            domain.insert(1, ('x_seller_id', '=', seller.id))
+        current_products = self.sudo().search(domain)
+        if not current_products:
+            return 0
+        values = {
+            'website_published': True,
+            'sale_ok': True,
+        }
+        current_products.write(values)
+        _logger.info('Reactivated %s current UniTrade listing(s).', len(current_products))
+        return len(current_products)
+
+    @api.model
+    def _unitrade_refresh_listing_states(self, seller=False):
+        backfilled = self._unitrade_backfill_listing_expiry_from_paid_intents(seller=seller)
+        unpaid_deactivated = self._unitrade_deactivate_unpaid_seller_listings(seller=seller)
+        reactivated = self._unitrade_reactivate_current_listings(seller=seller)
+        deactivated = self._unitrade_deactivate_expired_listings(seller=seller)
+        return {
+            'backfilled': backfilled,
+            'unpaid_deactivated': unpaid_deactivated,
+            'reactivated': reactivated,
+            'deactivated': deactivated,
+        }
+
+    @api.model
+    def _cron_unitrade_deactivate_expired_listings(self):
+        result = self._unitrade_refresh_listing_states()
+        _logger.info(
+            'UniTrade listing expiry cron completed: backfilled=%s unpaid_deactivated=%s reactivated=%s deactivated=%s',
+            result.get('backfilled', 0),
+            result.get('unpaid_deactivated', 0),
+            result.get('reactivated', 0),
+            result.get('deactivated', 0),
+        )
+        return result
+
+    def _unitrade_uses_manual_stock(self):
+        self.ensure_one()
+        product_type = self.detailed_type if 'detailed_type' in self._fields else self.type
+        return bool(self.x_is_marketplace and product_type != 'product')
+
+    @api.depends(
+        'product_variant_ids.qty_available',
+        'product_variant_ids.free_qty',
+        'x_unitrade_manual_stock_qty',
+        'detailed_type',
+        'type',
+        'x_is_marketplace',
+    )
     def _compute_unitrade_stock_qty(self):
         warehouse = self._unitrade_stock_warehouse()
         warehouse_id = warehouse.id if warehouse else False
         for record in self:
+            if record._unitrade_uses_manual_stock():
+                stock_qty = max(record.x_unitrade_manual_stock_qty or 0.0, 0.0)
+                record.x_unitrade_stock_qty = stock_qty
+                record.x_unitrade_free_qty = stock_qty
+                continue
             if not warehouse_id or not record.product_variant_id:
                 record.x_unitrade_stock_qty = 0
                 record.x_unitrade_free_qty = 0
@@ -213,15 +556,39 @@ class ProductTemplateUniTrade(models.Model):
         if not warehouse or not warehouse.lot_stock_id:
             raise ValidationError(_('Warehouse stok UniTrade belum tersedia. Pastikan modul Inventory aktif.'))
 
-        StockQuant = self.env['stock.quant'].sudo().with_context(inventory_mode=True)
+        StockQuant = self.env['stock.quant'].with_user(SUPERUSER_ID).sudo().with_context(inventory_mode=True)
         for record in self:
             if record.x_unitrade_stock_qty < 0:
                 raise ValidationError(_('Stok UniTrade tidak boleh negatif.'))
             if len(record.product_variant_ids) != 1:
                 raise ValidationError(_('Stok UniTrade hanya bisa diatur dari form ini untuk produk tanpa varian.'))
 
+            if record._unitrade_uses_manual_stock():
+                record.with_context(skip_unitrade_stock_inverse=True).sudo().write({
+                    'x_unitrade_manual_stock_qty': record.x_unitrade_stock_qty,
+                })
+                _logger.info(
+                    'UniTrade manual stock adjusted for product %s by %s: %s',
+                    record.display_name,
+                    self.env.user.name,
+                    record.x_unitrade_stock_qty,
+                )
+                continue
+
             if record.detailed_type != 'product':
-                record.with_context(skip_unitrade_stock_inverse=True).write({'detailed_type': 'product'})
+                try:
+                    record.with_user(SUPERUSER_ID).with_context(skip_unitrade_stock_inverse=True).write({
+                        'detailed_type': 'product',
+                    })
+                except UserError:
+                    record.with_context(skip_unitrade_stock_inverse=True).sudo().write({
+                        'x_unitrade_manual_stock_qty': record.x_unitrade_stock_qty,
+                    })
+                    _logger.warning(
+                        'UniTrade product %s cannot be converted to stockable during stock update; using manual stock fallback.',
+                        record.id,
+                    )
+                    continue
 
             product = record.product_variant_id
             current_qty = product.with_context(warehouse=warehouse.id).qty_available
@@ -264,6 +631,7 @@ class ProductTemplateUniTrade(models.Model):
     def write(self, vals):
         if (
             not self.env.context.get('skip_unitrade_stock_inverse')
+            and not self.env.context.get('unitrade_preserve_product_type')
             and vals.get('x_is_marketplace')
             and 'detailed_type' in self._fields
             and 'detailed_type' not in vals
@@ -292,6 +660,8 @@ class ProductTemplateUniTrade(models.Model):
     )
     def _check_unitrade_required_product_data(self):
         """Validate the minimum product data needed by the UniTrade frontend."""
+        if self.env.context.get('unitrade_skip_marketplace_validation'):
+            return
         for record in self:
             if not record.x_is_marketplace:
                 continue
@@ -317,6 +687,8 @@ class ProductTemplateUniTrade(models.Model):
 
     def _unitrade_check_image_count(self):
         """Require 2-6 total product images, including the main image."""
+        if self.env.context.get('unitrade_skip_marketplace_validation'):
+            return
         for record in self:
             if not record.x_is_marketplace:
                 continue
@@ -409,27 +781,24 @@ class ProductTemplateUniTrade(models.Model):
                                       max_price=None, location=None,
                                       sort_by='create_date desc', limit=20, offset=0):
         """Search marketplace products with filters"""
-        domain = [
-            ('x_is_marketplace', '=', True),
-            ('sale_ok', '=', True),
-            ('website_published', '=', True),
-        ]
+        self._unitrade_refresh_listing_states()
+        domain = self._unitrade_public_active_domain()
 
         if keyword:
-            domain += ['|',
+            domain = expression.AND([domain, ['|',
                 ('name', 'ilike', keyword),
                 ('description_sale', 'ilike', keyword),
-            ]
+            ]])
         if category_id:
-            domain.append(('categ_id', '=', int(category_id)))
+            domain = expression.AND([domain, [('categ_id', 'child_of', int(category_id))]])
         if condition:
-            domain.append(('x_condition', '=', condition))
+            domain = expression.AND([domain, [('x_condition', '=', condition)]])
         if min_price:
-            domain.append(('list_price', '>=', float(min_price)))
+            domain = expression.AND([domain, [('list_price', '>=', float(min_price))]])
         if max_price:
-            domain.append(('list_price', '<=', float(max_price)))
+            domain = expression.AND([domain, [('list_price', '<=', float(max_price))]])
         if location:
-            domain.append(('x_seller_location', 'ilike', location))
+            domain = expression.AND([domain, [('x_seller_location', 'ilike', location)]])
 
         return self.search(domain, order=sort_by, limit=limit, offset=offset)
 
@@ -569,22 +938,76 @@ class ProductTemplateUniTrade(models.Model):
         }
 
 
+class ProductProductUniTrade(models.Model):
+    _inherit = 'product.product'
+
+    def _unitrade_discount_percent(self):
+        self.ensure_one()
+        return self.product_tmpl_id._unitrade_discount_percent()
+
+    def _unitrade_discounted_price(self):
+        self.ensure_one()
+        original_price = self.lst_price or self.list_price or 0.0
+        discount_percent = self._unitrade_discount_percent()
+        if not discount_percent or original_price <= 0:
+            return original_price
+        return original_price * (100.0 - discount_percent) / 100.0
+
+    def _unitrade_price_info(self):
+        self.ensure_one()
+        discount_percent = self._unitrade_discount_percent()
+        original_price = self.lst_price or self.list_price or 0.0
+        discounted_price = self._unitrade_discounted_price()
+        return {
+            'original_price': original_price,
+            'discounted_price': discounted_price,
+            'discount_percent': discount_percent,
+            'has_discount': bool(discount_percent and original_price > 0 and discounted_price < original_price),
+        }
+
+    def _unitrade_is_stock_limited(self):
+        self.ensure_one()
+        if self.type == 'product':
+            return not self.allow_out_of_stock_order
+        template = self.product_tmpl_id
+        return bool(
+            hasattr(template, '_unitrade_uses_manual_stock')
+            and template._unitrade_uses_manual_stock()
+        )
+
+    def _unitrade_available_qty(self, warehouse=False):
+        self.ensure_one()
+        if self.type == 'product':
+            product = self.sudo()
+            warehouse_id = getattr(warehouse, 'id', warehouse) if warehouse else False
+            if warehouse_id:
+                product = product.with_context(warehouse=warehouse_id)
+            return product.free_qty
+        template = self.product_tmpl_id.sudo()
+        if hasattr(template, '_unitrade_uses_manual_stock') and template._unitrade_uses_manual_stock():
+            return max(template.x_unitrade_manual_stock_qty or 0.0, 0.0)
+        return 0.0
+
+
 class ProductImageUniTrade(models.Model):
     _inherit = 'product.image'
 
     @api.model_create_multi
     def create(self, vals_list):
         images = super().create(vals_list)
-        images.mapped('product_tmpl_id')._unitrade_check_image_count()
+        if not self.env.context.get('unitrade_skip_marketplace_validation'):
+            images.mapped('product_tmpl_id')._unitrade_check_image_count()
         return images
 
     def write(self, vals):
         result = super().write(vals)
-        self.mapped('product_tmpl_id')._unitrade_check_image_count()
+        if not self.env.context.get('unitrade_skip_marketplace_validation'):
+            self.mapped('product_tmpl_id')._unitrade_check_image_count()
         return result
 
     def unlink(self):
         templates = self.mapped('product_tmpl_id')
         result = super().unlink()
-        templates._unitrade_check_image_count()
+        if not self.env.context.get('unitrade_skip_marketplace_validation'):
+            templates._unitrade_check_image_count()
         return result

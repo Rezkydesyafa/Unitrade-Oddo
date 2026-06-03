@@ -6,10 +6,25 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='payment_term_id']" position="after">
-                <field name="x_payment_status" widget="badge" decoration-success="x_payment_status == 'paid'" decoration-danger="x_payment_status in ('failed', 'expired')" decoration-warning="x_payment_status == 'pending'"/>
-                <field name="x_midtrans_transaction_id" readonly="1"/>
+                <field name="x_payment_provider" readonly="1"/>
+                <field name="x_payment_status" widget="badge" decoration-success="x_payment_status == 'paid'" decoration-danger="x_payment_status in ('failed', 'expired', 'cancelled')" decoration-warning="x_payment_status == 'pending'"/>
+                <field name="x_unitrade_order_state" widget="badge" decoration-success="x_unitrade_order_state == 'completed'" decoration-info="x_unitrade_order_state == 'processing'" decoration-warning="x_unitrade_order_state == 'payment_pending'" decoration-danger="x_unitrade_order_state in ('cancelled', 'refunded')"/>
+                <field name="x_escrow_state" widget="badge" decoration-success="x_escrow_state in ('held', 'releasable', 'released')" decoration-danger="x_escrow_state in ('disputed', 'refunded', 'cancelled')"/>
                 <field name="x_payment_method" readonly="1"/>
+                <field name="x_payment_intent_id" readonly="1"/>
+                <field name="x_midtrans_order_id" readonly="1"/>
+                <field name="x_midtrans_transaction_id" readonly="1"/>
+                <field name="x_midtrans_payment_type" readonly="1"/>
+                <field name="x_xendit_reference_id" readonly="1"/>
+                <field name="x_xendit_payment_request_id" readonly="1"/>
+                <field name="x_xendit_payment_url" widget="url" readonly="1"/>
+                <field name="x_xendit_channel_code" readonly="1"/>
                 <field name="x_paid_at" readonly="1"/>
+                <field name="x_cancel_deadline_at" readonly="1"/>
+                <field name="x_cancelled_by_id" readonly="1"/>
+                <field name="x_cancelled_at" readonly="1"/>
+                <field name="x_cancel_reason" readonly="1"/>
+                <field name="x_completed_at" readonly="1"/>
             </xpath>
         </field>
     </record>

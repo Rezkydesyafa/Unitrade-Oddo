@@ -345,9 +345,12 @@ class UnitradeDisputeController(http.Controller):
         order = request.env['sale.order'].sudo().browse(order_id).exists()
         if not order or not self._can_view_order(order):
             return request.not_found()
+<<<<<<< HEAD
         block_message = self._marketplace_block_message(_('mengajukan refund'))
         if block_message:
             return request.redirect(self._append_error('/my/orders', 'refund_error', block_message))
+=======
+>>>>>>> origin/main
 
         ledger, line = self._refund_context_records(order, kwargs)
         active_refund = order._unitrade_active_refund_dispute(ledger=ledger) if hasattr(order, '_unitrade_active_refund_dispute') else False
@@ -382,10 +385,13 @@ class UnitradeDisputeController(http.Controller):
         line_id = int(kwargs.get('order_line_id') or 0)
         redirect_url = self._refund_create_url(order.id, ledger_id=ledger_id, line_id=line_id)
         try:
+<<<<<<< HEAD
             block_message = self._marketplace_block_message(_('mengajukan refund'))
             if block_message:
                 raise UserError(block_message)
 
+=======
+>>>>>>> origin/main
             ledger = False
             if ledger_id:
                 ledger = request.env['unitrade.escrow.ledger'].sudo().browse(ledger_id).exists()
@@ -570,10 +576,13 @@ class UnitradeDisputeController(http.Controller):
         if not dispute or not seller or not dispute.seller_id or dispute.seller_id.id != seller.id:
             return request.not_found()
         try:
+<<<<<<< HEAD
             block_message = self._marketplace_block_message(_('merespons refund sebagai seller'))
             if block_message:
                 raise UserError(block_message)
 
+=======
+>>>>>>> origin/main
             if dispute.state == 'need_seller_response':
                 raise UserError(_('Gunakan form konfirmasi barang kembali untuk menyelesaikan refund ini.'))
             evidence_items = self._uploaded_evidence('seller_refund_evidence', 'seller_response')

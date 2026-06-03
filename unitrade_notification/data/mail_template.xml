@@ -1,5 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    UniTrade Notification — Mail Templates
+
+    Templates di file ini dipakai oleh Notification_Dispatcher
+    (`unitrade.notification._send_email_via_template`). Dispatcher merender
+    template terhadap recordset `unitrade.notification` (passing `record.id`
+    sebagai `res_id`), sehingga semua template baru menggunakan
+    `model_id` = `unitrade_notification.model_unitrade_notification`.
+
+    Template legacy `mail_template_order_confirmed` (di bawah) tetap memakai
+    `sale.model_sale_order` dan akan dirender oleh dispatcher dengan
+    `res_id = sale.order.id` (lihat task 7.3).
+
+    Semua template baru:
+      - subject     : `{{ object.title }}` (dispatcher mengisi title pada record)
+      - email_from  : `{{ object._get_email_from() or ... }}` (helper task 6.1
+                       membaca `ir.config_parameter unitrade.notification.email_from`)
+      - email_to    : alamat user pemilik notifikasi
+      - lang        : bahasa user, fallback ke `id_ID`
+      - body_html   : header brand UniTrade, heading event, body dinamis dari
+                       `object.message`, tombol aksi opsional (action_url),
+                       footer dengan link ke `/my/notifications/settings`
+      - auto_delete : True (mail.mail dibersihkan setelah dikirim;
+                       `mail_message_id` sudah ditangkap pre-purge oleh dispatcher)
+-->
 <odoo>
+
+    <!-- ======================================================================
+         LEGACY TEMPLATE — DO NOT MODIFY
+         ====================================================================== -->
     <record id="mail_template_order_confirmed" model="mail.template">
         <field name="name">UniTrade: Order Confirmed</field>
         <field name="model_id" ref="sale.model_sale_order"/>

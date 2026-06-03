@@ -104,7 +104,7 @@ class SellerVerificationController(http.Controller):
         if self._marketplace_block_message(_('mendaftar sebagai seller')):
             return request.redirect('/my/profile?unitrade_blocked=1')
         if self._verified_seller_for_current_user():
-            return request.redirect('/seller/dashboard')
+            return request.redirect('/unitrade/seller/dashboard')
 
         error_message = ''
         if kw.get('error') == 'otp_rate_limit':
@@ -121,7 +121,7 @@ class SellerVerificationController(http.Controller):
         if self._marketplace_block_message(_('mendaftar sebagai seller')):
             return request.redirect('/my/profile?unitrade_blocked=1')
         if self._verified_seller_for_current_user():
-            return request.redirect('/seller/dashboard')
+            return request.redirect('/unitrade/seller/dashboard')
 
         user = request.env.user.sudo()
         request.session.pop('seller_onboarding_otp_verified', None)
@@ -151,7 +151,7 @@ class SellerVerificationController(http.Controller):
             if self._marketplace_block_message(_('mengupload verifikasi seller')):
                 return request.redirect('/my/profile?unitrade_blocked=1')
             if self._verified_seller_for_current_user():
-                return request.redirect('/seller/dashboard')
+                return request.redirect('/unitrade/seller/dashboard')
             if not self._seller_otp_verified():
                 return request.redirect('/seller-onboarding')
 
@@ -159,10 +159,14 @@ class SellerVerificationController(http.Controller):
             verification = request.env['unitrade.seller.verification'].sudo().search([
                 ('partner_id', '=', partner.id),
             ], limit=1, order='create_date desc')
+            universities = request.env['unitrade.university'].sudo().search([
+                ('active', '=', True),
+            ], order='sequence, name')
 
             values = {
                 'partner': partner,
                 'verification': verification or False,
+                'universities': universities,
             }
             return request.render('unitrade_theme.seller_verification', values)
 
@@ -171,6 +175,9 @@ class SellerVerificationController(http.Controller):
             return request.render('unitrade_theme.seller_verification', {
                 'partner': request.env.user.partner_id,
                 'verification': False,
+                'universities': request.env['unitrade.university'].sudo().search([
+                    ('active', '=', True),
+                ], order='sequence, name'),
             })
 
     @http.route(
@@ -205,6 +212,24 @@ class SellerVerificationController(http.Controller):
             existing = Verification.search([
                 ('partner_id', '=', partner.id),
             ], limit=1)
+            university = request.env['unitrade.university'].sudo().browse()
+            university_id = kw.get('university_id')
+            university_other = (kw.get('university_other') or '').strip()
+            if university_id:
+                try:
+                    university = request.env['unitrade.university'].sudo().browse(int(university_id)).exists()
+                except (TypeError, ValueError):
+                    university = request.env['unitrade.university'].sudo().browse()
+
+            if university and not university.active:
+                university = request.env['unitrade.university'].sudo().browse()
+
+            if not university and not university_other:
+                return self._json_response({
+                    'status': 'error',
+                    'message': 'Pilih universitas atau isi universitas lainnya terlebih dahulu.',
+                    'reason': 'university_required',
+                })
 
             if not self._check_upload_rate_limit(existing):
                 return self._json_response({
@@ -299,6 +324,8 @@ class SellerVerificationController(http.Controller):
 
             vals = {
                 'partner_id': partner.id,
+                'university_id': university.id if university else False,
+                'university_other': False if university else university_other,
                 'ktm_image': file_b64,
                 'ktm_filename': filename,
                 'attachment_id': attachment.id,
@@ -341,6 +368,8 @@ class SellerVerificationController(http.Controller):
 
                 seller_vals = {
                     'user_id': user.id,
+                    'university_id': university.id if university else False,
+                    'university_other': False if university else university_other,
                     'nim': nim or 'PENDING',
                     'ktm_image': file_b64,
                     'ktm_filename': filename,

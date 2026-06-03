@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="unitrade_theme.LogoutConfirm">
+        <div t-if="state.rendered" t-att-class="modalClass" role="presentation">
+            <button type="button" class="ut-logout-modal-backdrop" t-on-click="close" aria-label="Tutup popup logout"></button>
+            <section class="ut-logout-dialog" role="dialog" aria-modal="true" aria-labelledby="ut-logout-title" aria-describedby="ut-logout-description">
+                <div class="ut-logout-icon-wrap" aria-hidden="true">
+                    <svg class="ut-logout-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17 10H11C9.89543 10 9 10.8954 9 12V28C9 29.1046 9.89543 30 11 30H17" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+                        <path d="M23 14L29 20L23 26" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M15 20H29" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h2 id="ut-logout-title" class="ut-logout-title">Keluar Dari Akun</h2>
+                <p id="ut-logout-description" class="ut-logout-copy">Apakah anda yakin keluar dari UniTrade?</p>
+                <div class="ut-logout-actions">
+                    <button t-ref="cancelButton" type="button" class="ut-logout-button ut-logout-button-back" t-on-click="close">KEMBALI</button>
+                    <button type="button" class="ut-logout-button ut-logout-button-confirm" t-on-click="confirmLogout">KELUAR</button>
+                </div>
+            </section>
+        </div>
+    </t>
+</templates>

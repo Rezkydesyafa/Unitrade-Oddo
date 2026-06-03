@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="unitrade_seller.SellerSidebar">
+        <aside t-att-class="'ut-dash-sidebar ut-seller-shared-sidebar ' + (sidebarClass || '')" aria-label="Menu dashboard penjual">
+            <div class="ut-dash-sidebar-brand">
+                <span class="ut-dash-sidebar-brand-icon">
+                    <img src="/unitrade_seller/static/src/img/dashboard-icon-brand.svg" alt=""/>
+                </span>
+                <span class="ut-dash-sidebar-brand-label">Dashboard Penjual</span>
+            </div>
+            <nav class="ut-dash-sidebar-nav" aria-label="Navigasi toko">
+                <section class="ut-dash-sidebar-section">
+                    <span class="ut-dash-sidebar-section-label">Store Management</span>
+                    <div class="ut-dash-sidebar-section-items">
+                        <t t-foreach="sidebarItems" t-as="item" t-key="item.key">
+                            <t t-if="item.section === 'store'">
+                                <a t-att-href="item.href" t-att-class="sidebarItemClass(item)" t-att-aria-label="item.ariaLabel || item.label" t-on-click="onSidebarNavClick">
+                                    <span class="ut-dash-sidebar-icon">
+                                        <img t-att-src="item.iconUrl" alt=""/>
+                                    </span>
+                                    <span class="ut-dash-sidebar-label" t-esc="item.label"></span>
+                                    <t t-if="item.badge">
+                                        <span class="ut-dash-side-badge" t-esc="item.badge"></span>
+                                    </t>
+                                </a>
+                            </t>
+                        </t>
+                    </div>
+                </section>
+                <section class="ut-dash-sidebar-section ut-dash-sidebar-section-communication">
+                    <span class="ut-dash-sidebar-section-label">Communication</span>
+                    <div class="ut-dash-sidebar-section-items">
+                        <t t-foreach="sidebarItems" t-as="item" t-key="item.key">
+                            <t t-if="item.section === 'communication'">
+                                <a t-att-href="item.href" t-att-class="sidebarItemClass(item)" t-att-aria-label="item.ariaLabel || item.label" t-on-click="onSidebarNavClick">
+                                    <span class="ut-dash-sidebar-icon">
+                                        <img t-att-src="item.iconUrl" alt=""/>
+                                    </span>
+                                    <span class="ut-dash-sidebar-label" t-esc="item.label"></span>
+                                    <t t-if="item.badge">
+                                        <span class="ut-dash-side-badge" t-esc="item.badge"></span>
+                                    </t>
+                                </a>
+                            </t>
+                        </t>
+                    </div>
+                </section>
+            </nav>
+            <div class="ut-dash-sidebar-footer">
+                <button type="button" class="ut-dash-sidebar-toggle" t-on-click="toggleSidebar" t-att-aria-expanded="state.sidebarOpen ? 'true' : 'false'" aria-label="Buka atau tutup sidebar">
+                    <i t-att-class="state.sidebarOpen ? 'fa fa-angle-left' : 'fa fa-angle-right'"></i>
+                    <span class="ut-dash-sidebar-button-label">Sembunyikan</span>
+                </button>
+            </div>
+            <div class="ut-dash-sidebar-settings">
+                <t t-foreach="sidebarItems" t-as="item" t-key="item.key">
+                    <t t-if="item.section === 'settings'">
+                        <a t-att-href="item.href" t-att-class="sidebarItemClass(item)" t-att-aria-label="item.ariaLabel || item.label" t-on-click="onSidebarNavClick">
+                            <span class="ut-dash-sidebar-icon">
+                                <img t-att-src="item.iconUrl" alt=""/>
+                            </span>
+                            <span class="ut-dash-sidebar-label" t-esc="item.label"></span>
+                        </a>
+                    </t>
+                </t>
+            </div>
+        </aside>
+    </t>
+</templates>

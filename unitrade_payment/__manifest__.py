@@ -1,17 +1,27 @@
 {
     'name': 'UniTrade Payment',
     'version': '17.0.1.0.0',
-    'summary': 'Midtrans payment gateway integration',
+    'summary': 'Midtrans Core internal checkout, escrow ledger, and seller payout',
     'author': 'Tim 1 - UNISA Yogyakarta',
     'category': 'Accounting/Payment',
-    'depends': ['sale', 'account', 'payment', 'website', 'unitrade_seller'],
+    'depends': ['sale', 'account', 'payment', 'website_sale', 'unitrade_seller', 'unitrade_theme'],
     'data': [
         'security/ir.model.access.csv',
-        'data/seller_payout_sequence.xml',
+        'data/midtrans_config.xml',
+        'data/payment_runtime_config.xml',
+        'data/voucher_data.xml',
+        'data/mail_templates.xml',
+        'data/escrow_cron.xml',
+        'data/listing_fee_expiry_cron.xml',
         'views/payment_views.xml',
-        'views/seller_payout_views.xml',
+        'views/voucher_views.xml',
         'views/checkout_templates.xml',
     ],
+    'assets': {
+        'web.assets_frontend': [
+            'unitrade_payment/static/src/js/order_status.js',
+        ],
+    },
     'installable': True,
     'license': 'LGPL-3',
 }

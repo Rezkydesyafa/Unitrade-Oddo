@@ -164,7 +164,7 @@
 
                                     <label class="ut-user-profile-field">
                                         <span>Email</span>
-                                        <input type="email" name="email" t-att-value="form_values.get('email') or partner.email or user_profile.login" class="ut-user-profile-input" data-profile-control="1" t-att-disabled="None if error_message else 'disabled'"/>
+                                        <input type="email" name="email_display" t-att-value="partner.email or user_profile.login" class="ut-user-profile-input ut-user-profile-email-locked" disabled="disabled" readonly="readonly" aria-readonly="true" title="Email akun digunakan untuk login dan tidak dapat diubah dari halaman profil."/>
                                     </label>
 
                                     <label class="ut-user-profile-field">
@@ -492,6 +492,36 @@
                                         </article>
                                     </t>
                                 </div>
+                                <div class="ut-settings-card ut-settings-activity-card tw-mt-4">
+                                    <t t-if="security_activity">
+                                        <t t-foreach="security_activity" t-as="activity">
+                                            <article class="ut-settings-session-row">
+                                                <span class="ut-settings-device-icon">
+                                                    <svg viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-width="1.8">
+                                                        <path d="M23 7l13 6v9c0 8-5.5 13.5-13 17-7.5-3.5-13-9-13-17v-9l13-6Z"/>
+                                                        <path d="M18 23l3 3 7-8"/>
+                                                    </svg>
+                                                </span>
+                                                <div class="ut-settings-session-copy">
+                                                    <strong t-esc="activity.get('title')"/>
+                                                    <small t-esc="activity.get('detail') or activity.get('ip_label')"/>
+                                                    <small t-esc="activity.get('date_label')"/>
+                                                </div>
+                                            </article>
+                                        </t>
+                                    </t>
+                                    <article t-else="" class="ut-settings-session-row">
+                                        <span class="ut-settings-device-icon">
+                                            <svg viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-width="1.8">
+                                                <path d="M23 7l13 6v9c0 8-5.5 13.5-13 17-7.5-3.5-13-9-13-17v-9l13-6Z"/>
+                                            </svg>
+                                        </span>
+                                        <div class="ut-settings-session-copy">
+                                            <strong>Belum ada riwayat keamanan</strong>
+                                            <small>Aktivitas penting akun akan muncul di sini.</small>
+                                        </div>
+                                    </article>
+                                </div>
                                 <form action="/my/settings/session/revoke_all" method="post">
                                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                     <button type="submit" class="ut-settings-revoke-all">
@@ -681,59 +711,83 @@
                             <t t-if="order_items">
                                 <t t-foreach="order_items" t-as="item">
                                     <article t-att-data-order-status="item.get('status')"
+                                        t-att-data-order-url="item.get('order_status_url')"
+                                        t-att-aria-label="'Buka detail pesanan %s' % item.get('order').name"
+                                        role="link"
+                                        tabindex="0"
                                         t-att-class="'ut-user-order-card %s' % ('ut-is-hidden' if active_order_status != 'all' and item.get('status') != active_order_status else '')">
                                         <header class="ut-user-order-seller">
-                                            <a t-att-href="item.get('seller_url')" class="ut-user-order-seller-link">
+                                            <div class="ut-user-order-seller-link">
                                                 <img t-att-src="item.get('seller_avatar_url')" alt="Avatar penjual" class="ut-user-order-seller-avatar"/>
                                                 <span t-esc="item.get('seller_name')"/>
-                                            </a>
+                                            </div>
                                             <span t-att-class="'ut-user-order-status ut-status-%s' % item.get('status')">
-                                                <t t-if="item.get('status') == 'unpaid'">Belum di bayar</t>
-                                                <t t-elif="item.get('status') == 'cancel'">Dibatalkan</t>
-                                                <t t-else="">Selesai</t>
+                                                <t t-esc="item.get('status_label')"/>
                                             </span>
                                         </header>
                                         <div class="ut-user-order-body">
-                                            <a t-att-href="item.get('product_url')" class="ut-user-order-image-wrap">
+                                            <div class="ut-user-order-image-wrap">
                                                 <img t-att-src="item.get('image_url')" alt="Produk pesanan" class="ut-user-order-image"/>
-                                            </a>
+                                            </div>
                                             <div class="ut-user-order-info">
-                                                <a t-att-href="item.get('product_url')" class="ut-user-order-product-name" t-esc="item.get('product').name"/>
+                                                <span class="ut-user-order-product-name" t-esc="item.get('product').name"/>
                                                 <p>Kategori : <t t-esc="item.get('category')"/></p>
                                                 <p>Jumlah : <t t-esc="item.get('quantity')"/></p>
                                                 <div class="ut-user-order-rating">
                                                     <i class="fa fa-star"></i>
                                                     <span t-esc="item.get('rating')"/>
                                                 </div>
+                                                <p t-if="item.get('status_note')" class="ut-user-order-status-note" t-esc="item.get('status_note')"/>
                                             </div>
                                             <div class="ut-user-order-price" t-esc="item.get('price')"/>
                                         </div>
                                         <footer class="ut-user-order-actions">
-                                            <button t-if="item.get('can_review')" type="button"
-                                                class="ut-user-order-btn ut-user-order-btn-primary"
-                                                data-review-open="1"
-                                                t-att-data-review-product-id="item.get('product').id"
-                                                t-att-data-review-order-id="item.get('order').id"
-                                                t-att-data-review-product-name="item.get('product').name"
-                                                t-att-data-review-seller-name="item.get('seller_name')"
-                                                t-att-data-review-image-url="item.get('image_url')">
-                                                Beri Ulasan
-                                            </button>
-                                            <button t-elif="item.get('review_exists')" type="button"
-                                                class="ut-user-order-btn ut-user-order-btn-disabled"
-                                                disabled="disabled"
-                                                aria-disabled="true">
-                                                Sudah Ulasan
-                                            </button>
-                                            <button t-else="" type="button"
-                                                class="ut-user-order-btn ut-user-order-btn-disabled"
-                                                disabled="disabled"
-                                                aria-disabled="true">
-                                                Beri Ulasan
-                                            </button>
+                                            <t t-if="item.get('status') == 'processing'">
+                                                <button t-if="item.get('can_confirm_received')" type="button"
+                                                    class="ut-user-order-btn ut-user-order-btn-primary"
+                                                    data-receive-open="1"
+                                                    t-att-data-receive-url="item.get('confirm_received_url')"
+                                                    t-att-data-receive-ledger-id="item.get('ledger').id if item.get('ledger') else ''"
+                                                    t-att-data-receive-product-name="item.get('product').name"
+                                                    t-att-data-receive-seller-name="item.get('seller_name')"
+                                                    t-att-data-receive-image-url="item.get('image_url')">
+                                                    Konfirmasi Barang
+                                                </button>
+                                                <span t-elif="item.get('buyer_confirmed')" class="ut-user-order-btn ut-user-order-btn-disabled">
+                                                    Sudah Dikonfirmasi
+                                                </span>
+                                                <span t-else="" class="ut-user-order-btn ut-user-order-btn-disabled" title="Aktif setelah penjual mengunggah bukti serah barang.">
+                                                    Konfirmasi Barang
+                                                </span>
+                                            </t>
+                                            <t t-if="item.get('status') == 'done'">
+                                                <button t-if="item.get('can_review')" type="button"
+                                                    class="ut-user-order-btn ut-user-order-btn-primary"
+                                                    data-review-open="1"
+                                                    t-att-data-review-product-id="item.get('product').id"
+                                                    t-att-data-review-order-id="item.get('order').id"
+                                                    t-att-data-review-product-name="item.get('product').name"
+                                                    t-att-data-review-seller-name="item.get('seller_name')"
+                                                    t-att-data-review-image-url="item.get('image_url')">
+                                                    Beri Ulasan
+                                                </button>
+                                                <button t-elif="item.get('review_exists')" type="button"
+                                                    class="ut-user-order-btn ut-user-order-btn-disabled"
+                                                    disabled="disabled"
+                                                    aria-disabled="true">
+                                                    Sudah Ulasan
+                                                </button>
+                                            </t>
+                                            <form t-if="item.get('can_cancel_order')" t-att-action="item.get('cancel_url')" method="post" class="ut-user-order-action-form">
+                                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                <input type="hidden" name="reason" value="Buyer direct cancel"/>
+                                                <button type="submit" class="ut-user-order-btn ut-user-order-btn-danger">Batalkan</button>
+                                            </form>
                                             <a t-att-href="item.get('seller_chat_url')" class="ut-user-order-btn ut-user-order-btn-outline">Chat Penjual</a>
-                                            <a t-if="item.get('can_buy_again')" t-att-href="item.get('buy_again_url')" class="ut-user-order-btn ut-user-order-btn-outline">Beli Lagi</a>
-                                            <span t-else="" class="ut-user-order-btn ut-user-order-btn-disabled" title="Produk tidak tersedia">Beli Lagi</span>
+                                            <t t-if="item.get('status') == 'done'">
+                                                <a t-if="item.get('can_buy_again')" t-att-href="item.get('buy_again_url')" class="ut-user-order-btn ut-user-order-btn-outline">Beli Lagi</a>
+                                                <span t-else="" class="ut-user-order-btn ut-user-order-btn-disabled" title="Produk tidak tersedia">Beli Lagi</span>
+                                            </t>
                                         </footer>
                                     </article>
                                 </t>
@@ -801,6 +855,48 @@
                                     <button type="button" class="ut-order-review-submit" data-review-submit="1">Ok</button>
                                     <button type="button" class="ut-order-review-later" data-review-close="1">Nanti saja</button>
                                 </footer>
+                            </section>
+                        </div>
+
+                        <div class="ut-order-receive-modal" data-order-receive-modal="1" aria-hidden="true">
+                            <div class="ut-order-review-backdrop" data-receive-close="1"></div>
+                            <section class="ut-order-receive-dialog" role="dialog" aria-modal="true" aria-labelledby="ut_order_receive_title">
+                                <form data-receive-form="1" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <input type="hidden" name="ledger_id" data-receive-ledger-input="1"/>
+                                    <div class="ut-order-receive-scroll">
+                                        <div class="ut-order-receive-icon">
+                                            <i class="fa fa-check"></i>
+                                        </div>
+                                        <h2 id="ut_order_receive_title">Apakah anda yakin barang sudah di terima?</h2>
+                                        <p class="ut-order-receive-copy">Upload bukti foto barang yang sudah diterima sebelum menyelesaikan pesanan.</p>
+
+                                        <article class="ut-order-receive-product">
+                                            <img src="/web/static/img/placeholder.png" alt="Produk" data-receive-product-image="1"/>
+                                            <div>
+                                                <h3 data-receive-product-name="1">Produk</h3>
+                                                <p data-receive-seller-name="1">Nama toko</p>
+                                            </div>
+                                        </article>
+
+                                        <div class="ut-receive-upload-card" data-receive-dropzone="1">
+                                            <div class="ut-receive-upload-icon">
+                                                <i class="fa fa-upload"></i>
+                                            </div>
+                                            <strong>Drag &amp; drop images here, or click to browse</strong>
+                                            <span>PNG, JPG, or WEBP (max. 5MB each)</span>
+                                            <button type="button" data-receive-browse="1">Choose Files</button>
+                                            <input type="file" name="buyer_evidence" accept="image/jpeg,image/png,image/webp" required="required" data-receive-file="1"/>
+                                        </div>
+                                        <div class="ut-receive-file-list" data-receive-file-list="1"></div>
+                                        <div class="ut-order-receive-message" data-receive-error="1" role="alert"></div>
+                                    </div>
+
+                                    <footer class="ut-order-receive-footer">
+                                        <button type="button" class="ut-order-receive-cancel" data-receive-close="1">Batal</button>
+                                        <button type="submit" class="ut-order-receive-submit">Konfirmasi Barang</button>
+                                    </footer>
+                                </form>
                             </section>
                         </div>
                     </main>

@@ -38,6 +38,16 @@ class UnitradeSeller(models.Model):
         store=True,
         readonly=True,
     )
+    university_id = fields.Many2one(
+        'unitrade.university',
+        string='Universitas',
+        ondelete='restrict',
+        tracking=True,
+    )
+    university_other = fields.Char(
+        string='Universitas Lainnya',
+        tracking=True,
+    )
     x_avatar_128 = fields.Image(
         string='Avatar',
         related='user_id.avatar_128',
@@ -80,6 +90,54 @@ class UnitradeSeller(models.Model):
         readonly=True,
         help='Public identifier for seller profile URLs.',
     )
+    x_store_slug = fields.Char(
+        string='Slug Toko',
+        copy=False,
+        index=True,
+        help='Slug publik yang dipakai pada tautan toko penjual.',
+    )
+    x_store_active = fields.Boolean(
+        string='Toko Aktif',
+        default=True,
+        tracking=True,
+        help='Jika nonaktif, toko tidak ditampilkan sebagai toko aktif.',
+    )
+    x_chat_enabled = fields.Boolean(
+        string='Terima Chat Pembeli',
+        default=True,
+        tracking=True,
+        help='Jika nonaktif, pembeli baru tidak bisa membuka chat baru dengan toko ini.',
+    )
+    x_store_province = fields.Char(string='Provinsi Toko')
+    x_store_city = fields.Char(string='Kota/Kabupaten Toko')
+    x_store_address_detail = fields.Text(string='Detail Alamat Toko')
+    x_delete_requested = fields.Boolean(
+        string='Permintaan Hapus Akun Penjual',
+        default=False,
+        tracking=True,
+    )
+    x_delete_requested_at = fields.Datetime(
+        string='Tanggal Permintaan Hapus Akun',
+        readonly=True,
+    )
+
+    # === Payout Destination ===
+    x_payout_channel_code = fields.Selection([
+        ('ID_BCA', 'BCA'),
+        ('ID_MANDIRI', 'Mandiri'),
+        ('ID_BNI', 'BNI'),
+        ('ID_BRI', 'BRI'),
+        ('OVO', 'OVO'),
+        ('DANA', 'DANA'),
+    ], string='Channel Payout Xendit')
+    x_payout_account_number = fields.Char(string='Nomor Rekening / HP Payout')
+    x_payout_account_name = fields.Char(string='Nama Pemilik Rekening')
+    x_payout_ready = fields.Boolean(
+        string='Payout Ready',
+        compute='_compute_payout_ready',
+        store=True,
+    )
+    x_payout_note = fields.Text(string='Catatan Payout')
 
     # === KTM Verification ===
     nim = fields.Char(
@@ -220,11 +278,22 @@ class UnitradeSeller(models.Model):
     _sql_constraints = [
         ('user_unique', 'UNIQUE(user_id)', 'Setiap user hanya bisa memiliki satu akun penjual!'),
         ('profile_uuid_unique', 'UNIQUE(x_profile_uuid)', 'UUID profil penjual harus unik!'),
+        ('store_slug_unique', 'UNIQUE(x_store_slug)', 'Slug toko penjual harus unik!'),
     ]
 
     def init(self):
         """Backfill UUIDs for seller records created before the public profile route existed."""
         self.env.cr.execute("ALTER TABLE unitrade_seller DROP CONSTRAINT IF EXISTS unitrade_seller_nim_unique")
+        self.env.cr.execute("""
+            UPDATE unitrade_seller
+               SET x_store_active = TRUE
+             WHERE x_store_active IS NULL
+        """)
+        self.env.cr.execute("""
+            UPDATE unitrade_seller
+               SET x_chat_enabled = TRUE
+             WHERE x_chat_enabled IS NULL
+        """)
         self.env.cr.execute("""
             CREATE UNIQUE INDEX IF NOT EXISTS unitrade_seller_verified_nim_unique_idx
                 ON unitrade_seller (nim)
@@ -325,6 +394,14 @@ class UnitradeSeller(models.Model):
     def _compute_profile_location(self):
         """Build a compact public location label from the linked partner."""
         for record in self:
+            if record.x_store_city or record.x_store_province:
+                location_parts = [
+                    part for part in [record.x_store_city, record.x_store_province]
+                    if part
+                ]
+                record.x_profile_location = ', '.join(location_parts) or 'Yogyakarta'
+                continue
+
             partner = record.partner_id
             if not partner:
                 record.x_profile_location = 'Yogyakarta'
@@ -335,6 +412,15 @@ class UnitradeSeller(models.Model):
                 if part
             ]
             record.x_profile_location = ', '.join(location_parts) or 'Yogyakarta'
+
+    @api.depends('x_payout_channel_code', 'x_payout_account_number', 'x_payout_account_name')
+    def _compute_payout_ready(self):
+        for record in self:
+            record.x_payout_ready = bool(
+                record.x_payout_channel_code
+                and record.x_payout_account_number
+                and record.x_payout_account_name
+            )
 
     def _ensure_profile_uuid(self):
         """Ensure existing sellers have a public UUID before rendering public links."""

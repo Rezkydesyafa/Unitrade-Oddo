@@ -46,7 +46,7 @@
                         </section>
 
                         <section id="terms" class="ut-legal-card ut-legal-terms-card tw-bg-white tw-rounded-[36px]" data-legal-section="terms">
-                            <h2 class="ut-legal-title">Syarat &amp; Kebijakan</h2>
+                            <h2 class="ut-legal-title">Syarat &amp; Kebijakan UniTrade</h2>
                             <div class="ut-legal-policy-list">
                                 <t t-foreach="policy_sections" t-as="section">
                                     <article class="ut-legal-policy-section" t-att-id="'policy_%s' % section.get('id')">

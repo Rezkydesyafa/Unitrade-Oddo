@@ -61,6 +61,10 @@
               name="Voucher"
               parent="menu_unitrade_payment_root"
               action="action_unitrade_voucher"
+<<<<<<< HEAD
               sequence="35"
               groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
+=======
+              sequence="35"/>
+>>>>>>> origin/main
 </odoo>

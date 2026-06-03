@@ -70,7 +70,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // =============================================
     // Search bar — live search suggestions
     // =============================================
-    const searchInput = document.querySelector('.unitrade-search');
+    const searchInput = Array.from(document.querySelectorAll('.unitrade-search')).find((input) => {
+        const rect = input.getBoundingClientRect();
+        const style = window.getComputedStyle(input);
+        return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+    });
     let searchTimeout = null;
 
     if (searchInput) {

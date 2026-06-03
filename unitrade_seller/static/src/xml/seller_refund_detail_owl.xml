@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="unitrade_seller.SellerRefundDetail">
+        <div t-att-class="rootClass">
+            <t t-if="!state.ready">
+                <t t-call="unitrade_seller.SellerRefundDetailSkeleton"/>
+            </t>
+            <t t-else="">
+                <div class="ut-dash-stage ut-refund-detail-stage">
+                    <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px] tw-text-[12px] tw-leading-6 tw-text-black">
+                        <div class="tw-flex tw-items-center tw-gap-[18px]">
+                            <span>Gratis Ongkir + Diskon 30%</span>
+                            <a href="/shop" class="tw-font-semibold tw-text-black tw-no-underline">Belanja Sekarang +</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <a href="/seller-onboarding" class="tw-font-semibold tw-text-black tw-no-underline">Mulai Berjualan</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <a href="/unitrade/sponsorship" class="tw-font-semibold tw-text-black tw-no-underline">Sponsorship</a>
+                        </div>
+                        <div class="tw-flex tw-items-center tw-gap-[18px]">
+                            <a href="/faq" class="tw-text-black tw-no-underline">FAQ</a>
+                            <a href="/customer-service" class="tw-text-black tw-no-underline">Customer Service</a>
+                            <a href="/contactus" class="tw-text-black tw-no-underline">Kontak</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <span>Ikuti kami :</span>
+                            <span class="tw-flex tw-gap-2 tw-text-[12px]">
+                                <i class="fa fa-instagram"></i>
+                                <i class="fa fa-facebook-official"></i>
+                                <i class="fa fa-music"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                        <a href="/" class="tw-flex tw-h-[52px] tw-w-[129px] tw-items-center tw-gap-2 tw-rounded-full tw-px-[15px] tw-text-black tw-no-underline">
+                            <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="UniTrade" class="tw-h-[37px] tw-w-[41px] tw-object-contain"/>
+                            <span class="tw-text-[12px] tw-font-bold">UniTrade</span>
+                        </a>
+                        <a href="/unitrade/seller/refunds" class="tw-ml-[25px] tw-flex tw-h-12 tw-min-w-[210px] tw-items-center tw-justify-center tw-gap-2 tw-rounded-[22.5px] tw-bg-[#f9f9f9] tw-px-5 tw-text-[13px] tw-font-semibold tw-text-[#212529] tw-no-underline">
+                            <i class="fa fa-arrow-left"></i>
+                            Kembali ke Refund
+                        </a>
+                        <div class="tw-ml-auto tw-flex tw-items-center tw-gap-[25px]">
+                            <a href="/unitrade/seller/chat" class="ut-dash-nav-round tw-relative" aria-label="Chat Pembeli">
+                                <i class="fa fa-commenting-o"></i>
+                                <t t-if="stats.unread_chat_count">
+                                    <span class="ut-dash-navbar-dot" t-esc="stats.unread_chat_count"></span>
+                                </t>
+                            </a>
+                            <a href="/shop/cart" class="ut-dash-nav-round" aria-label="Keranjang">
+                                <i class="fa fa-shopping-cart"></i>
+                            </a>
+                            <a href="/unitrade/seller/orders" class="ut-dash-nav-round tw-relative" aria-label="Notifikasi pesanan">
+                                <i class="fa fa-bell-o"></i>
+                                <t t-if="stats.notification_count">
+                                    <span class="ut-dash-navbar-dot" t-esc="stats.notification_count"></span>
+                                </t>
+                            </a>
+                            <span class="tw-h-[38.5px] tw-w-px tw-bg-[#e5e7eb]"></span>
+                            <a href="/unitrade/seller/dashboard" class="ut-dash-nav-round" aria-label="Dashboard seller">
+                                <i class="fa fa-truck"></i>
+                            </a>
+                            <img t-att-src="seller.avatar_url" alt="Avatar penjual" class="tw-size-[45px] tw-rounded-full tw-object-cover"/>
+                            <span class="tw-mr-5 tw-max-w-[150px] tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[16px] tw-font-medium tw-leading-6 tw-text-[#212529]" t-esc="seller.name"></span>
+                        </div>
+                        <button type="button" class="ut-dash-mobile-menu tw-hidden tw-border-0 tw-bg-transparent tw-text-[24px]" t-on-click="toggleSidebar" aria-label="Buka navigasi">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                    </header>
+
+                    <div class="ut-dash-mobile-scrim" t-on-click="closeSidebar"></div>
+                    <t t-call="unitrade_seller.SellerSidebar"/>
+
+                    <main class="ut-refund-detail-main tw-absolute tw-left-[180px] tw-right-[67px] tw-top-[173px] tw-pb-10">
+                        <section class="ut-refund-detail-head">
+                            <span class="tw-min-w-0">
+                                <h1>Detail Pengembalian</h1>
+                                <p>Berikut adalah hal-hal yang terjadi di toko Anda hari ini.</p>
+                            </span>
+                        </section>
+
+                        <section class="ut-refund-detail-panel">
+                            <header class="ut-refund-detail-panel-head">
+                                <span t-att-class="statusPillClass()" t-esc="refund.status_label"></span>
+                                <a t-att-href="refund.chat_url" class="ut-refund-detail-chat">
+                                    <i class="fa fa-comment-o"></i>
+                                    <span>Chat Pembeli</span>
+                                </a>
+                            </header>
+
+                            <div class="ut-refund-detail-layout">
+                                <div class="ut-refund-detail-content">
+                                    <article class="ut-refund-detail-card">
+                                        <h2>Ringkasan Pesanan</h2>
+                                        <div class="ut-refund-order-summary">
+                                            <section>
+                                                <h3>Informasi Pembeli</h3>
+                                                <div class="ut-refund-buyer">
+                                                    <t t-if="buyer.avatar_url">
+                                                        <img t-att-src="buyer.avatar_url" alt="" class="ut-refund-buyer-avatar"/>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <span class="ut-refund-buyer-avatar is-initials" t-esc="buyer.initials || 'UT'"></span>
+                                                    </t>
+                                                    <div class="ut-refund-buyer-info tw-min-w-0">
+                                                        <strong t-esc="buyer.name"></strong>
+                                                        <span t-if="buyer.email"><i class="fa fa-envelope-o"></i><t t-esc="buyer.email"/></span>
+                                                        <span t-if="buyer.phone"><i class="fa fa-phone"></i><t t-esc="buyer.phone"/></span>
+                                                    </div>
+                                                </div>
+                                            </section>
+                                            <section>
+                                                <h3>Informasi Pesanan</h3>
+                                                <dl class="ut-refund-kv-list">
+                                                    <div><dt>Order ID</dt><dd t-esc="order.name"></dd></div>
+                                                    <div><dt>Tanggal Pembelian</dt><dd t-esc="order.date_label"></dd></div>
+                                                    <div><dt>Tanggal Pengajuan Retur</dt><dd t-esc="refund.submitted_at_label"></dd></div>
+                                                    <div><dt>Metode Pembayaran</dt><dd t-esc="order.payment_method_label"></dd></div>
+                                                    <div><dt>Status Pesanan</dt><dd t-esc="order.status_label"></dd></div>
+                                                    <div><dt>Status Refund</dt><dd t-esc="refund.status_label"></dd></div>
+                                                </dl>
+                                            </section>
+                                        </div>
+                                    </article>
+
+                                    <article class="ut-refund-detail-card">
+                                        <h2>Produk yang Dikembalikan</h2>
+                                        <div class="ut-refund-product-row">
+                                            <img t-att-src="product.image_url || '/web/static/img/placeholder.png'" t-att-alt="product.name" onerror="this.src='/web/static/img/placeholder.png'"/>
+                                            <div>
+                                                <strong t-esc="product.name"></strong>
+                                                <span t-if="product.variant" t-esc="product.variant"></span>
+                                                <span>Jumlah: <t t-esc="product.qty"/></span>
+                                                <b t-esc="product.amount_label"></b>
+                                            </div>
+                                        </div>
+                                    </article>
+
+                                    <article class="ut-refund-detail-card">
+                                        <h2>Alasan Pengembalian</h2>
+                                        <span class="ut-refund-reason-pill" t-esc="refund.reason_label"></span>
+                                        <p class="ut-refund-reason-note" t-esc="refund.reason_note"></p>
+                                    </article>
+
+                                    <article class="ut-refund-detail-card">
+                                        <h2>Bukti Pengembalian</h2>
+                                        <div t-if="evidence.length" class="ut-refund-evidence-grid">
+                                            <t t-foreach="evidence" t-as="item" t-key="item.id">
+                                                <button type="button" class="ut-refund-evidence-thumb" t-on-click="() => this.openEvidencePreview(item)">
+                                                    <img t-att-src="item.url" t-att-alt="item.name"/>
+                                                    <span>
+                                                        <strong t-esc="item.name"></strong>
+                                                        <small><t t-esc="item.type"/> / <t t-esc="item.size_label"/></small>
+                                                    </span>
+                                                </button>
+                                            </t>
+                                        </div>
+                                        <div t-else="" class="ut-refund-empty-state">
+                                            Belum ada bukti gambar JPG, PNG, atau WebP yang bisa dipreview.
+                                        </div>
+                                    </article>
+
+                                    <article class="ut-refund-detail-card">
+                                        <h2>Timeline Pengembalian</h2>
+                                        <div class="ut-refund-detail-timeline">
+                                            <t t-foreach="timeline" t-as="step" t-key="step.key">
+                                                <div t-att-class="timelineStepClass(step)">
+                                                    <span class="ut-refund-detail-step-dot">
+                                                        <i t-att-class="step.failed ? 'fa fa-times' : step.done ? 'fa fa-check' : step.active ? 'fa fa-clock-o' : 'fa fa-circle'"></i>
+                                                    </span>
+                                                    <span>
+                                                        <strong t-esc="step.label"></strong>
+                                                        <small t-if="step.caption" t-esc="step.caption"></small>
+                                                    </span>
+                                                </div>
+                                            </t>
+                                        </div>
+                                    </article>
+                                </div>
+
+                                <aside class="ut-refund-detail-side">
+                                    <article class="ut-refund-detail-card">
+                                        <h2>Keputusan Seller</h2>
+                                        <label class="ut-refund-note-field">
+                                            <span>Catatan Seller</span>
+                                            <textarea t-model="state.sellerNote" t-att-readonly="!(refund.can_decide || refund.can_reject_return) ? true : undefined" placeholder="Tulis alasan atau instruksi untuk pembeli..."></textarea>
+                                        </label>
+                                    </article>
+
+                                    <article t-if="refund.can_confirm_return" class="ut-refund-detail-card ut-refund-confirm-return-card">
+                                        <h2>Konfirmasi Barang Kembali</h2>
+                                        <p>Upload foto bukti barang sudah diterima kembali. Setelah itu admin/CS akan meninjau final sebelum dana dikembalikan.</p>
+                                        <form t-att-action="refund.confirm_return_url" method="post" enctype="multipart/form-data" class="ut-refund-confirm-return-form">
+                                            <input type="hidden" name="csrf_token" t-att-value="payload.csrf_token"/>
+                                            <label>
+                                                <span>Catatan konfirmasi</span>
+                                                <textarea name="seller_return_note" placeholder="Contoh: Barang sudah diterima kembali dalam kondisi sesuai."></textarea>
+                                            </label>
+                                            <label>
+                                                <span>Foto bukti penerimaan</span>
+                                                <input type="file" name="seller_return_evidence" accept="image/jpeg,image/png,image/webp" multiple="multiple" required="required"/>
+                                                <small>PNG, JPG, atau WEBP. Maksimal 3 foto, 2 MB per foto.</small>
+                                            </label>
+                                            <button type="submit" class="ut-refund-confirm-return-btn">Konfirmasi &amp; Kirim ke Admin</button>
+                                        </form>
+                                    </article>
+
+                                    <article class="ut-refund-detail-card ut-refund-summary-card">
+                                        <h2>Ringkasan Refund</h2>
+                                        <dl class="ut-refund-summary-list">
+                                            <div><dt>Harga Barang</dt><dd t-esc="summary.item_amount_label"></dd></div>
+                                            <div t-if="summary.admin_fee"><dt>Biaya Admin</dt><dd>- <t t-esc="summary.admin_fee_label"/></dd></div>
+                                            <div class="is-total"><dt>Total Refund</dt><dd t-esc="summary.total_refund_label"></dd></div>
+                                        </dl>
+                                        <div t-if="state.decisionError" class="ut-refund-action-error" t-esc="state.decisionError"></div>
+                                        <p t-if="!refund.can_decide &amp;&amp; !refund.can_reject_return" class="ut-refund-decision-meta">
+                                            Keputusan awal seller sudah tercatat. Lanjutkan proses melalui status dan form yang tersedia.
+                                        </p>
+                                        <button t-if="refund.can_decide" type="button" class="ut-refund-approve-btn" t-on-click="approveRefund" t-att-disabled="!canDecide ? true : undefined">
+                                            <t t-if="state.decisionLoading === 'approve'">Menyimpan...</t>
+                                            <t t-else="">Setujui</t>
+                                        </button>
+                                        <button t-if="refund.can_decide || refund.can_reject_return" type="button" class="ut-refund-reject-btn" t-on-click="rejectRefund" t-att-disabled="!canReject ? true : undefined">
+                                            <t t-if="state.decisionLoading === 'reject'">Menyimpan...</t>
+                                            <t t-else="">Tolak</t>
+                                        </button>
+                                    </article>
+                                </aside>
+                            </div>
+                        </section>
+                    </main>
+
+                    <div t-if="state.previewEvidence" class="ut-refund-preview-modal" role="dialog" aria-modal="true" t-on-click.self="closeEvidencePreview">
+                        <section class="ut-refund-preview-dialog">
+                            <header>
+                                <span>
+                                    <h2 t-esc="state.previewEvidence.name"></h2>
+                                    <p t-if="state.previewEvidence.note" t-esc="state.previewEvidence.note"></p>
+                                </span>
+                                <button type="button" t-on-click="closeEvidencePreview" aria-label="Tutup preview bukti">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </header>
+                            <img t-att-src="state.previewEvidence.url" t-att-alt="state.previewEvidence.name"/>
+                        </section>
+                    </div>
+
+                    <div t-if="state.toast" class="ut-refund-toast" role="status" t-esc="state.toast"></div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="unitrade_seller.SellerRefundDetailSkeleton">
+        <div class="ut-dash-stage ut-refund-detail-stage ut-dash-skeleton-stage">
+            <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
+            </div>
+            <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-w-[210px] tw-rounded-[22px]"></span>
+                <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+            </header>
+            <aside class="ut-dash-sidebar ut-refund-detail-sidebar ut-dash-skeleton-sidebar">
+                <div class="ut-dash-sidebar-brand">
+                    <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
+                </div>
+                <div class="ut-dash-sidebar-nav">
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                </div>
+            </aside>
+            <main class="ut-refund-detail-main tw-absolute tw-left-[180px] tw-right-[67px] tw-top-[173px] tw-pb-10">
+                <span class="ut-dash-skeleton-line tw-h-11 tw-w-[360px] tw-rounded-[16px]"></span>
+                <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
+                <section class="ut-dash-skeleton-card tw-mt-7 tw-h-[720px] tw-p-8">
+                    <div class="tw-grid tw-grid-cols-[minmax(0,1fr)_360px] tw-gap-6">
+                        <div class="tw-flex tw-flex-col tw-gap-5">
+                            <span class="ut-dash-skeleton-card tw-h-[210px]"></span>
+                            <span class="ut-dash-skeleton-card tw-h-[170px]"></span>
+                            <span class="ut-dash-skeleton-card tw-h-[150px]"></span>
+                        </div>
+                        <div class="tw-flex tw-flex-col tw-gap-5">
+                            <span class="ut-dash-skeleton-card tw-h-[220px]"></span>
+                            <span class="ut-dash-skeleton-card tw-h-[270px]"></span>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </t>
+</templates>

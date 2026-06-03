@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="unitrade_my_orders_refund_actions" inherit_id="unitrade_theme.unitrade_portal_my_orders" name="UniTrade My Orders Refund Actions">
+        <xpath expr="//footer[hasclass('ut-user-order-actions')]/form[contains(@t-if, 'can_cancel_order')]" position="before">
+            <a t-if="item.get('refund_detail_url')" t-att-href="item.get('refund_detail_url')" class="ut-user-order-btn ut-user-order-btn-outline">
+                Lihat Pengembalian
+            </a>
+            <a t-if="not item.get('refund_detail_url') and item.get('can_refund_order')"
+                t-att-href="item.get('refund_create_url')"
+                class="ut-user-order-btn ut-user-order-btn-danger">
+                Ajukan Pengembalian
+            </a>
+        </xpath>
+
+    </template>
+
+    <template id="unitrade_order_status_refund_panel" inherit_id="unitrade_payment.unitrade_order_status" name="UniTrade Order Status Refund Panel">
+        <xpath expr="//section[@t-if='order_status_ledgers']" position="after">
+            <section class="ut-order-status-card" t-if="order_status_refunds">
+                <h2 class="ut-order-status-card-title">Pengembalian</h2>
+                <div t-foreach="order_status_refunds" t-as="refund" class="ut-order-status-ledger">
+                    <div>
+                        <strong t-esc="refund.get('name')"/>
+                        <p class="ut-order-status-meta">
+                            <t t-esc="refund.get('reason')"/> · <t t-esc="refund.get('requested_amount')"/>
+                        </p>
+                        <p t-if="refund.get('decision_note')" class="ut-order-status-meta" t-esc="refund.get('decision_note')"/>
+                    </div>
+                    <a t-att-href="refund.get('url')" class="ut-order-status-chip" t-esc="refund.get('state_label')"/>
+                </div>
+            </section>
+        </xpath>
+    </template>
+
+    <template id="unitrade_refund_create" name="UniTrade Create Return Request">
+        <t t-call="website.layout">
+            <t t-set="title">Ajukan Pengembalian</t>
+            <div class="ut-refund-create-page">
+                <main class="ut-refund-create-shell">
+                    <a href="/my/orders" class="ut-refund-back-link">
+                        <i class="fa fa-chevron-left"></i>
+                        <span>Kembali ke Pesanan Saya</span>
+                    </a>
+                    <section class="ut-refund-create-card">
+                        <header class="ut-order-refund-head">
+                            <div>
+                                <h2>Ajukan Pengembalian</h2>
+                                <p>Pengembalian akan ditinjau UniTrade. Payout seller ditahan sampai keputusan final.</p>
+                            </div>
+                        </header>
+                        <div t-if="request.params.get('refund_error')" class="ut-refund-form-alert" role="alert">
+                            <t t-esc="request.params.get('refund_error')"/>
+                        </div>
+                        <form t-att-action="'/unitrade/order/%s/refund' % order.id" method="post" enctype="multipart/form-data" class="ut-order-refund-form" data-refund-form="1">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <input type="hidden" name="ledger_id" t-att-value="ledger.id if ledger else ''"/>
+                            <input type="hidden" name="order_line_id" t-att-value="order_line.id if order_line else ''"/>
+
+                            <article class="ut-order-refund-product">
+                                <div>
+                                    <strong t-esc="product_name"/>
+                                    <span t-esc="seller_name"/>
+                                </div>
+                                <small>Nominal: <b t-esc="refund_amount"/></small>
+                            </article>
+
+                            <div class="ut-order-refund-field">
+                                <label for="ut_refund_reason">Alasan pengembalian</label>
+                                <select id="ut_refund_reason" name="reason_code" required="required" data-refund-reason="1">
+                                    <option value="seller_no_handoff">Seller tidak menyerahkan barang</option>
+                                    <option value="not_as_described">Barang tidak sesuai deskripsi</option>
+                                    <option value="damaged">Barang rusak/tidak berfungsi</option>
+                                    <option value="wrong_item">Salah barang</option>
+                                    <option value="other">Lainnya</option>
+                                </select>
+                            </div>
+
+                            <div class="ut-order-refund-field">
+                                <label for="ut_refund_note">Catatan pengembalian</label>
+                                <textarea id="ut_refund_note" name="reason_note" minlength="20" required="required" placeholder="Jelaskan kronologi dan alasan pengembalian minimal 20 karakter."></textarea>
+                            </div>
+
+                            <div class="ut-order-refund-field">
+                                <span>Bukti foto wajib</span>
+                                <div class="ut-order-refund-upload-card" data-refund-dropzone="photos">
+                                    <div class="ut-order-refund-upload-icon">
+                                        <i class="fa fa-upload"></i>
+                                    </div>
+                                    <strong>Drag &amp; drop foto bukti di sini, atau klik untuk memilih</strong>
+                                    <small>PNG, JPG, atau WEBP. Maksimal 3 foto, 2 MB per foto.</small>
+                                    <button type="button" class="ut-order-refund-upload-btn" data-refund-browse="photos">Choose Files</button>
+                                    <input class="ut-order-refund-file-input" type="file" name="refund_evidence" accept="image/jpeg,image/png,image/webp" required="required" multiple="multiple" data-refund-photos="1"/>
+                                    <div class="ut-order-refund-file-list" data-refund-photo-list="1"></div>
+                                </div>
+                                <div class="ut-order-refund-upload-card is-video" data-refund-dropzone="video">
+                                    <div class="ut-order-refund-upload-icon">
+                                        <i class="fa fa-video-camera"></i>
+                                    </div>
+                                    <strong>Upload video unboxing tambahan (opsional)</strong>
+                                    <small data-refund-unboxing-hint="1">MP4 atau WEBM. Opsional, maksimal 10 MB.</small>
+                                    <button type="button" class="ut-order-refund-upload-btn" data-refund-browse="video">Choose File</button>
+                                    <input class="ut-order-refund-file-input" type="file" name="unboxing_video" accept="video/mp4,video/webm" data-refund-unboxing="1"/>
+                                    <div class="ut-order-refund-file-list" data-refund-video-list="1"></div>
+                                </div>
+                            </div>
+
+                            <div class="ut-order-refund-field">
+                                <label for="ut_refund_drive_url">Link Google Drive video unboxing</label>
+                                <input id="ut_refund_drive_url" type="url" name="google_drive_url" placeholder="https://drive.google.com/..." required="required" data-refund-drive-url="1"/>
+                                <small class="ut-order-refund-help" data-refund-drive-hint="1">Wajib. Upload video unboxing ke Google Drive, lalu tempel link yang bisa diakses untuk proses review.</small>
+                            </div>
+
+                            <footer class="ut-order-refund-actions">
+                                <a href="/my/orders" class="ut-order-refund-cancel">Batal</a>
+                                <button type="submit" class="ut-order-refund-submit">Kirim Pengembalian</button>
+                            </footer>
+                        </form>
+                    </section>
+                </main>
+            </div>
+        </t>
+    </template>
+
+    <template id="unitrade_refund_detail" name="UniTrade Refund Detail">
+        <t t-call="website.layout">
+            <t t-set="title">Detail Pengembalian</t>
+            <div class="ut-refund-detail-page">
+                <main class="ut-refund-detail-shell">
+                    <h1 class="ut-refund-detail-title">Status Pengembalian</h1>
+                    <p class="ut-refund-detail-subtitle">Pantau proses pengembalian, review seller/admin, dan bukti yang sudah dikirim.</p>
+
+                    <section t-att-class="'ut-refund-status-notice is-%s' % refund_status_notice.get('tone', 'review')">
+                        <span t-att-class="'ut-refund-state-pill is-%s' % refund_state_key" t-esc="refund_state_label"/>
+                        <div>
+                            <h2 t-esc="refund_status_notice.get('title')"/>
+                            <p t-esc="refund_status_notice.get('body')"/>
+                            <small>Jika seller tidak setuju, Customer Service/admin akan menjadi mediator dan meninjau bukti dari kedua pihak.</small>
+                        </div>
+                    </section>
+
+                    <section class="ut-refund-progress-card" aria-label="Progress pengembalian">
+                        <t t-foreach="refund_progress_steps" t-as="step">
+                            <article t-att-class="'ut-refund-progress-step is-%s' % step.get('status')">
+                                <span class="ut-refund-progress-dot">
+                                    <span t-if="step.get('status') == 'current'" class="ut-refund-progress-dot-core"></span>
+                                    <i t-elif="step.get('status') == 'failed'" class="fa fa-times"></i>
+                                </span>
+                                <span class="ut-refund-progress-copy">
+                                    <strong t-esc="step.get('label')"/>
+                                    <small t-esc="step.get('status_label')"/>
+                                </span>
+                            </article>
+                        </t>
+                    </section>
+
+                    <div t-if="request.params.get('refund_error')" class="ut-refund-form-alert" role="alert">
+                        <t t-esc="request.params.get('refund_error')"/>
+                    </div>
+
+                    <section t-if="can_submit_return_evidence" class="ut-refund-card ut-refund-return-card">
+                        <h2>Kirim Bukti Pengembalian Barang</h2>
+                        <p>Upload foto bukti barang sudah dikirim atau diserahkan kembali ke seller. Setelah dikirim, seller akan mengonfirmasi penerimaan barang dengan foto.</p>
+                        <form t-att-action="return_evidence_url" method="post" enctype="multipart/form-data" class="ut-refund-return-form">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <label>
+                                <span>Catatan pengiriman</span>
+                                <textarea name="return_note" placeholder="Contoh: Barang sudah diserahkan langsung ke seller, atau nomor resi/link bukti pengiriman."></textarea>
+                            </label>
+                            <label>
+                                <span>Foto bukti pengembalian</span>
+                                <input type="file" name="return_evidence" accept="image/jpeg,image/png,image/webp" multiple="multiple" required="required"/>
+                                <small>PNG, JPG, atau WEBP. Maksimal 3 foto, 2 MB per foto.</small>
+                            </label>
+                            <button type="submit" class="ut-refund-primary-link">Kirim Bukti Pengembalian</button>
+                        </form>
+                    </section>
+
+                    <div class="ut-refund-detail-grid">
+                        <div>
+                            <section class="ut-refund-card">
+                                <h2>Informasi Pengembalian</h2>
+                                <div class="ut-refund-kv">
+                                    <span>Nomor Case</span>
+                                    <strong t-esc="dispute.name"/>
+                                </div>
+                                <div class="ut-refund-kv">
+                                    <span>Status</span>
+                                    <strong t-esc="refund_state_label"/>
+                                </div>
+                                <div class="ut-refund-kv">
+                                    <span>Alasan</span>
+                                    <strong t-esc="dict(dispute._fields['reason_code'].selection).get(dispute.reason_code, dispute.reason_code)"/>
+                                </div>
+                                <div class="ut-refund-kv">
+                                    <span>Catatan Buyer</span>
+                                    <strong t-esc="dispute.reason_note"/>
+                                </div>
+                                <div class="ut-refund-kv is-seller-note" t-if="dispute.seller_decision_note">
+                                    <span>Alasan Seller</span>
+                                    <strong t-esc="dispute.seller_decision_note"/>
+                                </div>
+                                <div class="ut-refund-kv">
+                                    <span>Nominal Diajukan</span>
+                                    <strong t-field="dispute.requested_amount"/>
+                                </div>
+                                <div class="ut-refund-kv" t-if="dispute.approved_amount">
+                                    <span>Nominal Disetujui</span>
+                                    <strong t-field="dispute.approved_amount"/>
+                                </div>
+                            </section>
+
+                            <section class="ut-refund-card">
+                                <h2>Bukti</h2>
+                                <div t-if="dispute.evidence_ids" class="ut-refund-evidence-list">
+                                    <article t-foreach="dispute.evidence_ids" t-as="evidence" class="ut-refund-evidence-item">
+                                        <t t-set="evidence_mimetype" t-value="evidence.attachment_id.mimetype or ''"/>
+                                        <img t-if="evidence.attachment_id and evidence_mimetype in ('image/jpeg', 'image/png', 'image/webp')" t-att-src="'/unitrade/refund/evidence/%s/image' % evidence.id" t-att-alt="evidence.attachment_id.name or 'Bukti pengembalian'" class="ut-refund-evidence-thumb"/>
+                                        <div>
+                                            <strong t-esc="dict(evidence._fields['evidence_type'].selection).get(evidence.evidence_type, evidence.evidence_type)"/>
+                                            <p t-if="evidence.note" class="tw-m-0 tw-text-[13px] tw-text-[#6b7280]" t-esc="evidence.note"/>
+                                            <p t-if="evidence.url" class="tw-m-0 tw-text-[13px]">
+                                                <a t-att-href="evidence.url" target="_blank" rel="noopener">Buka link bukti</a>
+                                            </p>
+                                        </div>
+                                        <a t-if="evidence.attachment_id" t-att-href="'/unitrade/refund/evidence/%s/download' % evidence.id" class="ut-refund-status-chip">Download</a>
+                                    </article>
+                                </div>
+                                <p t-else="" class="tw-m-0 tw-text-[#6b7280]">Belum ada bukti.</p>
+                            </section>
+
+                            <section class="ut-refund-card" t-if="is_seller_view and dispute.state in ('submitted', 'under_review')">
+                                <h2>Respons Seller</h2>
+                                <form t-att-action="'/seller/refund/%s/respond' % dispute.id" method="post" enctype="multipart/form-data" class="ut-refund-seller-response">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <textarea name="seller_response_note" placeholder="Tulis penjelasan atau klarifikasi seller."></textarea>
+                                    <input type="file" name="seller_refund_evidence" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" multiple="multiple"/>
+                                    <button type="submit" class="ut-refund-primary-link">Kirim Respons</button>
+                                </form>
+                            </section>
+
+                            <section class="ut-refund-card" t-if="is_seller_view and dispute.state == 'need_seller_response'">
+                                <h2>Konfirmasi Barang Kembali</h2>
+                                <p class="tw-m-0 tw-mb-3 tw-text-[13px] tw-leading-5 tw-text-[#6b7280]">Upload foto bukti bahwa barang sudah diterima kembali. Setelah itu admin/CS akan meninjau final sebelum dana dikembalikan.</p>
+                                <form t-att-action="'/seller/refund/%s/confirm-return' % dispute.id" method="post" enctype="multipart/form-data" class="ut-refund-seller-response">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <textarea name="seller_return_note" placeholder="Catatan konfirmasi penerimaan barang."></textarea>
+                                    <input type="file" name="seller_return_evidence" accept="image/jpeg,image/png,image/webp" multiple="multiple" required="required"/>
+                                    <button type="submit" class="ut-refund-primary-link">Konfirmasi &amp; Kirim ke Admin</button>
+                                </form>
+                            </section>
+                        </div>
+
+                        <aside>
+                            <section class="ut-refund-card">
+                                <h2>Ringkasan</h2>
+                                <div class="ut-refund-kv">
+                                    <span>Order</span>
+                                    <strong t-esc="order.name"/>
+                                </div>
+                                <div class="ut-refund-kv">
+                                    <span>Buyer</span>
+                                    <strong t-esc="dispute.buyer_id.name"/>
+                                </div>
+                                <div class="ut-refund-kv">
+                                    <span>Seller</span>
+                                    <strong t-esc="dispute.seller_id.name if dispute.seller_id else 'Penjual UniTrade'"/>
+                                </div>
+                                <div class="ut-refund-kv">
+                                    <span>Diajukan</span>
+                                    <strong t-esc="dispute.submitted_at or dispute.create_date"/>
+                                </div>
+                                <div class="ut-refund-kv" t-if="dispute.admin_decision_note">
+                                    <span>Catatan Admin</span>
+                                    <strong t-esc="dispute.admin_decision_note"/>
+                                </div>
+                            </section>
+
+                            <section class="ut-refund-card">
+                                <a href="/my/orders" class="ut-refund-primary-link">Kembali ke Pesanan Saya</a>
+                                <a t-att-href="'/unitrade/order/status/%s' % order.id" class="ut-refund-secondary-link tw-mt-3">Lihat Status Pesanan</a>
+                            </section>
+                        </aside>
+                    </div>
+                </main>
+            </div>
+        </t>
+    </template>
+</odoo>

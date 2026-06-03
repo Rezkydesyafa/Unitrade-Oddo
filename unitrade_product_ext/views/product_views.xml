@@ -23,6 +23,7 @@
                     <field name="x_free_shipping"/>
                     <field name="x_discount_percent"/>
                     <field name="x_listing_fee"/>
+                    <field name="x_listing_activated_at"/>
                     <field name="x_listing_expires_at"/>
                 </group>
             </xpath>
@@ -45,6 +46,7 @@
                 <field name="x_seller_location"/>
                 <field name="x_discount_percent" optional="hide"/>
                 <field name="x_listing_fee" optional="hide"/>
+                <field name="x_listing_activated_at" optional="hide"/>
                 <field name="x_listing_expires_at" optional="hide"/>
                 <field name="x_listing_status" widget="badge"
                        decoration-info="x_listing_status == 'draft'"
@@ -123,6 +125,7 @@
                             <field name="x_discount_percent"/>
                             <field name="x_free_shipping"/>
                             <field name="x_listing_fee"/>
+                            <field name="x_listing_activated_at"/>
                             <field name="x_listing_expires_at"/>
                             <field name="x_listing_status" widget="badge"
                                    decoration-info="x_listing_status == 'draft'"

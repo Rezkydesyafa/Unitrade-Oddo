@@ -1,6 +1,120 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
 
+    <template id="about_unitrade_section" name="AboutUniTradeSection">
+        <section id="about-unitrade" class="AboutUniTradeSection ut-about-section ut-about-v2" aria-labelledby="ut-about-title">
+            <div class="ut-about-v2-shell">
+                <div class="ut-about-v2-row ut-about-v2-row-why">
+                    <div class="ut-about-v2-copy ut-about-animate">
+                        <div class="ut-about-v2-title-row">
+                            <div class="ut-about-v2-dots" aria-hidden="true">
+                                <span></span><span></span><span></span><span></span><span></span><span></span>
+                            </div>
+                            <div>
+                                <h2 id="ut-about-title">Kenapa Belanja di UniTrade?</h2>
+                                <p>Murah, nyaman, dan temukan produk unik hasil karya mahasiswa dari berbagai kampus.</p>
+                            </div>
+                        </div>
+                        <div class="ut-about-v2-cone-card ut-about-animate" aria-hidden="true">
+                            <img class="ut-about-v2-cone-shadow" src="/unitrade_theme/static/src/img/about/shadow-ellipse.svg" alt="" loading="lazy" decoding="async"/>
+                            <img class="ut-about-v2-cone" src="/unitrade_theme/static/src/img/about/cone.png" alt="" loading="lazy" decoding="async"/>
+                        </div>
+                    </div>
+
+                    <div class="ut-about-v2-stage ut-about-v2-stage-why">
+                        <img class="ut-about-v2-ascii" src="/unitrade_theme/static/src/img/about/ascii-art.png" alt="" loading="lazy" decoding="async"/>
+                        <img class="ut-about-v2-guide ut-about-v2-guide-product" src="/unitrade_theme/static/src/img/about/guide-151.svg" alt="" loading="lazy" decoding="async"/>
+                        <img class="ut-about-v2-guide ut-about-v2-guide-transaction-a" src="/unitrade_theme/static/src/img/about/guide-150.svg" alt="" loading="lazy" decoding="async"/>
+                        <img class="ut-about-v2-guide ut-about-v2-guide-transaction-b" src="/unitrade_theme/static/src/img/about/guide-152.svg" alt="" loading="lazy" decoding="async"/>
+                        <img class="ut-about-v2-guide ut-about-v2-guide-price" src="/unitrade_theme/static/src/img/about/guide-156.svg" alt="" loading="lazy" decoding="async"/>
+
+                        <div class="ut-about-v2-benefit ut-about-v2-benefit-product ut-about-animate">
+                            <span>1</span>
+                            <div>
+                                <h3>Produk Kreatif</h3>
+                                <p>Produk unik dari berbagai kampus.</p>
+                            </div>
+                        </div>
+                        <div class="ut-about-v2-benefit ut-about-v2-benefit-transaction ut-about-animate">
+                            <span>2</span>
+                            <div>
+                                <h3>Transaksi aman</h3>
+                                <p>Sistem pembayaran terpercaya.</p>
+                            </div>
+                        </div>
+                        <div class="ut-about-v2-benefit ut-about-v2-benefit-price ut-about-animate">
+                            <span>3</span>
+                            <div>
+                                <h3>Harga Ramah</h3>
+                                <p>Diskon khusus pas untuk mahasiswa.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ut-about-v2-row ut-about-v2-row-what">
+                    <div class="ut-about-v2-copy ut-about-v2-copy-what ut-about-animate">
+                        <div class="ut-about-v2-title-row">
+                            <div class="ut-about-v2-dots" aria-hidden="true">
+                                <span></span><span></span><span></span><span></span><span></span><span></span>
+                            </div>
+                            <div>
+                                <h2>Apa Itu UniTrade?</h2>
+                                <p>UniTrade adalah platform marketplace untuk mahasiswa dalam melakukan jual beli produk dan jasa. Mahasiswa dapat menjual kebutuhan akademik, barang bekas layak pakai, maupun jasa dengan sistem yang terstruktur, transparan, dan mudah digunakan. Fitur verifikasi penjual mahasiswa juga disediakan untuk meningkatkan keamanan dan kepercayaan dalam transaksi.</p>
+                            </div>
+                        </div>
+                        <div class="ut-about-v2-bag-card ut-about-animate" aria-hidden="true">
+                            <img src="/unitrade_theme/static/src/img/about/paper-bag.png" alt="" loading="lazy" decoding="async"/>
+                        </div>
+                    </div>
+
+                    <div class="ut-about-v2-stage ut-about-v2-stage-cart ut-about-animate" aria-hidden="true">
+                        <div class="ut-about-v2-road"></div>
+                        <img class="ut-about-v2-cart" src="/unitrade_theme/static/src/img/about/shopping-cart.png" alt="" loading="lazy" decoding="async"/>
+                    </div>
+                </div>
+            </div>
+            <script>
+                (function () {
+                    function initAboutUniTradeAnimation() {
+                        var sections = document.querySelectorAll('.AboutUniTradeSection');
+                        if (!sections.length) {
+                            return;
+                        }
+                        var reducedMotion = false;
+                        if (window.matchMedia) {
+                            reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                        }
+                        sections.forEach(function (section) {
+                            section.classList.add('ut-about-ready');
+                            if (reducedMotion || !('IntersectionObserver' in window)) {
+                                section.classList.add('ut-about-visible');
+                                return;
+                            }
+                            var observer = new IntersectionObserver(function (entries) {
+                                entries.forEach(function (entry) {
+                                    if (entry.isIntersecting) {
+                                        section.classList.add('ut-about-visible');
+                                        observer.unobserve(section);
+                                    }
+                                });
+                            }, {
+                                threshold: 0.16,
+                                rootMargin: '0px 0px -10% 0px'
+                            });
+                            observer.observe(section);
+                        });
+                    }
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', initAboutUniTradeAnimation);
+                    } else {
+                        initAboutUniTradeAnimation();
+                    }
+                })();
+            </script>
+        </section>
+    </template>
+
     <!-- ============================================
          UniTrade Homepage
          ============================================ -->
@@ -10,157 +124,130 @@
             <!-- Hero Section (Carousel) -->
             <section class="tw-py-8 tw-px-4 md:tw-px-8 tw-max-w-7xl tw-mx-auto tw-relative tw-z-10">
                 <style>
-                    .slide-anim { 
-                        opacity: 0; 
-                        transform: translateX(-30px); 
-                        transition: opacity 0.6s ease-out, transform 0.6s ease-out; 
+                    #unitradeHeroCarousel {
+                        background: #f8fafc;
                     }
-                    .delay-100 { transition-delay: 0.1s; }
-                    .delay-200 { transition-delay: 0.2s; }
-                    .delay-300 { transition-delay: 0.3s; }
-                    
-                    /* Custom Button Styles to guarantee rendering */
-                    .btn-beli {
-                        border: 1px solid rgba(255, 255, 255, 0.8);
-                        transition: all 0.3s ease;
+                    .ut-hero-arrow {
+                        box-sizing: border-box;
+                        width: 48px;
+                        height: 48px;
+                        min-width: 48px;
+                        min-height: 48px;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 0;
+                        border: 1px solid rgba(15, 23, 42, 0.12);
+                        border-radius: 50%;
+                        background: rgba(255, 255, 255, 0.64);
+                        color: #111827;
+                        line-height: 1;
+                        appearance: none;
+                        transition: background-color 180ms ease, border-color 180ms ease, transform 160ms ease;
                     }
-                    .btn-beli:hover {
-                        background-color: white;
-                        color: #1a1a1a !important;
-                        transform: scale(1.05);
-                        box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+                    .ut-hero-arrow:hover {
+                        border-color: rgba(15, 23, 42, 0.2);
+                        background: rgba(255, 255, 255, 0.92);
+                    }
+                    .ut-hero-arrow:active {
+                        transform: scale(0.96);
+                    }
+                    .ut-hero-arrow svg {
+                        display: block;
+                        width: 20px;
+                        height: 20px;
+                        flex: 0 0 20px;
+                    }
+                    @media (max-width: 767.98px) {
+                        .ut-hero-control-bar {
+                            right: 12px;
+                            bottom: 12px;
+                            padding: 10px;
+                            gap: 12px;
+                        }
+                        .ut-hero-arrow {
+                            width: 40px;
+                            height: 40px;
+                            min-width: 40px;
+                            min-height: 40px;
+                        }
                     }
                 </style>
                 <div id="unitradeHeroCarousel" class="carousel slide carousel-fade tw-relative tw-h-[400px] md:tw-h-[500px] tw-w-full tw-rounded-[30px] tw-overflow-hidden tw-shadow-lg" data-bs-ride="carousel" data-bs-interval="4000" data-bs-pause="hover" data-bs-touch="true">
-                    
                     <!-- Carousel Slides Images -->
                     <div class="carousel-inner tw-h-full tw-w-full">
                         <!-- Slide 1 -->
                         <div class="carousel-item active tw-h-full tw-w-full">
-                            <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=1400&amp;q=80" alt="Promo Sepatu" class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover"/>
+                            <picture class="tw-absolute tw-inset-0 tw-block tw-h-full tw-w-full">
+                                <source type="image/webp" srcset="/unitrade_theme/static/src/img/hero/hero-banner-1-960.webp 960w, /unitrade_theme/static/src/img/hero/hero-banner-1-1920.webp 1920w" sizes="(max-width: 768px) 100vw, 1280px"/>
+                                <img src="/unitrade_theme/static/src/img/hero/hero-banner-1.png" alt="Promo big sale UniTrade" fetchpriority="high" decoding="async" class="tw-h-full tw-w-full tw-object-contain"/>
+                            </picture>
                         </div>
                         <!-- Slide 2 -->
                         <div class="carousel-item tw-h-full tw-w-full">
-                            <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=1400&amp;q=80" alt="Promo Fashion" class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover tw-object-center"/>
+                            <picture class="tw-absolute tw-inset-0 tw-block tw-h-full tw-w-full">
+                                <source type="image/webp" srcset="/unitrade_theme/static/src/img/hero/hero-banner-2-960.webp 960w, /unitrade_theme/static/src/img/hero/hero-banner-2-1920.webp 1920w" sizes="(max-width: 768px) 100vw, 1280px"/>
+                                <img src="/unitrade_theme/static/src/img/hero/hero-banner-2.png" alt="Promo diskon besar UniTrade Shopping Day" fetchpriority="low" decoding="async" class="tw-h-full tw-w-full tw-object-contain"/>
+                            </picture>
                         </div>
                         <!-- Slide 3 -->
                         <div class="carousel-item tw-h-full tw-w-full">
-                            <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=1400&amp;q=80" alt="Promo Elektronik" class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover tw-object-right"/>
+                            <picture class="tw-absolute tw-inset-0 tw-block tw-h-full tw-w-full">
+                                <source type="image/webp" srcset="/unitrade_theme/static/src/img/hero/hero-banner-3-960.webp 960w, /unitrade_theme/static/src/img/hero/hero-banner-3-1920.webp 1920w" sizes="(max-width: 768px) 100vw, 1280px"/>
+                                <img src="/unitrade_theme/static/src/img/hero/hero-banner-3.png" alt="Promo Campus dan Lifestyle UniTrade" fetchpriority="low" decoding="async" class="tw-h-full tw-w-full tw-object-contain"/>
+                            </picture>
                         </div>
                         <!-- Slide 4 -->
                         <div class="carousel-item tw-h-full tw-w-full">
-                            <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=1400&amp;q=80" alt="Promo Aksesoris" class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover tw-object-center"/>
+                            <picture class="tw-absolute tw-inset-0 tw-block tw-h-full tw-w-full">
+                                <source type="image/webp" srcset="/unitrade_theme/static/src/img/hero/hero-banner-4-960.webp 960w, /unitrade_theme/static/src/img/hero/hero-banner-4-1920.webp 1920w" sizes="(max-width: 768px) 100vw, 1280px"/>
+                                <img src="/unitrade_theme/static/src/img/hero/hero-banner-4.png" alt="Voucher khusus UniTrade" fetchpriority="low" decoding="async" class="tw-h-full tw-w-full tw-object-cover tw-object-center"/>
+                            </picture>
                         </div>
                         <!-- Slide 5 -->
                         <div class="carousel-item tw-h-full tw-w-full">
-                            <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=1400&amp;q=80" alt="Promo Headphone" class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover tw-object-center"/>
+                            <picture class="tw-absolute tw-inset-0 tw-block tw-h-full tw-w-full">
+                                <source type="image/webp" srcset="/unitrade_theme/static/src/img/hero/hero-banner-5-960.webp 960w, /unitrade_theme/static/src/img/hero/hero-banner-5-1920.webp 1920w" sizes="(max-width: 768px) 100vw, 1280px"/>
+                                <img src="/unitrade_theme/static/src/img/hero/hero-banner-5.png" alt="Promo Weekend Helper UniTrade" fetchpriority="low" decoding="async" class="tw-h-full tw-w-full tw-object-cover tw-object-center"/>
+                            </picture>
+                        </div>
+                        <!-- Slide 6 -->
+                        <div class="carousel-item tw-h-full tw-w-full">
+                            <picture class="tw-absolute tw-inset-0 tw-block tw-h-full tw-w-full">
+                                <source type="image/webp" srcset="/unitrade_theme/static/src/img/hero/hero-banner-6-960.webp 960w, /unitrade_theme/static/src/img/hero/hero-banner-6-1920.webp 1920w" sizes="(max-width: 768px) 100vw, 1280px"/>
+                                <img src="/unitrade_theme/static/src/img/hero/hero-banner-6.png" alt="Belanja Cerdas UniTrade" fetchpriority="low" decoding="async" class="tw-h-full tw-w-full tw-object-cover tw-object-center"/>
+                            </picture>
                         </div>
                     </div>
 
-                    <!-- Floating Glassmorphism Container at Bottom -->
-                    <div class="tw-absolute tw-bottom-6 tw-left-6 tw-right-6 tw-bg-[#1a1a1a]/60 tw-backdrop-blur-md tw-border tw-border-white/10 tw-rounded-[30px] tw-p-6 md:tw-p-8 tw-flex tw-justify-between tw-items-center tw-z-20">
-                        
-                        <!-- Dynamic Text Container -->
-                        <div class="tw-w-full md:tw-w-auto tw-relative tw-min-h-[100px] tw-flex-1">
-                            <!-- Slide 1 Text -->
-                            <div class="slide-text-group tw-absolute tw-top-0 tw-left-0 tw-w-full tw-transition-opacity tw-duration-500 tw-opacity-100" id="textGroup-0">
-                                <span class="tw-text-gray-300 tw-text-sm tw-mb-1 tw-block slide-anim delay-100">Sepatu adidi</span>
-                                <h1 class="tw-text-white tw-text-2xl md:tw-text-4xl tw-font-bold tw-mb-4 slide-anim delay-200">Ayo beli doskon 70%</h1>
-                                <a href="/shop" class="tw-inline-flex tw-items-center tw-justify-center tw-w-[140px] tw-py-2 tw-text-white tw-rounded-full tw-text-sm btn-beli slide-anim delay-300">Beli</a>
-                            </div>
-                            <!-- Slide 2 Text -->
-                            <div class="slide-text-group tw-absolute tw-top-0 tw-left-0 tw-w-full tw-transition-opacity tw-duration-500 tw-opacity-0 tw-pointer-events-none" id="textGroup-1">
-                                <span class="tw-text-gray-300 tw-text-sm tw-mb-1 tw-block slide-anim delay-100">Fashion Pria &amp; Wanita</span>
-                                <h1 class="tw-text-white tw-text-2xl md:tw-text-4xl tw-font-bold tw-mb-4 slide-anim delay-200">Tren Terkini 2025</h1>
-                                <a href="/shop" class="tw-inline-flex tw-items-center tw-justify-center tw-w-[140px] tw-py-2 tw-text-white tw-rounded-full tw-text-sm btn-beli slide-anim delay-300">Beli</a>
-                            </div>
-                            <!-- Slide 3 Text -->
-                            <div class="slide-text-group tw-absolute tw-top-0 tw-left-0 tw-w-full tw-transition-opacity tw-duration-500 tw-opacity-0 tw-pointer-events-none" id="textGroup-2">
-                                <span class="tw-text-gray-300 tw-text-sm tw-mb-1 tw-block slide-anim delay-100">Gadget Mahasiswa</span>
-                                <h1 class="tw-text-white tw-text-2xl md:tw-text-4xl tw-font-bold tw-mb-4 slide-anim delay-200">Elektronik Berkualitas</h1>
-                                <a href="/shop" class="tw-inline-flex tw-items-center tw-justify-center tw-w-[140px] tw-py-2 tw-text-white tw-rounded-full tw-text-sm btn-beli slide-anim delay-300">Beli</a>
-                            </div>
-                            <!-- Slide 4 Text -->
-                            <div class="slide-text-group tw-absolute tw-top-0 tw-left-0 tw-w-full tw-transition-opacity tw-duration-500 tw-opacity-0 tw-pointer-events-none" id="textGroup-3">
-                                <span class="tw-text-gray-300 tw-text-sm tw-mb-1 tw-block slide-anim delay-100">Aksesoris Eksklusif</span>
-                                <h1 class="tw-text-white tw-text-2xl md:tw-text-4xl tw-font-bold tw-mb-4 slide-anim delay-200">Koleksi Jam Tangan</h1>
-                                <a href="/shop" class="tw-inline-flex tw-items-center tw-justify-center tw-w-[140px] tw-py-2 tw-text-white tw-rounded-full tw-text-sm btn-beli slide-anim delay-300">Beli</a>
-                            </div>
-                            <!-- Slide 5 Text -->
-                            <div class="slide-text-group tw-absolute tw-top-0 tw-left-0 tw-w-full tw-transition-opacity tw-duration-500 tw-opacity-0 tw-pointer-events-none" id="textGroup-4">
-                                <span class="tw-text-gray-300 tw-text-sm tw-mb-1 tw-block slide-anim delay-100">Audio Premium</span>
-                                <h1 class="tw-text-white tw-text-2xl md:tw-text-4xl tw-font-bold tw-mb-4 slide-anim delay-200">Headphone Sony WH</h1>
-                                <a href="/shop" class="tw-inline-flex tw-items-center tw-justify-center tw-w-[140px] tw-py-2 tw-text-white tw-rounded-full tw-text-sm btn-beli slide-anim delay-300">Beli</a>
-                            </div>
+                    <!-- Floating Glassmorphism Controls -->
+                    <div class="ut-hero-control-bar tw-absolute tw-bottom-6 tw-right-6 tw-z-20 tw-flex tw-items-center tw-gap-5 tw-rounded-full tw-border tw-border-white/70 tw-bg-white/70 tw-p-3 tw-shadow-lg tw-backdrop-blur-md">
+                        <button class="ut-hero-arrow" type="button" data-bs-target="#unitradeHeroCarousel" data-bs-slide="prev">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+
+                        <div class="tw-w-[38px] tw-text-center tw-text-base tw-font-semibold tw-text-[#111827]">
+                            <span id="heroSlideCurrent">1</span>/<span id="heroSlideTotal">6</span>
                         </div>
 
-                        <!-- Pagination Controls -->
-                        <div class="tw-flex tw-items-center tw-gap-5 tw-shrink-0 tw-ml-4">
-                            <button class="tw-w-[48px] tw-h-[48px] tw-rounded-full tw-bg-transparent tw-border tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-white hover:tw-bg-white/10 tw-transition-all active:tw-scale-95" type="button" data-bs-target="#unitradeHeroCarousel" data-bs-slide="prev">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-5 tw-h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                                <span class="visually-hidden">Previous</span>
-                            </button>
-                            
-                            <div class="tw-text-white tw-font-normal tw-text-base tw-w-[30px] tw-text-center">
-                                <span id="heroSlideCurrent">1</span>/<span id="heroSlideTotal">5</span>
-                            </div>
-                            
-                            <button class="tw-w-[48px] tw-h-[48px] tw-rounded-full tw-bg-transparent tw-border tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-white hover:tw-bg-white/10 tw-transition-all active:tw-scale-95" type="button" data-bs-target="#unitradeHeroCarousel" data-bs-slide="next">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-5 tw-h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                                <span class="visually-hidden">Next</span>
-                            </button>
-                        </div>
+                        <button class="ut-hero-arrow" type="button" data-bs-target="#unitradeHeroCarousel" data-bs-slide="next">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <span class="visually-hidden">Next</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- JS to handle fading text groups and indicator -->
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
                         var heroCarousel = document.getElementById('unitradeHeroCarousel');
                         if (heroCarousel) {
-                            // Initial trigger
-                            triggerTextAnimation(0);
-
                             heroCarousel.addEventListener('slide.bs.carousel', function (e) {
-                                // Update indicator
                                 var currentSpan = document.getElementById('heroSlideCurrent');
                                 if (currentSpan) {
                                     currentSpan.textContent = e.to + 1;
                                 }
-
-                                // Handle Text Transitions
-                                var allGroups = document.querySelectorAll('.slide-text-group');
-                                allGroups.forEach(function(group) {
-                                    group.classList.remove('tw-opacity-100');
-                                    group.classList.add('tw-opacity-0', 'tw-pointer-events-none');
-                                    
-                                    var anims = group.querySelectorAll('.slide-anim');
-                                    anims.forEach(function(el) {
-                                        el.style.opacity = '0';
-                                        el.style.transform = 'translateX(-30px)';
-                                    });
-                                });
-
-                                var targetGroup = document.getElementById('textGroup-' + e.to);
-                                if (targetGroup) {
-                                    targetGroup.classList.remove('tw-opacity-0', 'tw-pointer-events-none');
-                                    targetGroup.classList.add('tw-opacity-100');
-                                    triggerTextAnimation(e.to);
-                                }
                             });
-                        }
-
-                        function triggerTextAnimation(index) {
-                            var group = document.getElementById('textGroup-' + index);
-                            if (group) {
-                                setTimeout(function() {
-                                    var anims = group.querySelectorAll('.slide-anim');
-                                    anims.forEach(function(el) {
-                                        el.style.opacity = '1';
-                                        el.style.transform = 'translateX(0)';
-                                    });
-                                }, 50);
-                            }
                         }
                     });
                 </script>
@@ -172,52 +259,71 @@
                     <h2 class="tw-text-[28px] tw-font-bold tw-text-[#212529] tw-m-0">Kategori</h2>
                     <a href="/shop" class="tw-font-['Urbanist'] tw-font-bold tw-text-[15px] tw-text-black tw-border tw-border-solid tw-border-gray-200 tw-rounded-[24px] tw-px-6 tw-py-2 hover:tw-bg-gray-50 tw-transition-colors tw-no-underline">Explore All</a>
                 </div>
+                <t t-set="ut_category_food" t-value="request.env['product.category'].sudo().search([('name', '=ilike', 'Makanan')], limit=1)"/>
+                <t t-set="ut_category_furniture" t-value="request.env['product.category'].sudo().search([('name', '=ilike', 'Perabotan')], limit=1)"/>
+                <t t-set="ut_category_fashion" t-value="request.env['product.category'].sudo().search([('name', '=ilike', 'Fashion')], limit=1)"/>
+                <t t-set="ut_category_electronics" t-value="request.env['product.category'].sudo().search([('name', '=ilike', 'Elektronik')], limit=1)"/>
+                <t t-set="ut_category_services" t-value="request.env['product.category'].sudo().search([('name', '=ilike', 'Jasa')], limit=1)"/>
+                <t t-set="ut_category_health" t-value="request.env['product.category'].sudo().search([('name', '=ilike', 'Kesehatan &amp; Kecantikan')], limit=1)"/>
+                <t t-set="ut_category_hobbies" t-value="request.env['product.category'].sudo().search([('name', '=ilike', 'Hobi &amp; Koleksi')], limit=1)"/>
+                <t t-set="ut_category_other" t-value="request.env['product.category'].sudo().search([('name', '=ilike', 'Lainnya')], limit=1)"/>
                 <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-4 tw-gap-6">
                     <!-- Kategori 1 -->
-                    <a href="/shop" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
-                        <div class="tw-w-[44px] tw-h-[44px] tw-bg-blue-50 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-mr-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-6 tw-h-6 tw-text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 7.146v1.206a4.502 4.502 0 01-3.6 4.414A4.501 4.501 0 016.75 8.352V7.146A3.75 3.75 0 0110.5 3.396h.375A3.75 3.75 0 0114.625 7.146zM15 7.146V9A2.25 2.25 0 0017.25 11.25H18c1.38 0 2.5-1.12 2.5-2.5v-1.125a2.5 2.5 0 00-2.5-2.5h-3zm-1.5 8.604a11.954 11.954 0 01-9 0m9 0c.91.312 1.8.683 2.656 1.107m-11.656-1.107c-.91.312-1.8.683-2.656 1.107" />
-                            </svg>
-                        </div>
+                    <a t-att-href="'/unitrade/products?category=%s' % ut_category_food.id if ut_category_food else '/unitrade/products'" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
+                        <img src="/unitrade_theme/static/src/img/categories/makanan.png" alt="Makanan" loading="lazy" decoding="async" class="ut-category-icon tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
                         <div>
-                            <h3 class="tw-font-semibold tw-text-[#212529] tw-text-base">Makanan &amp; Minuman</h3>
+                            <h3 class="tw-font-semibold tw-text-[#212529] tw-text-base">Makanan</h3>
                             <p class="tw-text-xs tw-text-gray-400">Ringan &amp; Berat</p>
                         </div>
                     </a>
-                    <!-- Kategori 2 -->
-                    <a href="/shop" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
-                        <div class="tw-w-[44px] tw-h-[44px] tw-bg-pink-50 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-mr-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-6 tw-h-6 tw-text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                            </svg>
+                    <a t-att-href="'/unitrade/products?category=%s' % ut_category_furniture.id if ut_category_furniture else '/unitrade/products'" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
+                        <img src="/unitrade_theme/static/src/img/categories/perabotan.png" alt="Perabotan" loading="lazy" decoding="async" class="ut-category-icon tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
+                        <div>
+                            <h3 class="tw-font-semibold tw-text-[#212529] tw-text-base">Perabotan</h3>
+                            <p class="tw-text-xs tw-text-gray-400">Kamar &amp; kos</p>
                         </div>
+                    </a>
+                    <!-- Kategori 2 -->
+                    <a t-att-href="'/unitrade/products?category=%s' % ut_category_fashion.id if ut_category_fashion else '/unitrade/products'" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
+                        <img src="/unitrade_theme/static/src/img/categories/fashion.png" alt="Fashion" loading="lazy" decoding="async" class="ut-category-icon tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
                         <div>
                             <h3 class="tw-font-semibold tw-text-[#212529] tw-text-base">Fashion</h3>
                             <p class="tw-text-xs tw-text-gray-400">Pria &amp; Wanita</p>
                         </div>
                     </a>
                     <!-- Kategori 3 -->
-                    <a href="/shop" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
-                        <div class="tw-w-[44px] tw-h-[44px] tw-bg-purple-50 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-mr-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-6 tw-h-6 tw-text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
-                            </svg>
-                        </div>
+                    <a t-att-href="'/unitrade/products?category=%s' % ut_category_electronics.id if ut_category_electronics else '/unitrade/products'" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
+                        <img src="/unitrade_theme/static/src/img/categories/elektronik.png" alt="Elektronik" loading="lazy" decoding="async" class="ut-category-icon tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
                         <div>
-                            <h3 class="tw-font-semibold tw-text-[#212529] tw-text-base">Barang Elektronik</h3>
+                            <h3 class="tw-font-semibold tw-text-[#212529] tw-text-base">Elektronik</h3>
                             <p class="tw-text-xs tw-text-gray-400">Besar &amp; Kecil</p>
                         </div>
                     </a>
-                    <!-- Kategori 4 -->
-                    <a href="/shop" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
-                        <div class="tw-w-[44px] tw-h-[44px] tw-bg-emerald-50 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-mr-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-6 tw-h-6 tw-text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                            </svg>
-                        </div>
+                    <a t-att-href="'/unitrade/products?category=%s' % ut_category_services.id if ut_category_services else '/unitrade/products'" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
+                        <img src="/unitrade_theme/static/src/img/categories/jasa.png" alt="Jasa" loading="lazy" decoding="async" class="ut-category-icon tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
                         <div>
-                            <h3 class="tw-font-semibold tw-text-[#212529] tw-text-base">Barang Bekas</h3>
+                            <h3 class="tw-font-semibold tw-text-[#212529] tw-text-base">Jasa</h3>
+                            <p class="tw-text-xs tw-text-gray-400">Bantuan kampus</p>
+                        </div>
+                    </a>
+                    <a t-att-href="'/unitrade/products?category=%s' % ut_category_health.id if ut_category_health else '/unitrade/products'" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
+                        <img src="/unitrade_theme/static/src/img/categories/kesehatan-kecantikan.png" alt="Kesehatan &amp; Kecantikan" loading="lazy" decoding="async" class="ut-category-icon tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
+                        <div>
+                            <h3 class="tw-font-semibold tw-text-[#212529] tw-text-base">Kesehatan &amp; Kecantikan</h3>
+                            <p class="tw-text-xs tw-text-gray-400">Care essentials</p>
+                        </div>
+                    </a>
+                    <a t-att-href="'/unitrade/products?category=%s' % ut_category_hobbies.id if ut_category_hobbies else '/unitrade/products'" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
+                        <img src="/unitrade_theme/static/src/img/categories/hobi-koleksi.png" alt="Hobi &amp; Koleksi" loading="lazy" decoding="async" class="ut-category-icon tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
+                        <div>
+                            <h3 class="tw-font-semibold tw-text-[#212529] tw-text-base">Hobi &amp; Koleksi</h3>
+                            <p class="tw-text-xs tw-text-gray-400">Koleksi pribadi</p>
+                        </div>
+                    </a>
+                    <a t-att-href="'/unitrade/products?category=%s' % ut_category_other.id if ut_category_other else '/unitrade/products'" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
+                        <img src="/unitrade_theme/static/src/img/categories/lainnya.png" alt="Lainnya" loading="lazy" decoding="async" class="ut-category-icon tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>
+                        <div>
+                            <h3 class="tw-font-semibold tw-text-[#212529] tw-text-base">Lainnya</h3>
                             <p class="tw-text-xs tw-text-gray-400">Lama</p>
                         </div>
                     </a>
@@ -266,111 +372,7 @@
                 </div>
             </section>
 
-            <!-- Value Proposition Section (Grid Style) -->
-            <section class="tw-relative tw-w-full tw-py-14 tw-mb-10 tw-overflow-hidden tw-bg-[#fbfcfd] tw-rounded-[24px] tw-border tw-border-gray-100 tw-mt-4">
-                <!-- Background Gradient & Promo Pattern -->
-                <div class="tw-absolute tw-inset-0 tw-bg-gradient-to-br tw-from-blue-50/30 tw-via-white tw-to-purple-50/20 tw-z-0"></div>
-                <!-- Abstract Blob / Wave Decoration -->
-                <div class="tw-absolute tw-inset-0 tw-overflow-hidden tw-pointer-events-none tw-z-0">
-                    <div class="tw-absolute -tw-top-[20%] -tw-right-[5%] tw-w-[400px] tw-h-[400px] tw-bg-blue-100 tw-rounded-full tw-mix-blend-multiply tw-filter tw-blur-[80px] tw-opacity-50"></div>
-                    <div class="tw-absolute -tw-bottom-[20%] tw-left-[20%] tw-w-[300px] tw-h-[300px] tw-bg-purple-100 tw-rounded-full tw-mix-blend-multiply tw-filter tw-blur-[80px] tw-opacity-40"></div>
-                </div>
-                
-                <div class="tw-max-w-7xl tw-mx-auto tw-px-5 md:tw-px-8 tw-relative tw-z-10">
-                    <div class="tw-flex tw-flex-col lg:tw-flex-row tw-gap-10 lg:tw-gap-12 tw-items-center">
-                        
-                        <!-- Left: Title, Text, Button -->
-                        <div class="lg:tw-w-[35%] tw-w-full">
-                            <h2 class="tw-text-3xl md:tw-text-4xl tw-font-bold tw-text-[#212529] tw-mb-4 tw-leading-tight">Kenapa Belanja di<br/>Unitrade?</h2>
-                            <p class="tw-text-[16px] tw-text-gray-600 tw-leading-relaxed tw-mb-6">
-                                Murah, nyaman, dan temukan produk unik hasil karya mahasiswa dari berbagai kampus!
-                            </p>
-                            
-                            <a href="/shop" class="tw-inline-flex tw-items-center tw-justify-center tw-bg-[#000] hover:tw-bg-[#222] tw-text-white tw-font-bold tw-text-[15px] tw-px-7 tw-py-3.5 tw-rounded-[12px] tw-transition-colors tw-no-underline tw-shadow-md">
-                                Mulai Belanja Sekarang
-                                <svg xmlns="http://www.w3.org/2000/svg" class="tw-h-4 tw-w-4 tw-ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                            </a>
-                        </div>
-                        
-                        <!-- Right: Grid 3 Horizontal Cards -->
-                        <div class="lg:tw-w-[65%] tw-w-full tw-relative tw-z-10">
-                            <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-4">
-                                <!-- Card 1 -->
-                                <div class="tw-bg-white tw-rounded-[12px] tw-p-4 tw-border tw-border-solid tw-border-[#e5e5e5] tw-shadow-sm hover:tw-shadow-md hover:-tw-translate-y-0.5 tw-transition-all tw-flex tw-flex-row tw-items-center md:tw-items-start lg:tw-items-center tw-gap-3">
-                                    <div class="tw-w-10 tw-h-10 tw-shrink-0 tw-flex tw-items-center tw-justify-center">
-                                        <img src="https://img.icons8.com/fluency/96/000000/box.png" alt="Produk" class="tw-w-full tw-h-full tw-object-contain"/>
-                                    </div>
-                                    <div class="tw-flex-1">
-                                        <h3 class="tw-font-bold tw-text-[#212529] tw-text-[14px] tw-mb-1 tw-leading-tight">Produk Kreatif</h3>
-                                        <p class="tw-text-gray-500 tw-text-[12px] tw-leading-snug tw-m-0">Produk unik dari berbagai kampus.</p>
-                                    </div>
-                                </div>
-                                <!-- Card 2 -->
-                                <div class="tw-bg-white tw-rounded-[12px] tw-p-4 tw-border tw-border-solid tw-border-[#e5e5e5] tw-shadow-sm hover:tw-shadow-md hover:-tw-translate-y-0.5 tw-transition-all tw-flex tw-flex-row tw-items-center md:tw-items-start lg:tw-items-center tw-gap-3">
-                                    <div class="tw-w-10 tw-h-10 tw-shrink-0 tw-flex tw-items-center tw-justify-center">
-                                        <img src="https://img.icons8.com/fluency/96/000000/discount.png" alt="Harga" class="tw-w-full tw-h-full tw-object-contain"/>
-                                    </div>
-                                    <div class="tw-flex-1">
-                                        <h3 class="tw-font-bold tw-text-[#212529] tw-text-[14px] tw-mb-1 tw-leading-tight">Harga Ramah</h3>
-                                        <p class="tw-text-gray-500 tw-text-[12px] tw-leading-snug tw-m-0">Diskon khusus pas untuk mahasiswa.</p>
-                                    </div>
-                                </div>
-                                <!-- Card 3 -->
-                                <div class="tw-bg-white tw-rounded-[12px] tw-p-4 tw-border tw-border-solid tw-border-[#e5e5e5] tw-shadow-sm hover:tw-shadow-md hover:-tw-translate-y-0.5 tw-transition-all tw-flex tw-flex-row tw-items-center md:tw-items-start lg:tw-items-center tw-gap-3">
-                                    <div class="tw-w-10 tw-h-10 tw-shrink-0 tw-flex tw-items-center tw-justify-center">
-                                        <img src="https://img.icons8.com/fluency/96/000000/security-checked.png" alt="Aman" class="tw-w-full tw-h-full tw-object-contain"/>
-                                    </div>
-                                    <div class="tw-flex-1">
-                                        <h3 class="tw-font-bold tw-text-[#212529] tw-text-[14px] tw-mb-1 tw-leading-tight">Transaksi Aman</h3>
-                                        <p class="tw-text-gray-500 tw-text-[12px] tw-leading-snug tw-m-0">Sistem pembayaran terpercaya.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Deskripsi Berjualan Style Compact & Soft -->
-            <section class="tw-max-w-7xl tw-mx-auto tw-px-4 md:tw-px-8 tw-mb-10">
-                <div class="tw-relative tw-w-full tw-overflow-hidden tw-bg-gradient-to-br tw-from-blue-50/50 tw-via-[#f8fafc] tw-to-purple-50/40 tw-rounded-[24px] tw-border tw-border-gray-100">
-                    <!-- Decorative soft blur blobs -->
-                    <div class="tw-absolute -tw-top-20 -tw-left-10 tw-w-64 tw-h-64 tw-bg-blue-200/30 tw-rounded-full tw-blur-[60px] tw-pointer-events-none"></div>
-                    <div class="tw-absolute -tw-bottom-20 -tw-right-10 tw-w-72 tw-h-72 tw-bg-purple-200/30 tw-rounded-full tw-blur-[60px] tw-pointer-events-none"></div>
-                    
-                    <div class="tw-relative tw-z-10 tw-px-6 md:tw-px-12 tw-py-10 md:tw-py-12 tw-flex tw-flex-col md:tw-flex-row tw-items-center tw-justify-between tw-gap-10">
-                        <!-- Left: Text content -->
-                        <div class="md:tw-w-3/5">
-                            <h2 class="tw-text-2xl md:tw-text-[28px] tw-font-extrabold tw-text-[#212529] tw-mb-5 tw-leading-tight">Ingin Berjualan sebagai Mahasiswa?</h2>
-                            
-                            <div class="tw-text-gray-600 tw-text-[15px] tw-leading-[1.7] tw-space-y-5 tw-max-w-[550px]">
-                                <p class="tw-m-0">
-                                    Unitrade adalah marketplace eksklusif yang dirancang khusus untuk memfasilitasi mahasiswa dalam membuka toko online. Kami mengerti bahwa mahasiswa memiliki kebutuhan untuk menjual produk buatan sendiri, barang bekas layak pakai (preloved), hingga menawarkan jasa kepada rekan-rekan mahasiswa lainnya.
-                                </p>
-                                <p class="tw-m-0">
-                                    Dengan sistem yang aman dan terintegrasi langsung dengan KTM kampus, proses jualan online menjadi lebih terpercaya dan tanpa ribet. Anda dapat mengelola produk, mengatur pengiriman di area kampus, dan mengembangkan potensi bisnis sedini mungkin sambil tetap fokus pada kuliah.
-                                </p>
-                            </div>
-                            
-                            <div class="tw-mt-8 tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-gap-4">
-                                <a href="/seller-onboarding" class="tw-bg-[#000] hover:tw-bg-[#222] tw-text-white tw-font-bold tw-text-[15px] tw-px-8 tw-py-3.5 tw-rounded-[12px] tw-transition-all tw-duration-300 hover:-tw-translate-y-0.5 tw-shadow-md hover:tw-shadow-lg tw-no-underline tw-text-center tw-w-full sm:tw-w-auto">
-                                    Mulai Jualan Gratis
-                                </a>
-                                <a href="/help" class="tw-text-[#212529] hover:tw-text-blue-600 tw-font-bold tw-text-[15px] tw-no-underline hover:tw-underline tw-px-4 tw-py-2 tw-transition-colors tw-text-center tw-w-full sm:tw-w-auto">
-                                    Pelajari Lebih Lanjut
-                                </a>
-                            </div>
-                        </div>
-                        
-                        <!-- Right: Illustration -->
-                        <div class="md:tw-w-2/5 tw-flex tw-justify-center">
-                            <div class="tw-relative tw-w-full tw-max-w-[340px]">
-                                <img src="https://illustrations.popsy.co/amber/freelancer.svg" alt="Ilustrasi Jualan Online Mahasiswa" class="tw-relative tw-z-10 tw-w-full tw-h-auto tw-drop-shadow-sm hover:tw-scale-105 tw-transition-transform tw-duration-500"/>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            <t t-call="unitrade_theme.about_unitrade_section"/>
 
             <!-- Footer handled by website.layout inheritance -->
             </div>

@@ -6,9 +6,170 @@ from odoo.tools.float_utils import float_compare
 
 _logger = logging.getLogger(__name__)
 
-
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
+
+    def _unitrade_service_fee_product(self):
+        product = self.env.ref('unitrade_theme.product_unitrade_service_fee', raise_if_not_found=False)
+        if product:
+            return product.sudo()
+
+        product = self.env['product.product'].sudo().create({
+            'name': 'Biaya Layanan UniTrade',
+            'detailed_type': 'service',
+            'sale_ok': True,
+            'purchase_ok': False,
+            'list_price': 0.0,
+            'taxes_id': [(6, 0, [])],
+        })
+        self.env['ir.model.data'].sudo().create({
+            'module': 'unitrade_theme',
+            'name': 'product_unitrade_service_fee',
+            'model': 'product.product',
+            'res_id': product.id,
+            'noupdate': True,
+        })
+        return product
+
+    def _unitrade_service_fee_amount(self, subtotal):
+        self.ensure_one()
+        subtotal = subtotal or 0.0
+        if subtotal <= 0:
+            return 0.0
+        if subtotal < 50000:
+            fee = 1000
+        elif subtotal <= 150000:
+            fee = 1500
+        elif subtotal <= 500000:
+            fee = 2000
+        elif subtotal <= 1000000:
+            fee = 3000
+        else:
+            fee = 4000
+        return self.currency_id.round(fee)
+
+    def _unitrade_checkout_amounts(self, sync_fee=False):
+        self.ensure_one()
+        fee_product = self._unitrade_service_fee_product()
+        payment_fee_product = self.env.ref('unitrade_payment.product_unitrade_payment_fee', raise_if_not_found=False)
+        fee_lines = self.order_line.filtered(lambda line: line.product_id == fee_product)
+        payment_fee_lines = self.order_line.filtered(lambda line: payment_fee_product and line.product_id == payment_fee_product)
+        product_lines = self.order_line.filtered(
+            lambda line: (
+                not line.display_type
+                and line.product_id
+                and line.product_id != fee_product
+                and (not payment_fee_product or line.product_id != payment_fee_product)
+            )
+        )
+        if sync_fee and self.state == 'draft':
+            stale_fee_lines = fee_lines | payment_fee_lines
+            if stale_fee_lines:
+                stale_fee_lines.sudo().unlink()
+                self.invalidate_recordset(['order_line', 'amount_untaxed', 'amount_tax', 'amount_total'])
+                fee_lines = self.order_line.filtered(lambda line: line.product_id == fee_product)
+                product_lines = self.order_line.filtered(
+                    lambda line: (
+                        not line.display_type
+                        and line.product_id
+                        and line.product_id != fee_product
+                        and (not payment_fee_product or line.product_id != payment_fee_product)
+                    )
+                )
+
+            taxed_lines = product_lines.filtered(lambda line: line.tax_id)
+            if taxed_lines:
+                taxed_lines.sudo().write({'tax_id': [(6, 0, [])]})
+                self.invalidate_recordset(['order_line', 'amount_untaxed', 'amount_tax', 'amount_total'])
+                product_lines = self.order_line.filtered(
+                    lambda line: (
+                        not line.display_type
+                        and line.product_id
+                        and line.product_id != fee_product
+                        and (not payment_fee_product or line.product_id != payment_fee_product)
+                    )
+                )
+
+        subtotal = sum(product_lines.mapped('price_subtotal'))
+        service_fee = self._unitrade_service_fee_amount(subtotal)
+
+        return {
+            'service_fee_product_id': fee_product.id,
+            'item_subtotal': subtotal,
+            'service_fee': service_fee,
+            'tax': 0.0,
+            'total': subtotal + service_fee,
+            'item_quantity': sum(product_lines.mapped('product_uom_qty')),
+        }
+
+    def _unitrade_product_lines_for_checkout(self):
+        self.ensure_one()
+        fee_product = self._unitrade_service_fee_product()
+        payment_fee_product = self.env.ref('unitrade_payment.product_unitrade_payment_fee', raise_if_not_found=False)
+        return self.order_line.filtered(
+            lambda line: (
+                not line.display_type
+                and line.product_id
+                and line.product_id != fee_product
+                and (not payment_fee_product or line.product_id != payment_fee_product)
+            )
+        )
+
+    def _unitrade_sync_checkout_product_prices(self):
+        self.ensure_one()
+        if self.state != 'draft':
+            return
+
+        currency = self.currency_id
+        product_lines = self._unitrade_product_lines_for_checkout()
+        empty_lines = product_lines.filtered(lambda line: line.product_uom_qty <= 0)
+        if empty_lines:
+            empty_lines.sudo().unlink()
+            self.invalidate_recordset(['order_line', 'amount_untaxed', 'amount_tax', 'amount_total'])
+            product_lines = self._unitrade_product_lines_for_checkout()
+
+        for line in product_lines:
+            product = line.product_id.sudo()
+            if hasattr(product, '_unitrade_discounted_price'):
+                price_unit = currency.round(product._unitrade_discounted_price())
+            else:
+                price_unit = currency.round(product.lst_price or 0.0)
+            values = {}
+            if float_compare(line.price_unit, price_unit, precision_rounding=currency.rounding) != 0:
+                values['price_unit'] = price_unit
+            if line.discount:
+                values['discount'] = 0.0
+            if line.tax_id:
+                values['tax_id'] = [(6, 0, [])]
+            if values:
+                line.sudo().write(values)
+
+        self.invalidate_recordset(['order_line', 'amount_untaxed', 'amount_tax', 'amount_total'])
+
+    def _unitrade_prepare_checkout_server_state(self):
+        """Recalculate cart server-side before checkout/payment intent creation."""
+        self.ensure_one()
+        if self.state != 'draft':
+            return self._unitrade_checkout_amounts(sync_fee=False)
+
+        self._unitrade_sync_checkout_product_prices()
+        product_lines = self._unitrade_product_lines_for_checkout()
+        if not product_lines:
+            raise ValidationError(_('Keranjang masih kosong.'))
+
+        unavailable_lines = product_lines.filtered(lambda line: not line.product_id.sudo().sale_ok)
+        if unavailable_lines:
+            product_names = ', '.join(unavailable_lines.mapped('product_id.display_name'))
+            raise ValidationError(_('Produk berikut sudah tidak tersedia untuk dibeli: %s') % product_names)
+
+        stock_issues = self._unitrade_get_cart_stock_issues()
+        if stock_issues:
+            raise ValidationError(' '.join(issue['message'] for issue in stock_issues))
+
+        amounts = self._unitrade_checkout_amounts(sync_fee=True)
+        if float_compare(amounts.get('item_subtotal', 0.0), 0.0, precision_rounding=self.currency_id.rounding) <= 0:
+            raise ValidationError(_('Total produk di keranjang tidak valid.'))
+        return amounts
 
     def _unitrade_is_stock_warning_message(self, message):
         message = message or ''
@@ -44,6 +205,18 @@ class SaleOrder(models.Model):
             available_qty=self._unitrade_format_stock_qty(max(available_qty, 0)),
         )
 
+    def _unitrade_is_stock_limited_product(self, product):
+        self.ensure_one()
+        if hasattr(product, '_unitrade_is_stock_limited'):
+            return product.sudo()._unitrade_is_stock_limited()
+        return product.type == 'product' and not product.allow_out_of_stock_order
+
+    def _unitrade_available_qty(self, product):
+        self.ensure_one()
+        if hasattr(product, '_unitrade_available_qty'):
+            return product.sudo()._unitrade_available_qty(warehouse=self.warehouse_id)
+        return product.sudo().with_context(warehouse=self.warehouse_id.id).free_qty
+
     def _unitrade_get_cart_stock_issues(self):
         """Return stock issues for the current cart using the website warehouse."""
         self.ensure_one()
@@ -54,8 +227,7 @@ class SaleOrder(models.Model):
             lambda line: (
                 not line.display_type
                 and line.product_id
-                and line.product_id.type == 'product'
-                and not line.product_id.allow_out_of_stock_order
+                and self._unitrade_is_stock_limited_product(line.product_id)
             )
         )
         line_by_product_id = {}
@@ -71,9 +243,22 @@ class SaleOrder(models.Model):
                 continue
             checked_product_ids.add(product.id)
 
+            template = product.product_tmpl_id.sudo()
+            if hasattr(template, '_unitrade_is_publicly_available') and not template._unitrade_is_publicly_available():
+                issue = {
+                    'product_id': product.id,
+                    'product_name': product.display_name,
+                    'requested_qty': qty_by_product_id.get(product.id, 0.0),
+                    'available_qty': 0,
+                    'message': 'Produk %s belum aktif atau sudah tidak tersedia.' % product.display_name,
+                }
+                issues.append(issue)
+                issue_by_product_id[product.id] = issue
+                continue
+
             try:
                 cart_qty = qty_by_product_id.get(product.id, 0.0)
-                available_qty = product.sudo().with_context(warehouse=self.warehouse_id.id).free_qty
+                available_qty = self._unitrade_available_qty(product)
             except Exception:
                 _logger.exception('Failed to read realtime stock for product %s in cart %s', product.id, self.id)
                 available_qty = 0.0
@@ -109,13 +294,14 @@ class SaleOrder(models.Model):
         self.ensure_one()
 
         product = self.env['product.product'].browse(product_id).exists()
-        if not product or product.type != 'product' or product.allow_out_of_stock_order:
+        if not product or not self._unitrade_is_stock_limited_product(product):
             return verified_qty, warning
 
-        product_qty_in_cart, available_qty = self._get_cart_and_free_qty(product, line=order_line)
-        old_qty = order_line.product_uom_qty if order_line else 0
-        added_qty = verified_qty - old_qty
-        total_cart_qty = product_qty_in_cart + added_qty
+        other_cart_qty = sum(self.order_line.filtered(
+            lambda line: line.product_id.id == product.id and line != order_line
+        ).mapped('product_uom_qty'))
+        available_qty = self._unitrade_available_qty(product)
+        total_cart_qty = other_cart_qty + verified_qty
         precision = product.uom_id.rounding
 
         if float_compare(total_cart_qty, available_qty, precision_rounding=precision) <= 0:
@@ -125,7 +311,7 @@ class SaleOrder(models.Model):
                 self.shop_warning = False
             return verified_qty, warning
 
-        allowed_line_qty = max(available_qty - (product_qty_in_cart - old_qty), 0)
+        allowed_line_qty = max(available_qty - other_cart_qty, 0)
         message = self._unitrade_stock_message(product, total_cart_qty, available_qty)
         if order_line:
             order_line.shop_warning = message

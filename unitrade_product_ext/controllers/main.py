@@ -23,7 +23,143 @@ UNITRADE_SORT_MAP = {
     'terbaru': 'create_date desc',
     'termurah': 'list_price asc',
     'termahal': 'list_price desc',
+    'promo': 'x_discount_percent desc, create_date desc',
 }
+
+UNITRADE_CATEGORY_BANNERS = [
+    {
+        'aliases': ('jasa', 'layanan', 'service'),
+        'image': '/unitrade/static/src/img/category_banners/jasa_banner.png',
+        'title': 'Bantuan Praktis Sekitar Kampus',
+        'subtitle': 'Temukan jasa mahasiswa untuk kebutuhan harian dan akademik.',
+        'cta': 'Lihat Produk',
+    },
+    {
+        'aliases': ('perabotan', 'furniture'),
+        'category_ids': (9,),
+        'image': '/unitrade/static/src/img/category_banners/perabotan_banner.png',
+        'title': 'Lengkapi Kamar & Kos Anda',
+        'subtitle': 'Temukan perabotan praktis untuk ruang yang lebih nyaman.',
+        'cta': 'Lihat Produk',
+    },
+    {
+        'aliases': ('pakaian', 'fashion'),
+        'image': '/unitrade/static/src/img/category_banners/pakaian_banner.png',
+        'title': 'Tampil Rapi Setiap Hari',
+        'subtitle': 'Cari pakaian dan fashion item pilihan mahasiswa.',
+        'cta': 'Lihat Produk',
+    },
+    {
+        'aliases': ('makanan', 'minuman', 'food', 'drink'),
+        'image': '/unitrade/static/src/img/category_banners/makanan_banner.png',
+        'title': 'Jajan Praktis di Sekitar Kampus',
+        'subtitle': 'Temukan makanan dan minuman favorit mahasiswa.',
+        'cta': 'Lihat Produk',
+    },
+    {
+        'aliases': ('hobi', 'koleksi', 'hobby', 'collection'),
+        'image': '/unitrade/static/src/img/category_banners/hobi_banner.png',
+        'title': 'Temukan Barang Hobi Favorit',
+        'subtitle': 'Koleksi unik, mainan, buku, dan barang kreatif lainnya.',
+        'cta': 'Lihat Produk',
+    },
+    {
+        'aliases': ('perlengkapan harian', 'kebutuhan harian', 'daily'),
+        'image': '/unitrade/static/src/img/category_banners/perlengkapan_banner.png',
+        'title': 'Kebutuhan Harian Lebih Mudah',
+        'subtitle': 'Cari perlengkapan praktis untuk aktivitas kampus.',
+        'cta': 'Lihat Produk',
+    },
+    {
+        'aliases': ('alat tulis', 'kuliah', 'stationery', 'akademik'),
+        'image': '/unitrade/static/src/img/category_banners/alat_tulis_banner.png',
+        'title': 'Siap Produktif Setiap Hari',
+        'subtitle': 'Lengkapi kebutuhan belajar, tugas, dan kerja.',
+        'cta': 'Lihat Produk',
+    },
+    {
+        'aliases': ('kecantikan', 'beauty', 'perawatan'),
+        'image': '/unitrade/static/src/img/category_banners/kecantikan_banner.png',
+        'title': 'Rawat Diri dengan Mudah',
+        'subtitle': 'Temukan produk perawatan dan kecantikan pilihan.',
+        'cta': 'Lihat Produk',
+    },
+    {
+        'aliases': ('elektronik', 'electronics', 'gadget'),
+        'image': '/unitrade/static/src/img/category_banners/elektronik_banner.png',
+        'title': 'Upgrade Perangkat Digitalmu',
+        'subtitle': 'Cari gadget dan aksesori elektronik untuk menunjang aktivitas.',
+        'cta': 'Lihat Produk',
+    },
+    {
+        'aliases': ('lainnya', 'lain lain', 'other'),
+        'image': '/unitrade/static/src/img/category_banners/lainnya_banner.png',
+        'title': 'Temukan Kebutuhan Lainnya',
+        'subtitle': 'Jelajahi barang pilihan mahasiswa dari berbagai kategori.',
+        'cta': 'Lihat Produk',
+    },
+]
+
+UNITRADE_DEFAULT_CATEGORY_BANNER = {
+    'image': '/unitrade/static/src/img/category_banners/default_banner.png',
+    'title': 'Jelajahi Produk Mahasiswa',
+    'subtitle': 'Temukan pilihan barang praktis untuk aktivitas kampus.',
+    'cta': 'Lihat Produk',
+}
+
+UNITRADE_CATEGORY_HEADINGS = [
+    {
+        'aliases': ('perabotan', 'furniture'),
+        'category_ids': (9,),
+        'heading': 'Katalog Perabotan',
+        'label': 'Perabotan',
+    },
+    {
+        'aliases': ('pakaian', 'fashion'),
+        'heading': 'Katalog Pakaian',
+        'label': 'Pakaian',
+    },
+    {
+        'aliases': ('makanan', 'minuman', 'food', 'drink'),
+        'heading': 'Katalog Makanan & Minuman',
+        'label': 'Makanan & Minuman',
+    },
+    {
+        'aliases': ('hobi', 'koleksi', 'hobby', 'collection'),
+        'heading': 'Katalog Hobi & Koleksi',
+        'label': 'Hobi & Koleksi',
+    },
+    {
+        'aliases': ('perlengkapan harian', 'kebutuhan harian', 'daily'),
+        'heading': 'Katalog Perlengkapan Harian',
+        'label': 'Perlengkapan Harian',
+    },
+    {
+        'aliases': ('alat tulis', 'kuliah', 'stationery', 'akademik'),
+        'heading': 'Katalog Alat Tulis & Kuliah',
+        'label': 'Alat Tulis & Kuliah',
+    },
+    {
+        'aliases': ('kecantikan', 'beauty', 'perawatan'),
+        'heading': 'Katalog Kecantikan',
+        'label': 'Kecantikan',
+    },
+    {
+        'aliases': ('elektronik', 'electronics', 'gadget'),
+        'heading': 'Katalog Elektronik',
+        'label': 'Elektronik',
+    },
+    {
+        'aliases': ('jasa', 'layanan', 'service'),
+        'heading': 'Katalog Jasa',
+        'label': 'Jasa',
+    },
+    {
+        'aliases': ('lainnya', 'lain lain', 'other'),
+        'heading': 'Katalog Lainnya',
+        'label': 'Lainnya',
+    },
+]
 
 
 def _safe_get(record, field_name, default=False):
@@ -34,16 +170,104 @@ def _safe_get(record, field_name, default=False):
         return default
 
 
+def _unitrade_normalize_category_name(category):
+    name = '%s %s' % (category.complete_name or '', category.name or '')
+    normalized = name.casefold()
+    for char in ('&', '/', '-', '_'):
+        normalized = normalized.replace(char, ' ')
+    return ' '.join(normalized.split())
+
+
 class UnitradeProductController(http.Controller):
+
+    def _unitrade_can_view_historical_review_product(self, product):
+        """Allow review-notification owners to open old product targets."""
+        user = request.env.user
+        if user._is_public() or not product or not product.exists():
+            return False
+        if 'unitrade.notification' not in request.env.registry:
+            return False
+
+        target_prefix = '/unitrade/product/%s' % product.id
+        notifications = request.env['unitrade.notification'].sudo().search([
+            ('user_id', '=', user.id),
+            ('category', '=', 'review'),
+            ('action_url', 'ilike', target_prefix),
+        ], limit=20)
+        for notification in notifications:
+            action_url = notification.action_url or ''
+            action_path = action_url.split('?', 1)[0].split('#', 1)[0]
+            if action_path == target_prefix:
+                return True
+        return False
+
+    def _unitrade_category_banner(self, category):
+        if not category:
+            return False
+
+        normalized_name = _unitrade_normalize_category_name(category)
+        for banner in UNITRADE_CATEGORY_BANNERS:
+            category_ids = banner.get('category_ids', ())
+            aliases = banner.get('aliases', ())
+            if category.id in category_ids or any(alias in normalized_name for alias in aliases):
+                return {
+                    'image': banner['image'],
+                    'title': banner['title'],
+                    'subtitle': banner['subtitle'],
+                    'cta': banner['cta'],
+                    'cta_url': '#unitrade-product-grid',
+                }
+        return {
+            'image': UNITRADE_DEFAULT_CATEGORY_BANNER['image'],
+            'title': UNITRADE_DEFAULT_CATEGORY_BANNER['title'],
+            'subtitle': UNITRADE_DEFAULT_CATEGORY_BANNER['subtitle'],
+            'cta': UNITRADE_DEFAULT_CATEGORY_BANNER['cta'],
+            'cta_url': '#unitrade-product-grid',
+        }
+
+    def _unitrade_catalog_header(self, category):
+        if not category:
+            return {
+                'heading': 'Katalog Produk',
+                'label': False,
+                'page_title': 'Katalog Produk - UniTrade',
+            }
+
+        normalized_name = _unitrade_normalize_category_name(category)
+        for item in UNITRADE_CATEGORY_HEADINGS:
+            category_ids = item.get('category_ids', ())
+            aliases = item.get('aliases', ())
+            if category.id in category_ids or any(alias in normalized_name for alias in aliases):
+                return {
+                    'heading': item['heading'],
+                    'label': item['label'],
+                    'page_title': '%s - UniTrade' % item['heading'],
+                }
+
+        label = category.name or category.complete_name or 'Produk'
+        heading = 'Katalog %s' % label
+        return {
+            'heading': heading,
+            'label': label,
+            'page_title': '%s - UniTrade' % heading,
+        }
 
     @http.route('/unitrade/products', type='http', auth='public', website=True)
     def product_catalog(self, **kwargs):
         """Marketplace product catalog with filters"""
         Product = request.env['product.template'].sudo()
+        Category = request.env['product.category'].sudo()
+        selected_category = Category.browse()
+        try:
+            category_id = int(kwargs.get('category') or kwargs.get('ut_category') or 0)
+        except (TypeError, ValueError):
+            category_id = 0
+        if category_id:
+            selected_category = Category.browse(category_id).exists()
 
         products = Product._search_marketplace_products(
             keyword=kwargs.get('search'),
-            category_id=kwargs.get('category'),
+            category_id=selected_category.id if selected_category else None,
             condition=kwargs.get('condition'),
             min_price=kwargs.get('min_price'),
             max_price=kwargs.get('max_price'),
@@ -51,29 +275,57 @@ class UnitradeProductController(http.Controller):
             sort_by=kwargs.get('sort', 'create_date desc'),
         )
 
-        categories = request.env['product.category'].sudo().search([])
+        categories = Category.search([])
+        catalog_header = self._unitrade_catalog_header(selected_category)
 
         values = {
             'products': products,
             'categories': categories,
             'search': kwargs.get('search', ''),
-            'page_title': 'Katalog Produk — UniTrade',
+            'selected_category': selected_category,
+            'category_banner': self._unitrade_category_banner(selected_category),
+            'catalog_heading': catalog_header['heading'],
+            'catalog_category_label': catalog_header['label'],
+            'page_title': catalog_header['page_title'],
         }
         return request.render('unitrade_product_ext.product_catalog_template', values)
 
     @http.route('/unitrade/product/<int:product_id>', type='http', auth='public', website=True)
     def product_detail(self, product_id, **kwargs):
         """Product detail page"""
-        product = request.env['product.template'].sudo().browse(product_id)
-        if not product.exists():
+        Product = request.env['product.template'].sudo()
+        if hasattr(Product, '_unitrade_refresh_listing_states'):
+            Product._unitrade_refresh_listing_states()
+        product = Product.browse(product_id)
+        is_available = (
+            product.exists()
+            and (
+                product._unitrade_is_publicly_available()
+                if hasattr(product, '_unitrade_is_publicly_available')
+                else bool(product.x_is_marketplace and product.sale_ok and product.website_published)
+            )
+        )
+        is_historical_review_target = (
+            not is_available
+            and self._unitrade_can_view_historical_review_product(product)
+        )
+        if not (is_available or is_historical_review_target):
             return request.not_found()
 
         # Get similar products
-        similar = request.env['product.template'].sudo().search([
+        similar_domain = [
             ('categ_id', '=', product.categ_id.id),
             ('id', '!=', product.id),
-            ('x_is_marketplace', '=', True),
-        ], limit=4)
+        ]
+        if hasattr(Product, '_unitrade_public_active_domain'):
+            similar_domain = expression.AND([Product._unitrade_public_active_domain(), similar_domain])
+        else:
+            similar_domain += [
+                ('x_is_marketplace', '=', True),
+                ('sale_ok', '=', True),
+                ('website_published', '=', True),
+            ]
+        similar = Product.search(similar_domain, limit=4)
 
         values = {
             'product': product,
@@ -90,6 +342,26 @@ class UnitradeWebsiteSale(WebsiteSale):
     like int(), getattr(), range(), etc. All computed values must come from the controller.
     """
 
+    def _get_shop_domain(self, search, category, attrib_values, search_in_description=True):
+        try:
+            domain = super()._get_shop_domain(
+                search,
+                category,
+                attrib_values,
+                search_in_description=search_in_description,
+            )
+        except TypeError:
+            domain = super()._get_shop_domain(search, category, attrib_values)
+
+        Product = request.env['product.template'].sudo()
+        if hasattr(Product, '_unitrade_public_active_domain'):
+            return expression.AND([domain, Product._unitrade_public_active_domain()])
+        return expression.AND([domain, [
+            ('x_is_marketplace', '=', True),
+            ('sale_ok', '=', True),
+            ('website_published', '=', True),
+        ]])
+
     def _prepare_unitrade_product_values(self, product):
         """Compute all custom field values safely for the product detail template."""
         weight = _safe_get(product, 'x_weight_product', 0) or 0
@@ -104,14 +376,11 @@ class UnitradeWebsiteSale(WebsiteSale):
         map_lat = item_lat or seller_lat
         map_lng = item_lng or seller_lng
         seller = _safe_get(product, 'x_seller_id', False)
-        discount_percent = max(_safe_get(product, 'x_discount_percent', 0) or 0, 0)
-        original_price = product.list_price or 0.0
-        has_discount = bool(discount_percent and original_price > 0)
-        discounted_price = (
-            original_price * (100 - min(discount_percent, 100)) / 100
-            if has_discount
-            else original_price
-        )
+        price_info = product.sudo()._unitrade_price_info()
+        discount_percent = price_info.get('discount_percent')
+        original_price = price_info.get('original_price')
+        has_discount = price_info.get('has_discount')
+        discounted_price = price_info.get('discounted_price')
 
         # Reviews — compute from actual review records (same pattern as unitrade_review._summary)
         reviews = request.env['unitrade.review']
@@ -140,21 +409,27 @@ class UnitradeWebsiteSale(WebsiteSale):
         recommended_products = request.env['product.template']
         try:
             Product = request.env['product.template'].sudo()
-            base_domain = [
-                ('id', '!=', product.id),
-                ('x_is_marketplace', '=', True),
-                ('sale_ok', '=', True),
-                ('website_published', '=', True),
-            ]
+            if hasattr(Product, '_unitrade_public_active_domain'):
+                base_domain = expression.AND([
+                    Product._unitrade_public_active_domain(),
+                    [('id', '!=', product.id)],
+                ])
+            else:
+                base_domain = [
+                    ('id', '!=', product.id),
+                    ('x_is_marketplace', '=', True),
+                    ('sale_ok', '=', True),
+                    ('website_published', '=', True),
+                ]
             if product.categ_id:
                 recommended_products = Product.search(
-                    base_domain + [('categ_id', '=', product.categ_id.id)],
+                    expression.AND([base_domain, [('categ_id', '=', product.categ_id.id)]]),
                     order='create_date desc',
                     limit=8,
                 )
             if len(recommended_products) < 8:
                 extra_products = Product.search(
-                    base_domain + [('id', 'not in', recommended_products.ids)],
+                    expression.AND([base_domain, [('id', 'not in', recommended_products.ids)]]),
                     order='create_date desc',
                     limit=8 - len(recommended_products),
                 )
@@ -178,7 +453,10 @@ class UnitradeWebsiteSale(WebsiteSale):
         # Stock text
         try:
             variant = product.product_variant_id or product.product_variant_ids[:1]
-            if variant and hasattr(request.website, '_get_product_available_qty'):
+            if variant and hasattr(variant, '_unitrade_available_qty'):
+                warehouse_id = request.website.sudo()._get_warehouse_available() if request.website else False
+                qty = variant.sudo()._unitrade_available_qty(warehouse=warehouse_id)
+            elif variant and hasattr(request.website, '_get_product_available_qty'):
                 qty = request.website.sudo()._get_product_available_qty(variant.sudo())
             else:
                 qty = (
@@ -279,6 +557,7 @@ class UnitradeWebsiteSale(WebsiteSale):
         return {
             'page': max(self._unitrade_int(page, 1), 1),
             'category': category,
+            'ut_category': max(self._unitrade_int(post.get('ut_category'), 0), 0),
             'search': (search or post.get('search') or '').strip(),
             'ppg': ppg or post.get('ppg') or False,
             'lokasi': post.get('lokasi') if post.get('lokasi') in ('terdekat', 'kabupaten', 'diy') else '',
@@ -292,6 +571,8 @@ class UnitradeWebsiteSale(WebsiteSale):
 
     def _unitrade_filter_domain(self, values):
         domain = []
+        if values['ut_category']:
+            domain.append(('categ_id', 'child_of', values['ut_category']))
         if values['kondisi']:
             domain.append(('x_condition', '=', values['kondisi']))
         if values['ut_min_price']:
@@ -349,6 +630,8 @@ class UnitradeWebsiteSale(WebsiteSale):
             args['kondisi'] = values['kondisi']
         if values['sort'] and values['sort'] != 'terkait':
             args['sort'] = values['sort']
+        if values['ut_category']:
+            args['ut_category'] = str(values['ut_category'])
         if values['ut_min_price']:
             args['ut_min_price'] = str(values['ut_min_price'])
         if values['ut_max_price']:
@@ -428,6 +711,7 @@ class UnitradeWebsiteSale(WebsiteSale):
             'ut_lokasi': values['lokasi'],
             'ut_kondisi': values['kondisi'],
             'ut_sort': values['sort'],
+            'ut_category': values['ut_category'],
             'ut_min_price': values['ut_min_price'],
             'ut_max_price': values['ut_max_price'],
             'ut_lat': values['lat'],
@@ -445,6 +729,9 @@ class UnitradeWebsiteSale(WebsiteSale):
     @http.route()
     def shop(self, page=0, category=None, search='', min_price=0.0, max_price=0.0, ppg=False, **post):
         """Override shop to apply UniTrade sidebar filters and sorting."""
+        Product = request.env['product.template'].sudo()
+        if hasattr(Product, '_unitrade_refresh_listing_states'):
+            Product._unitrade_refresh_listing_states()
         values = self._unitrade_normalized_shop_filters(
             page=page or 1, category=category, search=search, ppg=ppg, **post
         )

@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="unitrade_seller.SellerSettings">
+        <div t-att-class="rootClass">
+            <t t-if="!state.ready || state.loading">
+                <t t-call="unitrade_seller.SellerSettingsSkeleton"/>
+            </t>
+            <t t-else="">
+                <div class="ut-dash-stage ut-settings-stage">
+                    <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px] tw-text-[12px] tw-leading-6 tw-text-black">
+                        <div class="tw-flex tw-items-center tw-gap-[18px]">
+                            <span>Gratis Ongkir + Diskon 30%</span>
+                            <a href="/shop" class="tw-font-semibold tw-text-black tw-no-underline">Belanja Sekarang +</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <a href="/seller-onboarding" class="tw-font-semibold tw-text-black tw-no-underline">Mulai Berjualan</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <a href="/unitrade/sponsorship" class="tw-font-semibold tw-text-black tw-no-underline">Sponsorship</a>
+                        </div>
+                        <div class="tw-flex tw-items-center tw-gap-[18px]">
+                            <a href="/faq" class="tw-text-black tw-no-underline">FAQ</a>
+                            <a href="/customer-service" class="tw-text-black tw-no-underline">Customer Service</a>
+                            <a href="/contactus" class="tw-text-black tw-no-underline">Kontak</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <span>Ikuti kami :</span>
+                            <span class="tw-flex tw-gap-2 tw-text-[12px]">
+                                <i class="fa fa-instagram"></i>
+                                <i class="fa fa-facebook-official"></i>
+                                <i class="fa fa-music"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                        <a href="/" class="tw-flex tw-h-[52px] tw-w-[129px] tw-items-center tw-gap-2 tw-rounded-full tw-px-[15px] tw-text-black tw-no-underline">
+                            <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="UniTrade" class="tw-h-[37px] tw-w-[41px] tw-object-contain"/>
+                            <span class="tw-text-[12px] tw-font-bold">UniTrade</span>
+                        </a>
+                        <div class="tw-ml-[25px] tw-flex tw-h-12 tw-flex-1 tw-max-w-[658px] tw-items-center tw-rounded-[22.5px] tw-bg-[#f9f9f9] tw-pl-8 tw-pr-[5px]">
+                            <input type="search" class="tw-min-w-0 tw-flex-1 tw-border-0 tw-bg-transparent tw-text-[12px] tw-text-[#212529] tw-outline-none placeholder:tw-text-[#939393]" placeholder="Cari produk di UniTrade"/>
+                            <button type="button" class="tw-flex tw-size-[38px] tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-[#212529] tw-text-white" aria-label="Cari produk">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="tw-ml-auto tw-flex tw-items-center tw-gap-[25px]">
+                            <a href="/unitrade/seller/chat" class="ut-dash-nav-round tw-relative" aria-label="Chat Pembeli">
+                                <i class="fa fa-commenting-o"></i>
+                                <t t-if="stats.unread_chat_count">
+                                    <span class="ut-dash-navbar-dot" t-esc="stats.unread_chat_count"></span>
+                                </t>
+                            </a>
+                            <a href="/shop/cart" class="ut-dash-nav-round" aria-label="Keranjang">
+                                <i class="fa fa-shopping-cart"></i>
+                            </a>
+                            <a href="/unitrade/seller/orders" class="ut-dash-nav-round tw-relative" aria-label="Notifikasi">
+                                <i class="fa fa-bell-o"></i>
+                                <t t-if="stats.notification_count">
+                                    <span class="ut-dash-navbar-dot" t-esc="stats.notification_count"></span>
+                                </t>
+                            </a>
+                            <span class="tw-h-[38.5px] tw-w-px tw-bg-[#e5e7eb]"></span>
+                            <a href="/unitrade/seller/dashboard" class="ut-dash-nav-round" aria-label="Dashboard seller">
+                                <i class="fa fa-truck"></i>
+                            </a>
+                            <img t-att-src="seller.avatar_url" alt="Avatar penjual" class="tw-size-[45px] tw-rounded-full tw-object-cover"/>
+                            <span class="tw-mr-5 tw-max-w-[150px] tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[16px] tw-font-medium tw-leading-6 tw-text-[#212529]" t-esc="seller.name"></span>
+                        </div>
+                        <button type="button" class="ut-dash-mobile-menu tw-hidden tw-border-0 tw-bg-transparent tw-text-[24px]" t-on-click="toggleSidebar" aria-label="Buka navigasi">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                    </header>
+
+                    <div class="ut-dash-mobile-scrim" t-on-click="closeSidebar"></div>
+                    <t t-call="unitrade_seller.SellerSidebar"/>
+
+                    <main class="ut-settings-main tw-absolute tw-left-[181px] tw-top-[173px] tw-w-[859px] tw-pb-16">
+                        <section class="tw-mb-[24px]">
+                            <h1 class="tw-m-0 tw-text-[40px] tw-font-normal tw-leading-none tw-text-black">Pengaturan Toko</h1>
+                            <p class="tw-m-0 tw-mt-[7px] tw-text-[16px] tw-leading-6 tw-text-[#6a7282]">Kelola informasi toko, logistik, dan rekening pencairan</p>
+                        </section>
+
+                        <div t-if="state.error" class="ut-product-create-alert is-error" t-esc="state.error"></div>
+                        <div t-if="state.success" class="ut-product-create-alert is-success" t-esc="state.success"></div>
+
+                        <section id="payout-settings" class="ut-settings-card tw-mb-6">
+                            <header class="ut-settings-card-head">
+                                <span class="ut-settings-card-icon is-blue"><i class="fa fa-id-card-o"></i></span>
+                                <span>
+                                    <h2>Informasi Publik Toko</h2>
+                                    <p>Informasi yang terlihat oleh pembeli</p>
+                                </span>
+                                <label class="ut-settings-switch" title="Status toko">
+                                    <input type="checkbox" t-att-checked="state.form.storeActive ? true : undefined" t-on-change="setStoreActive"/>
+                                    <span></span>
+                                    <strong t-esc="state.form.storeActive ? 'Aktif' : 'Nonaktif'"></strong>
+                                </label>
+                            </header>
+                            <div class="ut-settings-fields">
+                                <div class="ut-settings-field">
+                                    <label>Tautan Toko</label>
+                                    <div class="ut-settings-url-row">
+                                        <span class="ut-settings-url-prefix" t-esc="state.form.storeUrlBase"></span>
+                                        <input type="text" t-att-value="state.form.slug" t-on-input="(ev) => this.setField('slug', ev)" placeholder="nama-toko"/>
+                                        <a t-att-href="storeProfileUrl" class="ut-settings-icon-link" target="_blank" rel="noopener" aria-label="Buka profil toko">
+                                            <i class="fa fa-external-link"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="ut-settings-field">
+                                    <label>Deskripsi / Catatan Toko</label>
+                                    <textarea t-att-value="state.form.description" maxlength="1000" t-on-input="(ev) => this.setField('description', ev)" placeholder="Tuliskan jam operasional, kebijakan retur, atau sapaan pembeli"></textarea>
+                                    <div class="ut-settings-field-meta">
+                                        <span>Maksimal 1000 karakter</span>
+                                        <strong t-esc="descriptionCounter"></strong>
+                                    </div>
+                                </div>
+                                <div class="ut-settings-field">
+                                    <label>Nomor Telepon / WhatsApp <small>Opsional</small></label>
+                                    <div class="ut-settings-phone-wrap">
+                                        <i class="fa fa-whatsapp"></i>
+                                        <input type="tel" t-att-value="state.form.phone" t-on-input="(ev) => this.setField('phone', ev)" placeholder="08xxxxxxxxxx"/>
+                                    </div>
+                                    <p class="ut-settings-field-hint">Nomor ini membantu pembeli menghubungi toko jika diperlukan.</p>
+                                </div>
+                                <div class="ut-settings-chat-toggle tw-flex tw-items-center tw-justify-between tw-gap-4 tw-rounded-[16px] tw-border tw-border-[#e5e7eb] tw-bg-[#fbfbfc] tw-p-4">
+                                    <span>
+                                        <strong class="tw-block tw-text-[14px] tw-font-semibold tw-leading-5 tw-text-[#101828]">Terima Chat Pembeli</strong>
+                                        <small class="tw-block tw-mt-1 tw-text-[12px] tw-leading-4 tw-text-[#6a7282]">Jika dimatikan, pembeli baru tidak bisa membuka chat baru. Percakapan lama tetap tersedia.</small>
+                                    </span>
+                                    <label class="ut-settings-switch" title="Penerimaan chat pembeli">
+                                        <input type="checkbox" t-att-checked="state.form.chatEnabled ? true : undefined" t-on-change="setChatEnabled"/>
+                                        <span></span>
+                                        <strong t-esc="state.form.chatEnabled ? 'Aktif' : 'Nonaktif'"></strong>
+                                    </label>
+                                </div>
+                                <div class="ut-settings-actions">
+                                    <button type="button" class="ut-settings-save" t-att-disabled="state.savingSection ? true : undefined" t-on-click="() => this.saveSection('public')">
+                                        <i t-att-class="state.savingSection === 'public' ? 'fa fa-spinner fa-spin' : 'fa fa-floppy-o'"></i>
+                                        <span t-esc="state.savingSection === 'public' ? 'Menyimpan...' : 'Simpan Perubahan'"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="ut-settings-card tw-mb-6">
+                            <header class="ut-settings-card-head">
+                                <span class="ut-settings-card-icon is-green"><i class="fa fa-map-marker"></i></span>
+                                <span>
+                                    <h2>Alamat &amp; Logistik</h2>
+                                    <p>Alamat toko mengikuti alamat utama di profil user</p>
+                                </span>
+                            </header>
+                            <div class="ut-settings-fields">
+                                <div class="ut-settings-address-card">
+                                    <div class="ut-settings-address-card-head">
+                                        <div>
+                                            <strong>Alamat Utama</strong>
+                                            <span>Dipakai sebagai alamat toko dan logistik seller</span>
+                                        </div>
+                                        <button type="button" class="ut-settings-address-button" t-on-click="openAddressModal">
+                                            Atur Alamat
+                                        </button>
+                                    </div>
+                                    <div t-att-class="'ut-settings-address-preview ' + (state.form.addressSummary.has_address ? '' : 'is-empty')">
+                                        <i class="fa fa-map-marker"></i>
+                                        <div>
+                                            <strong t-esc="state.form.addressSummary.label || 'Rumah'"></strong>
+                                            <p t-if="state.form.addressSummary.has_address" t-esc="state.form.addressSummary.line"></p>
+                                            <p t-else="">Belum ada alamat tersimpan di profil user.</p>
+                                            <small t-if="state.form.addressSummary.coordinates" t-esc="state.form.addressSummary.coordinates"></small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="ut-settings-actions">
+                                    <button type="button" class="ut-settings-save" t-att-disabled="state.savingSection ? true : undefined" t-on-click="() => this.saveSection('logistic')">
+                                        <i t-att-class="state.savingSection === 'logistic' ? 'fa fa-spinner fa-spin' : 'fa fa-floppy-o'"></i>
+                                        <span t-esc="state.savingSection === 'logistic' ? 'Menyimpan...' : 'Simpan Perubahan'"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="ut-settings-card tw-mb-6">
+                            <header class="ut-settings-card-head">
+                                <span class="ut-settings-card-icon is-purple"><i class="fa fa-credit-card"></i></span>
+                                <span>
+                                    <h2>Rekening Pencairan</h2>
+                                    <p>Informasi rekening untuk pencairan dana</p>
+                                </span>
+                            </header>
+                            <div class="ut-settings-fields">
+                                <div class="ut-settings-field">
+                                    <label>Nama Bank</label>
+                                    <select t-att-value="state.form.bankName" t-on-change="(ev) => this.setField('bankName', ev)">
+                                        <t t-foreach="state.bankOptions" t-as="bank" t-key="bank.value">
+                                            <option t-att-value="bank.value" t-att-selected="state.form.bankName === bank.value ? true : undefined" t-esc="bank.label"></option>
+                                        </t>
+                                    </select>
+                                </div>
+                                <div class="ut-settings-field">
+                                    <label>Nomor Rekening</label>
+                                    <input type="text" inputmode="numeric" t-att-value="state.form.accountNumber" t-on-input="(ev) => this.setField('accountNumber', ev)" placeholder="1234567890"/>
+                                </div>
+                                <div class="ut-settings-field">
+                                    <label>Nama Pemilik Rekening</label>
+                                    <input type="text" t-att-value="state.form.accountName" t-on-input="(ev) => this.setField('accountName', ev)" placeholder="Sesuai dengan KTP"/>
+                                </div>
+                                <div class="ut-settings-actions">
+                                    <button type="button" class="ut-settings-save" t-att-disabled="state.savingSection ? true : undefined" t-on-click="() => this.saveSection('payout')">
+                                        <i t-att-class="state.savingSection === 'payout' ? 'fa fa-spinner fa-spin' : 'fa fa-floppy-o'"></i>
+                                        <span t-esc="state.savingSection === 'payout' ? 'Menyimpan...' : 'Simpan Perubahan'"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="ut-settings-card ut-settings-danger">
+                            <header class="ut-settings-danger-head">
+                                <i class="fa fa-exclamation-triangle"></i>
+                                <h2>Danger Zone</h2>
+                            </header>
+                            <p>Menutup toko akan menonaktifkan seluruh produk dan menghentikan transaksi aktif.</p>
+                            <div class="ut-settings-danger-actions">
+                                <button type="button" class="ut-settings-close-store" t-att-disabled="state.closing ? true : undefined" t-on-click="closeStore">
+                                    <span t-esc="state.closing ? 'Menutup Toko...' : 'Tutup Toko'"></span>
+                                </button>
+                                <button type="button" class="ut-settings-request-delete" t-att-disabled="state.requestingDelete || state.form.deleteRequested ? true : undefined" t-on-click="requestDeleteSeller">
+                                    <span t-esc="state.form.deleteRequested ? 'Permintaan Hapus Akun Tercatat' : (state.requestingDelete ? 'Memproses...' : 'Hapus Akun Penjual')"></span>
+                                </button>
+                            </div>
+                        </section>
+                    </main>
+
+                    <div t-att-class="'ut-address-modal ut-settings-address-modal ' + (state.addressModalOpen ? 'is-open' : '')" t-att-aria-hidden="state.addressModalOpen ? 'false' : 'true'">
+                        <div class="ut-address-modal-backdrop" t-on-click="closeAddressModal"></div>
+                        <section class="ut-address-dialog" role="dialog" aria-modal="true" aria-labelledby="ut_seller_address_modal_title">
+                            <div class="ut-address-dialog-scroll">
+                                <header class="ut-address-header">
+                                    <h2 id="ut_seller_address_modal_title">Atur Alamat</h2>
+                                    <button type="button" class="ut-address-icon-btn" t-on-click="closeAddressModal" aria-label="Tutup modal alamat">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M18 6 6 18"/>
+                                            <path d="m6 6 12 12"/>
+                                        </svg>
+                                    </button>
+                                </header>
+
+                                <div class="ut-address-search-wrap">
+                                    <label class="tw-sr-only" for="ut_seller_address_search">Cari alamat</label>
+                                    <input id="ut_seller_address_search" type="search" class="ut-address-input ut-address-search" t-att-value="state.addressSearch" t-on-input="onAddressSearchInput" placeholder="Cari alamat di Indonesia, contoh: UNISA Yogyakarta" autocomplete="off"/>
+                                    <div class="ut-address-suggestions">
+                                        <t t-foreach="state.addressSuggestions" t-as="suggestion" t-key="suggestion.id || suggestion.label || suggestion_index">
+                                            <button t-if="!suggestion.muted" type="button" class="ut-address-suggestion" t-on-click="() => this.selectAddressSuggestion(suggestion)" t-esc="suggestion.label"></button>
+                                            <div t-else="" class="ut-address-suggestion-muted" t-esc="suggestion.label"></div>
+                                        </t>
+                                    </div>
+                                </div>
+
+                                <div class="ut-address-map-wrap">
+                                    <div class="ut-address-map" data-address-map="1"></div>
+                                    <button type="button" class="ut-address-current-btn" t-on-click="useCurrentAddressLocation">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="3"/>
+                                            <path d="M12 2v3"/>
+                                            <path d="M12 19v3"/>
+                                            <path d="M2 12h3"/>
+                                            <path d="M19 12h3"/>
+                                        </svg>
+                                        Gunakan lokasi saya saat ini
+                                    </button>
+                                </div>
+
+                                <div class="ut-address-form-grid">
+                                    <label class="ut-address-field ut-address-field-wide">
+                                        <span>Provinsi</span>
+                                        <input type="text" class="ut-address-input" t-att-value="state.addressForm.province" t-on-input="(ev) => this.setAddressField('province', ev)" placeholder="DI Yogyakarta"/>
+                                    </label>
+                                    <label class="ut-address-field">
+                                        <span>Kota/Kabupaten</span>
+                                        <input type="text" class="ut-address-input" t-att-value="state.addressForm.city" t-on-input="(ev) => this.setAddressField('city', ev)" placeholder="Kota Yogyakarta"/>
+                                    </label>
+                                    <label class="ut-address-field">
+                                        <span>Kecamatan</span>
+                                        <input type="text" class="ut-address-input" t-att-value="state.addressForm.district" t-on-input="(ev) => this.setAddressField('district', ev)" placeholder="Ngampilan"/>
+                                    </label>
+                                    <label class="ut-address-field">
+                                        <span>Kelurahan</span>
+                                        <input type="text" class="ut-address-input" t-att-value="state.addressForm.village" t-on-input="(ev) => this.setAddressField('village', ev)" placeholder="Notoprajan"/>
+                                    </label>
+                                    <label class="ut-address-field">
+                                        <span>Kode Pos</span>
+                                        <input type="text" class="ut-address-input" inputmode="numeric" maxlength="10" t-att-value="state.addressForm.zip" t-on-input="(ev) => this.setAddressField('zip', ev)" placeholder="55262"/>
+                                    </label>
+                                    <label class="ut-address-field ut-address-field-wide">
+                                        <span>Nama Jalan, Gedung, No. Rumah</span>
+                                        <input type="text" class="ut-address-input" t-att-value="state.addressForm.street" t-on-input="(ev) => this.setAddressField('street', ev)" placeholder="Jl. Ringroad Barat No. 63"/>
+                                    </label>
+                                    <label class="ut-address-field ut-address-field-wide">
+                                        <span>Detail lainnya</span>
+                                        <input type="text" class="ut-address-input" t-att-value="state.addressForm.street2" t-on-input="(ev) => this.setAddressField('street2', ev)" placeholder="Cth: Blok/Unit, patokan, nama kos"/>
+                                    </label>
+                                </div>
+
+                                <div class="ut-address-coordinate-row">
+                                    <label>
+                                        <span>Latitude</span>
+                                        <input type="text" readonly="readonly" t-att-value="state.addressForm.latitude"/>
+                                    </label>
+                                    <label>
+                                        <span>Longitude</span>
+                                        <input type="text" readonly="readonly" t-att-value="state.addressForm.longitude"/>
+                                    </label>
+                                </div>
+
+                                <div class="ut-address-label-group">
+                                    <p>Tandai Sebagai</p>
+                                    <div class="ut-address-label-row" role="radiogroup" aria-label="Label alamat">
+                                        <button type="button" t-att-class="addressLabelClass('home')" t-on-click="() => this.setAddressLabel('home')">Rumah</button>
+                                        <button type="button" t-att-class="addressLabelClass('office')" t-on-click="() => this.setAddressLabel('office')">Kantor</button>
+                                        <button type="button" t-att-class="addressLabelClass('school')" t-on-click="() => this.setAddressLabel('school')">Sekolah</button>
+                                        <button type="button" t-att-class="addressLabelClass('other')" t-on-click="() => this.setAddressLabel('other')">Lainnya</button>
+                                    </div>
+                                </div>
+
+                                <div t-att-class="'ut-address-error ' + (state.addressError ? 'is-visible' : '')" role="alert" t-esc="state.addressError"></div>
+                            </div>
+                            <footer class="ut-address-footer">
+                                <button type="button" class="ut-address-cancel" t-on-click="closeAddressModal">Batal</button>
+                                <button type="button" class="ut-address-save" t-att-disabled="state.addressSaving ? true : undefined" t-on-click="saveAddress">
+                                    <t t-if="state.addressSaving">Menyimpan...</t>
+                                    <t t-else="">Simpan</t>
+                                </button>
+                            </footer>
+                        </section>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="unitrade_seller.SellerSettingsSkeleton">
+        <div class="ut-dash-stage ut-settings-stage ut-dash-skeleton-stage">
+            <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
+            </div>
+            <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-flex-1 tw-max-w-[658px] tw-rounded-[22px]"></span>
+                <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+            </header>
+            <aside class="ut-dash-sidebar ut-seller-shared-sidebar ut-settings-sidebar ut-dash-skeleton-sidebar">
+                <div class="ut-dash-sidebar-brand">
+                    <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
+                </div>
+                <div class="ut-dash-sidebar-nav">
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                </div>
+                <div class="ut-dash-sidebar-footer">
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                </div>
+            </aside>
+            <main class="ut-settings-main tw-absolute tw-left-[181px] tw-top-[173px] tw-w-[859px] tw-pb-16">
+                <section class="tw-mb-[24px]">
+                    <span class="ut-dash-skeleton-line tw-h-11 tw-w-[320px] tw-rounded-[16px]"></span>
+                    <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[520px]"></span>
+                </section>
+                <span class="ut-dash-skeleton-card tw-mb-6 tw-h-[462px] tw-w-full"></span>
+                <span class="ut-dash-skeleton-card tw-mb-6 tw-h-[425px] tw-w-full"></span>
+                <span class="ut-dash-skeleton-card tw-mb-6 tw-h-[454px] tw-w-full"></span>
+                <span class="ut-dash-skeleton-card tw-h-[250px] tw-w-full"></span>
+            </main>
+        </div>
+    </t>
+</templates>

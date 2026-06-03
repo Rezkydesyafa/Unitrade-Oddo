@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+        <!--
+            Default values for unitrade.notification.* parameters.
+
+            noupdate="1" so that admin overrides via Settings > Technical >
+            System Parameters survive module updates (Odoo only inserts
+            these rows on first install).
+
+            Keys (see design.md §"Configuration Parameters"):
+              - unitrade.notification.email_from         (Req 6.5, 8.1)
+              - unitrade.notification.broadcast_batch_size (Req 8.2)
+              - unitrade.notification.allowed_url_prefixes (Req 7.4)
+              - unitrade.notification.retention_days     (Req 9.4)
+        -->
+
+        <record id="ir_config_unitrade_notification_email_from" model="ir.config_parameter">
+            <field name="key">unitrade.notification.email_from</field>
+            <field name="value"></field>
+        </record>
+
+        <record id="ir_config_unitrade_notification_broadcast_batch_size" model="ir.config_parameter">
+            <field name="key">unitrade.notification.broadcast_batch_size</field>
+            <field name="value">200</field>
+        </record>
+
+        <record id="ir_config_unitrade_notification_allowed_url_prefixes" model="ir.config_parameter">
+            <field name="key">unitrade.notification.allowed_url_prefixes</field>
+            <field name="value">/</field>
+        </record>
+
+        <record id="ir_config_unitrade_notification_retention_days" model="ir.config_parameter">
+            <field name="key">unitrade.notification.retention_days</field>
+            <field name="value">180</field>
+        </record>
+    </data>
+</odoo>

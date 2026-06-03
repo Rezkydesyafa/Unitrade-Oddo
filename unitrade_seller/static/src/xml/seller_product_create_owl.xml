@@ -1,0 +1,570 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="unitrade_seller.SellerProductCreate">
+        <div t-att-class="rootClass">
+            <t t-if="!state.ready || state.loading">
+                <t t-call="unitrade_seller.SellerProductCreateSkeleton"/>
+            </t>
+            <t t-else="">
+                <div class="ut-dash-stage ut-product-create-stage">
+                    <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px] tw-text-[12px] tw-leading-6 tw-text-black">
+                        <div class="tw-flex tw-items-center tw-gap-[18px]">
+                            <span>Gratis Ongkir + Diskon 30%</span>
+                            <a href="/shop" class="tw-font-semibold tw-text-black tw-no-underline">Belanja Sekarang +</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <a href="/seller-onboarding" class="tw-font-semibold tw-text-black tw-no-underline">Mulai Berjualan</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <a href="/unitrade/sponsorship" class="tw-font-semibold tw-text-black tw-no-underline">Sponsorship</a>
+                        </div>
+                        <div class="tw-flex tw-items-center tw-gap-[18px]">
+                            <a href="/faq" class="tw-text-black tw-no-underline">FAQ</a>
+                            <a href="/customer-service" class="tw-text-black tw-no-underline">Customer Service</a>
+                            <a href="/contactus" class="tw-text-black tw-no-underline">Kontak</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <span>Ikuti kami :</span>
+                            <span class="tw-flex tw-gap-2 tw-text-[12px]">
+                                <i class="fa fa-instagram"></i>
+                                <i class="fa fa-facebook-official"></i>
+                                <i class="fa fa-music"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                        <a href="/" class="tw-flex tw-h-[52px] tw-w-[129px] tw-items-center tw-gap-2 tw-rounded-full tw-px-[15px] tw-text-black tw-no-underline">
+                            <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="UniTrade" class="tw-h-[37px] tw-w-[41px] tw-object-contain"/>
+                            <span class="tw-text-[12px] tw-font-bold">UniTrade</span>
+                        </a>
+                        <div class="tw-ml-[25px] tw-flex tw-h-12 tw-flex-1 tw-max-w-[658px] tw-items-center tw-rounded-[22.5px] tw-bg-[#f9f9f9] tw-pl-8 tw-pr-[5px]">
+                            <input type="search" class="tw-min-w-0 tw-flex-1 tw-border-0 tw-bg-transparent tw-text-[12px] tw-text-[#212529] tw-outline-none placeholder:tw-text-[#939393]" placeholder="Cari produk di UniTrade"/>
+                            <button type="button" class="tw-flex tw-size-[38px] tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-[#212529] tw-text-white" aria-label="Cari produk">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="tw-ml-auto tw-flex tw-items-center tw-gap-[25px]">
+                            <a href="/unitrade/seller/chat" class="ut-dash-nav-round tw-relative" aria-label="Chat Pembeli">
+                                <i class="fa fa-commenting-o"></i>
+                                <t t-if="stats.unread_chat_count">
+                                    <span class="ut-dash-navbar-dot" t-esc="stats.unread_chat_count"></span>
+                                </t>
+                            </a>
+                            <a href="/shop/cart" class="ut-dash-nav-round" aria-label="Keranjang">
+                                <i class="fa fa-shopping-cart"></i>
+                            </a>
+                            <a href="/unitrade/seller/orders" class="ut-dash-nav-round tw-relative" aria-label="Notifikasi">
+                                <i class="fa fa-bell-o"></i>
+                                <t t-if="stats.notification_count">
+                                    <span class="ut-dash-navbar-dot" t-esc="stats.notification_count"></span>
+                                </t>
+                            </a>
+                            <span class="tw-h-[38.5px] tw-w-px tw-bg-[#e5e7eb]"></span>
+                            <a href="/unitrade/seller/dashboard" class="ut-dash-nav-round" aria-label="Dashboard seller">
+                                <i class="fa fa-truck"></i>
+                            </a>
+                            <img t-att-src="seller.avatar_url" alt="Avatar penjual" class="tw-size-[45px] tw-rounded-full tw-object-cover"/>
+                            <span class="tw-mr-5 tw-max-w-[150px] tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[16px] tw-font-medium tw-leading-6 tw-text-[#212529]" t-esc="seller.name"></span>
+                        </div>
+                        <button type="button" class="ut-dash-mobile-menu tw-hidden tw-border-0 tw-bg-transparent tw-text-[24px]" t-on-click="toggleSidebar" aria-label="Buka navigasi">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                    </header>
+
+                    <div class="ut-dash-mobile-scrim" t-on-click="closeSidebar"></div>
+                    <t t-call="unitrade_seller.SellerSidebar"/>
+
+                    <main class="ut-product-create-main tw-absolute tw-left-[181px] tw-top-[175px] tw-w-[859px] tw-pb-16">
+                        <section class="tw-mb-[24px]">
+                            <h1 class="tw-m-0 tw-text-[40px] tw-font-normal tw-leading-none tw-text-black" t-esc="state.title"></h1>
+                            <p class="tw-m-0 tw-mt-[7px] tw-text-[16px] tw-leading-6 tw-text-[#6a7282]" t-esc="state.subtitle"></p>
+                        </section>
+
+                        <t t-set="step" t-value="1"/>
+                        <t t-call="unitrade_seller.SellerProductStepper"/>
+
+                        <div t-if="state.error" class="ut-product-create-alert is-error" t-esc="state.error"></div>
+                        <div t-if="state.success" class="ut-product-create-alert is-success" t-esc="state.success"></div>
+
+                        <section class="ut-product-create-card tw-mb-6">
+                            <h2>Informasi Produk</h2>
+                            <div class="ut-product-create-field">
+                                <label>Nama Produk</label>
+                                <input type="text" t-att-value="state.form.name" t-on-input="(ev) => this.setField('name', ev)" placeholder="isi nama produk"/>
+                            </div>
+                            <div class="ut-product-create-field">
+                                <label>Deskripsi Produk</label>
+                                <textarea t-att-value="state.form.description" t-on-input="(ev) => this.setField('description', ev)" placeholder="Tuliskan deskripsi produk Anda secara detail..."></textarea>
+                                <p>Menyediakan detailed informasi tentang fitur, bahan, dan manfaat</p>
+                            </div>
+                            <div class="ut-product-create-field">
+                                <label>Kondisi Barang</label>
+                                <div class="ut-product-create-condition-list" role="radiogroup" aria-label="Kondisi barang">
+                                    <button type="button" t-att-class="conditionClass('used')" t-att-aria-pressed="state.form.condition === 'used' ? 'true' : 'false'" t-on-click="() => this.selectCondition('used')">
+                                        <span>Bekas</span>
+                                        <small>Barang pernah dipakai</small>
+                                    </button>
+                                    <button type="button" t-att-class="conditionClass('new')" t-att-aria-pressed="state.form.condition === 'new' ? 'true' : 'false'" t-on-click="() => this.selectCondition('new')">
+                                        <span>Baru</span>
+                                        <small>Barang belum dipakai</small>
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="ut-product-create-card tw-mb-6">
+                            <h2>Media Upload</h2>
+                            <div t-att-class="uploadClass"
+                                t-on-click="openFileDialog"
+                                t-on-dragenter.prevent="onDragEnter"
+                                t-on-dragover.prevent="onDragEnter"
+                                t-on-dragleave.prevent="onDragLeave"
+                                t-on-drop.prevent="onDrop">
+                                <input t-ref="fileInput" type="file" multiple="multiple" accept="image/png,image/jpg,image/jpeg,image/webp" class="tw-hidden" t-on-change="onFileInput"/>
+                                <div class="ut-product-create-upload-icon">
+                                    <i class="fa fa-upload"></i>
+                                </div>
+                                <strong>Drag &amp; drop images here, or click to browse</strong>
+                                <span>PNG, JPG or WEBP (max. 5MB each)</span>
+                                <button type="button" t-on-click.stop="openFileDialog">Choose Files</button>
+                            </div>
+                            <div t-if="state.images.length" class="ut-product-create-preview-grid">
+                                <t t-foreach="state.images" t-as="image" t-key="image.id">
+                                    <article class="ut-product-create-preview">
+                                        <img t-att-src="image.url" t-att-alt="image.name"/>
+                                        <div>
+                                            <strong t-esc="image.shortName"></strong>
+                                            <span t-esc="image.sizeLabel"></span>
+                                        </div>
+                                        <button type="button" t-on-click="() => this.removeImage(image.id)" aria-label="Hapus gambar">
+                                            <i class="fa fa-times"></i>
+                                        </button>
+                                    </article>
+                                </t>
+                            </div>
+                        </section>
+
+                        <section class="ut-product-create-card ut-product-create-category-card tw-mb-6">
+                            <h2>Pilih Kategori</h2>
+                            <div class="ut-product-create-category-list">
+                                <t t-foreach="state.categories" t-as="category" t-key="category.id">
+                                    <button type="button" t-att-class="categoryClass(category)" t-on-click="() => this.selectCategory(category.id)" t-esc="category.name"></button>
+                                </t>
+                            </div>
+                        </section>
+
+                        <section class="ut-product-create-card tw-mb-6">
+                            <h2>Harga &amp; Stok Produk</h2>
+                            <div class="ut-product-create-price-grid">
+                                <div class="ut-product-create-field">
+                                    <label>Harga</label>
+                                    <span class="ut-product-create-money">
+                                        <span>Rp</span>
+                                        <input type="number" min="0" step="1" t-att-value="state.form.price" t-on-input="(ev) => this.setField('price', ev)" placeholder="0.00"/>
+                                    </span>
+                                </div>
+                                <div class="ut-product-create-field">
+                                    <label>Diskon<span>(Optional)</span></label>
+                                    <span class="ut-product-create-money">
+                                        <input type="number" min="0" max="100" step="1" t-att-value="state.form.discountPercent" t-on-input="(ev) => this.setField('discountPercent', ev)" placeholder="0"/>
+                                        <span>%</span>
+                                    </span>
+                                </div>
+                                <div class="ut-product-create-field">
+                                    <label>Stock Quantity</label>
+                                    <input type="number" min="0" step="1" t-att-value="state.form.stock" t-on-input="(ev) => this.setField('stock', ev)" placeholder="0"/>
+                                </div>
+                            </div>
+                        </section>
+
+                        <div class="ut-product-create-actions">
+                            <a t-att-href="state.dashboardUrl" class="ut-product-create-back">&lt;- Back to Dashboard</a>
+                            <div>
+                                <a t-att-href="state.productsUrl" class="ut-product-create-cancel">Cancel</a>
+                                <button t-if="isEditMode" type="button" class="ut-product-create-delete" t-att-disabled="state.deleting || state.submitting ? true : undefined" t-on-click="openDeleteModal">
+                                    <i t-att-class="state.deleting ? 'fa fa-spinner fa-spin' : 'fa fa-trash-o'"></i>
+                                    <span t-esc="state.deleting ? 'Menghapus...' : state.deleteLabel"></span>
+                                </button>
+                                <button type="button" class="ut-product-create-submit" t-att-disabled="state.submitting || state.deleting ? true : undefined" t-on-click="submitProduct">
+                                    <span t-esc="state.submitting ? 'Menyimpan...' : (isEditMode ? state.submitLabel : 'Lanjut Pembayaran')"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </main>
+
+                    <div t-if="state.deleteModalOpen" class="ut-product-delete-popup" role="dialog" aria-modal="true" aria-labelledby="ut_product_delete_title" aria-describedby="ut_product_delete_desc" t-on-click.self="closeDeleteModal">
+                        <section class="ut-product-delete-dialog">
+                            <button type="button" class="ut-product-delete-close" t-on-click="closeDeleteModal" t-att-disabled="state.deleting ? true : undefined" aria-label="Tutup popup hapus produk">
+                                <i class="fa fa-times"></i>
+                            </button>
+                            <div class="ut-product-delete-icon" aria-hidden="true">
+                                <i class="fa fa-trash-o"></i>
+                            </div>
+                            <h2 id="ut_product_delete_title">Hapus Produk?</h2>
+                            <p id="ut_product_delete_desc">
+                                Produk ini akan diarsipkan dari toko Anda. Pastikan Anda memahami ketentuan berikut sebelum melanjutkan.
+                            </p>
+                            <div class="ut-product-delete-terms">
+                                <div>
+                                    <i class="fa fa-eye-slash"></i>
+                                    <span>Produk tidak akan tampil lagi di katalog, halaman toko, dan hasil pencarian pembeli.</span>
+                                </div>
+                                <div>
+                                    <i class="fa fa-history"></i>
+                                    <span>Riwayat pesanan yang sudah terjadi tetap tersimpan untuk kebutuhan transaksi dan laporan.</span>
+                                </div>
+                                <div>
+                                    <i class="fa fa-credit-card"></i>
+                                    <span>Biaya posting/listing yang sudah dibayar tidak dikembalikan setelah produk dihapus.</span>
+                                </div>
+                                <div>
+                                    <i class="fa fa-plus-circle"></i>
+                                    <span>Jika ingin menjual lagi, Anda perlu membuat produk baru dan mengikuti proses pembayaran listing.</span>
+                                </div>
+                            </div>
+                            <label class="ut-product-delete-check">
+                                <input type="checkbox" t-att-checked="state.deleteAcknowledged ? true : undefined" t-on-change="setDeleteAcknowledged"/>
+                                <span>Saya mengerti dan ingin menghapus produk ini.</span>
+                            </label>
+                            <div t-if="state.deleteModalError" class="ut-product-delete-error" t-esc="state.deleteModalError"></div>
+                            <div class="ut-product-delete-actions">
+                                <button type="button" class="ut-product-delete-cancel" t-on-click="closeDeleteModal" t-att-disabled="state.deleting ? true : undefined">Batal</button>
+                                <button type="button" class="ut-product-delete-confirm" t-on-click="deleteProduct" t-att-disabled="!state.deleteAcknowledged || state.deleting ? true : undefined">
+                                    <i t-att-class="state.deleting ? 'fa fa-spinner fa-spin' : 'fa fa-trash-o'"></i>
+                                    <span t-esc="state.deleting ? 'Menghapus...' : 'Hapus Produk'"></span>
+                                </button>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="unitrade_seller.SellerProductStepper">
+        <section class="ut-product-stepper tw-mb-8" aria-label="Tahap tambah barang">
+            <div t-att-class="'ut-product-stepper-item ' + (step == 1 ? 'is-active' : '') + (step &gt; 1 ? ' is-complete' : '')">
+                <span class="ut-product-stepper-dot">
+                    <t t-if="step &gt; 1"><i class="fa fa-check"></i></t>
+                    <t t-else="">1</t>
+                </span>
+                <span class="ut-product-stepper-label">Detail Produk</span>
+            </div>
+            <span class="ut-product-stepper-line"></span>
+            <div t-att-class="'ut-product-stepper-item ' + (step == 2 ? 'is-active' : '') + (step &gt; 2 ? ' is-complete' : '')">
+                <span class="ut-product-stepper-dot">
+                    <t t-if="step &gt; 2"><i class="fa fa-check"></i></t>
+                    <t t-else="">2</t>
+                </span>
+                <span class="ut-product-stepper-label">Pembayaran</span>
+            </div>
+            <span class="ut-product-stepper-line"></span>
+            <div t-att-class="'ut-product-stepper-item ' + (step == 3 ? 'is-active' : '') + (step &gt; 3 ? ' is-complete' : '')">
+                <span class="ut-product-stepper-dot">
+                    <t t-if="step &gt; 3"><i class="fa fa-check"></i></t>
+                    <t t-else="">3</t>
+                </span>
+                <span class="ut-product-stepper-label">Selesai</span>
+            </div>
+        </section>
+    </t>
+
+    <t t-name="unitrade_seller.SellerProductPayment">
+        <div t-att-class="rootClass">
+            <t t-if="!state.ready || state.loading">
+                <t t-call="unitrade_seller.SellerProductPaymentSkeleton"/>
+            </t>
+            <t t-else="">
+                <div class="ut-dash-stage ut-product-payment-stage">
+                    <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px] tw-text-[12px] tw-leading-6 tw-text-black">
+                        <div class="tw-flex tw-items-center tw-gap-[18px]">
+                            <span>Gratis Ongkir + Diskon 30%</span>
+                            <a href="/shop" class="tw-font-semibold tw-text-black tw-no-underline">Belanja Sekarang +</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <a href="/seller-onboarding" class="tw-font-semibold tw-text-black tw-no-underline">Mulai Berjualan</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <a href="/unitrade/sponsorship" class="tw-font-semibold tw-text-black tw-no-underline">Sponsorship</a>
+                        </div>
+                        <div class="tw-flex tw-items-center tw-gap-[18px]">
+                            <a href="/faq" class="tw-text-black tw-no-underline">FAQ</a>
+                            <a href="/customer-service" class="tw-text-black tw-no-underline">Customer Service</a>
+                            <a href="/contactus" class="tw-text-black tw-no-underline">Kontak</a>
+                            <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                            <span>Ikuti kami :</span>
+                            <span class="tw-flex tw-gap-2 tw-text-[12px]">
+                                <i class="fa fa-instagram"></i>
+                                <i class="fa fa-facebook-official"></i>
+                                <i class="fa fa-music"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                        <a href="/" class="tw-flex tw-h-[52px] tw-w-[129px] tw-items-center tw-gap-2 tw-rounded-full tw-px-[15px] tw-text-black tw-no-underline">
+                            <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="UniTrade" class="tw-h-[37px] tw-w-[41px] tw-object-contain"/>
+                            <span class="tw-text-[12px] tw-font-bold">UniTrade</span>
+                        </a>
+                        <div class="tw-ml-[25px] tw-flex tw-h-12 tw-flex-1 tw-max-w-[658px] tw-items-center tw-rounded-[22.5px] tw-bg-[#f9f9f9] tw-pl-8 tw-pr-[5px]">
+                            <input type="search" class="tw-min-w-0 tw-flex-1 tw-border-0 tw-bg-transparent tw-text-[12px] tw-text-[#212529] tw-outline-none placeholder:tw-text-[#939393]" placeholder="Cari produk di UniTrade"/>
+                            <button type="button" class="tw-flex tw-size-[38px] tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-[#212529] tw-text-white" aria-label="Cari produk">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="tw-ml-auto tw-flex tw-items-center tw-gap-[25px]">
+                            <a href="/unitrade/seller/chat" class="ut-dash-nav-round tw-relative" aria-label="Chat Pembeli">
+                                <i class="fa fa-commenting-o"></i>
+                                <t t-if="stats.unread_chat_count">
+                                    <span class="ut-dash-navbar-dot" t-esc="stats.unread_chat_count"></span>
+                                </t>
+                            </a>
+                            <a href="/shop/cart" class="ut-dash-nav-round" aria-label="Keranjang">
+                                <i class="fa fa-shopping-cart"></i>
+                            </a>
+                            <a href="/unitrade/seller/orders" class="ut-dash-nav-round tw-relative" aria-label="Notifikasi">
+                                <i class="fa fa-bell-o"></i>
+                                <t t-if="stats.notification_count">
+                                    <span class="ut-dash-navbar-dot" t-esc="stats.notification_count"></span>
+                                </t>
+                            </a>
+                            <span class="tw-h-[38.5px] tw-w-px tw-bg-[#e5e7eb]"></span>
+                            <a href="/unitrade/seller/dashboard" class="ut-dash-nav-round" aria-label="Dashboard seller">
+                                <i class="fa fa-truck"></i>
+                            </a>
+                            <img t-att-src="seller.avatar_url" alt="Avatar penjual" class="tw-size-[45px] tw-rounded-full tw-object-cover"/>
+                            <span class="tw-mr-5 tw-max-w-[150px] tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[16px] tw-font-medium tw-leading-6 tw-text-[#212529]" t-esc="seller.name"></span>
+                        </div>
+                        <button type="button" class="ut-dash-mobile-menu tw-hidden tw-border-0 tw-bg-transparent tw-text-[24px]" t-on-click="toggleSidebar" aria-label="Buka navigasi">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                    </header>
+
+                    <div class="ut-dash-mobile-scrim" t-on-click="closeSidebar"></div>
+                    <t t-call="unitrade_seller.SellerSidebar"/>
+
+                    <main class="ut-product-payment-main tw-absolute tw-left-[181px] tw-right-[52px] tw-top-[175px] tw-pb-16">
+                        <section class="tw-mb-[24px]">
+                            <h1 class="tw-m-0 tw-text-[40px] tw-font-normal tw-leading-none tw-text-black">Tambah Barang</h1>
+                            <p class="tw-m-0 tw-mt-[7px] tw-text-[16px] tw-leading-6 tw-text-[#6a7282]">Selesaikan pembayaran biaya layanan untuk mempublikasikan produk Anda.</p>
+                        </section>
+
+                        <t t-set="step" t-value="2"/>
+                        <t t-call="unitrade_seller.SellerProductStepper"/>
+
+                        <div t-if="state.error" class="ut-product-create-alert is-error" t-esc="state.error"></div>
+                        <div t-if="state.success" class="ut-product-create-alert is-success">
+                            <span t-esc="state.success"></span>
+                            <t t-if="state.paymentResult">
+                                <div class="tw-mt-2 tw-text-[12px]">
+                                    <strong>Referensi:</strong>
+                                    <span t-esc="state.paymentResult.payment_reference"></span>
+                                </div>
+                            </t>
+                        </div>
+
+                        <div class="ut-product-payment-grid">
+                            <section class="ut-product-payment-left">
+                                <article class="ut-product-payment-secure">
+                                    <span><i class="fa fa-shield"></i></span>
+                                    <div>
+                                        <h2>Pembayaran Aman &amp; Terlindungi</h2>
+                                        <p>Transaksi Anda dilindungi dengan enkripsi SSL. Data pembayaran aman dan tidak disimpan di server kami.</p>
+                                    </div>
+                                </article>
+
+                                <section class="ut-product-payment-card">
+                                    <h2>Pilih Metode Pembayaran</h2>
+                                    <div class="ut-product-payment-method-list">
+                                        <t t-foreach="state.methods" t-as="method" t-key="method.key">
+                                            <article t-att-class="methodClass(method)">
+                                                <button type="button" class="ut-product-payment-method-head" t-on-click="() => this.toggleMethod(method)" t-att-aria-expanded="state.expandedMethod === method.key ? 'true' : 'false'">
+                                                    <span class="ut-product-payment-method-icon">
+                                                        <i t-att-class="method.icon"></i>
+                                                    </span>
+                                                    <span class="ut-product-payment-method-copy">
+                                                        <strong t-esc="method.title"></strong>
+                                                        <span t-esc="method.subtitle"></span>
+                                                        <small><i class="fa fa-clock-o"></i><t t-esc="method.speed"/></small>
+                                                    </span>
+                                                    <span class="ut-product-payment-chevron">
+                                                        <i t-att-class="state.expandedMethod === method.key ? 'fa fa-angle-up' : 'fa fa-angle-down'"></i>
+                                                    </span>
+                                                </button>
+                                                <div t-if="state.expandedMethod === method.key" class="ut-product-payment-method-detail">
+                                                    <p t-esc="method.description"></p>
+                                                    <div t-if="method.channels.length" class="ut-product-payment-channel-grid">
+                                                        <t t-foreach="method.channels" t-as="channel" t-key="channel.key">
+                                                            <button type="button" t-att-class="channelClass(channel)" t-att-title="channel.name" t-att-aria-label="channel.name" t-on-click.stop="() => this.selectChannel(method, channel)">
+                                                                <t t-if="channel.logo">
+                                                                    <img t-att-src="channel.logo" t-att-alt="channel.name"/>
+                                                                </t>
+                                                                <t t-else="">
+                                                                    <i class="fa fa-id-card-o"></i>
+                                                                </t>
+                                                            </button>
+                                                        </t>
+                                                    </div>
+                                                    <div t-if="method.insufficient" class="ut-product-payment-balance-warning">
+                                                        Saldo tersedia belum mencukupi. Gunakan metode pembayaran lain.
+                                                    </div>
+                                                </div>
+                                            </article>
+                                        </t>
+                                    </div>
+                                </section>
+
+                            </section>
+
+                            <aside class="ut-product-payment-summary">
+                                <h2>Ringkasan Produk</h2>
+                                <article class="ut-product-payment-product-card">
+                                    <img t-att-src="state.product.image_url" t-att-alt="state.product.name"/>
+                                    <h3 t-esc="state.product.name"></h3>
+                                    <p t-esc="state.product.category"></p>
+                                    <span class="ut-product-payment-price-label">Harga Jual Produk</span>
+                                    <strong t-esc="state.product.price_label"></strong>
+                                </article>
+                                <div class="ut-product-payment-summary-divider"></div>
+                                <div class="ut-product-payment-fees">
+                                    <div>
+                                        <span>Biaya Platform Upload</span>
+                                        <strong t-esc="state.fees.posting_fee_label"></strong>
+                                    </div>
+                                    <p class="ut-product-payment-tier" t-if="state.fees.tier_label">
+                                        Tarif <t t-esc="state.fees.percent_label"/> untuk <t t-esc="state.fees.tier_label"/>
+                                    </p>
+                                    <div t-if="state.fees.admin_fee">
+                                        <span>Biaya Admin</span>
+                                        <strong t-esc="state.fees.admin_fee_label"></strong>
+                                    </div>
+                                    <div class="is-total">
+                                        <span>Total Pembayaran</span>
+                                        <strong t-esc="totalLabel"></strong>
+                                    </div>
+                                </div>
+                                <div class="ut-product-payment-benefits">
+                                    <strong>Keuntungan Posting Produk:</strong>
+                                    <p><i class="fa fa-check"></i>Produk tampil di halaman utama selama 30 hari</p>
+                                    <p><i class="fa fa-check"></i>Akses ke fitur promosi dan boost</p>
+                                    <p><i class="fa fa-check"></i>Analitik dan laporan penjualan</p>
+                                </div>
+                                <label class="ut-product-payment-terms">
+                                    <input type="checkbox" t-att-checked="state.acceptedTerms ? true : undefined" t-on-change="toggleTerms"/>
+                                    <span>
+                                        Saya menyetujui
+                                        <a href="/terms#policy_seller-terms" target="_blank" rel="noopener">syarat dan ketentuan</a>
+                                        serta
+                                        <a href="/terms#policy_products-transactions" target="_blank" rel="noopener">kebijakan posting produk</a>
+                                    </span>
+                                </label>
+                                <button type="button" class="ut-product-payment-submit" t-att-disabled="!canPay ? true : undefined" t-on-click="submitPayment">
+                                    <t t-if="state.submitting"><i class="fa fa-spinner fa-spin"></i> Membuat transaksi...</t>
+                                    <t t-else="">Bayar <t t-esc="totalLabel"/></t>
+                                </button>
+                                <a t-if="state.paymentResult" t-att-href="productsUrl" class="ut-product-payment-done">Lihat Daftar Barang</a>
+                            </aside>
+                        </div>
+                    </main>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="unitrade_seller.SellerProductPaymentSkeleton">
+        <div class="ut-dash-stage ut-product-payment-stage ut-dash-skeleton-stage">
+            <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
+            </div>
+            <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-flex-1 tw-max-w-[658px] tw-rounded-[22px]"></span>
+                <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+            </header>
+            <aside class="ut-dash-sidebar ut-product-create-sidebar ut-dash-skeleton-sidebar">
+                <div class="ut-dash-sidebar-brand">
+                    <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
+                </div>
+                <div class="ut-dash-sidebar-nav">
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                </div>
+                <div class="ut-dash-sidebar-footer">
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                </div>
+            </aside>
+            <main class="ut-product-payment-main tw-absolute tw-left-[181px] tw-right-[52px] tw-top-[175px] tw-pb-16">
+                <section class="tw-mb-[24px]">
+                    <span class="ut-dash-skeleton-line tw-h-11 tw-w-[300px] tw-rounded-[16px]"></span>
+                    <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
+                </section>
+                <span class="ut-dash-skeleton-card tw-mb-8 tw-h-[88px] tw-w-full"></span>
+                <div class="ut-product-payment-grid">
+                    <section>
+                        <span class="ut-dash-skeleton-card tw-mb-6 tw-h-[73px] tw-w-full"></span>
+                        <span class="ut-dash-skeleton-card tw-h-[533px] tw-w-full"></span>
+                        <span class="ut-dash-skeleton-card tw-mt-6 tw-h-[56px] tw-w-full"></span>
+                    </section>
+                    <span class="ut-dash-skeleton-card tw-h-[775px] tw-w-full"></span>
+                </div>
+            </main>
+        </div>
+    </t>
+
+    <t t-name="unitrade_seller.SellerProductCreateSkeleton">
+        <div class="ut-dash-stage ut-product-create-stage ut-dash-skeleton-stage">
+            <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
+            </div>
+            <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-flex-1 tw-max-w-[658px] tw-rounded-[22px]"></span>
+                <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+            </header>
+            <aside class="ut-dash-sidebar ut-product-create-sidebar ut-dash-skeleton-sidebar">
+                <div class="ut-dash-sidebar-brand">
+                    <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
+                </div>
+                <div class="ut-dash-sidebar-nav">
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                </div>
+                <div class="ut-dash-sidebar-footer">
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                </div>
+            </aside>
+            <main class="ut-product-create-main tw-absolute tw-left-[181px] tw-top-[175px] tw-w-[859px] tw-pb-16">
+                <section class="tw-mb-[24px]">
+                    <span class="ut-dash-skeleton-line tw-h-11 tw-w-[300px] tw-rounded-[16px]"></span>
+                    <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
+                </section>
+                <span class="ut-dash-skeleton-card tw-mb-6 tw-h-[430px] tw-w-full"></span>
+                <span class="ut-dash-skeleton-card tw-mb-6 tw-h-[373px] tw-w-full"></span>
+                <span class="ut-dash-skeleton-card tw-mb-6 tw-h-[195px] tw-w-full"></span>
+                <span class="ut-dash-skeleton-card tw-h-[269px] tw-w-full"></span>
+                <div class="tw-mt-8 tw-flex tw-justify-between">
+                    <span class="ut-dash-skeleton-line tw-h-5 tw-w-[136px]"></span>
+                    <span class="ut-dash-skeleton-block tw-h-[46px] tw-w-[288px] tw-rounded-[10px]"></span>
+                </div>
+            </main>
+        </div>
+    </t>
+</templates>

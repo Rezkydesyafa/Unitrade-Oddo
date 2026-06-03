@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<<<<<<< HEAD
 <odoo noupdate="1">
     <record id="product_category_unitrade_food" model="product.category">
         <field name="name">Makanan</field>
@@ -23,5 +24,46 @@
     </record>
     <record id="product_category_unitrade_hobbies" model="product.category">
         <field name="name">Hobi &amp; Koleksi</field>
+=======
+<odoo>
+    <record id="product_category_unitrade_food" model="product.category">
+        <field name="name">Makanan</field>
+        <field name="parent_id" ref="product.product_category_all"/>
+    </record>
+
+    <record id="product_category_unitrade_furniture" model="product.category">
+        <field name="name">Perabotan</field>
+        <field name="parent_id" ref="product.product_category_all"/>
+    </record>
+
+    <record id="product_category_unitrade_fashion" model="product.category">
+        <field name="name">Fashion</field>
+        <field name="parent_id" ref="product.product_category_all"/>
+    </record>
+
+    <record id="product_category_unitrade_electronics" model="product.category">
+        <field name="name">Elektronik</field>
+        <field name="parent_id" ref="product.product_category_all"/>
+    </record>
+
+    <record id="product_category_unitrade_services" model="product.category">
+        <field name="name">Jasa</field>
+        <field name="parent_id" ref="product.product_category_all"/>
+    </record>
+
+    <record id="product_category_unitrade_health_beauty" model="product.category">
+        <field name="name">Kesehatan &amp; Kecantikan</field>
+        <field name="parent_id" ref="product.product_category_all"/>
+    </record>
+
+    <record id="product_category_unitrade_hobbies" model="product.category">
+        <field name="name">Hobi &amp; Koleksi</field>
+        <field name="parent_id" ref="product.product_category_all"/>
+    </record>
+
+    <record id="product_category_unitrade_other" model="product.category">
+        <field name="name">Lainnya</field>
+        <field name="parent_id" ref="product.product_category_all"/>
+>>>>>>> origin/main
     </record>
 </odoo>

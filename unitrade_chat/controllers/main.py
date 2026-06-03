@@ -19,6 +19,7 @@ class UnitradeChatController(http.Controller):
             'message': message,
         }
 
+<<<<<<< HEAD
     def _marketplace_block_message(self, feature_label=None):
         user = request.env.user
         if user._is_public() or not hasattr(user, '_check_unitrade_marketplace_access'):
@@ -33,6 +34,8 @@ class UnitradeChatController(http.Controller):
         message = self._marketplace_block_message(feature_label)
         return self._json_error(message, code='account_blocked') if message else False
 
+=======
+>>>>>>> origin/main
     def _chat_role(self, role=None):
         return role if role in self._CHAT_ROLES else 'buyer'
 
@@ -55,9 +58,12 @@ class UnitradeChatController(http.Controller):
         return True
 
     def _conversation(self, conversation_id, role='buyer'):
+<<<<<<< HEAD
         block_message = self._marketplace_block_message(_('menggunakan chat'))
         if block_message:
             raise UserError(block_message)
+=======
+>>>>>>> origin/main
         try:
             conversation_id = int(conversation_id or 0)
         except (TypeError, ValueError):
@@ -90,23 +96,72 @@ class UnitradeChatController(http.Controller):
             user.write_date or '',
         )
 
+<<<<<<< HEAD
     def _chat_page_values(self, conversation_id=None, role='buyer', seller=False):
+=======
+    def _pending_order_count(self, seller):
+        if not seller:
+            return 0
+        Product = request.env['product.template'].sudo()
+        seller_product_ids = Product.search([
+            ('x_seller_id', '=', seller.id),
+            ('x_is_marketplace', '=', True),
+        ]).mapped('product_variant_id').ids
+        if not seller_product_ids:
+            return 0
+        return request.env['sale.order.line'].sudo().search_count([
+            ('product_id', 'in', seller_product_ids),
+            ('order_id.state', 'in', ['sale', 'sent']),
+        ])
+
+    def _chat_page_values(self, conversation_id=None, role='buyer', seller=None):
+        role = self._chat_role(role)
+>>>>>>> origin/main
         initial_id = 0
         try:
             initial_id = int(conversation_id or 0)
         except (TypeError, ValueError):
             initial_id = 0
+<<<<<<< HEAD
         is_seller_view = role == 'seller' and bool(seller)
         return {
             'page_title': 'Chat Pembeli - UniTrade' if is_seller_view else 'Chat Penjual - UniTrade',
             'initial_conversation_id': initial_id,
             'is_seller_view': is_seller_view,
+=======
+        user = request.env.user
+        unread_chat_count = request.env['unitrade.chat.conversation'].sudo().nav_unread_count(user, role=role)
+        pending_order_count = self._pending_order_count(seller) if role == 'seller' else 0
+        if seller:
+            seller._ensure_profile_uuid()
+        seller_public_ref = (seller.x_store_slug or seller.x_profile_uuid or seller.id) if seller else ''
+        return {
+            'page_title': 'Chat Pembeli - UniTrade' if role == 'seller' else 'Chat Penjual - UniTrade',
+            'initial_conversation_id': initial_id,
+            'chat_role': role,
+            'chat_base_path': '/unitrade/seller/chat' if role == 'seller' else '/unitrade/chat',
+            'seller_dashboard_chat': role == 'seller',
+            'seller': seller,
+            'seller_avatar_url': (
+                '/web/image/res.users/%s/avatar_128?unique=%s' % (user.id, user.write_date or '')
+                if seller else '/web/static/img/user_menu_avatar.png'
+            ),
+            'seller_profile_url': (
+                '/seller-profile/%s' % seller_public_ref
+                if seller else '/unitrade/seller/dashboard'
+            ),
+            'unread_chat_count': unread_chat_count,
+            'pending_order_count': pending_order_count,
+>>>>>>> origin/main
         }
 
     @http.route('/unitrade/chat', type='http', auth='user', website=True, sitemap=False)
     def chat_page(self, conversation_id=None, **kwargs):
+<<<<<<< HEAD
         if self._marketplace_block_message(_('menggunakan chat')):
             return request.redirect('/my/profile?unitrade_blocked=1')
+=======
+>>>>>>> origin/main
         values = self._chat_page_values(
             conversation_id=conversation_id or kwargs.get('conversation_id'),
             role='buyer',
@@ -115,8 +170,11 @@ class UnitradeChatController(http.Controller):
 
     @http.route('/unitrade/seller/chat', type='http', auth='user', website=True, sitemap=False)
     def seller_chat_page(self, conversation_id=None, **kwargs):
+<<<<<<< HEAD
         if self._marketplace_block_message(_('menggunakan chat seller')):
             return request.redirect('/my/profile?unitrade_blocked=1')
+=======
+>>>>>>> origin/main
         seller = self._dashboard_seller()
         if not seller:
             return request.redirect('/seller-onboarding')
@@ -147,15 +205,18 @@ class UnitradeChatController(http.Controller):
 
     @http.route('/unitrade/chat/bootstrap', type='json', auth='user', website=True, methods=['POST'])
     def bootstrap(self, conversation_id=None, role='buyer', **kwargs):
+<<<<<<< HEAD
         block_payload = self._marketplace_block_payload(_('menggunakan chat'))
         if block_payload:
             return block_payload
+=======
+>>>>>>> origin/main
         role = self._chat_role(role)
         user = request.env.user
         user.sudo().write({'x_unitrade_chat_last_seen': fields.Datetime.now()})
         Conversation = request.env['unitrade.chat.conversation'].sudo()
         conversations = Conversation.search(
-            Conversation._participant_domain(user) + [('active', '=', True)],
+            Conversation._role_domain(user, role=role) + [('active', '=', True)],
             order='last_message_date desc, create_date desc',
             limit=80,
         )
@@ -168,12 +229,16 @@ class UnitradeChatController(http.Controller):
                 active = Conversation.browse()
         if not active and conversations:
             active = conversations[:1]
+        if active and active not in conversations:
+            conversations = active | conversations
         payload = {
             'success': True,
             'user_id': user.id,
             'current_user_avatar_url': self._chat_avatar_url(user),
             'user_channel': user._unitrade_chat_bus_target(),
-            'is_seller_view': bool(conversations.filtered(lambda conversation: conversation.seller_user_id.id == user.id)),
+            'role': role,
+            'base_path': '/unitrade/seller/chat' if role == 'seller' else '/unitrade/chat',
+            'is_seller_view': role == 'seller',
             'conversations': [
                 conversation._conversation_payload(user, include_token=conversation == active)
                 for conversation in conversations
@@ -232,9 +297,10 @@ class UnitradeChatController(http.Controller):
         return [conversation._product_payload(product) for product in products]
 
     @http.route('/unitrade/chat/conversation', type='json', auth='user', website=True, methods=['POST'])
-    def load_conversation(self, conversation_id=None, **kwargs):
+    def load_conversation(self, conversation_id=None, role='buyer', **kwargs):
+        role = self._chat_role(role)
         try:
-            conversation = self._conversation(conversation_id)
+            conversation = self._conversation(conversation_id, role=role)
             request.env.user.sudo().write({'x_unitrade_chat_last_seen': fields.Datetime.now()})
             return {
                 'success': True,
@@ -246,9 +312,10 @@ class UnitradeChatController(http.Controller):
             return self._json_error(str(error))
 
     @http.route('/unitrade/chat/messages', type='json', auth='user', website=True, methods=['POST'])
-    def list_messages(self, conversation_id=None, after_id=None, before_id=None, limit=40, **kwargs):
+    def list_messages(self, conversation_id=None, after_id=None, before_id=None, limit=40, role='buyer', **kwargs):
+        role = self._chat_role(role)
         try:
-            conversation = self._conversation(conversation_id)
+            conversation = self._conversation(conversation_id, role=role)
             try:
                 limit = max(10, min(int(limit or 40), 80))
             except (TypeError, ValueError):
@@ -265,9 +332,10 @@ class UnitradeChatController(http.Controller):
 
     @http.route('/unitrade/chat/send', type='json', auth='user', website=True, methods=['POST'])
     def send_message(self, conversation_id=None, message_type='text', body='', product_id=None,
-                     image_data=None, filename=None, mimetype=None, **kwargs):
+                     image_data=None, filename=None, mimetype=None, role='buyer', **kwargs):
+        role = self._chat_role(role)
         try:
-            conversation = self._conversation(conversation_id)
+            conversation = self._conversation(conversation_id, role=role)
             request.env['unitrade.chat.rate.limit'].check(request.env.user, 'send', 20)
             request.env.user.sudo().write({'x_unitrade_chat_last_seen': fields.Datetime.now()})
             message = request.env['unitrade.chat.message'].create_from_controller(conversation, {
@@ -290,9 +358,10 @@ class UnitradeChatController(http.Controller):
             return self._json_error('Pesan gagal dikirim.', code='send_failed')
 
     @http.route('/unitrade/chat/cart/add', type='json', auth='user', website=True, methods=['POST'])
-    def add_product_to_cart(self, conversation_id=None, product_id=None, checkout=False, **kwargs):
+    def add_product_to_cart(self, conversation_id=None, product_id=None, checkout=False, role='buyer', **kwargs):
+        role = self._chat_role(role)
         try:
-            conversation = self._conversation(conversation_id)
+            conversation = self._conversation(conversation_id, role=role)
             product = conversation._get_marketplace_product(product_id)
             if product.x_seller_id and product.x_seller_id.id != conversation.seller_id.id:
                 raise UserError('Produk ini tidak termasuk percakapan dengan seller tersebut.')
@@ -317,9 +386,10 @@ class UnitradeChatController(http.Controller):
 
     @http.route('/unitrade/chat/report', type='json', auth='user', website=True, methods=['POST'])
     def report_user(self, conversation_id=None, reason=None, proof_image_data=None,
-                    proof_filename=None, proof_mimetype=None, proof_images=None, **kwargs):
+                    proof_filename=None, proof_mimetype=None, proof_images=None, role='buyer', **kwargs):
+        role = self._chat_role(role)
         try:
-            conversation = self._conversation(conversation_id)
+            conversation = self._conversation(conversation_id, role=role)
             request.env['unitrade.chat.rate.limit'].check(request.env.user, 'report', 3)
             report = request.env['unitrade.chat.report'].create_from_controller(conversation, {
                 'reason': reason,
@@ -341,9 +411,10 @@ class UnitradeChatController(http.Controller):
 
     @http.route('/unitrade/chat/read', type='json', auth='user', website=True, methods=['POST'])
     def mark_read(self, conversation_id=None, last_seen_message_id=None, active_conversation_id=None,
-                  receiver_id=None, page_visible=False, window_focused=False, **kwargs):
+                  receiver_id=None, page_visible=False, window_focused=False, role='buyer', **kwargs):
+        role = self._chat_role(role)
         try:
-            conversation = self._conversation(conversation_id)
+            conversation = self._conversation(conversation_id, role=role)
             try:
                 active_conversation_id = int(active_conversation_id or 0)
                 receiver_id = int(receiver_id or 0)
@@ -369,9 +440,12 @@ class UnitradeChatController(http.Controller):
 
     @http.route('/unitrade/chat/presence', type='json', auth='user', website=True, methods=['POST'])
     def presence(self, conversation_id=None, role='buyer', **kwargs):
+<<<<<<< HEAD
         block_payload = self._marketplace_block_payload(_('menggunakan chat'))
         if block_payload:
             return block_payload
+=======
+>>>>>>> origin/main
         role = self._chat_role(role)
         user = request.env.user
         user.sudo().write({'x_unitrade_chat_last_seen': fields.Datetime.now()})
@@ -393,9 +467,10 @@ class UnitradeChatController(http.Controller):
         return {'success': True}
 
     @http.route('/unitrade/chat/typing', type='json', auth='user', website=True, methods=['POST'])
-    def typing(self, conversation_id=None, typing=False, **kwargs):
+    def typing(self, conversation_id=None, typing=False, role='buyer', **kwargs):
+        role = self._chat_role(role)
         try:
-            conversation = self._conversation(conversation_id)
+            conversation = self._conversation(conversation_id, role=role)
             request.env.user.sudo().write({'x_unitrade_chat_last_seen': fields.Datetime.now()})
             request.env['bus.bus'].sudo()._sendone(
                 conversation._bus_target(),

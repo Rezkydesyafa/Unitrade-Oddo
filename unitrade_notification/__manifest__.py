@@ -16,9 +16,22 @@
     ],
     'data': [
         'security/ir.model.access.csv',
-        'views/notification_templates.xml',
+        'security/notification_security.xml',
+        'data/ir_config_parameter.xml',
+        'data/ir_cron.xml',
         'data/mail_template.xml',
+        'views/notification_templates.xml',
+        'views/notification_admin_views.xml',
+        'views/announcement_views.xml',
     ],
+    'assets': {
+        'web.assets_frontend': [
+            'unitrade_notification/static/src/scss/notification.scss',
+            'unitrade_notification/static/src/js/notification_service.js',
+            'unitrade_notification/static/src/js/notification_bell.js',
+            'unitrade_notification/static/src/xml/notification_bell.xml',
+        ],
+    },
     'installable': True,
     'license': 'LGPL-3',
 }

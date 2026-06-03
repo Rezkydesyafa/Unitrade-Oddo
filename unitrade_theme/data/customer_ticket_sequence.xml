@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_unitrade_customer_ticket" model="ir.sequence">
+        <field name="name">UniTrade Customer Service Ticket</field>
+        <field name="code">unitrade.customer.ticket</field>
+        <field name="prefix">TKT-</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 52" role="img" aria-label="Alfamart">
+  <rect width="190" height="52" rx="10" fill="#fff"/>
+  <rect x="18" y="34" width="154" height="5" fill="#f6c400"/>
+  <rect x="18" y="39" width="154" height="5" fill="#e31e24"/>
+  <text x="34" y="30" fill="#005baa" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700" font-style="italic">Alfamart</text>
+</svg>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!--
+        UniTrade Notification — frontend asset registration (XML route).
+
+        Odoo 17 prefers the manifest `assets` key (already populated in
+        __manifest__.py for `web.assets_frontend`). This XML template is
+        kept as the documented registration point per design.md
+        (§Module Layout) and tasks.md §13.4 for traceability and to
+        satisfy modules that still rely on `inherit_id` based bundle
+        injection. Both routes are idempotent — Odoo deduplicates entries
+        by path within a bundle, so listing the same asset twice is safe.
+
+        Note: OWL component XML templates (e.g. notification_bell.xml)
+        cannot be added through this `<link>`/`<script>` mechanism. They
+        are registered exclusively via the manifest `assets` key, which
+        already lists `static/src/xml/notification_bell.xml` under
+        `web.assets_frontend`.
+    -->
+    <template id="assets_frontend"
+              inherit_id="web.assets_frontend"
+              name="UniTrade Notification Assets">
+        <xpath expr="." position="inside">
+            <link rel="stylesheet"
+                  type="text/scss"
+                  href="/unitrade_notification/static/src/scss/notification.scss"/>
+            <script type="text/javascript"
+                    src="/unitrade_notification/static/src/js/notification_service.js"/>
+            <script type="text/javascript"
+                    src="/unitrade_notification/static/src/js/notification_bell.js"/>
+        </xpath>
+    </template>
+</odoo>

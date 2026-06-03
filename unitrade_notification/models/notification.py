@@ -7,12 +7,124 @@ from odoo import _, api, fields, models, tools
 _logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# Backward-compatibility map: new ``category`` -> legacy ``notification_type``
+# ---------------------------------------------------------------------------
+#
+# The legacy ``notification_type`` column predates the 7-category
+# taxonomy and is preserved so existing views, reports, and integrations
+# (e.g. ``views/template.xml`` in earlier modules) keep working. The
+# table mirrors the design document (§unitrade.notification – extended):
+#
+#   order   -> order        payment -> payment       chat    -> chat
+#   system  -> system       account -> system        seller  -> system
+#   review  -> system
+#
+# Whenever the caller provides an explicit ``notification_type`` it wins
+# (caller-preserved) so admin/data XML can pin a specific legacy type.
+_CATEGORY_TO_LEGACY_TYPE = {
+    'order': 'order',
+    'payment': 'payment',
+    'chat': 'chat',
+    'system': 'system',
+    'account': 'system',
+    'seller': 'system',
+    'review': 'system',
+}
+
+
+# ---------------------------------------------------------------------------
+# Default Indonesian title/message per event_code.
+# ---------------------------------------------------------------------------
+#
+# These provide sensible defaults rendered by ``_render_title_and_message``
+# when the caller does not supply ``payload['title_override']`` /
+# ``payload['message_override']``. Strings are intentionally short so they
+# fit the navbar dropdown and the mobile notification center; richer copy
+# (resi number, rejection reason, etc.) is meant to be passed by the caller
+# as an override.
+#
+# All 18 event codes registered in :mod:`event_registry` are covered.
+_DEFAULT_TITLES = {
+    'account.welcome': 'Selamat datang di UniTrade!',
+    'account.password_reset': 'Password berhasil direset',
+    'seller.application_received': 'Pengajuan seller diterima',
+    'seller.approved': 'Pengajuan seller disetujui',
+    'seller.rejected': 'Pengajuan seller belum disetujui',
+    'order.new_for_seller': 'Pesanan baru',
+    'order.confirmed': 'Pesanan dikonfirmasi',
+    'order.shipped': 'Pesanan dikirim',
+    'order.delivered': 'Pesanan diterima',
+    'order.cancelled': 'Pesanan dibatalkan',
+    'payment.success': 'Pembayaran berhasil',
+    'payment.pending': 'Pembayaran menunggu',
+    'payment.failed': 'Pembayaran gagal',
+    'payment.expired': 'Pembayaran kedaluwarsa',
+    'chat.new_message': 'Pesan baru',
+    'review.reminder': 'Beri review pesananmu',
+    'review.new_for_seller': 'Review baru',
+    'system.announcement': 'Pengumuman UniTrade',
+}
+
+_DEFAULT_MESSAGES = {
+    'account.welcome': 'Akun kamu sudah aktif.',
+    'account.password_reset': 'Password kamu telah diperbarui.',
+    'seller.application_received': 'Tim akan review dalam 1×24 jam.',
+    'seller.approved': 'Selamat, kamu sekarang seller terverifikasi.',
+    'seller.rejected': 'Lihat detail untuk pengajuan ulang.',
+    'order.new_for_seller': 'Ada pesanan baru menunggu konfirmasi.',
+    'order.confirmed': 'Pesanan kamu sudah dikonfirmasi.',
+    'order.shipped': 'Pesanan kamu sedang dalam pengiriman.',
+    'order.delivered': 'Pesanan sudah sampai tujuan.',
+    'order.cancelled': 'Pesanan kamu telah dibatalkan.',
+    'payment.success': 'Pembayaran sudah kami terima.',
+    'payment.pending': 'Selesaikan pembayaran sebelum batas waktu.',
+    'payment.failed': 'Silakan coba metode pembayaran lain.',
+    'payment.expired': 'Batas waktu pembayaran sudah lewat.',
+    'chat.new_message': 'Kamu mendapat pesan baru.',
+    'review.reminder': 'Bantu seller dengan ulasan kamu.',
+    'review.new_for_seller': 'Pelanggan memberikan review baru.',
+    'system.announcement': 'Ada pengumuman baru dari tim UniTrade.',
+}
+
+
+# ---------------------------------------------------------------------------
+# Sensitive payload keys stripped before rendering / persistence.
+# ---------------------------------------------------------------------------
+#
+# Matched case-insensitively on the *exact* lowercased dict key — this is
+# more predictable than a substring match (which would also strip benign
+# fields such as ``user_password_hint``). Common variants and synonyms
+# are listed explicitly so callers don't have to remember an exhaustive
+# blocklist.
+_SENSITIVE_KEYS = frozenset({
+    'password',
+    'password_hash',
+    'password_reset_token',
+    'api_key',
+    'midtrans_server_key',
+    'secret',
+    'private_key',
+    'token',
+    'authorization',
+    'cookie',
+    'session_id',
+    'csrf_token',
+})
+
+
 class UnitradeNotification(models.Model):
     _name = 'unitrade.notification'
     _description = 'UniTrade System Notification'
+<<<<<<< HEAD
     # Unread first for admin/user inboxes; ``id desc`` is the deterministic
     # tie-breaker used by list query invariants.
     _order = 'is_read asc, create_date desc, id desc'
+=======
+    # Newest first; ``id desc`` is the deterministic tie-breaker used by
+    # Property 5 (List Query Invariants).
+    _order = 'create_date desc, id desc'
+>>>>>>> origin/main
 
     # ------------------------------------------------------------------
     # Identity / addressing
@@ -24,6 +136,7 @@ class UnitradeNotification(models.Model):
         ondelete='cascade',
         index=True,
     )
+<<<<<<< HEAD
     audience = fields.Selection(
         [
             ('user', 'User'),
@@ -34,6 +147,8 @@ class UnitradeNotification(models.Model):
         default='user',
         index=True,
     )
+=======
+>>>>>>> origin/main
     title = fields.Char(string='Judul', required=True)
     message = fields.Text(string='Pesan')
 
@@ -71,15 +186,19 @@ class UnitradeNotification(models.Model):
             ('payment', 'Pembayaran'),
             ('delivery', 'Pengiriman'),
             ('chat', 'Chat'),
+<<<<<<< HEAD
             ('moderation', 'Moderasi'),
             ('refund', 'Refund'),
             ('payout', 'Payout'),
+=======
+>>>>>>> origin/main
             ('system', 'Sistem'),
         ],
         string='Tipe (legacy)',
         default='system',
         help="Backward-compatible coarse type derived from `category`.",
     )
+<<<<<<< HEAD
     priority = fields.Selection(
         [
             ('info', 'Info'),
@@ -91,6 +210,8 @@ class UnitradeNotification(models.Model):
         default='info',
         index=True,
     )
+=======
+>>>>>>> origin/main
 
     # ------------------------------------------------------------------
     # Reference to the originating business object
@@ -103,11 +224,14 @@ class UnitradeNotification(models.Model):
              "when the notification is clicked. Validated by the "
              "dispatcher against the configured allow-list.",
     )
+<<<<<<< HEAD
     target_model = fields.Char(string='Target Model', index=True)
     target_id = fields.Integer(string='Target ID', index=True)
     target_url = fields.Char(string='Target URL')
     action_xmlid = fields.Char(string='Action XMLID')
     dedupe_key = fields.Char(string='Dedupe Key', copy=False, index=True)
+=======
+>>>>>>> origin/main
 
     # ------------------------------------------------------------------
     # Read state
@@ -117,6 +241,7 @@ class UnitradeNotification(models.Model):
         default=False,
         index=True,
     )
+<<<<<<< HEAD
     read_at = fields.Datetime(string='Dibaca pada', copy=False)
     read_by_id = fields.Many2one(
         'res.users',
@@ -124,6 +249,9 @@ class UnitradeNotification(models.Model):
         readonly=True,
         copy=False,
     )
+=======
+    read_at = fields.Datetime(string='Dibaca pada')
+>>>>>>> origin/main
 
     # ------------------------------------------------------------------
     # Idempotency
@@ -168,11 +296,14 @@ class UnitradeNotification(models.Model):
             'UNIQUE(user_id, idempotency_key)',
             'Notifikasi duplikat untuk user yang sama tidak diperbolehkan.',
         ),
+<<<<<<< HEAD
         (
             'unitrade_notification_dedupe_unique',
             'UNIQUE(user_id, audience, dedupe_key)',
             'Notifikasi dengan dedupe key yang sama sudah ada untuk user ini.',
         ),
+=======
+>>>>>>> origin/main
     ]
 
     # ------------------------------------------------------------------
@@ -215,6 +346,7 @@ class UnitradeNotification(models.Model):
         their original behaviour (Req 1.7 / Property 2).
         """
         for vals in vals_list:
+<<<<<<< HEAD
             if vals.get('target_model') and not vals.get('reference_model'):
                 vals['reference_model'] = vals['target_model']
             if vals.get('target_id') and not vals.get('reference_id'):
@@ -225,6 +357,8 @@ class UnitradeNotification(models.Model):
                 vals['idempotency_key'] = vals['dedupe_key']
             vals.setdefault('category', 'system')
             vals.setdefault('event_code', 'system.announcement')
+=======
+>>>>>>> origin/main
             # Only auto-fill when the caller did not provide a value at
             # all. ``False`` / empty string is treated as "not provided"
             # because Odoo sometimes serialises missing Selection values
@@ -238,6 +372,7 @@ class UnitradeNotification(models.Model):
                 vals['notification_type'] = mapped
         return super().create(vals_list)
 
+<<<<<<< HEAD
     def write(self, vals):
         vals = dict(vals)
         if vals.get('target_model') and not vals.get('reference_model'):
@@ -250,6 +385,8 @@ class UnitradeNotification(models.Model):
             vals['idempotency_key'] = vals['dedupe_key']
         return super().write(vals)
 
+=======
+>>>>>>> origin/main
     # ------------------------------------------------------------------
     # User-facing actions
     # ------------------------------------------------------------------
@@ -268,7 +405,10 @@ class UnitradeNotification(models.Model):
             unread.write({
                 'is_read': True,
                 'read_at': fields.Datetime.now(),
+<<<<<<< HEAD
                 'read_by_id': self.env.user.id,
+=======
+>>>>>>> origin/main
             })
 
     # ------------------------------------------------------------------
@@ -1407,6 +1547,7 @@ class UnitradeNotification(models.Model):
             emitted, len(candidates),
         )
         return emitted
+<<<<<<< HEAD
 
     def action_mark_unread(self):
         self.write({
@@ -1527,3 +1668,5 @@ class UnitradeNotification(models.Model):
         except Exception:
             _logger.exception('Failed humanizing notification time')
             return ''
+=======
+>>>>>>> origin/main

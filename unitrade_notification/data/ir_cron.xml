@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+        <!--
+            Scheduled jobs for the UniTrade Notification system.
+
+            Wrapped in <data noupdate="1"> so administrators can disable or
+            tweak these crons (interval, nextcall, active, etc.) from the
+            UI without those overrides being reverted on the next module
+            upgrade. The underlying Python methods live on
+            `unitrade.notification` (see tasks 9.3 and 9.4).
+        -->
+
+        <!--
+            Retention GC: deletes read notifications older than the
+            configured retention window (default 180 days, see
+            `ir.config_parameter` `unitrade.notification.retention_days`).
+            Scheduled daily; `nextcall` is hardcoded to a near-future
+            02:00 timestamp so the very first run lands at 02:00 local
+            server time, after which the daily interval keeps it on the
+            same hour.
+        -->
+        <record id="ir_cron_unitrade_notification_retention" model="ir.cron">
+            <field name="name">UniTrade Notification Retention GC</field>
+            <field name="model_id" ref="model_unitrade_notification"/>
+            <field name="state">code</field>
+            <field name="code">model._gc_old_notifications()</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="active" eval="True"/>
+            <field name="nextcall" eval="'2025-01-01 02:00:00'"/>
+        </record>
+
+        <!--
+            Review reminder emitter: scans delivered orders without a
+            buyer review past the 24h threshold and emits one
+            `review.reminder` notification per (buyer, order) pair.
+            Idempotency is enforced inside the dispatcher via the
+            event's idempotency_key so reruns are safe.
+        -->
+        <record id="ir_cron_unitrade_notification_review_reminder" model="ir.cron">
+            <field name="name">UniTrade Notification Review Reminder</field>
+            <field name="model_id" ref="model_unitrade_notification"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_emit_review_reminders()</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">hours</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="active" eval="True"/>
+        </record>
+    </data>
+</odoo>

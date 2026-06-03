@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="mail_template_payment_invoice" model="mail.template">
+        <field name="name">UniTrade: Invoice Pembayaran</field>
+        <field name="model_id" ref="model_unitrade_payment_intent"/>
+        <field name="subject">Invoice Pembayaran UniTrade - {{ object.sale_order_id.name or object.name }}</field>
+        <field name="email_from">{{ object.sale_order_id.company_id.email or object.env.company.email or 'noreply@unitrade.dev' }}</field>
+        <field name="email_to">{{ object.partner_id.email }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+            <div style="margin:0; padding:0; background:#f5f5f7; font-family:Inter, Arial, sans-serif; color:#111827;">
+                <div style="max-width:640px; margin:0 auto; padding:32px 20px;">
+                    <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:16px; overflow:hidden;">
+                        <div style="padding:28px 32px; border-bottom:1px solid #edf0f3;">
+                            <p style="margin:0 0 8px; font-size:13px; font-weight:700; color:#6b7280; letter-spacing:.08em; text-transform:uppercase;">UniTrade</p>
+                            <h1 style="margin:0; font-size:24px; line-height:32px; color:#0c1014;">Invoice pembayaran Anda sudah dibuat</h1>
+                        </div>
+                        <div style="padding:28px 32px;">
+                            <p style="margin:0 0 16px; font-size:15px; line-height:24px;">Halo <strong>{{ object.partner_id.name or 'Pelanggan UniTrade' }}</strong>,</p>
+                            <p style="margin:0 0 22px; font-size:15px; line-height:24px; color:#374151;">
+                                Silakan selesaikan pembayaran pesanan <strong>{{ object.sale_order_id.name or object.name }}</strong> dalam 1 jam agar pesanan dapat diproses.
+                            </p>
+                            <div style="border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:22px;">
+                                <p style="margin:0 0 6px; font-size:13px; color:#6b7280;">Total pembayaran</p>
+                                <p style="margin:0; font-size:28px; line-height:36px; font-weight:800; color:#0c1014;">{{ 'Rp {:,.0f}'.format(object.amount or 0).replace(',', '.') }}</p>
+                                <p style="margin:14px 0 0; font-size:13px; color:#6b7280;">Metode: <strong style="color:#111827;">{{ object.payment_method_label or '-' }}</strong></p>
+                                <p style="margin:6px 0 0; font-size:13px; color:#6b7280;">Referensi: <strong style="color:#111827;">{{ object.payment_reference or object.midtrans_order_id or object.xendit_reference_id or object.name }}</strong></p>
+                            </div>
+                            <a href="{{ object.unitrade_public_payment_url() }}" style="display:inline-block; background:#0c1014; color:#ffffff; padding:14px 22px; border-radius:999px; text-decoration:none; font-size:14px; font-weight:700;">Lihat instruksi pembayaran</a>
+                            <p style="margin:22px 0 0; font-size:13px; line-height:20px; color:#6b7280;">
+                                Jika tombol tidak dapat dibuka, salin tautan berikut ke browser Anda:<br/>
+                                <span style="word-break:break-all;">{{ object.unitrade_public_payment_url() }}</span>
+                            </p>
+                        </div>
+                    </div>
+                    <p style="margin:18px 0 0; text-align:center; font-size:12px; color:#9ca3af;">Email otomatis UniTrade. Abaikan email ini jika Anda tidak membuat pesanan.</p>
+                </div>
+            </div>
+        </field>
+    </record>
+
+    <record id="mail_template_payment_success" model="mail.template">
+        <field name="name">UniTrade: Pembayaran Berhasil</field>
+        <field name="model_id" ref="model_unitrade_payment_intent"/>
+        <field name="subject">Pembayaran Berhasil - {{ object.sale_order_id.name or object.name }}</field>
+        <field name="email_from">{{ object.sale_order_id.company_id.email or object.env.company.email or 'noreply@unitrade.dev' }}</field>
+        <field name="email_to">{{ object.partner_id.email }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+            <div style="margin:0; padding:0; background:#f5f5f7; font-family:Inter, Arial, sans-serif; color:#111827;">
+                <div style="max-width:640px; margin:0 auto; padding:32px 20px;">
+                    <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:16px; overflow:hidden;">
+                        <div style="padding:28px 32px; border-bottom:1px solid #edf0f3;">
+                            <p style="margin:0 0 8px; font-size:13px; font-weight:700; color:#16a34a; letter-spacing:.08em; text-transform:uppercase;">Pembayaran berhasil</p>
+                            <h1 style="margin:0; font-size:24px; line-height:32px; color:#0c1014;">Pesanan Anda sedang diproses</h1>
+                        </div>
+                        <div style="padding:28px 32px;">
+                            <p style="margin:0 0 16px; font-size:15px; line-height:24px;">Halo <strong>{{ object.partner_id.name or 'Pelanggan UniTrade' }}</strong>,</p>
+                            <p style="margin:0 0 22px; font-size:15px; line-height:24px; color:#374151;">
+                                Kami sudah menerima pembayaran untuk pesanan <strong>{{ object.sale_order_id.name or object.name }}</strong>. Dana akan diamankan oleh UniTrade dan pesanan diteruskan ke penjual.
+                            </p>
+                            <div style="border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:22px;">
+                                <p style="margin:0 0 6px; font-size:13px; color:#6b7280;">Total dibayar</p>
+                                <p style="margin:0; font-size:28px; line-height:36px; font-weight:800; color:#0c1014;">{{ 'Rp {:,.0f}'.format(object.amount or 0).replace(',', '.') }}</p>
+                                <p style="margin:14px 0 0; font-size:13px; color:#6b7280;">Metode: <strong style="color:#111827;">{{ object.payment_method_label or '-' }}</strong></p>
+                                <p style="margin:6px 0 0; font-size:13px; color:#6b7280;">Waktu bayar: <strong style="color:#111827;">{{ object.paid_at or '' }}</strong></p>
+                            </div>
+                            <a href="{{ object.sale_order_id.get_base_url().rstrip('/') }}/my/orders" style="display:inline-block; background:#0c1014; color:#ffffff; padding:14px 22px; border-radius:999px; text-decoration:none; font-size:14px; font-weight:700;">Lihat pesanan saya</a>
+                        </div>
+                    </div>
+                    <p style="margin:18px 0 0; text-align:center; font-size:12px; color:#9ca3af;">Terima kasih sudah bertransaksi di UniTrade.</p>
+                </div>
+            </div>
+        </field>
+    </record>
+</odoo>

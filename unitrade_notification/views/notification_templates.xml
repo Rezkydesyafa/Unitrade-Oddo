@@ -1,4 +1,543 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- Notification display templates - placeholder -->
+    <!--
+        UniTrade Notification System - QWeb templates (Task 12.1)
+        ==========================================================
+        Three templates rendered by `controllers/main.py`:
+
+        1. unitrade_notification.notification_center_page
+           Server-rendered page at GET /my/notifications.
+           Receives:
+             - notifications : recordset of unitrade.notification (page slice)
+             - page          : int, current page (1-based)
+             - category      : str, active category filter ('all' or one of
+                               the 7 category codes)
+             - total         : int, total record count for the active filter
+             - pager         : dict produced by request.website.pager(...)
+             - categories    : list[tuple(code, label)] for the tab strip,
+                               first entry is ('all', 'Semua')
+
+        2. unitrade_notification.notification_dropdown
+           Lightweight partial reused by the OWL bell as a no-JS fallback.
+           Receives:
+             - notifications : recordset (max 5 items)
+
+        3. unitrade_notification.notification_settings_page
+           Server-rendered page at GET /my/notifications/settings.
+           Receives:
+             - preferences_grid : list[dict] with keys
+                 category         (str)
+                 category_label   (str, human-readable)
+                 in_app           (preference record or None)
+                 email            (preference record or None)
+                 in_app_locked    (bool, True for critical categories)
+             - saved : bool, True when the POST handler set ?saved=1
+
+        All markup uses the `tw-` Tailwind prefix per workspace AGENTS.md
+        and respects the unitrade_theme palette (Urbanist font, #f5f5f7
+        page background, #1d1d1d primary text, #0071e3 brand accent).
+    -->
+
+    <template id="unitrade_navbar_notification_bell"
+              inherit_id="unitrade_theme.unitrade_navbar"
+              name="UniTrade Navbar Notification Bell">
+        <xpath expr="//a[@id='unitrade-navbar-notification-link']" position="replace">
+            <div class="ut-notification-host">
+                <a id="unitrade-navbar-notification-link"
+                   href="/my/notifications"
+                   title="Notifikasi"
+                   aria-label="Notifikasi"
+                   class="ut-notification-fallback">
+                    <img src="/unitrade_theme/static/src/img/navbar-bell.svg" alt=""/>
+                </a>
+                <owl-component name="unitrade_notification.NotificationBell"/>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- ======================================================================
+         Template 1: Notification Center page
+         ====================================================================== -->
+    <template id="notification_center_page" name="UniTrade Notification Center">
+        <t t-call="website.layout">
+            <t t-set="page_title">Notifikasi - UniTrade</t>
+            <t t-set="additional_title">Notifikasi</t>
+
+            <main class="ut-notifications-page">
+                <div class="ut-notifications-shell">
+                    <header class="ut-notifications-header">
+                        <h1 class="ut-notifications-title">Notifikasi</h1>
+                        <p class="ut-notifications-subtitle" data-unread-label="1">
+                            <t t-esc="unread_count or 0"/> notifikasi belum dibaca
+                        </p>
+                    </header>
+
+                    <div class="ut-notifications-error" data-notif-error="1" role="alert"></div>
+
+                    <section class="ut-notifications-card" aria-label="Daftar notifikasi" t-att-data-unread-count="unread_count or 0">
+                        <div class="ut-notifications-card-head">
+                            <nav class="ut-notifications-tabs" aria-label="Filter kategori notifikasi">
+                                <t t-foreach="categories or []" t-as="cat">
+                                    <a t-att-href="'/my/notifications?category=%s' % cat.get('key')"
+                                       t-att-data-tab-key="cat.get('key')"
+                                       t-att-data-tab-count="cat.get('count')"
+                                       t-attf-class="ut-notifications-tab #{'ut-is-active' if cat.get('key') == category else ''}">
+                                        <t t-esc="cat.get('label')"/>(<t t-esc="cat.get('count')"/>)
+                                    </a>
+                                </t>
+                            </nav>
+                            <form action="/my/notifications/read_all"
+                                  method="post"
+                                  data-notif-action="read_all"
+                                  class="ut-notifications-header-action">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <button type="submit"
+                                        class="ut-notifications-primary-action"
+                                        t-att-disabled="not unread_count">
+                                    Tandai Semua Dibaca
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="ut-notifications-loading" data-notif-loading="1">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+
+                        <t t-if="not notification_items or len(notification_items) == 0">
+                            <div class="ut-notifications-empty">
+                                <div class="ut-notifications-empty-icon">🔔</div>
+                                <h2>Belum ada notifikasi</h2>
+                                <p>Aktivitas pesanan, pembayaran, review, chat, dan sistem akan muncul di sini.</p>
+                            </div>
+                        </t>
+
+                        <t t-if="notification_items and len(notification_items) > 0">
+                            <ul class="ut-notifications-list">
+                                <t t-foreach="notification_items" t-as="notif">
+                                    <li t-attf-class="ut-notification-center-row #{'ut-is-unread' if not notif.get('is_read') else ''}"
+                                        t-att-data-notification-id="notif.get('id')"
+                                        t-att-data-action-url="notif.get('action_url')"
+                                        t-att-data-category="notif.get('ui_category')"
+                                        t-att-data-is-read="'1' if notif.get('is_read') else '0'"
+                                        role="button"
+                                        tabindex="0">
+                                        <div class="ut-notification-center-icon" aria-hidden="true">
+                                            <span t-esc="notif.get('icon')"/>
+                                        </div>
+
+                                        <div class="ut-notification-center-body">
+                                            <div class="ut-notification-center-titleline">
+                                                <h3 t-esc="notif.get('title')"/>
+                                                <span t-if="not notif.get('is_read')" class="ut-notification-center-dot"/>
+                                            </div>
+                                            <p t-if="notif.get('message')" t-esc="notif.get('message')"/>
+                                            <time t-esc="notif.get('time_label')"/>
+                                        </div>
+                                    </li>
+                                </t>
+                            </ul>
+                        </t>
+                    </section>
+
+                    <t t-if="pager and pager.get('page_count', 1) > 1">
+                        <div class="ut-notifications-pager">
+                            <t t-call="website.pager"/>
+                        </div>
+                    </t>
+                </div>
+            </main>
+
+            <!--
+                Inline JS bridge: the controllers in task 11.3 are declared as
+                type='json' which expects a JSON-RPC payload. The action forms
+                above carry data-notif-action, so this snippet intercepts the
+                submit, calls the JSON endpoint, and reloads the page on
+                success. A no-JS fallback is intentionally not provided because
+                the surrounding website already requires JS.
+            -->
+            <script type="text/javascript"><![CDATA[
+                document.addEventListener("DOMContentLoaded", function () {
+                    var card = document.querySelector(".ut-notifications-card");
+                    var errorBox = document.querySelector("[data-notif-error]");
+                    var unreadLabel = document.querySelector("[data-unread-label]");
+
+                    function jsonPost(url) {
+                        return fetch(url, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-Requested-With": "XMLHttpRequest"
+                            },
+                            body: JSON.stringify({
+                                jsonrpc: "2.0",
+                                method: "call",
+                                params: {}
+                            }),
+                            credentials: "same-origin"
+                        }).then(function (resp) {
+                            if (!resp.ok) {
+                                throw new Error("HTTP " + resp.status);
+                            }
+                            return resp.json();
+                        }).then(function (data) {
+                            if (data && data.error) {
+                                throw new Error(data.error.message || "Gagal memproses notifikasi.");
+                            }
+                            return data ? data.result : {};
+                        });
+                    }
+
+                    function setLoading(value) {
+                        if (card) {
+                            card.classList.toggle("ut-is-loading", Boolean(value));
+                        }
+                    }
+
+                    function showError(message) {
+                        if (!errorBox) {
+                            return;
+                        }
+                        errorBox.textContent = message || "Aksi notifikasi gagal diproses.";
+                        errorBox.classList.add("ut-is-visible");
+                    }
+
+                    function hideError() {
+                        if (errorBox) {
+                            errorBox.classList.remove("ut-is-visible");
+                            errorBox.textContent = "";
+                        }
+                    }
+
+                    function unreadCount() {
+                        return card ? Math.max(0, parseInt(card.dataset.unreadCount || "0", 10) || 0) : 0;
+                    }
+
+                    function syncUnreadCount(count) {
+                        count = Math.max(0, count || 0);
+                        if (card) {
+                            card.dataset.unreadCount = String(count);
+                        }
+                        if (unreadLabel) {
+                            unreadLabel.textContent = count + " notifikasi belum dibaca";
+                        }
+                        var markAllButton = document.querySelector("[data-notif-action='read_all'] button");
+                        if (markAllButton) {
+                            markAllButton.disabled = count <= 0;
+                        }
+                        window.dispatchEvent(new CustomEvent("unitrade:notifications-count", {
+                            detail: { count: count }
+                        }));
+                    }
+
+                    function markRowRead(row) {
+                        if (!row || row.dataset.isRead === "1") {
+                            return false;
+                        }
+                        row.dataset.isRead = "1";
+                        row.classList.remove("ut-is-unread");
+                        var dot = row.querySelector(".ut-notification-center-dot");
+                        if (dot) {
+                            dot.remove();
+                        }
+                        return true;
+                    }
+
+                    document.querySelectorAll(".ut-notifications-tab").forEach(function (link) {
+                        link.addEventListener("click", function () {
+                            hideError();
+                            setLoading(true);
+                        });
+                    });
+
+                    function normalizeReviewTarget(row, target) {
+                        if (!row || row.dataset.category !== "review" || !target || target.indexOf("/unitrade/product/") !== 0) {
+                            return target;
+                        }
+                        var baseTarget = target.split("#")[0];
+                        if (baseTarget.indexOf("?") === -1) {
+                            baseTarget += "?tab=reviews";
+                        } else if (baseTarget.indexOf("tab=reviews") === -1) {
+                            baseTarget += "&tab=reviews";
+                        }
+                        return baseTarget + "#tab-ulasan";
+                    }
+
+                    document.querySelectorAll(".ut-notification-center-row").forEach(function (row) {
+                        function openNotification() {
+                            var id = row.dataset.notificationId;
+                            var target = normalizeReviewTarget(row, row.dataset.actionUrl || "");
+                            hideError();
+                            if (!id || row.dataset.isRead === "1") {
+                                if (target) {
+                                    window.location.href = target;
+                                }
+                                return;
+                            }
+                            row.classList.add("ut-is-busy");
+                            jsonPost("/my/notifications/" + id + "/read").then(function () {
+                                if (markRowRead(row)) {
+                                    syncUnreadCount(unreadCount() - 1);
+                                }
+                                if (target) {
+                                    window.location.href = target;
+                                }
+                            }).catch(function (err) {
+                                row.classList.remove("ut-is-busy");
+                                showError(err.message || "Notifikasi belum bisa ditandai dibaca.");
+                            });
+                        }
+
+                        row.addEventListener("click", openNotification);
+                        row.addEventListener("keydown", function (ev) {
+                            if (ev.key === "Enter" || ev.key === " ") {
+                                ev.preventDefault();
+                                openNotification();
+                            }
+                        });
+                    });
+
+                    document.querySelectorAll("form[data-notif-action='read_all']").forEach(function (form) {
+                        form.addEventListener("submit", function (ev) {
+                            ev.preventDefault();
+                            var btn = form.querySelector("button[type='submit']");
+                            hideError();
+                            setLoading(true);
+                            if (btn) {
+                                btn.disabled = true;
+                            }
+                            jsonPost(form.getAttribute("action")).then(function () {
+                                document.querySelectorAll(".ut-notification-center-row.ut-is-unread").forEach(markRowRead);
+                                syncUnreadCount(0);
+                            }).catch(function (err) {
+                                showError(err.message || "Semua notifikasi belum bisa ditandai dibaca.");
+                                if (btn) {
+                                    btn.disabled = unreadCount() <= 0;
+                                }
+                            }).finally(function () {
+                                setLoading(false);
+                            });
+                        });
+                    });
+                });
+            ]]></script>
+        </t>
+    </template>
+
+    <!-- ======================================================================
+         Template 2: Bell dropdown partial (no website.layout wrapper)
+         ====================================================================== -->
+    <template id="notification_dropdown" name="UniTrade Notification Dropdown">
+        <div class="tw-w-80 tw-bg-white tw-rounded-xl tw-border tw-border-gray-200 tw-shadow-lg tw-overflow-hidden"
+             style="font-family: Urbanist, Inter, sans-serif;">
+            <div class="tw-px-4 tw-py-3 tw-border-b tw-border-gray-100 tw-flex tw-items-center tw-justify-between">
+                <h3 class="tw-text-sm tw-font-semibold tw-text-[#1d1d1f] tw-m-0">Notifikasi</h3>
+                <a href="/my/notifications/settings"
+                   class="tw-text-xs tw-text-gray-500 hover:tw-text-[#0071e3] tw-no-underline">
+                    Pengaturan
+                </a>
+            </div>
+
+            <t t-if="not notifications or len(notifications) == 0">
+                <div class="tw-px-4 tw-py-8 tw-text-center">
+                    <p class="tw-text-sm tw-text-gray-500 tw-m-0">
+                        Tidak ada notifikasi baru.
+                    </p>
+                </div>
+            </t>
+
+            <t t-if="notifications and len(notifications) > 0">
+                <ul class="tw-list-none tw-p-0 tw-m-0 tw-divide-y tw-divide-gray-100 tw-max-h-96 tw-overflow-y-auto">
+                    <t t-foreach="notifications" t-as="notif">
+                        <li class="tw-m-0 tw-p-0">
+                            <a t-att-href="notif._get_effective_action_url() or '/my/notifications'"
+                               t-att-data-notification-id="notif.id"
+                               t-attf-class="tw-flex tw-flex-col tw-gap-1 tw-px-4 tw-py-3 tw-no-underline hover:tw-bg-gray-50 tw-transition-colors #{'tw-bg-blue-50' if not notif.is_read else 'tw-bg-white'}">
+                                <span t-attf-class="tw-text-sm tw-text-[#1d1d1f] tw-truncate #{'tw-font-bold' if not notif.is_read else 'tw-font-medium'}">
+                                    <t t-esc="notif.title"/>
+                                </span>
+                                <span t-if="notif.message"
+                                      class="tw-text-xs tw-text-gray-600 tw-truncate"
+                                      t-esc="notif.message[:80] + ('...' if notif.message and len(notif.message) > 80 else '')"/>
+                                <span class="tw-text-[11px] tw-text-gray-400">
+                                    <t t-esc="notif.create_date"/>
+                                </span>
+                            </a>
+                        </li>
+                    </t>
+                </ul>
+            </t>
+
+            <div class="tw-px-4 tw-py-3 tw-border-t tw-border-gray-100 tw-flex tw-items-center tw-justify-between tw-bg-gray-50">
+                <a href="/my/notifications"
+                   class="tw-text-sm tw-font-medium tw-text-[#0071e3] hover:tw-underline tw-no-underline">
+                    Lihat semua
+                </a>
+                <a href="/my/notifications/settings"
+                   class="tw-text-sm tw-text-gray-500 hover:tw-text-[#1d1d1f] tw-no-underline">
+                    Pengaturan
+                </a>
+            </div>
+        </div>
+    </template>
+
+    <!-- ======================================================================
+         Template 3: Notification Settings page
+         ====================================================================== -->
+    <template id="notification_settings_page" name="UniTrade Notification Settings">
+        <t t-call="website.layout">
+            <t t-set="page_title">Pengaturan Notifikasi - UniTrade</t>
+            <t t-set="additional_title">Pengaturan Notifikasi</t>
+
+            <main class="tw-min-h-screen tw-bg-[#f5f5f7] tw-py-8" style="font-family: Urbanist, Inter, sans-serif;">
+                <div class="tw-max-w-4xl tw-mx-auto tw-px-4">
+
+                    <!-- ============== Header ============== -->
+                    <div class="tw-mb-6">
+                        <nav class="tw-text-sm tw-text-gray-500 tw-mb-2">
+                            <a href="/my/notifications" class="hover:tw-text-[#0071e3] tw-no-underline">Notifikasi</a>
+                            <span class="tw-mx-2">/</span>
+                            <span class="tw-text-[#1d1d1f]">Pengaturan</span>
+                        </nav>
+                        <h1 class="tw-text-2xl md:tw-text-3xl tw-font-bold tw-text-[#1d1d1f] tw-mb-1">
+                            Pengaturan Notifikasi
+                        </h1>
+                        <p class="tw-text-sm tw-text-gray-500 tw-m-0">
+                            Pilih kategori notifikasi yang ingin Anda terima melalui in-app dan email.
+                        </p>
+                    </div>
+
+                    <!-- ============== Saved flash ============== -->
+                    <t t-if="saved">
+                        <div class="tw-mb-6 tw-rounded-xl tw-border tw-border-green-200 tw-bg-green-50 tw-text-green-800 tw-px-4 tw-py-3 tw-flex tw-items-center tw-gap-2"
+                             role="status">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tw-w-5 tw-h-5">
+                                <path d="M20 6 9 17l-5-5"/>
+                            </svg>
+                            <span class="tw-text-sm tw-font-medium">Preferensi berhasil disimpan.</span>
+                        </div>
+                    </t>
+
+                    <!-- ============== Settings form ============== -->
+                    <form action="/my/notifications/settings"
+                          method="post"
+                          class="tw-bg-white tw-rounded-xl tw-border tw-border-gray-200 tw-shadow-sm tw-overflow-hidden">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                        <!-- Header row -->
+                        <div class="tw-grid tw-grid-cols-[1fr_auto_auto] tw-gap-4 tw-items-center tw-px-4 md:tw-px-6 tw-py-3 tw-border-b tw-border-gray-200 tw-bg-gray-50">
+                            <div class="tw-text-xs tw-font-semibold tw-text-gray-500 tw-uppercase tw-tracking-wider">
+                                Kategori
+                            </div>
+                            <div class="tw-text-xs tw-font-semibold tw-text-gray-500 tw-uppercase tw-tracking-wider tw-w-16 tw-text-center">
+                                In-App
+                            </div>
+                            <div class="tw-text-xs tw-font-semibold tw-text-gray-500 tw-uppercase tw-tracking-wider tw-w-16 tw-text-center">
+                                Email
+                            </div>
+                        </div>
+
+                        <!-- Rows -->
+                        <t t-if="not preferences_grid or len(preferences_grid) == 0">
+                            <div class="tw-px-4 md:tw-px-6 tw-py-8 tw-text-center tw-text-sm tw-text-gray-500">
+                                Tidak ada kategori preferensi yang tersedia.
+                            </div>
+                        </t>
+
+                        <t t-if="preferences_grid">
+                            <t t-foreach="preferences_grid" t-as="row">
+                                <div class="tw-grid tw-grid-cols-[1fr_auto_auto] tw-gap-4 tw-items-center tw-px-4 md:tw-px-6 tw-py-4 tw-border-b tw-border-gray-100 last:tw-border-b-0">
+                                    <div>
+                                        <div class="tw-text-sm tw-font-semibold tw-text-[#1d1d1f]">
+                                            <t t-esc="row['category_label']"/>
+                                        </div>
+                                        <t t-if="row.get('in_app_locked')">
+                                            <div class="tw-text-xs tw-text-gray-500 tw-mt-0.5">
+                                                Notifikasi in-app untuk kategori ini wajib aktif.
+                                            </div>
+                                        </t>
+                                    </div>
+
+                                    <!-- In-app checkbox -->
+                                    <div class="tw-w-16 tw-flex tw-justify-center">
+                                        <t t-if="row.get('in_app')">
+                                            <t t-set="pref_in_app" t-value="row.get('in_app')"/>
+                                            <input type="hidden"
+                                                   t-attf-name="pref_#{pref_in_app.id}_id"
+                                                   t-att-value="pref_in_app.id"/>
+                                            <t t-if="row.get('in_app_locked')">
+                                                <!-- Critical category: locked on -->
+                                                <input type="checkbox"
+                                                       t-attf-name="pref_#{pref_in_app.id}_enabled"
+                                                       value="1"
+                                                       checked="checked"
+                                                       disabled="disabled"
+                                                       class="tw-w-5 tw-h-5 tw-rounded tw-border-gray-300 tw-text-[#0071e3] tw-cursor-not-allowed tw-opacity-60"/>
+                                                <!-- Submit a hidden field so the locked-on value still posts -->
+                                                <input type="hidden"
+                                                       t-attf-name="pref_#{pref_in_app.id}_enabled"
+                                                       value="1"/>
+                                            </t>
+                                            <t t-if="not row.get('in_app_locked')">
+                                                <input type="checkbox"
+                                                       t-attf-name="pref_#{pref_in_app.id}_enabled"
+                                                       value="1"
+                                                       t-att-checked="'checked' if pref_in_app.enabled else None"
+                                                       class="tw-w-5 tw-h-5 tw-rounded tw-border-gray-300 tw-text-[#0071e3] tw-cursor-pointer focus:tw-ring-2 focus:tw-ring-[#0071e3]"/>
+                                            </t>
+                                        </t>
+                                        <t t-if="not row.get('in_app')">
+                                            <span class="tw-text-xs tw-text-gray-300">&#8211;</span>
+                                        </t>
+                                    </div>
+
+                                    <!-- Email checkbox -->
+                                    <div class="tw-w-16 tw-flex tw-justify-center">
+                                        <t t-if="row.get('email')">
+                                            <t t-set="pref_email" t-value="row.get('email')"/>
+                                            <input type="hidden"
+                                                   t-attf-name="pref_#{pref_email.id}_id"
+                                                   t-att-value="pref_email.id"/>
+                                            <input type="checkbox"
+                                                   t-attf-name="pref_#{pref_email.id}_enabled"
+                                                   value="1"
+                                                   t-att-checked="'checked' if pref_email.enabled else None"
+                                                   class="tw-w-5 tw-h-5 tw-rounded tw-border-gray-300 tw-text-[#0071e3] tw-cursor-pointer focus:tw-ring-2 focus:tw-ring-[#0071e3]"/>
+                                        </t>
+                                        <t t-if="not row.get('email')">
+                                            <span class="tw-text-xs tw-text-gray-300">&#8211;</span>
+                                        </t>
+                                    </div>
+                                </div>
+                            </t>
+                        </t>
+
+                        <!-- Footer / submit -->
+                        <div class="tw-px-4 md:tw-px-6 tw-py-4 tw-bg-gray-50 tw-flex tw-items-center tw-justify-between tw-flex-wrap tw-gap-3">
+                            <p class="tw-text-xs tw-text-gray-500 tw-m-0">
+                                Centang untuk menerima notifikasi pada channel tersebut.
+                            </p>
+                            <button type="submit"
+                                    class="tw-inline-flex tw-items-center tw-gap-2 tw-px-5 tw-py-2 tw-rounded-lg tw-bg-[#1d1d1d] tw-text-white tw-text-sm tw-font-semibold hover:tw-bg-[#0071e3] tw-transition-colors tw-border-0 tw-cursor-pointer">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tw-w-4 tw-h-4">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                    <path d="M17 21v-8H7v8M7 3v5h8"/>
+                                </svg>
+                                Simpan Preferensi
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="tw-mt-6 tw-text-center">
+                        <a href="/my/notifications"
+                           class="tw-text-sm tw-text-gray-500 hover:tw-text-[#0071e3] tw-no-underline">
+                            &#8592; Kembali ke daftar notifikasi
+                        </a>
+                    </div>
+                </div>
+            </main>
+        </t>
+    </template>
+
 </odoo>

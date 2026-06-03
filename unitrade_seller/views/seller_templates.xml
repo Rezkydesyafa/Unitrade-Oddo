@@ -50,390 +50,846 @@
         </t>
     </template>
 
+    <template id="seller_owl_fallback" name="Seller OWL Loading Fallback">
+        <div data-ut-seller-fallback="1"
+             class="ut-seller-owl-static-fallback"
+             style="display:none; position:fixed; right:32px; bottom:32px; z-index:1300; width:min(390px, calc(100vw - 40px)); padding:18px; border:1px solid #e5e7eb; border-radius:16px; background:#ffffff; box-shadow:0 22px 60px rgba(15,23,42,.18); color:#111827; font-family:inherit;">
+            <strong style="display:block; font-size:15px; line-height:1.4;">Dashboard belum selesai dimuat</strong>
+            <p style="margin:8px 0 14px; font-size:13px; line-height:1.55; color:#4b5563;">
+                Jika halaman terus menampilkan skeleton, refresh halaman setelah modul dan asset UniTrade di-upgrade.
+            </p>
+            <button type="button"
+                    onclick="window.location.reload()"
+                    class="tw-rounded-full tw-border-0 tw-bg-[#212529] tw-px-4 tw-py-2 tw-text-[13px] tw-font-semibold tw-text-white"
+                    style="border:0; border-radius:999px; background:#212529; color:#fff; padding:9px 16px; font-size:13px; font-weight:600;">
+                Refresh Halaman
+            </button>
+        </div>
+        <script type="text/javascript">
+            (function () {
+                window.setTimeout(function () {
+                    var wrap = document.getElementById("wrap");
+                    if (!wrap || wrap.querySelector(".ut-owl-mount-host")) {
+                        return;
+                    }
+                    var fallback = wrap.querySelector("[data-ut-seller-fallback='1']");
+                    if (fallback) {
+                        fallback.style.display = "block";
+                    }
+                }, 8000);
+            })();
+        </script>
+    </template>
+
     <template id="seller_dashboard_template" name="Seller Dashboard">
         <t t-call="website.layout">
             <t t-set="title" t-value="page_title"/>
-            <div id="wrap" class="ut-seller-dashboard-page" t-att-data-chart="dashboard_chart_json">
-                <div class="ut-dash-overlay" data-dashboard-sidebar-close="1"></div>
-
-                <div class="ut-dash-shell">
-                    <aside class="ut-dash-sidebar" aria-label="Navigasi dashboard penjual">
-                        <div class="ut-dash-sidebar-head">
-                            <a href="/" class="ut-dash-brand" aria-label="UniTrade home">
-                                <span class="ut-dash-brand-mark">
-                                    <i class="fa fa-shopping-bag"></i>
-                                </span>
-                                <span>UniTrade</span>
-                            </a>
-                            <button type="button" class="ut-dash-icon-btn ut-dash-sidebar-close" data-dashboard-sidebar-close="1" aria-label="Tutup sidebar">
-                                <i class="fa fa-times"></i>
-                            </button>
+            <div id="wrap"
+                class="ut-seller-dashboard-mount"
+                t-att-data-dashboard-payload="dashboard_chart_json"
+                t-att-data-seller-name="seller.name"
+                t-attf-data-seller-avatar-url="/web/image/res.users/#{seller.user_id.id}/avatar_128"
+                t-attf-data-seller-profile-url="/seller-profile/#{seller_public_ref}"
+                t-att-data-revenue-label="dashboard_stats.get('revenue_label')"
+                t-att-data-available-balance-label="dashboard_stats.get('available_balance_label')"
+                t-att-data-active-products="dashboard_stats.get('active_products')"
+                t-att-data-incoming-orders="dashboard_stats.get('incoming_orders')"
+                t-att-data-sold-count="dashboard_stats.get('sold_count')"
+                t-att-data-unread-chat-count="dashboard_stats.get('unread_chat_count')"
+                t-att-data-notification-count="dashboard_stats.get('notification_count')"
+                t-att-data-add-product-url="add_product_url">
+                <t t-call="unitrade_seller.seller_owl_fallback"/>
+                <div class="ut-seller-dashboard-page tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
+                    <div class="ut-dash-stage ut-orders-stage ut-dash-skeleton-stage">
+                        <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                            <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
                         </div>
-
-                        <nav class="ut-dash-nav">
-                            <p class="ut-dash-nav-label">Store Management</p>
-                            <a href="#dashboard-overview" class="ut-dash-nav-link active" data-dashboard-nav="1">
-                                <i class="fa fa-th-large"></i>
-                                <span>Dashboard</span>
-                            </a>
-                            <a href="#dashboard-orders" class="ut-dash-nav-link" data-dashboard-nav="1">
-                                <i class="fa fa-shopping-cart"></i>
-                                <span>Orders</span>
-                                <t t-if="dashboard_stats.get('incoming_orders')">
-                                    <strong t-esc="dashboard_stats.get('incoming_orders')"></strong>
-                                </t>
-                            </a>
-                            <a href="#dashboard-products" class="ut-dash-nav-link" data-dashboard-nav="1">
-                                <i class="fa fa-archive"></i>
-                                <span>Products</span>
-                            </a>
-                            <a href="#dashboard-analytics" class="ut-dash-nav-link" data-dashboard-nav="1">
-                                <i class="fa fa-line-chart"></i>
-                                <span>Analytics</span>
-                            </a>
-
-                            <p class="ut-dash-nav-label">Communication</p>
-                            <a href="/unitrade/chat" class="ut-dash-nav-link">
-                                <i class="fa fa-commenting-o"></i>
-                                <span>Customer Chat</span>
-                                <t t-if="dashboard_stats.get('unread_chat_count')">
-                                    <strong class="danger" t-esc="dashboard_stats.get('unread_chat_count')"></strong>
-                                </t>
-                            </a>
-                            <a href="#dashboard-reviews" class="ut-dash-nav-link" data-dashboard-nav="1">
-                                <i class="fa fa-star-o"></i>
-                                <span>Reviews</span>
-                            </a>
-                        </nav>
-
-                        <div class="ut-dash-sidebar-foot">
-                            <a href="/my/settings" class="ut-dash-nav-link">
-                                <i class="fa fa-cog"></i>
-                                <span>Store Settings</span>
-                            </a>
-                        </div>
-                    </aside>
-
-                    <main class="ut-dash-main">
-                        <header class="ut-dash-topbar">
-                            <button type="button" class="ut-dash-icon-btn ut-dash-menu-toggle" data-dashboard-sidebar-toggle="1" aria-label="Buka sidebar">
-                                <i class="fa fa-bars"></i>
-                            </button>
-                            <div class="ut-dash-top-title">
-                                <span>Overview</span>
-                                <strong>Dashboard Penjual</strong>
-                            </div>
-                            <div class="ut-dash-top-actions">
-                                <button type="button" class="ut-dash-icon-btn" data-dashboard-search-open="1" aria-label="Cari data dashboard">
-                                    <i class="fa fa-search"></i>
-                                </button>
-                                <span class="ut-dash-notification" aria-label="Notifikasi dashboard">
-                                    <i class="fa fa-bell-o"></i>
-                                    <t t-if="dashboard_stats.get('notification_count')">
-                                        <strong t-esc="dashboard_stats.get('notification_count')"></strong>
-                                    </t>
-                                </span>
-                                <div class="ut-dash-store-identity">
-                                    <div>
-                                        <strong t-esc="seller.name"></strong>
-                                        <span>Penjual Terverifikasi</span>
-                                    </div>
-                                    <img t-attf-src="/web/image/res.users/#{seller.user_id.id}/avatar_128" alt="Avatar penjual"/>
-                                </div>
-                            </div>
+                        <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                            <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                            <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                            <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-flex-1 tw-max-w-[658px] tw-rounded-[22px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
                         </header>
-
-                        <section id="dashboard-overview" class="ut-dash-content">
-                            <div class="ut-dash-page-head">
-                                <div>
-                                    <h1>Seller Dashboard</h1>
-                                    <p>Here's what's happening with your store today.</p>
-                                </div>
-                                <div class="ut-dash-page-actions">
-                                    <a t-attf-href="/seller-profile/#{seller_public_ref}" class="ut-dash-secondary-btn">
-                                        <i class="fa fa-external-link"></i>
-                                        Lihat Toko
-                                    </a>
-                                    <t t-if="add_product_url">
-                                        <a t-att-href="add_product_url" class="ut-dash-primary-btn">
-                                            <i class="fa fa-plus"></i>
-                                            Tambah Produk
-                                        </a>
-                                    </t>
-                                    <t t-else="">
-                                        <button type="button" class="ut-dash-primary-btn muted" disabled="disabled" title="Kelola produk melalui admin UniTrade">
-                                            <i class="fa fa-plus"></i>
-                                            Tambah Produk
-                                        </button>
-                                    </t>
-                                </div>
+                        <aside class="ut-dash-sidebar ut-dash-skeleton-sidebar">
+                            <div class="ut-dash-sidebar-brand">
+                                <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
                             </div>
-
-                            <div class="ut-dash-stats-grid">
-                                <article class="ut-dash-stat-card">
-                                    <div class="ut-dash-stat-head">
-                                        <span class="ut-dash-stat-icon success">
-                                            <i class="fa fa-line-chart"></i>
-                                        </span>
-                                        <p>Total Revenue</p>
-                                    </div>
-                                    <div class="ut-dash-stat-value">
-                                        <strong t-esc="dashboard_stats.get('revenue_label')"></strong>
-                                        <span class="ut-dash-stat-badge success"><i class="fa fa-arrow-up"></i> 12%</span>
-                                    </div>
-                                </article>
-                                <article class="ut-dash-stat-card">
-                                    <div class="ut-dash-stat-head">
-                                        <span class="ut-dash-stat-icon dark">
-                                            <i class="fa fa-archive"></i>
-                                        </span>
-                                        <p>Active Products</p>
-                                    </div>
-                                    <div class="ut-dash-stat-value">
-                                        <strong t-esc="dashboard_stats.get('active_products')"></strong>
-                                        <span class="ut-dash-stat-badge neutral">items listed</span>
-                                    </div>
-                                </article>
-                                <article class="ut-dash-stat-card">
-                                    <div class="ut-dash-stat-head">
-                                        <span class="ut-dash-stat-icon warning">
-                                            <i class="fa fa-shopping-cart"></i>
-                                        </span>
-                                        <p>Incoming Orders</p>
-                                    </div>
-                                    <div class="ut-dash-stat-value">
-                                        <strong t-esc="dashboard_stats.get('incoming_orders')"></strong>
-                                        <span class="ut-dash-stat-badge warning">Needs action</span>
-                                    </div>
-                                </article>
-                                <article class="ut-dash-stat-card">
-                                    <div class="ut-dash-stat-head">
-                                        <span class="ut-dash-stat-icon info">
-                                            <i class="fa fa-credit-card"></i>
-                                        </span>
-                                        <p>Available Balance</p>
-                                    </div>
-                                    <div class="ut-dash-stat-value">
-                                        <strong t-esc="dashboard_stats.get('available_balance_label')"></strong>
-                                        <a href="#" class="ut-dash-stat-badge link">Withdraw</a>
-                                    </div>
-                                </article>
+                            <div class="ut-dash-sidebar-nav">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
                             </div>
-
-                            <div class="ut-dash-main-grid">
-                                <section id="dashboard-analytics" class="ut-dash-card ut-dash-chart-card">
-                                    <div class="ut-dash-card-head">
-                                        <div>
-                                            <h2>Sales Overview</h2>
-                                            <p>Revenue dan order berdasarkan order line produk seller.</p>
-                                        </div>
-                                        <div class="ut-dash-segmented" role="group" aria-label="Periode chart">
-                                            <button type="button" class="active" data-dashboard-chart-period="weekly">Weekly</button>
-                                            <button type="button" data-dashboard-chart-period="monthly">Monthly</button>
-                                        </div>
-                                    </div>
-                                    <div class="ut-dash-chart-wrap">
-                                        <canvas data-dashboard-chart="1" height="290"></canvas>
+                            <div class="ut-dash-sidebar-footer">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                        </aside>
+                        <main class="ut-dash-main-area tw-absolute tw-left-[168px] tw-right-[66px] tw-top-[173px] tw-pb-10">
+                            <section class="tw-mb-[26px]">
+                                <span class="ut-dash-skeleton-line tw-h-11 tw-w-[360px] tw-rounded-[16px]"></span>
+                                <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
+                            </section>
+                            <div class="ut-dash-filter-row tw-mb-7 tw-flex tw-items-center tw-gap-3">
+                                <span class="ut-dash-skeleton-block tw-h-[58px] tw-w-[226px] tw-rounded-[17px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-[58px] tw-w-[178px] tw-rounded-[17px]"></span>
+                            </div>
+                            <div class="ut-dash-stat-row tw-mb-[27px] tw-grid tw-grid-cols-4 tw-gap-[18px]">
+                                <span class="ut-dash-skeleton-card tw-h-[176px]"></span>
+                                <span class="ut-dash-skeleton-card tw-h-[176px]"></span>
+                                <span class="ut-dash-skeleton-card tw-h-[176px]"></span>
+                                <span class="ut-dash-skeleton-card tw-h-[176px]"></span>
+                            </div>
+                            <div class="ut-dash-grid tw-grid tw-grid-cols-[minmax(0,797px)_381px] tw-gap-7">
+                                <section class="ut-dash-skeleton-card tw-h-[422px] tw-p-[24px]">
+                                    <span class="ut-dash-skeleton-line tw-h-6 tw-w-[180px]"></span>
+                                    <span class="ut-dash-skeleton-line tw-mt-2 tw-h-4 tw-w-[220px]"></span>
+                                    <span class="ut-dash-skeleton-block tw-mt-8 tw-h-[300px] tw-w-full tw-rounded-[18px]"></span>
+                                </section>
+                                <section class="ut-dash-skeleton-card tw-h-[422px] tw-p-[20px]">
+                                    <span class="ut-dash-skeleton-line tw-h-5 tw-w-[140px]"></span>
+                                    <div class="tw-mt-8 tw-flex tw-flex-col tw-gap-5">
+                                        <span class="ut-dash-skeleton-row"></span>
+                                        <span class="ut-dash-skeleton-row"></span>
+                                        <span class="ut-dash-skeleton-row"></span>
+                                        <span class="ut-dash-skeleton-row"></span>
                                     </div>
                                 </section>
-
-                                <section class="ut-dash-card ut-dash-message-card">
-                                    <div class="ut-dash-card-head compact">
-                                        <div>
-                                            <h2>Recent Messages</h2>
-                                            <p>Chat pembeli terbaru</p>
-                                        </div>
-                                        <a href="/unitrade/chat">View All</a>
+                                <section class="ut-dash-skeleton-card tw-h-[320px] tw-p-[24px]">
+                                    <span class="ut-dash-skeleton-line tw-h-5 tw-w-[120px]"></span>
+                                    <span class="ut-dash-skeleton-block tw-mt-7 tw-h-[230px] tw-w-full tw-rounded-[18px]"></span>
+                                </section>
+                                <section class="ut-dash-skeleton-card tw-h-[400px] tw-p-[24px]">
+                                    <div class="tw-flex tw-flex-col tw-gap-4">
+                                        <span class="ut-dash-skeleton-row"></span>
+                                        <span class="ut-dash-skeleton-row"></span>
+                                        <span class="ut-dash-skeleton-row"></span>
                                     </div>
-                                    <div t-if="dashboard_messages" class="ut-dash-message-list">
-                                        <t t-foreach="dashboard_messages" t-as="message">
-                                            <a t-att-href="message.get('url')" class="ut-dash-message-item">
-                                                <img t-att-src="message.get('avatar_url')" alt="Avatar pembeli"/>
-                                                <span>
-                                                    <strong t-esc="message.get('title')"></strong>
-                                                    <small t-esc="message.get('last_message')"></small>
-                                                    <em t-esc="message.get('subtitle')"></em>
-                                                </span>
-                                                <t t-if="message.get('unread_count')">
-                                                    <b t-esc="message.get('unread_count')"></b>
-                                                </t>
-                                            </a>
-                                        </t>
-                                    </div>
-                                    <div t-else="" class="ut-dash-empty">
-                                        Belum ada chat pembeli.
-                                    </div>
+                                    <span class="ut-dash-skeleton-block tw-mt-[130px] tw-h-[52px] tw-w-full tw-rounded-[26px]"></span>
                                 </section>
                             </div>
+                        </main>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
 
-                            <div class="ut-dash-bottom-grid">
-                                <section id="dashboard-orders" class="ut-dash-card ut-dash-orders-card">
-                                    <div class="ut-dash-card-head">
-                                        <div>
-                                            <h2>Incoming Orders</h2>
-                                            <p>Ditampilkan per order line agar aman untuk cart multi-seller.</p>
-                                        </div>
-                                    </div>
-                                    <div t-if="dashboard_orders" class="ut-dash-table-wrap">
-                                        <table class="ut-dash-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Order ID</th>
-                                                    <th>Customer</th>
-                                                    <th>Produk</th>
-                                                    <th>Tanggal</th>
-                                                    <th>Total</th>
-                                                    <th>Status</th>
-                                                    <th></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <t t-foreach="dashboard_orders" t-as="order">
-                                                    <tr>
-                                                        <td><strong t-esc="order.get('order_name')"></strong></td>
-                                                        <td>
-                                                            <span class="ut-dash-customer">
-                                                                <img t-att-src="order.get('customer_avatar_url')" alt="Avatar customer"/>
-                                                                <t t-esc="order.get('customer_name')"/>
-                                                            </span>
-                                                        </td>
-                                                        <td t-esc="order.get('product_name')"></td>
-                                                        <td t-esc="order.get('date_label')"></td>
-                                                        <td><strong t-esc="order.get('total_label')"></strong></td>
-                                                        <td>
-                                                            <span t-att-class="'ut-dash-status ut-dash-status-%s' % order.get('status_key')">
-                                                                <t t-esc="order.get('status_label')"/>
-                                                            </span>
-                                                        </td>
-                                                        <td>
-                                                            <a t-att-href="order.get('action_url')" class="ut-dash-row-action" aria-label="Buka chat order">
-                                                                <i class="fa fa-comments-o"></i>
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-                                                </t>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <div t-else="" class="ut-dash-empty">
-                                        Belum ada order untuk produk seller ini.
-                                    </div>
-                                </section>
-
-                                <section id="dashboard-products" class="ut-dash-card ut-dash-products-card">
-                                    <div class="ut-dash-card-head compact">
-                                        <div>
-                                            <h2>Active Listings</h2>
-                                            <p>Produk marketplace yang sedang published</p>
-                                        </div>
-                                    </div>
-                                    <div t-if="dashboard_products" class="ut-dash-product-list">
-                                        <t t-foreach="dashboard_products" t-as="product">
-                                            <a t-att-href="product.get('url')" class="ut-dash-product-item">
-                                                <img t-att-src="product.get('image_url')" t-att-alt="product.get('name')"/>
-                                                <span>
-                                                    <strong t-esc="product.get('name')"></strong>
-                                                    <small>
-                                                        <i class="fa fa-star"></i>
-                                                        <t t-esc="product.get('rating_label')"/>
-                                                        <span>Fee: <t t-esc="product.get('listing_fee_label')"/></span>
-                                                    </small>
-                                                    <em>
-                                                        <t t-esc="product.get('stock_label')"/>
-                                                        <b t-att-class="'ut-dash-expiry ut-dash-expiry-%s' % product.get('expiry_state')" t-esc="product.get('expiry_label')"></b>
-                                                    </em>
-                                                </span>
-                                                <strong class="ut-dash-product-price" t-esc="product.get('price_label')"></strong>
-                                            </a>
-                                        </t>
-                                    </div>
-                                    <div t-else="" class="ut-dash-empty">
-                                        Belum ada listing aktif.
-                                    </div>
-                                </section>
+    <template id="seller_orders_template" name="Seller Orders">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="page_title"/>
+            <div id="wrap"
+                class="ut-seller-orders-mount"
+                t-att-data-seller-name="seller.name"
+                t-att-data-seller-avatar-url="seller_avatar_url"
+                t-attf-data-seller-profile-url="/seller-profile/#{seller_public_ref}"
+                t-att-data-notification-count="notification_count"
+                t-att-data-unread-chat-count="unread_chat_count">
+                <t t-call="unitrade_seller.seller_owl_fallback"/>
+                <div class="ut-seller-dashboard-page tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
+                    <div class="ut-dash-stage ut-dash-skeleton-stage">
+                        <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                            <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
+                        </div>
+                        <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                            <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                            <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                            <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-flex-1 tw-max-w-[658px] tw-rounded-[22px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+                        </header>
+                        <aside class="ut-dash-sidebar ut-orders-sidebar ut-dash-skeleton-sidebar">
+                            <div class="ut-dash-sidebar-brand">
+                                <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
                             </div>
-
-                            <section id="dashboard-reviews" class="ut-dash-card ut-dash-reviews-card">
-                                <div class="ut-dash-card-head">
-                                    <div>
-                                        <h2>Rating dan Ulasan</h2>
-                                        <p>Ringkasan ulasan visible dari produk seller.</p>
-                                    </div>
-                                    <div class="ut-dash-review-score">
-                                        <i class="fa fa-star"></i>
-                                        <strong t-esc="'%.1f' % (dashboard_stats.get('average_rating') or 0.0)"></strong>
-                                        <span>/<t t-esc="dashboard_stats.get('review_count')"/> ulasan</span>
-                                    </div>
+                            <div class="ut-dash-sidebar-nav">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                            <div class="ut-dash-sidebar-footer">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                        </aside>
+                        <main class="ut-orders-main tw-absolute tw-left-[180px] tw-right-[67px] tw-top-[173px] tw-pb-10">
+                            <section class="tw-mb-[38px]">
+                                <span class="ut-dash-skeleton-line tw-h-11 tw-w-[210px] tw-rounded-[16px]"></span>
+                                <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
+                            </section>
+                            <section class="ut-dash-skeleton-card tw-h-[736px] tw-p-0">
+                                <div class="tw-flex tw-h-[95px] tw-items-center tw-gap-4 tw-border-b tw-border-[#e5e7eb] tw-px-6">
+                                    <span class="ut-dash-skeleton-block tw-h-[46px] tw-flex-1 tw-rounded-[10px]"></span>
+                                    <span class="ut-dash-skeleton-block tw-h-[46px] tw-w-[92px] tw-rounded-[10px]"></span>
                                 </div>
-                                <div t-if="dashboard_reviews" class="ut-dash-review-list">
-                                    <t t-foreach="dashboard_reviews" t-as="review">
-                                        <article class="ut-dash-review-item">
-                                            <div>
-                                                <strong t-esc="review.get('reviewer_name')"></strong>
-                                                <span>untuk <t t-esc="review.get('product_name')"/></span>
-                                            </div>
-                                            <p t-esc="review.get('comment')"></p>
-                                            <footer>
-                                                <span>
-                                                    <i class="fa fa-star"></i>
-                                                    <t t-esc="'%.1f' % (review.get('rating') or 0.0)"/>
-                                                </span>
-                                                <time t-esc="review.get('date_label')"></time>
-                                            </footer>
-                                        </article>
-                                    </t>
+                                <div class="tw-flex tw-h-[53px] tw-items-center tw-gap-[58px] tw-border-b tw-border-[#e5e7eb] tw-px-6">
+                                    <span class="ut-dash-skeleton-line tw-h-5 tw-w-[135px]"></span>
+                                    <span class="ut-dash-skeleton-line tw-h-5 tw-w-[60px]"></span>
+                                    <span class="ut-dash-skeleton-line tw-h-5 tw-w-[92px]"></span>
+                                    <span class="ut-dash-skeleton-line tw-h-5 tw-w-[80px]"></span>
+                                    <span class="ut-dash-skeleton-line tw-h-5 tw-w-[80px]"></span>
                                 </div>
-                                <div t-else="" class="ut-dash-empty">
-                                    Belum ada ulasan visible untuk produk seller.
+                                <div class="tw-p-6">
+                                    <span class="ut-dash-skeleton-block tw-h-[56px] tw-w-full tw-rounded-[12px]"></span>
+                                    <span class="ut-dash-skeleton-row tw-mt-5"></span>
+                                    <span class="ut-dash-skeleton-row tw-mt-5"></span>
+                                    <span class="ut-dash-skeleton-row tw-mt-5"></span>
+                                    <span class="ut-dash-skeleton-row tw-mt-5"></span>
                                 </div>
                             </section>
-                        </section>
-                    </main>
+                        </main>
+                    </div>
                 </div>
+            </div>
+        </t>
+    </template>
 
-                <div class="ut-dash-search-modal" role="dialog" aria-modal="true" aria-hidden="true">
-                    <div class="ut-dash-search-backdrop" data-dashboard-search-close="1"></div>
-                    <div class="ut-dash-search-dialog">
-                        <div class="ut-dash-search-field">
-                            <i class="fa fa-search"></i>
-                            <input type="search" data-dashboard-search-input="1" placeholder="Cari order, produk, atau chat..."/>
-                            <button type="button" data-dashboard-search-close="1" aria-label="Tutup pencarian">
-                                <i class="fa fa-times"></i>
-                            </button>
+    <template id="seller_refunds_template" name="Seller Refunds">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="page_title"/>
+            <div id="wrap"
+                class="ut-seller-refunds-mount"
+                t-att-data-seller-name="seller.name"
+                t-att-data-seller-avatar-url="seller_avatar_url"
+                t-attf-data-seller-profile-url="/seller-profile/#{seller_public_ref}"
+                t-att-data-notification-count="notification_count"
+                t-att-data-unread-chat-count="unread_chat_count">
+                <t t-call="unitrade_seller.seller_owl_fallback"/>
+                <div class="ut-seller-dashboard-page tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
+                    <div class="ut-dash-stage ut-refunds-stage ut-dash-skeleton-stage">
+                        <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                            <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
                         </div>
-                        <div class="ut-dash-search-results">
-                            <p>Quick Results</p>
-                            <t t-foreach="dashboard_orders" t-as="order">
-                                <a t-att-href="order.get('action_url')" class="ut-dash-search-item" data-dashboard-search-item="1">
-                                    <i class="fa fa-shopping-cart"></i>
-                                    <span>
-                                        <strong><t t-esc="order.get('order_name')"/> - <t t-esc="order.get('customer_name')"/></strong>
-                                        <small><t t-esc="order.get('product_name')"/> - <t t-esc="order.get('status_label')"/></small>
-                                    </span>
-                                </a>
-                            </t>
-                            <t t-foreach="dashboard_products" t-as="product">
-                                <a t-att-href="product.get('url')" class="ut-dash-search-item" data-dashboard-search-item="1">
-                                    <i class="fa fa-archive"></i>
-                                    <span>
-                                        <strong t-esc="product.get('name')"></strong>
-                                        <small><t t-esc="product.get('price_label')"/> - Rating <t t-esc="product.get('rating_label')"/></small>
-                                    </span>
-                                </a>
-                            </t>
-                            <t t-foreach="dashboard_messages" t-as="message">
-                                <a t-att-href="message.get('url')" class="ut-dash-search-item" data-dashboard-search-item="1">
-                                    <i class="fa fa-commenting-o"></i>
-                                    <span>
-                                        <strong t-esc="message.get('title')"></strong>
-                                        <small t-esc="message.get('last_message')"></small>
-                                    </span>
-                                </a>
-                            </t>
-                            <div class="ut-dash-search-empty" data-dashboard-search-empty="1">
-                                Tidak ada hasil yang cocok.
+                        <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                            <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                            <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                            <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-flex-1 tw-max-w-[658px] tw-rounded-[22px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+                        </header>
+                        <aside class="ut-dash-sidebar ut-refunds-sidebar ut-dash-skeleton-sidebar">
+                            <div class="ut-dash-sidebar-brand">
+                                <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
                             </div>
+                            <div class="ut-dash-sidebar-nav">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                            <div class="ut-dash-sidebar-footer">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                        </aside>
+                        <main class="ut-refunds-main tw-absolute tw-left-[180px] tw-right-[67px] tw-top-[173px] tw-pb-10">
+                            <section class="tw-mb-[38px]">
+                                <span class="ut-dash-skeleton-line tw-h-11 tw-w-[160px] tw-rounded-[16px]"></span>
+                                <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
+                            </section>
+                            <section class="ut-dash-skeleton-card tw-min-h-[720px] tw-rounded-[21px] tw-p-8">
+                                <div class="tw-flex tw-gap-8">
+                                    <span class="ut-dash-skeleton-block tw-h-[46px] tw-flex-1 tw-rounded-[10px]"></span>
+                                    <span class="ut-dash-skeleton-block tw-h-[46px] tw-w-[90px] tw-rounded-[10px]"></span>
+                                </div>
+                                <div class="tw-mt-6 tw-flex tw-gap-9">
+                                    <span class="ut-dash-skeleton-line tw-h-5 tw-w-[140px]"></span>
+                                    <span class="ut-dash-skeleton-line tw-h-5 tw-w-[70px]"></span>
+                                    <span class="ut-dash-skeleton-line tw-h-5 tw-w-[80px]"></span>
+                                    <span class="ut-dash-skeleton-line tw-h-5 tw-w-[100px]"></span>
+                                    <span class="ut-dash-skeleton-line tw-h-5 tw-w-[80px]"></span>
+                                </div>
+                                <div class="tw-mt-14 tw-rounded-[16px] tw-border tw-border-[#e5e7eb] tw-bg-white tw-p-6">
+                                    <span class="ut-dash-skeleton-row"></span>
+                                    <span class="ut-dash-skeleton-row tw-mt-5"></span>
+                                    <span class="ut-dash-skeleton-row tw-mt-5"></span>
+                                    <span class="ut-dash-skeleton-row tw-mt-5"></span>
+                                    <span class="ut-dash-skeleton-row tw-mt-5"></span>
+                                    <span class="ut-dash-skeleton-row tw-mt-5"></span>
+                                </div>
+                            </section>
+                        </main>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="seller_payouts_template" name="Seller Payouts">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="page_title"/>
+            <div id="wrap"
+                class="ut-seller-payouts-mount"
+                t-att-data-seller-payout-payload="seller_payout_payload_json"
+                t-att-data-seller-name="seller.name"
+                t-att-data-seller-avatar-url="seller_avatar_url"
+                t-attf-data-seller-profile-url="/seller-profile/#{seller_public_ref}"
+                t-att-data-notification-count="notification_count"
+                t-att-data-unread-chat-count="unread_chat_count">
+                <t t-call="unitrade_seller.seller_owl_fallback"/>
+                <div class="ut-seller-dashboard-page tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
+                    <div class="ut-dash-stage ut-payout-stage ut-dash-skeleton-stage">
+                        <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                            <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
                         </div>
+                        <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                            <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                            <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                            <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-flex-1 tw-max-w-[658px] tw-rounded-[22px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+                        </header>
+                        <aside class="ut-dash-sidebar ut-payout-sidebar ut-dash-skeleton-sidebar">
+                            <div class="ut-dash-sidebar-brand">
+                                <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
+                            </div>
+                            <div class="ut-dash-sidebar-nav">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                            <div class="ut-dash-sidebar-footer">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                        </aside>
+                        <main class="ut-payout-main tw-absolute tw-left-[180px] tw-right-[67px] tw-top-[173px] tw-pb-10">
+                            <section class="tw-mb-7">
+                                <span class="ut-dash-skeleton-line tw-h-11 tw-w-[220px] tw-rounded-[16px]"></span>
+                                <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
+                            </section>
+                            <span class="ut-dash-skeleton-card tw-h-[110px]"></span>
+                            <div class="tw-mt-6 tw-grid tw-grid-cols-3 tw-gap-5">
+                                <span class="ut-dash-skeleton-card tw-h-[206px]"></span>
+                                <span class="ut-dash-skeleton-card tw-h-[206px]"></span>
+                                <span class="ut-dash-skeleton-card tw-h-[206px]"></span>
+                            </div>
+                            <span class="ut-dash-skeleton-card tw-mt-6 tw-h-[104px]"></span>
+                            <span class="ut-dash-skeleton-card tw-mt-6 tw-h-[290px]"></span>
+                            <span class="ut-dash-skeleton-card tw-mt-6 tw-h-[340px]"></span>
+                            <span class="ut-dash-skeleton-card tw-mt-6 tw-h-[360px]"></span>
+                        </main>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="seller_order_detail_template" name="Seller Order Detail">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="page_title"/>
+            <div id="wrap"
+                class="ut-seller-order-detail-mount"
+                t-att-data-order-detail-payload="seller_order_detail_payload_json"
+                t-att-data-seller-name="seller.name"
+                t-att-data-seller-avatar-url="seller_avatar_url"
+                t-attf-data-seller-profile-url="/seller-profile/#{seller_public_ref}"
+                t-att-data-notification-count="notification_count"
+                t-att-data-unread-chat-count="unread_chat_count">
+                <t t-call="unitrade_seller.seller_owl_fallback"/>
+                <div class="ut-seller-dashboard-page tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
+                    <div class="ut-dash-stage ut-order-detail-stage ut-dash-skeleton-stage">
+                        <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                            <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
+                        </div>
+                        <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                            <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                            <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                            <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-w-[210px] tw-rounded-[22px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+                        </header>
+                        <aside class="ut-dash-sidebar ut-order-detail-sidebar ut-dash-skeleton-sidebar">
+                            <div class="ut-dash-sidebar-brand">
+                                <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
+                            </div>
+                            <div class="ut-dash-sidebar-nav">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                        </aside>
+                        <main class="ut-order-detail-main tw-absolute tw-left-[180px] tw-right-[67px] tw-top-[173px] tw-pb-10">
+                            <span class="ut-dash-skeleton-line tw-h-11 tw-w-[260px] tw-rounded-[16px]"></span>
+                            <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
+                            <div class="tw-mt-7 tw-grid tw-grid-cols-[minmax(0,1fr)_360px] tw-gap-5">
+                                <span class="ut-dash-skeleton-card tw-h-[230px]"></span>
+                                <span class="ut-dash-skeleton-card tw-h-[230px]"></span>
+                                <span class="ut-dash-skeleton-card tw-h-[360px]"></span>
+                                <span class="ut-dash-skeleton-card tw-h-[360px]"></span>
+                            </div>
+                        </main>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="seller_refund_detail_template" name="Seller Refund Detail">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="page_title"/>
+            <div id="wrap"
+                class="ut-seller-refund-detail-mount"
+                t-att-data-refund-detail-payload="seller_refund_detail_payload_json"
+                t-att-data-seller-name="seller.name"
+                t-att-data-seller-avatar-url="seller_avatar_url"
+                t-attf-data-seller-profile-url="/seller-profile/#{seller_public_ref}"
+                t-att-data-notification-count="notification_count"
+                t-att-data-unread-chat-count="unread_chat_count">
+                <t t-call="unitrade_seller.seller_owl_fallback"/>
+                <div class="ut-seller-dashboard-page tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
+                    <div class="ut-dash-stage ut-refund-detail-stage ut-dash-skeleton-stage">
+                        <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                            <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
+                        </div>
+                        <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                            <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                            <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                            <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-w-[210px] tw-rounded-[22px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+                        </header>
+                        <aside class="ut-dash-sidebar ut-refund-detail-sidebar ut-dash-skeleton-sidebar">
+                            <div class="ut-dash-sidebar-brand">
+                                <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
+                            </div>
+                            <div class="ut-dash-sidebar-nav">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                        </aside>
+                        <main class="ut-refund-detail-main tw-absolute tw-left-[180px] tw-right-[67px] tw-top-[173px] tw-pb-10">
+                            <span class="ut-dash-skeleton-line tw-h-11 tw-w-[360px] tw-rounded-[16px]"></span>
+                            <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
+                            <section class="ut-dash-skeleton-card tw-mt-7 tw-h-[720px] tw-p-8">
+                                <div class="tw-grid tw-grid-cols-[minmax(0,1fr)_360px] tw-gap-6">
+                                    <div class="tw-flex tw-flex-col tw-gap-5">
+                                        <span class="ut-dash-skeleton-card tw-h-[210px]"></span>
+                                        <span class="ut-dash-skeleton-card tw-h-[170px]"></span>
+                                        <span class="ut-dash-skeleton-card tw-h-[150px]"></span>
+                                    </div>
+                                    <div class="tw-flex tw-flex-col tw-gap-5">
+                                        <span class="ut-dash-skeleton-card tw-h-[220px]"></span>
+                                        <span class="ut-dash-skeleton-card tw-h-[270px]"></span>
+                                    </div>
+                                </div>
+                            </section>
+                        </main>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="seller_products_template" name="Seller Products">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="page_title"/>
+            <div id="wrap"
+                class="ut-seller-products-mount"
+                t-att-data-products-payload="products_payload_json"
+                t-att-data-seller-name="seller.name"
+                t-attf-data-seller-avatar-url="/web/image/res.users/#{seller.user_id.id}/avatar_128"
+                t-attf-data-seller-profile-url="/seller-profile/#{seller_public_ref}"
+                t-att-data-notification-count="notification_count"
+                t-att-data-unread-chat-count="unread_chat_count"
+                t-att-data-add-product-url="add_product_url">
+                <t t-call="unitrade_seller.seller_owl_fallback"/>
+                <div class="ut-seller-dashboard-page tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
+                    <div class="ut-dash-stage ut-products-stage ut-dash-skeleton-stage">
+                        <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                            <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
+                        </div>
+                        <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                            <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                            <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                            <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-flex-1 tw-max-w-[658px] tw-rounded-[22px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+                        </header>
+                        <aside class="ut-dash-sidebar ut-products-sidebar ut-dash-skeleton-sidebar">
+                            <div class="ut-dash-sidebar-brand">
+                                <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
+                            </div>
+                            <div class="ut-dash-sidebar-nav">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                            <div class="ut-dash-sidebar-footer">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                        </aside>
+                        <main class="ut-products-main tw-absolute tw-left-[180px] tw-right-[67px] tw-top-[173px] tw-pb-10">
+                            <section class="tw-mb-[34px]">
+                                <span class="ut-dash-skeleton-line tw-h-11 tw-w-[170px] tw-rounded-[16px]"></span>
+                                <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
+                            </section>
+                            <section class="ut-dash-skeleton-card tw-h-[736px] tw-p-0">
+                                <div class="tw-flex tw-h-[95px] tw-items-center tw-gap-4 tw-border-b tw-border-[#e5e7eb] tw-px-6">
+                                    <span class="ut-dash-skeleton-block tw-h-[46px] tw-flex-1 tw-rounded-[10px]"></span>
+                                    <span class="ut-dash-skeleton-block tw-h-[46px] tw-w-[92px] tw-rounded-[10px]"></span>
+                                    <span class="ut-dash-skeleton-block tw-h-[46px] tw-w-[162px] tw-rounded-[10px]"></span>
+                                </div>
+                                <div class="tw-flex tw-h-[53px] tw-items-center tw-gap-[58px] tw-border-b tw-border-[#e5e7eb] tw-px-6">
+                                    <span class="ut-dash-skeleton-line tw-h-5 tw-w-[135px]"></span>
+                                    <span class="ut-dash-skeleton-line tw-h-5 tw-w-[180px]"></span>
+                                </div>
+                                <div class="tw-p-6">
+                                    <span class="ut-dash-skeleton-row"></span>
+                                    <span class="ut-dash-skeleton-row tw-mt-5"></span>
+                                    <span class="ut-dash-skeleton-row tw-mt-5"></span>
+                                    <span class="ut-dash-skeleton-row tw-mt-5"></span>
+                                </div>
+                            </section>
+                        </main>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="seller_product_detail_template" name="Seller Product Detail">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="page_title"/>
+            <div id="wrap"
+                class="ut-seller-product-detail-mount"
+                t-att-data-product-detail-payload="product_detail_payload_json"
+                t-att-data-seller-name="seller.name"
+                t-attf-data-seller-avatar-url="/web/image/res.users/#{seller.user_id.id}/avatar_128"
+                t-attf-data-seller-profile-url="/seller-profile/#{seller_public_ref}"
+                t-att-data-notification-count="notification_count"
+                t-att-data-unread-chat-count="unread_chat_count">
+                <t t-call="unitrade_seller.seller_owl_fallback"/>
+                <div class="ut-seller-dashboard-page tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
+                    <div class="ut-dash-stage ut-product-detail-stage ut-dash-skeleton-stage">
+                        <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                            <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
+                        </div>
+                        <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                            <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                            <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                            <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-w-[190px] tw-rounded-[22px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+                        </header>
+                        <aside class="ut-dash-sidebar ut-product-detail-sidebar ut-dash-skeleton-sidebar">
+                            <div class="ut-dash-sidebar-brand">
+                                <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
+                            </div>
+                            <div class="ut-dash-sidebar-nav">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                        </aside>
+                        <main class="ut-product-detail-main tw-absolute tw-left-[181px] tw-right-[67px] tw-top-[173px] tw-pb-12">
+                            <span class="ut-dash-skeleton-line tw-h-11 tw-w-[320px] tw-rounded-[16px]"></span>
+                            <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
+                            <div class="tw-mt-7 tw-grid tw-grid-cols-[minmax(0,1fr)_360px] tw-gap-5">
+                                <span class="ut-dash-skeleton-card tw-h-[360px]"></span>
+                                <span class="ut-dash-skeleton-card tw-h-[360px]"></span>
+                                <span class="ut-dash-skeleton-card tw-h-[300px]"></span>
+                                <span class="ut-dash-skeleton-card tw-h-[300px]"></span>
+                            </div>
+                        </main>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="seller_product_create_template" name="Seller Product Create">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="page_title"/>
+            <div id="wrap"
+                class="ut-seller-product-create-mount"
+                t-att-data-product-create-payload="product_create_payload_json"
+                t-att-data-seller-name="seller.name"
+                t-attf-data-seller-avatar-url="/web/image/res.users/#{seller.user_id.id}/avatar_128"
+                t-attf-data-seller-profile-url="/seller-profile/#{seller_public_ref}"
+                t-att-data-notification-count="notification_count"
+                t-att-data-unread-chat-count="unread_chat_count">
+                <t t-call="unitrade_seller.seller_owl_fallback"/>
+                <div class="ut-seller-dashboard-page tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
+                    <div class="ut-dash-stage ut-product-create-stage ut-dash-skeleton-stage">
+                        <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                            <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
+                        </div>
+                        <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                            <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                            <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                            <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-flex-1 tw-max-w-[658px] tw-rounded-[22px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+                        </header>
+                        <aside class="ut-dash-sidebar ut-product-create-sidebar ut-dash-skeleton-sidebar">
+                            <div class="ut-dash-sidebar-brand">
+                                <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
+                            </div>
+                            <div class="ut-dash-sidebar-nav">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                            <div class="ut-dash-sidebar-footer">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                        </aside>
+                        <main class="ut-product-create-main tw-absolute tw-left-[181px] tw-top-[175px] tw-w-[859px] tw-pb-16">
+                            <section class="tw-mb-[24px]">
+                                <span class="ut-dash-skeleton-line tw-h-11 tw-w-[300px] tw-rounded-[16px]"></span>
+                                <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
+                            </section>
+                            <span class="ut-dash-skeleton-card tw-mb-6 tw-h-[430px] tw-w-full"></span>
+                            <span class="ut-dash-skeleton-card tw-mb-6 tw-h-[373px] tw-w-full"></span>
+                            <span class="ut-dash-skeleton-card tw-mb-6 tw-h-[195px] tw-w-full"></span>
+                            <span class="ut-dash-skeleton-card tw-h-[269px] tw-w-full"></span>
+                        </main>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="seller_product_payment_template" name="Seller Product Payment">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="page_title"/>
+            <div id="wrap"
+                class="ut-seller-product-payment-mount"
+                t-att-data-product-payment-payload="product_payment_payload_json"
+                t-att-data-seller-name="seller.name"
+                t-attf-data-seller-avatar-url="/web/image/res.users/#{seller.user_id.id}/avatar_128"
+                t-attf-data-seller-profile-url="/seller-profile/#{seller_public_ref}"
+                t-att-data-notification-count="notification_count"
+                t-att-data-unread-chat-count="unread_chat_count">
+                <t t-call="unitrade_seller.seller_owl_fallback"/>
+                <div class="ut-seller-dashboard-page tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
+                    <div class="ut-dash-stage ut-product-payment-stage ut-dash-skeleton-stage">
+                        <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                            <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
+                        </div>
+                        <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                            <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                            <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                            <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-flex-1 tw-max-w-[658px] tw-rounded-[22px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+                        </header>
+                        <aside class="ut-dash-sidebar ut-product-create-sidebar ut-dash-skeleton-sidebar">
+                            <div class="ut-dash-sidebar-brand">
+                                <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
+                            </div>
+                            <div class="ut-dash-sidebar-nav">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                            <div class="ut-dash-sidebar-footer">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                        </aside>
+                        <main class="ut-product-payment-main tw-absolute tw-left-[181px] tw-right-[52px] tw-top-[175px] tw-pb-16">
+                            <section class="tw-mb-[24px]">
+                                <span class="ut-dash-skeleton-line tw-h-11 tw-w-[300px] tw-rounded-[16px]"></span>
+                                <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
+                            </section>
+                            <span class="ut-dash-skeleton-card tw-mb-6 tw-h-[88px] tw-w-full"></span>
+                            <div class="tw-grid tw-grid-cols-[minmax(0,1fr)_378px] tw-gap-8">
+                                <span class="ut-dash-skeleton-card tw-h-[620px]"></span>
+                                <span class="ut-dash-skeleton-card tw-h-[775px]"></span>
+                            </div>
+                        </main>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="seller_product_edit_template" name="Seller Product Edit">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="page_title"/>
+            <div id="wrap"
+                class="ut-seller-product-edit-mount"
+                t-att-data-product-create-payload="product_create_payload_json"
+                t-att-data-seller-name="seller.name"
+                t-attf-data-seller-avatar-url="/web/image/res.users/#{seller.user_id.id}/avatar_128"
+                t-attf-data-seller-profile-url="/seller-profile/#{seller_public_ref}"
+                t-att-data-notification-count="notification_count"
+                t-att-data-unread-chat-count="unread_chat_count">
+                <t t-call="unitrade_seller.seller_owl_fallback"/>
+                <div class="ut-seller-dashboard-page tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
+                    <div class="ut-dash-stage ut-product-create-stage ut-dash-skeleton-stage">
+                        <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                            <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
+                        </div>
+                        <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                            <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                            <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                            <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-flex-1 tw-max-w-[658px] tw-rounded-[22px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+                        </header>
+                        <aside class="ut-dash-sidebar ut-product-create-sidebar ut-dash-skeleton-sidebar">
+                            <div class="ut-dash-sidebar-brand">
+                                <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
+                            </div>
+                            <div class="ut-dash-sidebar-nav">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                            <div class="ut-dash-sidebar-footer">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                        </aside>
+                        <main class="ut-product-create-main tw-absolute tw-left-[181px] tw-top-[175px] tw-w-[859px] tw-pb-16">
+                            <section class="tw-mb-[24px]">
+                                <span class="ut-dash-skeleton-line tw-h-11 tw-w-[250px] tw-rounded-[16px]"></span>
+                                <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[328px]"></span>
+                            </section>
+                            <span class="ut-dash-skeleton-card tw-mb-6 tw-h-[430px] tw-w-full"></span>
+                            <span class="ut-dash-skeleton-card tw-mb-6 tw-h-[373px] tw-w-full"></span>
+                            <span class="ut-dash-skeleton-card tw-mb-6 tw-h-[195px] tw-w-full"></span>
+                            <span class="ut-dash-skeleton-card tw-h-[269px] tw-w-full"></span>
+                        </main>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="seller_settings_template" name="Seller Store Settings">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="page_title"/>
+            <div id="wrap"
+                class="ut-seller-settings-mount"
+                t-att-data-seller-settings-payload="seller_settings_payload_json"
+                t-att-data-seller-name="seller.name"
+                t-attf-data-seller-avatar-url="/web/image/res.users/#{seller.user_id.id}/avatar_128"
+                t-attf-data-seller-profile-url="/seller-profile/#{seller_public_ref}"
+                t-att-data-notification-count="notification_count"
+                t-att-data-unread-chat-count="unread_chat_count">
+                <t t-call="unitrade_seller.seller_owl_fallback"/>
+                <div class="ut-seller-dashboard-page tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
+                    <div class="ut-dash-stage ut-settings-stage ut-dash-skeleton-stage">
+                        <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
+                            <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
+                        </div>
+                        <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                            <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
+                            <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
+                            <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-flex-1 tw-max-w-[658px] tw-rounded-[22px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
+                            <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
+                            <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
+                        </header>
+                        <aside class="ut-dash-sidebar ut-seller-shared-sidebar ut-settings-sidebar ut-dash-skeleton-sidebar">
+                            <div class="ut-dash-sidebar-brand">
+                                <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
+                            </div>
+                            <div class="ut-dash-sidebar-nav">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                            <div class="ut-dash-sidebar-footer">
+                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
+                            </div>
+                        </aside>
+                        <main class="ut-settings-main tw-absolute tw-left-[181px] tw-top-[173px] tw-w-[859px] tw-pb-16">
+                            <section class="tw-mb-[24px]">
+                                <span class="ut-dash-skeleton-line tw-h-11 tw-w-[320px] tw-rounded-[16px]"></span>
+                                <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[520px]"></span>
+                            </section>
+                            <span class="ut-dash-skeleton-card tw-mb-6 tw-h-[462px] tw-w-full"></span>
+                            <span class="ut-dash-skeleton-card tw-mb-6 tw-h-[425px] tw-w-full"></span>
+                            <span class="ut-dash-skeleton-card tw-mb-6 tw-h-[454px] tw-w-full"></span>
+                            <span class="ut-dash-skeleton-card tw-h-[250px] tw-w-full"></span>
+                        </main>
                     </div>
                 </div>
             </div>
@@ -498,9 +954,21 @@
                                     <span class="tw-flex tw-h-[35px] tw-w-[35px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#f5f5f7] tw-text-black">
                                         <i class="fa fa-commenting-o"></i>
                                     </span>
-                                    <p class="tw-m-0 tw-text-[12px] tw-font-medium tw-leading-5 tw-text-[#525252]">
-                                        Estimasi balasan chat:<br/>
-                                        ±10 menit
+                                    <p class="tw-m-0 tw-pt-[1px] tw-text-[12px] tw-font-medium tw-leading-5 tw-text-[#525252]">
+                                        <span class="tw-block">Estimasi balasan chat:</span>
+                                        <span class="tw-block tw-text-[#212529]">&#177;10 menit</span>
+                                    </p>
+                                </div>
+
+                                <div t-if="seller_phone_display" class="tw-mt-3 tw-flex tw-items-start tw-gap-3">
+                                    <span class="tw-flex tw-h-[35px] tw-w-[35px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#e9fff3] tw-text-[#16a34a]">
+                                        <i class="fa fa-whatsapp"></i>
+                                    </span>
+                                    <p class="tw-m-0 tw-pt-[1px] tw-text-[12px] tw-font-medium tw-leading-5 tw-text-[#525252]">
+                                        <span class="tw-block">WhatsApp:</span>
+                                        <a t-att-href="seller_phone_url or '#'" target="_blank" rel="noopener" class="tw-block tw-text-[#212529] tw-no-underline hover:tw-underline">
+                                            <t t-esc="seller_phone_display"/>
+                                        </a>
                                     </p>
                                 </div>
                             </div>
@@ -587,6 +1055,7 @@
                                 t-att-data-profile-ref="seller_public_ref"
                                 t-att-data-initial-tab="active_tab"
                                 t-att-data-initial-rating="seller_review_active_rating"
+                                t-att-data-initial-sort="seller_review_active_sort"
                                 t-att-data-search="seller_search or ''">
                                 <div id="ut-seller-initial-products">
                                     <t t-if="active_tab == 'reviews'" t-call="unitrade_seller.seller_profile_reviews_fragment"/>
@@ -604,6 +1073,7 @@
         <div t-if="seller_products" class="ut-seller-product-grid tw-grid tw-grid-cols-2 tw-gap-5 sm:tw-grid-cols-3 xl:tw-grid-cols-5">
             <t t-foreach="seller_products" t-as="product">
                 <a t-att-href="product.website_url or '/unitrade/product/%s' % product.id" class="ut-seller-product-card tw-flex tw-h-[300px] tw-flex-col tw-rounded-[22px] tw-border tw-border-[#d9d9d9] tw-bg-white tw-p-[9px] tw-text-[#212529] tw-no-underline tw-transition hover:tw--translate-y-1 hover:tw-shadow-md">
+                    <t t-set="ut_price_info" t-value="product._unitrade_price_info()"/>
                     <div class="ut-product-card-image-wrap tw-rounded-t-[14px]">
                         <img t-attf-src="/web/image/product.template/#{product.id}/image_1024" t-att-alt="product.name" class="ut-product-card-image" loading="lazy"/>
                     </div>
@@ -618,7 +1088,11 @@
                     </p>
                     <div class="tw-mt-auto tw-flex tw-items-center tw-justify-between tw-gap-2">
                         <strong class="tw-min-w-0 tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[16px] tw-font-extrabold tw-leading-6">
-                            <span t-field="product.list_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                            <span>
+                                <t t-set="ut_money_amount" t-value="ut_price_info.get('discounted_price')"/>
+                                <t t-set="ut_money_currency" t-value="website.currency_id"/>
+                                <t t-call="unitrade_theme.unitrade_money"/>
+                            </span>
                         </strong>
                         <span class="tw-flex tw-items-center tw-gap-1 tw-text-[12px] tw-text-black/25">
                             <i class="fa fa-star tw-text-[#ffb000]"></i>
@@ -639,9 +1113,24 @@
             <div class="ut-review-summary-card">
                 <div class="ut-review-filter-row">
                     <button type="button"
-                        data-rating=""
-                        t-att-class="'ut-review-chip ut-seller-review-filter %s' % ('ut-review-chip-active' if not seller_review_active_rating else '')">
-                        Semua (<t t-esc="seller_review_count"/>)
+                        data-sort="newest"
+                        t-att-class="'ut-review-chip ut-seller-review-sort %s' % ('ut-review-chip-active' if seller_review_active_sort == 'newest' else '')">
+                        Terbaru
+                    </button>
+                    <button type="button"
+                        data-sort="oldest"
+                        t-att-class="'ut-review-chip ut-seller-review-sort %s' % ('ut-review-chip-active' if seller_review_active_sort == 'oldest' else '')">
+                        Terlama
+                    </button>
+                    <button type="button"
+                        data-sort="highest"
+                        t-att-class="'ut-review-chip ut-seller-review-sort %s' % ('ut-review-chip-active' if seller_review_active_sort == 'highest' else '')">
+                        Tertinggi
+                    </button>
+                    <button type="button"
+                        data-sort="lowest"
+                        t-att-class="'ut-review-chip ut-seller-review-sort %s' % ('ut-review-chip-active' if seller_review_active_sort == 'lowest' else '')">
+                        Terendah
                     </button>
                     <t t-foreach="seller_review_star_filters" t-as="row">
                         <button type="button"
@@ -650,6 +1139,7 @@
                             <t t-esc="row.get('star')"/> bintang (<t t-esc="row.get('count')"/>)
                         </button>
                     </t>
+                    <button t-if="seller_review_active_rating" type="button" data-rating="" class="ut-review-chip ut-seller-review-filter">Semua</button>
                 </div>
                 <div class="ut-review-score">
                     <div class="ut-review-score-line">

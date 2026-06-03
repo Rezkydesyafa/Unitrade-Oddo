@@ -4,16 +4,16 @@ UniTrade adalah marketplace C2C berbasis Odoo 17 untuk mahasiswa Yogyakarta. Pla
 
 ## Ringkasan Project
 
-| Bagian            | Keterangan                                                  |
-| ----------------- | ----------------------------------------------------------- |
-| Nama project      | UniTrade Marketplace                                        |
-| Target pengguna   | Mahasiswa dan user terdaftar di lingkungan UNISA Yogyakarta |
-| Platform          | Odoo 17 Website dan Website Sale                            |
-| Model bisnis      | Marketplace C2C                                             |
-| Verifikasi seller | Verifikasi KTM dan validasi data mahasiswa                  |
-| Pembayaran        | Integrasi Midtrans                                          |
-| Frontend          | QWeb, OWL, JavaScript, Tailwind CSS dengan prefix `tw-`     |
-| Database          | PostgreSQL                                                  |
+| Bagian            | Keterangan                                              |
+| ----------------- | ------------------------------------------------------- |
+| Nama project      | UniTrade Marketplace                                    |
+| Target pengguna   | Mahasiswa dan user terdaftar di Yogyakarta              |
+| Platform          | Odoo 17 Website dan Website Sale                        |
+| Model bisnis      | Marketplace C2C                                         |
+| Verifikasi seller | Verifikasi KTM dan validasi data mahasiswa              |
+| Pembayaran        | Integrasi Midtrans                                      |
+| Frontend          | QWeb, OWL, JavaScript, Tailwind CSS dengan prefix `tw-` |
+| Database          | PostgreSQL                                              |
 
 ## Fitur Utama
 
@@ -34,6 +34,8 @@ Dokumentasi berikut dibuat dalam format Markdown dan Mermaid. Jika repository di
 
 | Dokumen                                              | Isi                                                                                                                                                    |
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [Setup Windows](./docs/WINDOWS_SETUP.md)             | Panduan menjalankan project di Windows/komputer lain: config, install/upgrade modul, seed data, Tailwind build/watch, dan run server.                  |
+| [QA Test Plan](./docs/QA_TEST_PLAN.md)               | Panduan QA sederhana: fitur yang wajib dites, format test case, dan daftar test case utama UniTrade.                                                   |
 | [Flowchart Fitur](./FEATURE_FLOWCHARTS.md)           | Diagram alur untuk fitur yang sudah selesai, seperti login, register, daftar seller, profil, filter pencarian, wishlist, chat, pembayaran, dan review. |
 | [ERD UniTrade](./FEATURE_ERD.md)                     | Diagram hubungan data utama project dengan bahasa umum yang mudah dipahami.                                                                            |
 | [Viewer Flowchart](./FEATURE_FLOWCHARTS_VIEWER.html) | Halaman HTML lokal untuk membuka flowchart dengan tampilan Mermaid di browser.                                                                         |
@@ -84,30 +86,30 @@ Pastikan environment berikut sudah tersedia:
 
 ## Cara Menjalankan Project
 
-### 1. Install atau upgrade modul Odoo
-
-Contoh perintah PowerShell untuk upgrade modul utama:
+Gunakan task runner PowerShell agar command bisa dipakai di Windows atau komputer lain tanpa hardcode path panjang:
 
 ```powershell
-& "C:\Program Files\Odoo 17.0.20260217\python\python.exe" "C:\Program Files\Odoo 17.0.20260217\server\odoo-bin" -c "C:\Program Files\Odoo 17.0.20260217\server\odoo.conf" -d unitrade_db -u unitrade_theme,unitrade_seller,unitrade_product_ext,unitrade_payment,unitrade_wishlist,unitrade_review,unitrade_chat,unitrade_notification --stop-after-init
+.\scripts\unitrade.ps1 config
+.\scripts\unitrade.ps1 doctor
+.\scripts\unitrade.ps1 install-node
+.\scripts\unitrade.ps1 build
+.\scripts\unitrade.ps1 install
+.\scripts\unitrade.ps1 seed-dry
+.\scripts\unitrade.ps1 seed
+.\scripts\unitrade.ps1 run
 ```
 
-Sesuaikan nama database, lokasi instalasi Odoo, dan daftar modul jika environment berbeda.
-
-### 2. Build Tailwind CSS
-
-Jalankan perintah berikut setiap ada perubahan pada file Tailwind:
-
-```bash
-npx tailwindcss -i ./unitrade_theme/static/src/css/input.css -o ./unitrade_theme/static/src/css/output.css
-```
-
-### 3. Jalankan server Odoo
-
-Contoh perintah PowerShell:
+Untuk development harian, jalankan Tailwind watch dan Odoo di terminal terpisah:
 
 ```powershell
-& "C:\Program Files\Odoo 17.0.20260217\python\python.exe" "C:\Program Files\Odoo 17.0.20260217\server\odoo-bin" -c "C:\Program Files\Odoo 17.0.20260217\server\odoo.conf" -d unitrade_db --http-port=8069
+.\scripts\unitrade.ps1 watch
+.\scripts\unitrade.ps1 run
+```
+
+Jika hanya perlu upgrade modul setelah perubahan kode:
+
+```powershell
+.\scripts\unitrade.ps1 upgrade
 ```
 
 Setelah server berjalan, buka:
@@ -115,6 +117,8 @@ Setelah server berjalan, buka:
 ```text
 http://127.0.0.1:8069
 ```
+
+Detail setup fresh, parameter environment, seed data, build/watch, dan troubleshooting ada di [Setup Windows](./docs/WINDOWS_SETUP.md).
 
 ## Aturan Pengembangan
 

@@ -37,8 +37,109 @@
                     padding-top: 32px !important;
                     padding-bottom: 48px !important;
                 }
+                body:has(.ut-cart-layout-row) .o_website_sale_checkout {
+                    background-color: transparent !important;
+                    box-shadow: none !important;
+                    margin-top: 24px !important;
+                    padding: 0 !important;
+                }
                 .o_website_sale_checkout .row {
                     row-gap: 32px;
+                }
+                .ut-cart-layout-row {
+                    position: relative;
+                    margin: 0 0 48px !important;
+                    padding: 44px clamp(24px, 3vw, 48px) 56px !important;
+                    row-gap: 0 !important;
+                }
+                .ut-cart-layout-row::before {
+                    position: absolute;
+                    z-index: 0;
+                    top: 0;
+                    right: 0;
+                    bottom: 0;
+                    left: 0;
+                    border-radius: 20px;
+                    background: #ffffff;
+                    box-shadow: 0 12px 38px rgba(33, 37, 41, 0.045);
+                    content: "";
+                }
+                .ut-cart-layout-row > * {
+                    position: relative;
+                    z-index: 1;
+                }
+                .ut-cart-breadcrumb-row {
+                    margin-bottom: 24px;
+                    padding-left: 0 !important;
+                    padding-right: 0 !important;
+                }
+                body:has(.ut-cart-layout-row) .ut-cart-breadcrumb-row {
+                    display: none !important;
+                }
+                .ut-cart-breadcrumb-row > .tw-w-full {
+                    margin-bottom: 0 !important;
+                }
+                .ut-cart-breadcrumb-wrap {
+                    position: relative;
+                    z-index: 10;
+                    display: flex;
+                    width: 100%;
+                    justify-content: flex-start;
+                    margin-bottom: 26px;
+                }
+                .ut-cart-breadcrumb {
+                    display: inline-flex;
+                    align-items: center;
+                    flex-wrap: wrap;
+                    max-width: 100%;
+                    gap: 10px;
+                    padding: 10px 16px;
+                    border: 1px solid #edf0f3;
+                    border-radius: 14px;
+                    background: #ffffff;
+                    box-shadow: none;
+                    color: #6b7280;
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-size: 14px;
+                    line-height: 1;
+                }
+                .ut-cart-breadcrumb-link,
+                .ut-cart-breadcrumb-active,
+                .ut-cart-breadcrumb-separator {
+                    display: inline-flex;
+                    align-items: center;
+                    min-height: 24px;
+                    line-height: 1;
+                }
+                .ut-cart-breadcrumb-link {
+                    gap: 8px;
+                    color: #6b7280 !important;
+                    font-weight: 500;
+                    text-decoration: none !important;
+                    transition: color 0.18s ease;
+                }
+                .ut-cart-breadcrumb-link:hover {
+                    color: #111827 !important;
+                }
+                .ut-cart-breadcrumb-home-icon {
+                    width: 18px;
+                    height: 18px;
+                    flex: 0 0 18px;
+                    display: block;
+                }
+                .ut-cart-breadcrumb-separator {
+                    color: #d1d5db;
+                    font-weight: 500;
+                    user-select: none;
+                }
+                .ut-cart-breadcrumb-active {
+                    color: #111827;
+                    font-weight: 800;
+                    white-space: nowrap;
+                }
+                .ut-cart-layout-row .oe_cart,
+                .ut-cart-layout-row #o_cart_summary {
+                    margin-top: 0;
                 }
 
                 /* ── Page title ─────────────────────────────────────── */
@@ -47,7 +148,10 @@
                     font-weight: 800;
                     font-size: 24px;
                     color: #212529;
-                    margin-bottom: 24px;
+                    margin: 0 0 16px;
+                }
+                .ut-cart-title-breadcrumb {
+                    margin-bottom: 26px;
                 }
                 .o_website_sale_checkout h1,
                 .o_website_sale_checkout h2,
@@ -63,6 +167,7 @@
                     flex-direction: column !important;
                     gap: 16px !important; /* Spacing antar elemen */
                     margin-bottom: 0 !important;
+                    max-width: 760px;
                 }
 
                 /* ── Product rows: card style ────────────────────────── */
@@ -122,6 +227,61 @@
                 }
                 .o_cart_product h6 a:hover { color: #212529 !important; }
                 .o_cart_product .text-muted { font-size: 13px !important; }
+                .o_cart_product .flex-grow-1 .text-muted:not(.cart_product_base_unit_price) {
+                    display: -webkit-box !important;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    white-space: normal !important;
+                    line-height: 1.45 !important;
+                    max-width: 520px;
+                }
+
+                /* Suggested products */
+                #cart_products > h5 {
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-weight: 800 !important;
+                    color: #212529 !important;
+                }
+                #suggested_products {
+                    color: #212529 !important;
+                }
+                #suggested_products .o_cart_suggested_product_name a,
+                #suggested_products .o_cart_suggested_product_name strong {
+                    color: #212529 !important;
+                    text-decoration: none !important;
+                }
+                #suggested_products .o_cart_suggested_product_name a:hover,
+                #suggested_products .o_cart_suggested_product_name a:hover strong {
+                    color: #000000 !important;
+                    text-decoration: none !important;
+                }
+                #suggested_products .o_cart_suggested_product_name .text-muted {
+                    color: #4b5563 !important;
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-size: 14px !important;
+                }
+                #suggested_products [name="website_sale_suggested_product_price"] {
+                    color: #212529 !important;
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-weight: 700 !important;
+                }
+                #suggested_products .js_add_suggested_products.btn-outline-primary {
+                    color: #212529 !important;
+                    border-color: #212529 !important;
+                    background: #ffffff !important;
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-weight: 600 !important;
+                    border-radius: 8px !important;
+                    transition: background 0.15s, border-color 0.15s, color 0.15s !important;
+                }
+                #suggested_products .js_add_suggested_products.btn-outline-primary:hover,
+                #suggested_products .js_add_suggested_products.btn-outline-primary:focus {
+                    color: #ffffff !important;
+                    border-color: #212529 !important;
+                    background: #212529 !important;
+                    box-shadow: none !important;
+                }
 
                 /* ── Right Section (Price, Delete, Qty) ─────────────── */
                 .o_cart_product > div.d-flex.flex-column.align-items-end {
@@ -241,13 +401,44 @@
                     margin-bottom: 20px;
                 }
 
-                /* ── Totals text (subtotal, tax, total) ─────────────── */
+                /* ── Totals text (subtotal and total) ─────────────── */
                 #o_cart_summary .o_total { font-family: 'Urbanist', sans-serif !important; }
                 #o_cart_summary .monetary_field,
                 #o_cart_summary [name="website_sale_cart_summary_line_price"] {
                     font-family: 'Urbanist', sans-serif !important;
                     font-weight: 700 !important;
                     color: #212529 !important;
+                }
+                .ut-cart-service-fee-row .ut-cart-service-fee-cell {
+                    padding: 10px 0 !important;
+                    color: #6a7282 !important;
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-size: 15px !important;
+                    vertical-align: middle !important;
+                }
+                .ut-cart-service-fee-line {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    width: 100%;
+                    gap: 16px;
+                    line-height: 1.45;
+                }
+                .ut-cart-service-fee-label {
+                    display: block;
+                    flex: 1 1 auto;
+                    color: #6a7282;
+                    font-weight: 500;
+                    white-space: nowrap;
+                }
+                .ut-cart-service-fee-row .monetary_field {
+                    display: block;
+                    flex: 0 0 auto;
+                    margin-left: auto;
+                    color: #212529 !important;
+                    font-weight: 700 !important;
+                    text-align: right;
+                    white-space: nowrap;
                 }
 
                 /* ── Checkout / main navigation button ──────────────── */
@@ -370,6 +561,47 @@
                         padding-left: 18px !important;
                         padding-right: 18px !important;
                     }
+                    body:has(.ut-cart-layout-row) .o_website_sale_checkout {
+                        padding: 0 !important;
+                    }
+                    .ut-cart-layout-row {
+                        padding: 24px 18px 32px !important;
+                    }
+                    .ut-cart-layout-row::before {
+                        top: 0;
+                        border-radius: 16px;
+                    }
+                    .ut-cart-layout-row .oe_cart,
+                    .ut-cart-layout-row #o_cart_summary {
+                        margin-top: 0;
+                    }
+                    .ut-cart-breadcrumb-row {
+                        margin-bottom: 16px;
+                    }
+                    .ut-cart-breadcrumb-wrap {
+                        margin-bottom: 18px;
+                    }
+                    .ut-cart-breadcrumb {
+                        width: 100%;
+                        gap: 8px;
+                        padding: 9px 12px;
+                        border-radius: 12px;
+                        font-size: 13px;
+                    }
+                    .ut-cart-breadcrumb-link,
+                    .ut-cart-breadcrumb-active,
+                    .ut-cart-breadcrumb-separator {
+                        min-height: 22px;
+                    }
+                    .ut-cart-breadcrumb-home-icon {
+                        width: 16px;
+                        height: 16px;
+                        flex-basis: 16px;
+                    }
+                    .ut-cart-service-fee-row .ut-cart-service-fee-cell {
+                        padding: 9px 0 !important;
+                        font-size: 14px !important;
+                    }
                     .o_cart_product {
                         flex-direction: column !important;
                         align-items: flex-start !important;
@@ -415,6 +647,22 @@
         <!-- Replace default "Order overview" h3 with custom title -->
         <xpath expr="//h3[normalize-space(text())='Order overview']" position="replace">
             <h1 class="unitrade-cart-title">Keranjang Belanja</h1>
+            <div class="ut-cart-breadcrumb-wrap ut-cart-title-breadcrumb">
+                <nav class="ut-cart-breadcrumb" aria-label="Breadcrumb">
+                    <a href="/" class="ut-cart-breadcrumb-link">
+                        <svg class="ut-cart-breadcrumb-home-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <path d="M12 16v-4"></path>
+                            <circle cx="12" cy="16" r="0.5" fill="currentColor"></circle>
+                        </svg>
+                        <span>Beranda</span>
+                    </a>
+                    <span class="ut-cart-breadcrumb-separator">/</span>
+                    <a href="/shop" class="ut-cart-breadcrumb-link">Belanja</a>
+                    <span class="ut-cart-breadcrumb-separator">/</span>
+                    <span class="ut-cart-breadcrumb-active">Keranjang Belanja</span>
+                </nav>
+            </div>
         </xpath>
 
     </template>
@@ -422,6 +670,15 @@
     <!-- ================================================================
          2. CART LINES — Replace trash/delete button with SVG icon
     ================================================================ -->
+    <template id="unitrade_cart_checkout_layout_classes" inherit_id="website_sale.checkout_layout" name="UniTrade Cart Checkout Layout Classes">
+        <xpath expr="//div[contains(@t-attf-class, 'row #{show_navigation_button')]" position="attributes">
+            <attribute name="t-attf-class">row #{show_navigation_button and 'position-relative'} #{not show_wizard_checkout and 'mt32'} #{show_shorter_cart_summary and 'ut-cart-layout-row'} mb32</attribute>
+        </xpath>
+        <xpath expr="//div[@t-if='show_wizard_checkout' and hasclass('col-12')]" position="attributes">
+            <attribute name="t-attf-class">col-12 #{show_shorter_cart_summary and 'ut-cart-breadcrumb-row'}</attribute>
+        </xpath>
+    </template>
+
     <template id="unitrade_cart_lines_delete" inherit_id="website_sale.cart_lines" name="UniTrade Cart Delete Button">
 
         <xpath expr="//div[@id='cart_products']" position="before">
@@ -466,6 +723,26 @@
             </div>
         </xpath>
 
+        <xpath expr="//div[@name='website_sale_cart_line_price']" position="replace">
+            <div class="mb-0 h6 fw-bold text-end" name="website_sale_cart_line_price">
+                <t t-set="product_price" t-value="line.price_subtotal"/>
+                <span style="white-space: nowrap;">
+                    <t t-set="ut_money_amount" t-value="product_price"/>
+                    <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
+                    <t t-call="unitrade_theme.unitrade_money"/>
+                </span>
+                <small t-if="not line._is_not_sellable_line() and line.product_id.base_unit_price"
+                       class="cart_product_base_unit_price d-block text-muted"
+                       groups="website_sale.group_show_uom_price">
+                    <t t-call="website_sale.base_unit_price">
+                        <t t-set="product" t-value="line.product_id"/>
+                        <t t-set="combination_info"
+                           t-value="{'base_unit_price': product._get_base_unit_price(product_price/line.product_uom_qty)}"/>
+                    </t>
+                </small>
+            </div>
+        </xpath>
+
         <xpath expr="//i[hasclass('fa-warning')]" position="attributes">
             <attribute name="t-att-title">line._get_shop_warning()</attribute>
         </xpath>
@@ -493,24 +770,82 @@
         <xpath expr="//a[hasclass('js_add_suggested_products')]/span[hasclass('d-none')]" position="replace">
             <span class="d-none d-md-inline">Tambah ke Keranjang</span>
         </xpath>
+        <xpath expr="//div[@name='website_sale_suggested_product_price']" position="replace">
+            <div class="mb-0 h-6 fw-bold text-end d-flex"
+                 name="website_sale_suggested_product_price">
+                <t t-set="unitrade_suggested_price_info" t-value="product._unitrade_price_info()"/>
+                <span style="white-space: nowrap;">
+                    <t t-set="ut_money_amount" t-value="unitrade_suggested_price_info.get('discounted_price')"/>
+                    <t t-set="ut_money_currency" t-value="website.currency_id"/>
+                    <t t-call="unitrade_theme.unitrade_money"/>
+                </span>
+            </div>
+        </xpath>
     </template>
 
     <!-- ================================================================
          3. CART SUMMARY SIDEBAR — Inject "Ringkasan Pesanan" title at TOP
     ================================================================ -->
     <template id="unitrade_cart_summary_title" inherit_id="website_sale.checkout_layout" name="UniTrade Cart Summary Title">
+        <xpath expr="//span[@id='amount_total_summary']" position="replace">
+            <span id="amount_total_summary" class="monetary_field ms-1">
+                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_checkout_amounts(sync_fee=False) if website_sale_order else {}"/>
+                <t t-set="ut_money_amount" t-value="unitrade_cart_amounts.get('total') or website_sale_order.amount_untaxed"/>
+                <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
+                <t t-call="unitrade_theme.unitrade_money"/>
+            </span>
+        </xpath>
+
+        <xpath expr="//td[@name='website_sale_cart_summary_line_price']" position="replace">
+            <td t-attf-class="#{o_cart_sum_padding_top} td-price pe-0 text-end"
+                name="website_sale_cart_summary_line_price">
+                <t t-set="unitrade_summary_line_price" t-value="line.price_subtotal"/>
+                <span style="white-space: nowrap;">
+                    <t t-set="ut_money_amount" t-value="unitrade_summary_line_price"/>
+                    <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
+                    <t t-call="unitrade_theme.unitrade_money"/>
+                </span>
+            </td>
+        </xpath>
+
         <!-- Inject before the total table inside the summary card -->
         <xpath expr="//div[@id='o_cart_summary']//t[@t-call='website_sale.total']" position="before">
             <span class="unitrade-summary-title">Ringkasan Pesanan</span>
-            <a href="/help#terms" class="tw-mb-4 tw-inline-flex tw-text-[12px] tw-font-medium tw-text-gray-500 tw-no-underline hover:tw-text-black hover:tw-underline">
-                Syarat &amp; Kebijakan Transaksi
-            </a>
         </xpath>
     </template>
 
     <template id="unitrade_cart_total_indonesian" inherit_id="website_sale.total" name="UniTrade Cart Total Indonesian">
-        <xpath expr="//tr[@id='order_total_taxes']/td[1]" position="replace">
-            <td colspan="2" class="text-muted border-0 ps-0 pt-0 pb-3">Pajak</td>
+        <xpath expr="//tr[@id='order_total_untaxed']//span[hasclass('monetary_field')]" position="replace">
+            <span class="monetary_field" style="white-space: nowrap;">
+                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_checkout_amounts(sync_fee=False) if website_sale_order else {}"/>
+                <t t-set="ut_money_amount" t-value="unitrade_cart_amounts.get('item_subtotal') or website_sale_order.amount_untaxed"/>
+                <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
+                <t t-call="unitrade_theme.unitrade_money"/>
+            </span>
+        </xpath>
+        <xpath expr="//tr[@id='order_total_untaxed']" position="after">
+            <tr t-if="website_sale_order" class="ut-cart-service-fee-row">
+                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_checkout_amounts(sync_fee=False)"/>
+                <td colspan="3" class="ut-cart-service-fee-cell">
+                    <div class="ut-cart-service-fee-line">
+                        <span class="ut-cart-service-fee-label">Biaya Layanan</span>
+                        <span class="monetary_field">
+                            <t t-set="ut_money_amount" t-value="unitrade_cart_amounts.get('service_fee')"/>
+                            <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
+                            <t t-call="unitrade_theme.unitrade_money"/>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </xpath>
+        <xpath expr="//tr[@id='order_total_taxes']" position="replace"/>
+        <xpath expr="//tr[@id='order_total']//strong[hasclass('monetary_field')]" position="replace">
+            <strong class="monetary_field text-end p-0">
+                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_checkout_amounts(sync_fee=False) if website_sale_order else {}"/>
+                <t t-set="ut_money_amount" t-value="unitrade_cart_amounts.get('total') or website_sale_order.amount_untaxed"/>
+                <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
+                <t t-call="unitrade_theme.unitrade_money"/>
+            </strong>
         </xpath>
     </template>
 
@@ -553,29 +888,29 @@
             <t t-set="wizard_step" t-value="website._get_checkout_steps()"/>
             
             <!-- Breadcrumbs with Tailwind matching the Shop page -->
-            <div class="tw-w-full tw-mb-6 tw-flex tw-justify-start tw-relative tw-z-10">
-                <div class="tw-bg-white tw-rounded-[12px] tw-px-5 tw-py-2.5 tw-flex tw-items-center tw-gap-3 tw-shadow-sm tw-w-max tw-border tw-border-gray-100">
-                    <a href="/" class="tw-flex tw-items-center tw-gap-2 tw-text-gray-500 hover:tw-text-[#0f172a] tw-no-underline tw-transition-colors">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <div class="ut-cart-breadcrumb-wrap">
+                <nav class="ut-cart-breadcrumb" aria-label="Breadcrumb">
+                    <a href="/" class="ut-cart-breadcrumb-link">
+                        <svg class="ut-cart-breadcrumb-home-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                             <path d="M12 16v-4"></path>
                             <circle cx="12" cy="16" r="0.5" fill="currentColor"></circle>
                         </svg>
-                        <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[14px]">Beranda</span>
+                        <span>Beranda</span>
                     </a>
-                    <span class="tw-text-gray-300">/</span>
-                    <a href="/shop" class="tw-font-['Urbanist'] tw-font-medium tw-text-[14px] tw-text-gray-500 hover:tw-text-[#0f172a] tw-no-underline tw-transition-colors">Belanja</a>
+                    <span class="ut-cart-breadcrumb-separator">/</span>
+                    <a href="/shop" class="ut-cart-breadcrumb-link">Belanja</a>
                     <t t-foreach="wizard_step" t-as="step">
                         <t t-set="is_current_step" t-value="xmlid in step[0]"/>
                         <t t-if="is_current_step">
-                            <span class="tw-text-gray-300">/</span>
-                            <span class="tw-font-['Urbanist'] tw-font-semibold tw-text-[14px] tw-text-[#0f172a]">
+                            <span class="ut-cart-breadcrumb-separator">/</span>
+                            <span class="ut-cart-breadcrumb-active">
                                 <t t-if="str(step[1]['name']) == 'Review Order'">Keranjang Belanja</t>
                                 <t t-else=""><t t-out="step[1]['name']"/></t>
                             </span>
                         </t>
                     </t>
-                </div>
+                </nav>
             </div>
         </xpath>
     </template>

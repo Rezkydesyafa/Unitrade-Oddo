@@ -14,57 +14,237 @@ from odoo.http import request
 _logger = logging.getLogger(__name__)
 
 
+PAYMENT_METHOD_INSTRUCTIONS = {
+    'bca_va': [
+        {
+            'title': 'BCA Mobile / myBCA',
+            'open': True,
+            'steps': [
+                'Buka aplikasi BCA Mobile atau myBCA lalu login.',
+                'Pilih menu Transfer Virtual Account.',
+                'Masukkan nomor Virtual Account yang tampil di halaman ini.',
+                'Pastikan nominal dan nama merchant UniTrade sudah benar, lalu konfirmasi pembayaran.',
+            ],
+        },
+        {
+            'title': 'ATM BCA',
+            'steps': [
+                'Pilih Transaksi Lainnya lalu Transfer.',
+                'Pilih ke Rekening BCA Virtual Account.',
+                'Masukkan nomor Virtual Account dan ikuti instruksi sampai pembayaran selesai.',
+            ],
+        },
+    ],
+    'mandiri_bill': [
+        {
+            'title': "Livin' by Mandiri",
+            'open': True,
+            'steps': [
+                "Buka aplikasi Livin' by Mandiri dan login.",
+                'Pilih menu Bayar, lalu pilih Multipayment.',
+                'Masukkan kode perusahaan dan Bill Key yang tampil di halaman ini.',
+                'Periksa nominal dan konfirmasi dengan PIN Anda.',
+            ],
+        },
+        {
+            'title': 'ATM Mandiri',
+            'steps': [
+                'Pilih Bayar/Beli lalu Multipayment.',
+                'Masukkan kode perusahaan dan Bill Key.',
+                'Pastikan detail pembayaran benar, lalu selesaikan transaksi.',
+            ],
+        },
+    ],
+    'bni_va': [
+        {
+            'title': 'BNI Mobile Banking',
+            'open': True,
+            'steps': [
+                'Buka BNI Mobile Banking dan login.',
+                'Pilih menu Transfer lalu Virtual Account Billing.',
+                'Masukkan nomor Virtual Account.',
+                'Periksa detail pembayaran, lalu konfirmasi.',
+            ],
+        },
+        {
+            'title': 'ATM BNI',
+            'steps': [
+                'Pilih Menu Lainnya lalu Transfer.',
+                'Pilih Virtual Account Billing.',
+                'Masukkan nomor Virtual Account dan selesaikan pembayaran.',
+            ],
+        },
+    ],
+    'bri_va': [
+        {
+            'title': 'BRImo',
+            'open': True,
+            'steps': [
+                'Buka BRImo dan login.',
+                'Pilih menu BRIVA.',
+                'Masukkan nomor Virtual Account yang tampil di halaman ini.',
+                'Periksa nominal, lalu konfirmasi pembayaran.',
+            ],
+        },
+        {
+            'title': 'ATM BRI',
+            'steps': [
+                'Pilih Transaksi Lain lalu Pembayaran.',
+                'Pilih BRIVA dan masukkan nomor Virtual Account.',
+                'Ikuti instruksi sampai transaksi selesai.',
+            ],
+        },
+    ],
+    'qris': [
+        {
+            'title': 'QRIS',
+            'open': True,
+            'steps': [
+                'Buka aplikasi mobile banking atau e-wallet yang mendukung QRIS.',
+                'Pilih menu Scan QR atau Bayar QRIS.',
+                'Scan QR yang tampil di halaman ini.',
+                'Pastikan nominal pembayaran benar, lalu konfirmasi.',
+            ],
+        },
+    ],
+    'gopay': [
+        {
+            'title': 'GoPay',
+            'open': True,
+            'steps': [
+                'Scan QR yang tampil atau klik tombol lanjut pembayaran jika tersedia.',
+                'Buka aplikasi Gojek/GoPay dan konfirmasi pembayaran.',
+                'Pastikan nominal pembayaran benar.',
+                'Tunggu status UniTrade berubah otomatis setelah Midtrans mengonfirmasi pembayaran.',
+            ],
+        },
+    ],
+    'shopeepay': [
+        {
+            'title': 'ShopeePay',
+            'open': True,
+            'steps': [
+                'Klik tombol lanjut pembayaran jika tersedia.',
+                'Login atau buka aplikasi ShopeePay sesuai arahan Midtrans.',
+                'Pastikan nominal pembayaran benar, lalu konfirmasi.',
+                'Tunggu status UniTrade berubah otomatis setelah Midtrans mengonfirmasi pembayaran.',
+            ],
+        },
+    ],
+    'indomaret': [
+        {
+            'title': 'Indomaret',
+            'open': True,
+            'steps': [
+                'Catat kode pembayaran yang tampil di halaman ini.',
+                'Datang ke kasir Indomaret dan sebutkan pembayaran Midtrans.',
+                'Berikan kode pembayaran dan pastikan nominalnya benar.',
+                'Simpan struk pembayaran sampai status UniTrade berubah.',
+            ],
+        },
+    ],
+    'alfamart': [
+        {
+            'title': 'Alfamart / Alfamidi / Dan+Dan',
+            'open': True,
+            'steps': [
+                'Catat kode pembayaran yang tampil di halaman ini.',
+                'Datang ke kasir Alfamart, Alfamidi, atau Dan+Dan.',
+                'Berikan kode pembayaran dan pastikan nominalnya benar.',
+                'Simpan struk pembayaran sampai status UniTrade berubah.',
+            ],
+        },
+    ],
+}
+
+
+def _payment_method_instructions(key):
+    return PAYMENT_METHOD_INSTRUCTIONS.get(key) or [
+        {
+            'title': 'Selesaikan dari halaman pembayaran',
+            'open': True,
+            'steps': [
+                'Gunakan QR, nomor VA, kode pembayaran, atau tombol lanjut pembayaran yang tersedia.',
+                'Selesaikan pembayaran sesuai instruksi dari aplikasi bank/e-wallet.',
+                'Tunggu konfirmasi otomatis dari Midtrans ke UniTrade.',
+            ],
+        },
+    ]
+
+
+PAYMENT_METHOD_UI = {
+    key: {
+        'title': value['label'],
+        'label': value['label'],
+        'badge': value.get('badge') or value['channel_code'],
+        'logo': value.get('logo') or '',
+        'reference_label': value.get('reference_label') or 'Kode Pembayaran',
+        'type': value['type'],
+        'instructions': _payment_method_instructions(key),
+    }
+    for key, value in MIDTRANS_PAYMENT_METHODS.items()
+}
+
+
 class UnitradePaymentController(http.Controller):
+    def _get_midtrans_param(self, key_name, default=''):
+        return request.env['ir.config_parameter'].sudo().get_param(key_name, default=default)
 
-    @http.route('/unitrade/payment/webhook', type='json', auth='none', csrf=False, methods=['POST'])
-    def payment_webhook(self, **kwargs):
-        """Handle Midtrans payment notification webhook"""
-        data = request.jsonrequest
-        _logger.info('Midtrans webhook received: %s', json.dumps(data))
+    def _get_xendit_param(self, key_name, default=''):
+        return request.env['ir.config_parameter'].sudo().get_param(key_name, default=default)
 
-        order_id = data.get('order_id')
-        transaction_status = data.get('transaction_status')
-        fraud_status = data.get('fraud_status', 'accept')
-        signature_key = data.get('signature_key')
+    def _payment_provider_expiry_minutes(self, intent):
+        config = request.env['ir.config_parameter'].sudo()
+        if intent.provider == 'midtrans':
+            raw = config.get_param('unitrade.midtrans.payment_expiry_minutes', '30')
+            fallback = 30
+            minimum = 15
+        elif intent.provider == 'xendit':
+            raw = config.get_param('unitrade.xendit.payment_expiry_minutes', '30')
+            fallback = 30
+            minimum = 5
+        else:
+            raw = '30'
+            fallback = 30
+            minimum = 1
+        try:
+            minutes = int(raw)
+        except (TypeError, ValueError):
+            minutes = fallback
+        return max(minimum, min(minutes, 1440))
 
-        # Verify signature
-        server_key = request.env['ir.config_parameter'].sudo().get_param(
-            'unitrade.midtrans.server_key', ''
-        )
-        status_code = data.get('status_code', '')
-        gross_amount = data.get('gross_amount', '')
+    def _payment_effective_expires_at(self, intent):
+        dates = []
+        if intent.expires_at:
+            dates.append(intent.expires_at)
+        if intent.create_date and intent.provider in ('midtrans', 'xendit'):
+            dates.append(intent.create_date + timedelta(minutes=self._payment_provider_expiry_minutes(intent)))
+        return min(dates) if dates else False
 
-        expected_sig = hashlib.sha512(
-            f"{order_id}{status_code}{gross_amount}{server_key}".encode()
-        ).hexdigest()
-
-        if signature_key != expected_sig:
-            _logger.warning('Invalid Midtrans signature for order %s', order_id)
-            return {'status': 'error', 'message': 'Invalid signature'}
-
-        # Find and update order
-        order = request.env['sale.order'].sudo().search([('name', '=', order_id)], limit=1)
-        if not order:
-            _logger.error('Order not found: %s', order_id)
-            return {'status': 'error', 'message': 'Order not found'}
-
-        if transaction_status in ('capture', 'settlement'):
-            if fraud_status == 'accept':
-                order.write({
-                    'x_payment_status': 'paid',
-                    'x_payment_method': data.get('payment_type', ''),
-                    'x_paid_at': data.get('settlement_time'),
-                })
-                order.action_confirm()
-                _logger.info('Order %s paid successfully', order_id)
-        elif transaction_status in ('deny', 'cancel'):
-            order.write({'x_payment_status': 'failed'})
-        elif transaction_status == 'expire':
+    def _sync_payment_timeout(self, intent):
+        if not intent or intent.state != 'pending':
+            return intent
+        expires_at = self._payment_effective_expires_at(intent)
+        if not expires_at or expires_at > fields.Datetime.now():
+            return intent
+        minutes = self._payment_provider_expiry_minutes(intent)
+        intent.sudo().write({
+            'state': 'expired',
+            'error_message': _('Waktu pembayaran %s menit sudah habis.') % minutes,
+        })
+        if intent.intent_type == 'listing_fee' and hasattr(intent, '_archive_unpaid_listing_fee_products'):
+            intent._archive_unpaid_listing_fee_products()
+        order = intent.sale_order_id.sudo()
+        if order and order.x_payment_status == 'pending':
             order.write({'x_payment_status': 'expired'})
-        elif transaction_status == 'pending':
-            order.write({'x_payment_status': 'pending'})
+        return intent
 
-        return {'status': 'ok'}
+    def _json_response(self, payload, status=200):
+        return request.make_response(
+            json.dumps(payload, ensure_ascii=False),
+            headers=[('Content-Type', 'application/json')],
+            status=status,
+        )
 
     def _check_marketplace_access(self, feature_label):
         user = request.env.user
@@ -1604,6 +1784,14 @@ class UnitradePaymentController(http.Controller):
 
     @http.route('/unitrade/payment/finish', type='http', auth='public', website=True, sitemap=False)
     def payment_finish(self, **kwargs):
-        """Payment finish redirect page"""
-        values = {'page_title': 'Pembayaran — UniTrade'}
-        return request.render('unitrade_payment.payment_finish_template', values)
+        reference = kwargs.get('reference_id') or kwargs.get('order_id') or kwargs.get('transaction_id') or kwargs.get('external_id') or kwargs.get('invoice_id')
+        if reference:
+            intent = self._payment_intent_by_reference(reference)
+            if intent:
+                return request.redirect('/unitrade/payment/instructions/%s' % self._intent_reference_key(intent))
+        order_id = request.session.get('sale_last_order_id')
+        if order_id:
+            order = request.env['sale.order'].sudo().browse(order_id)
+            if order.exists() and order.x_payment_intent_id:
+                return request.redirect('/unitrade/payment/instructions/%s' % self._intent_reference_key(order.x_payment_intent_id))
+        return request.redirect('/shop')
