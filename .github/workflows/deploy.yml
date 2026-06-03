@@ -23,7 +23,7 @@ jobs:
         with:
             node-version: 24
         run: npm ci
-        run: npm test
+             npm test
 
       - name: Install dependencies
         run: npm rebuild
