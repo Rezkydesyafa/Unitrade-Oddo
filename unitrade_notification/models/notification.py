@@ -1,8 +1,16 @@
+import copy
 import hashlib
 import logging
+import re
+import traceback
 from datetime import timedelta
+from urllib.parse import urlparse
+
+from psycopg2 import IntegrityError
 
 from odoo import _, api, fields, models, tools
+
+from .event_registry import CRITICAL_CATEGORIES, EVENT_REGISTRY
 
 _logger = logging.getLogger(__name__)
 
@@ -116,15 +124,9 @@ _SENSITIVE_KEYS = frozenset({
 class UnitradeNotification(models.Model):
     _name = 'unitrade.notification'
     _description = 'UniTrade System Notification'
-<<<<<<< HEAD
     # Unread first for admin/user inboxes; ``id desc`` is the deterministic
     # tie-breaker used by list query invariants.
     _order = 'is_read asc, create_date desc, id desc'
-=======
-    # Newest first; ``id desc`` is the deterministic tie-breaker used by
-    # Property 5 (List Query Invariants).
-    _order = 'create_date desc, id desc'
->>>>>>> origin/main
 
     # ------------------------------------------------------------------
     # Identity / addressing
@@ -136,7 +138,6 @@ class UnitradeNotification(models.Model):
         ondelete='cascade',
         index=True,
     )
-<<<<<<< HEAD
     audience = fields.Selection(
         [
             ('user', 'User'),
@@ -147,8 +148,6 @@ class UnitradeNotification(models.Model):
         default='user',
         index=True,
     )
-=======
->>>>>>> origin/main
     title = fields.Char(string='Judul', required=True)
     message = fields.Text(string='Pesan')
 
@@ -186,19 +185,15 @@ class UnitradeNotification(models.Model):
             ('payment', 'Pembayaran'),
             ('delivery', 'Pengiriman'),
             ('chat', 'Chat'),
-<<<<<<< HEAD
             ('moderation', 'Moderasi'),
             ('refund', 'Refund'),
             ('payout', 'Payout'),
-=======
->>>>>>> origin/main
             ('system', 'Sistem'),
         ],
         string='Tipe (legacy)',
         default='system',
         help="Backward-compatible coarse type derived from `category`.",
     )
-<<<<<<< HEAD
     priority = fields.Selection(
         [
             ('info', 'Info'),
@@ -210,8 +205,6 @@ class UnitradeNotification(models.Model):
         default='info',
         index=True,
     )
-=======
->>>>>>> origin/main
 
     # ------------------------------------------------------------------
     # Reference to the originating business object
@@ -224,14 +217,11 @@ class UnitradeNotification(models.Model):
              "when the notification is clicked. Validated by the "
              "dispatcher against the configured allow-list.",
     )
-<<<<<<< HEAD
     target_model = fields.Char(string='Target Model', index=True)
     target_id = fields.Integer(string='Target ID', index=True)
     target_url = fields.Char(string='Target URL')
     action_xmlid = fields.Char(string='Action XMLID')
     dedupe_key = fields.Char(string='Dedupe Key', copy=False, index=True)
-=======
->>>>>>> origin/main
 
     # ------------------------------------------------------------------
     # Read state
@@ -241,7 +231,6 @@ class UnitradeNotification(models.Model):
         default=False,
         index=True,
     )
-<<<<<<< HEAD
     read_at = fields.Datetime(string='Dibaca pada', copy=False)
     read_by_id = fields.Many2one(
         'res.users',
@@ -249,9 +238,6 @@ class UnitradeNotification(models.Model):
         readonly=True,
         copy=False,
     )
-=======
-    read_at = fields.Datetime(string='Dibaca pada')
->>>>>>> origin/main
 
     # ------------------------------------------------------------------
     # Idempotency
@@ -296,14 +282,11 @@ class UnitradeNotification(models.Model):
             'UNIQUE(user_id, idempotency_key)',
             'Notifikasi duplikat untuk user yang sama tidak diperbolehkan.',
         ),
-<<<<<<< HEAD
         (
             'unitrade_notification_dedupe_unique',
             'UNIQUE(user_id, audience, dedupe_key)',
             'Notifikasi dengan dedupe key yang sama sudah ada untuk user ini.',
         ),
-=======
->>>>>>> origin/main
     ]
 
     # ------------------------------------------------------------------
@@ -346,7 +329,6 @@ class UnitradeNotification(models.Model):
         their original behaviour (Req 1.7 / Property 2).
         """
         for vals in vals_list:
-<<<<<<< HEAD
             if vals.get('target_model') and not vals.get('reference_model'):
                 vals['reference_model'] = vals['target_model']
             if vals.get('target_id') and not vals.get('reference_id'):
@@ -357,8 +339,6 @@ class UnitradeNotification(models.Model):
                 vals['idempotency_key'] = vals['dedupe_key']
             vals.setdefault('category', 'system')
             vals.setdefault('event_code', 'system.announcement')
-=======
->>>>>>> origin/main
             # Only auto-fill when the caller did not provide a value at
             # all. ``False`` / empty string is treated as "not provided"
             # because Odoo sometimes serialises missing Selection values
@@ -372,7 +352,6 @@ class UnitradeNotification(models.Model):
                 vals['notification_type'] = mapped
         return super().create(vals_list)
 
-<<<<<<< HEAD
     def write(self, vals):
         vals = dict(vals)
         if vals.get('target_model') and not vals.get('reference_model'):
@@ -385,8 +364,6 @@ class UnitradeNotification(models.Model):
             vals['idempotency_key'] = vals['dedupe_key']
         return super().write(vals)
 
-=======
->>>>>>> origin/main
     # ------------------------------------------------------------------
     # User-facing actions
     # ------------------------------------------------------------------
@@ -405,10 +382,7 @@ class UnitradeNotification(models.Model):
             unread.write({
                 'is_read': True,
                 'read_at': fields.Datetime.now(),
-<<<<<<< HEAD
                 'read_by_id': self.env.user.id,
-=======
->>>>>>> origin/main
             })
 
     # ------------------------------------------------------------------
@@ -1547,7 +1521,6 @@ class UnitradeNotification(models.Model):
             emitted, len(candidates),
         )
         return emitted
-<<<<<<< HEAD
 
     def action_mark_unread(self):
         self.write({
@@ -1668,5 +1641,3 @@ class UnitradeNotification(models.Model):
         except Exception:
             _logger.exception('Failed humanizing notification time')
             return ''
-=======
->>>>>>> origin/main

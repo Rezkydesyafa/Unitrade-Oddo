@@ -55,6 +55,14 @@
         </xpath>
     </template>
 
+    <template id="notification_frontend_fallback_css"
+              inherit_id="web.frontend_layout"
+              name="UniTrade Notification Static Fallback CSS">
+        <xpath expr="//t[@t-call-assets='web.assets_frontend']" position="after">
+            <link rel="stylesheet" href="/unitrade_notification/static/src/css/notification.css?v=20260604"/>
+        </xpath>
+    </template>
+
     <!-- ======================================================================
          Template 1: Notification Center page
          ====================================================================== -->
