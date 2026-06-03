@@ -6,7 +6,53 @@ on:
       - main
 
 jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Tailwind CSS
+        run: npm run build
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Convert repo name to lowercase
+        id: repo_name
+        run: echo "IMAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ steps.repo_name.outputs.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   deploy:
+    needs: build-and-push
     runs-on: ubuntu-latest
 
     steps:
@@ -18,8 +64,13 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /root/unitrade-app
+            
+            # Login to GHCR on VPS using a dynamic/temporary runner token
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
+            # Pull config changes on VPS (updates docker-compose.prod.yml)
             git pull origin main
 
-            docker compose down
-            docker compose up -d --build
+            # Pull and restart using production compose file
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d
