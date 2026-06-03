@@ -17,6 +17,14 @@
         </xpath>
     </template>
 
+    <template id="chat_frontend_fallback_css"
+              inherit_id="web.frontend_layout"
+              name="UniTrade Chat Static Fallback CSS">
+        <xpath expr="//t[@t-call-assets='web.assets_frontend']" position="after">
+            <link rel="stylesheet" href="/unitrade_chat/static/src/css/chat.css?v=20260604"/>
+        </xpath>
+    </template>
+
     <template id="chat_page_template" name="UniTrade Chat Page">
         <t t-call="website.layout">
             <t t-if="seller_dashboard_chat">
