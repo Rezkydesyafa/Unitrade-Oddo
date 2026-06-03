@@ -117,14 +117,11 @@ class UnitradeAuthSignup(OAuthLogin):
                 )
 
                 if user_sudo:
-<<<<<<< HEAD
                     if _is_phone(login_value) and user_sudo.partner_id:
                         user_sudo.partner_id.sudo().write({
                             'phone': user_sudo.partner_id.phone or login_value,
                             'mobile': user_sudo.partner_id.mobile or login_value,
                         })
-=======
->>>>>>> origin/main
                     user_sudo.unitrade_record_security_activity(
                         'register',
                         title=_('Akun dibuat'),

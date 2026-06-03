@@ -33,7 +33,6 @@ class UnitradeCheckout(WebsiteSale):
     def _unitrade_checkout_address_message(self):
         return 'Tambahkan alamat terlebih dahulu sebelum melanjutkan pembayaran.'
 
-<<<<<<< HEAD
     def _unitrade_marketplace_block_message(self, feature_label):
         user = request.env.user
         if user._is_public() or not hasattr(user, '_check_unitrade_marketplace_access'):
@@ -44,8 +43,6 @@ class UnitradeCheckout(WebsiteSale):
             return error.args[0] if error.args else str(error)
         return ''
 
-=======
->>>>>>> origin/main
     def _unitrade_partner_has_checkout_address(self, partner):
         summary = self._unitrade_partner_address_summary(partner)
         return bool(summary.get('has_address'))
@@ -117,12 +114,9 @@ class UnitradeCheckout(WebsiteSale):
             return {'success': False, 'message': _('Keranjang tidak tersedia.')}
         if not request.env.user._is_public() and order.partner_id.commercial_partner_id != request.env.user.partner_id.commercial_partner_id:
             return {'success': False, 'message': _('Anda tidak memiliki akses ke keranjang ini.')}
-<<<<<<< HEAD
         block_message = self._unitrade_marketplace_block_message(_('menggunakan voucher checkout'))
         if block_message:
             return {'success': False, 'message': block_message}
-=======
->>>>>>> origin/main
         try:
             order.sudo()._unitrade_apply_voucher_code(code)
             try:
@@ -143,12 +137,9 @@ class UnitradeCheckout(WebsiteSale):
             return {'success': False, 'message': _('Keranjang tidak tersedia.')}
         if not request.env.user._is_public() and order.partner_id.commercial_partner_id != request.env.user.partner_id.commercial_partner_id:
             return {'success': False, 'message': _('Anda tidak memiliki akses ke keranjang ini.')}
-<<<<<<< HEAD
         block_message = self._unitrade_marketplace_block_message(_('menggunakan voucher checkout'))
         if block_message:
             return {'success': False, 'message': block_message}
-=======
->>>>>>> origin/main
         try:
             order.sudo()._unitrade_remove_voucher()
             try:
@@ -217,7 +208,6 @@ class UnitradeCheckout(WebsiteSale):
         if post.get('xhr'):
             return 'ok'
 
-<<<<<<< HEAD
         block_message = self._unitrade_marketplace_block_message(_('melanjutkan checkout'))
         if block_message:
             post = {
@@ -225,8 +215,6 @@ class UnitradeCheckout(WebsiteSale):
                 'checkout_error_message': block_message,
             }
 
-=======
->>>>>>> origin/main
         post = self._unitrade_prepare_checkout_or_error(order, post)
         values = self._unitrade_checkout_values(order, post)
         return request.render("unitrade_theme.unitrade_checkout_page", values)
@@ -237,7 +225,6 @@ class UnitradeCheckout(WebsiteSale):
         if not order:
             return request.redirect('/shop')
 
-<<<<<<< HEAD
         block_message = self._unitrade_marketplace_block_message(_('melanjutkan checkout'))
         if block_message:
             post = {
@@ -245,8 +232,6 @@ class UnitradeCheckout(WebsiteSale):
                 'checkout_error_message': block_message,
             }
 
-=======
->>>>>>> origin/main
         post = self._unitrade_prepare_checkout_or_error(order, post)
         values = self._unitrade_checkout_values(order, post)
         return request.render("unitrade_theme.unitrade_checkout_page", values)
@@ -256,7 +241,6 @@ class UnitradeCheckout(WebsiteSale):
         order = request.website.sale_get_order()
         if not order or order.state != 'draft':
             return request.redirect('/shop')
-<<<<<<< HEAD
 
         block_message = self._unitrade_marketplace_block_message(_('membuat pembayaran checkout'))
         if block_message:
@@ -265,8 +249,6 @@ class UnitradeCheckout(WebsiteSale):
                 'checkout_error_message': block_message,
             })
             return request.render("unitrade_theme.unitrade_checkout_page", values)
-=======
->>>>>>> origin/main
         
         # Ensure shipping address exists to pass Odoo's validation
         if not order.partner_shipping_id:
