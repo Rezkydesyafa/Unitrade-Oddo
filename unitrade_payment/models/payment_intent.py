@@ -85,6 +85,14 @@ class UnitradePaymentIntent(models.Model):
         ('doku_invoice_unique', 'unique(doku_invoice_number)', 'Invoice DOKU harus unik.'),
     ]
 
+    def _listing_fee_expires_at(self):
+        config = self.env['ir.config_parameter'].sudo()
+        try:
+            days = int(float(config.get_param('unitrade.seller.listing_fee.validity_days', 30) or 30))
+        except (TypeError, ValueError):
+            days = 30
+        return fields.Datetime.now() + timedelta(days=max(1, days))
+
     def _publish_listing_fee_product(self):
         for intent in self.sudo():
             product = intent.product_template_id
@@ -107,7 +115,17 @@ class UnitradePaymentIntent(models.Model):
             if 'x_listing_activated_at' in product._fields:
                 values['x_listing_activated_at'] = paid_at
             if 'x_listing_expires_at' in product._fields:
-                values['x_listing_expires_at'] = paid_at + timedelta(days=30)
+                values['x_listing_expires_at'] = intent._listing_fee_expires_at()
+            if 'detailed_type' in product._fields:
+                values['detailed_type'] = 'consu'
+            elif 'type' in product._fields:
+                values['type'] = 'consu'
+            if 'x_listing_fee_status' in product._fields:
+                values['x_listing_fee_status'] = 'paid'
+            if 'x_listing_fee_payment_id' in product._fields:
+                values['x_listing_fee_payment_id'] = intent.id
+            if 'x_listing_fee_paid_at' in product._fields:
+                values['x_listing_fee_paid_at'] = paid_at
             product.sudo().write(values)
             _logger.info('Published listing fee product %s after payment intent %s paid', product.id, intent.id)
 
@@ -166,16 +184,37 @@ class UnitradePaymentIntent(models.Model):
         _logger.info('UniTrade listing fee expiry cron completed: expired=%s', expired_count)
         return expired_count
 
+    def _mark_listing_fee_pending(self):
+        """Sync product fee status when intent moves to pending/failed/expired states."""
+        for intent in self.sudo():
+            product = intent.product_template_id
+            if intent.intent_type != 'listing_fee' or not product:
+                continue
+            if 'x_listing_fee_status' not in product._fields:
+                continue
+            new_status = None
+            if intent.state == 'pending':
+                new_status = 'pending'
+            elif intent.state in ('failed', 'expired', 'cancelled'):
+                new_status = 'failed'
+            if new_status and product.x_listing_fee_status not in ('paid', 'waived'):
+                product.sudo().write({'x_listing_fee_status': new_status})
+
     def write(self, vals):
         result = super().write(vals)
         if vals.get('state') == 'paid':
             self._publish_listing_fee_product()
+        elif 'state' in vals and vals.get('state') in ('pending', 'failed', 'expired', 'cancelled'):
+            self._mark_listing_fee_pending()
         return result
 
     @api.model_create_multi
     def create(self, vals_list):
         intents = super().create(vals_list)
         intents.filtered(lambda intent: intent.state == 'paid')._publish_listing_fee_product()
+        intents.filtered(
+            lambda intent: intent.state in ('pending', 'failed', 'expired', 'cancelled')
+        )._mark_listing_fee_pending()
         return intents
 
     def _set_raw_request(self, payload):

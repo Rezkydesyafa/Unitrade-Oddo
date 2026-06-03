@@ -5,7 +5,7 @@ from datetime import timedelta
 import requests
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessDenied, UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -69,6 +69,81 @@ class UnitradeEscrowLedger(models.Model):
     )
     buyer_received_filename = fields.Char(string='Nama File Bukti Buyer', copy=False, readonly=True)
     note = fields.Text()
+
+    # ------------------------------------------------------------------
+    # Security & audit helpers
+    # ------------------------------------------------------------------
+    def _is_unitrade_admin(self):
+        user = self.env.user
+        return (
+            user.has_group('unitrade_seller.group_unitrade_admin')
+            or user.has_group('base.group_system')
+        )
+
+    def _check_admin(self, action_label):
+        if not self._is_unitrade_admin():
+            _logger.warning(
+                'Escrow ledger: unauthorized %s attempt by uid=%s login=%s',
+                action_label, self.env.uid, self.env.user.login,
+            )
+            raise AccessDenied(_('Aksi ini hanya boleh dilakukan oleh admin UniTrade.'))
+
+    def _audit(self, action, description, severity='info', payload=None):
+        """Write an entry to unitrade.admin.audit.log if the model exists."""
+        if 'unitrade.admin.audit.log' not in self.env.registry:
+            return
+        AuditLog = self.env['unitrade.admin.audit.log']
+        for ledger in self:
+            try:
+                AuditLog.sudo().log_action(
+                    action,
+                    description=description,
+                    record=ledger,
+                    severity=severity,
+                    payload=payload,
+                )
+            except Exception:  # noqa: BLE001
+                _logger.exception('Failed to write escrow audit log: %s', action)
+
+    def _manual_action_reason(self):
+        reason = (self.env.context.get('unitrade_manual_reason') or '').strip()
+        if not reason:
+            raise UserError(_('Alasan aksi manual escrow wajib diisi.'))
+        return reason
+
+    def _open_manual_action_wizard(self, action_type, title):
+        self._check_admin(action_type)
+        if not self:
+            raise UserError(_('Pilih minimal satu escrow ledger.'))
+        return {
+            'type': 'ir.actions.act_window',
+            'name': title,
+            'res_model': 'unitrade.escrow.manual.action.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_action_type': action_type,
+                'default_ledger_ids': [(6, 0, self.ids)],
+            },
+        }
+
+    def action_open_mark_releasable_wizard(self):
+        ledgers = self.filtered(lambda ledger: ledger.state == 'held')
+        if not ledgers:
+            raise UserError(_('Tidak ada escrow berstatus Held yang bisa ditandai releasable.'))
+        return ledgers._open_manual_action_wizard(
+            'mark_releasable',
+            _('Alasan Tandai Escrow Releasable'),
+        )
+
+    def action_open_mark_released_wizard(self):
+        ledgers = self.filtered(lambda ledger: ledger.state == 'releasable')
+        if not ledgers:
+            raise UserError(_('Tidak ada escrow berstatus Releasable yang bisa ditandai released.'))
+        return ledgers._open_manual_action_wizard(
+            'mark_released',
+            _('Alasan Release Manual Escrow'),
+        )
 
     def _seller_from_line(self, line):
         seller = line.product_id.product_tmpl_id.x_seller_id if hasattr(line.product_id.product_tmpl_id, 'x_seller_id') else False
@@ -158,6 +233,25 @@ class UnitradeEscrowLedger(models.Model):
             ledgers |= ledger
 
         return ledgers
+
+    @api.model
+    def ensure_for_order(self, order):
+        """Return existing ledgers for an order or create them from its active intent."""
+        order = order.sudo()
+        payment_intent = order.x_payment_intent_id.sudo() if order.x_payment_intent_id else False
+        if not payment_intent:
+            return self.browse()
+
+        existing = self.sudo().search([
+            ('order_id', '=', order.id),
+            ('payment_intent_id', '=', payment_intent.id),
+        ])
+        if existing:
+            return existing
+
+        if order.x_payment_status != 'paid' and payment_intent.state != 'paid':
+            return self.browse()
+        return self._create_for_order(order, payment_intent)
 
     def _sync_order_escrow_state(self):
         orders = self.sudo().mapped('order_id')
@@ -325,17 +419,53 @@ class UnitradeEscrowLedger(models.Model):
         return True
 
     def action_mark_releasable(self):
+        self._check_admin('mark_releasable')
+        reason = self._manual_action_reason()
         ledgers = self.filtered(lambda ledger: ledger.state == 'held')
         ledgers.write({'state': 'releasable'})
         ledgers._sync_order_escrow_state()
+        for ledger in ledgers:
+            ledger._audit(
+                'escrow.mark_releasable',
+                _('Escrow %s ditandai releasable oleh %s. Alasan: %s') % (
+                    ledger.name, self.env.user.name, reason,
+                ),
+                severity='info',
+                payload={
+                    'order_id': ledger.order_id.id,
+                    'order_name': ledger.order_id.name,
+                    'seller_id': ledger.seller_id.id,
+                    'amount_seller': ledger.amount_seller,
+                    'reason': reason,
+                },
+            )
+        return True
 
     def action_mark_released(self):
+        self._check_admin('mark_released')
+        reason = self._manual_action_reason()
         ledgers = self.filtered(lambda ledger: ledger.state == 'releasable')
         ledgers.write({
             'state': 'released',
             'released_at': fields.Datetime.now(),
         })
         ledgers._sync_order_escrow_state()
+        for ledger in ledgers:
+            ledger._audit(
+                'escrow.release',
+                _('Escrow %s direlease manual oleh %s sejumlah %s. Alasan: %s') % (
+                    ledger.name, self.env.user.name, ledger.amount_seller, reason,
+                ),
+                severity='warning',
+                payload={
+                    'order_id': ledger.order_id.id,
+                    'order_name': ledger.order_id.name,
+                    'seller_id': ledger.seller_id.id,
+                    'amount_seller': ledger.amount_seller,
+                    'reason': reason,
+                },
+            )
+        return True
 
     def _get_xendit_param(self, key_name, default=''):
         return self.env['ir.config_parameter'].sudo().get_param(key_name, default=default)
@@ -368,6 +498,7 @@ class UnitradeEscrowLedger(models.Model):
         }
 
     def action_create_xendit_payout(self):
+        self._check_admin('create_xendit_payout')
         secret_key = self._get_xendit_param('unitrade.xendit.secret_key')
         if not secret_key:
             raise UserError(_('Konfigurasi Xendit belum lengkap. Isi Secret Key di System Parameters.'))
@@ -424,3 +555,89 @@ class UnitradeEscrowLedger(models.Model):
                 })
             ledger.write(write_values)
             ledger._sync_order_escrow_state()
+            ledger._audit(
+                'escrow.payout.create',
+                _('Payout Xendit %s dibuat oleh %s status=%s amount=%s.') % (
+                    write_values.get('xendit_payout_id') or '-',
+                    self.env.user.name,
+                    write_values.get('payout_status'),
+                    ledger.amount_seller,
+                ),
+                severity='warning',
+                payload={
+                    'order_id': ledger.order_id.id,
+                    'order_name': ledger.order_id.name,
+                    'seller_id': ledger.seller_id.id,
+                    'amount_seller': ledger.amount_seller,
+                    'reference': reference,
+                    'xendit_payout_id': write_values.get('xendit_payout_id'),
+                    'status_initial': status,
+                },
+            )
+
+
+    # ------------------------------------------------------------------
+    # Manual payout integration (server action target)
+    # ------------------------------------------------------------------
+    def action_create_seller_payout(self):
+        """Server action: create draft payout from selected ledgers (one per seller)."""
+        self._check_admin('create_seller_payout')
+        if not self:
+            raise UserError(_('Pilih minimal satu ledger.'))
+
+        # Validate all ledgers are eligible
+        invalid = self.filtered(
+            lambda l: l.state != 'releasable' or l.payout_status in ('succeeded', 'processing')
+        )
+        if invalid:
+            raise UserError(_(
+                'Beberapa ledger tidak releasable atau payout-nya sudah diproses: %s'
+            ) % ', '.join(invalid.mapped('name') or []))
+
+        no_seller = self.filtered(lambda l: not l.seller_id)
+        if no_seller:
+            raise UserError(_('Ledger %s tidak punya seller. Tidak bisa dibuatkan payout.')
+                            % ', '.join(no_seller.mapped('name') or []))
+
+        # Group per seller
+        Payout = self.env['unitrade.seller.payout']
+        sellers = {}
+        for ledger in self:
+            sellers.setdefault(ledger.seller_id.id, self.browse())
+            sellers[ledger.seller_id.id] |= ledger
+
+        created = self.env['unitrade.seller.payout']
+        for seller_id, ledgers in sellers.items():
+            # Cek ledger yang sudah masuk payout aktif
+            existing = Payout.search([
+                ('seller_id', '=', seller_id),
+                ('state', 'in', ('draft', 'ready', 'paid')),
+                ('ledger_ids', 'in', ledgers.ids),
+            ])
+            if existing:
+                used_ledgers = existing.mapped('ledger_ids') & ledgers
+                raise UserError(_(
+                    'Ledger berikut sudah masuk payout aktif: %s'
+                ) % ', '.join(used_ledgers.mapped('name') or []))
+
+            payout = Payout.create({
+                'seller_id': seller_id,
+                'ledger_ids': [(6, 0, ledgers.ids)],
+            })
+            created |= payout
+
+        if len(created) == 1:
+            return {
+                'type': 'ir.actions.act_window',
+                'res_model': 'unitrade.seller.payout',
+                'res_id': created.id,
+                'view_mode': 'form',
+                'target': 'current',
+            }
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'unitrade.seller.payout',
+            'view_mode': 'tree,form',
+            'domain': [('id', 'in', created.ids)],
+            'target': 'current',
+        }

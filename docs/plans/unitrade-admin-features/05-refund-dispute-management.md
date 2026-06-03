@@ -8,6 +8,23 @@ Last reviewed: 2026-05-18
 
 Refund/dispute sudah diimplementasikan sebagian lewat `unitrade_dispute`. Model `unitrade.dispute` sudah punya state `draft`, `submitted`, `under_review`, `need_buyer_evidence`, `need_seller_response`, `approved`, `rejected`, `resolved`, `cancelled`; relation ke order, order line, payment intent, escrow ledger, buyer, seller; amount; admin; decision note; dan evidence. Controller sudah menyediakan buyer refund form, upload photo/video terbatas, Google Drive validation, detail page, evidence download, dan seller response.
 
+## Progress per 2026-05-24
+
+- [x] Group gate `_check_admin()` di action: `start_review`, `need_buyer_evidence`, `need_seller_response`, `approve_refund`, `reject_refund`, `cancel`
+- [x] Audit log call `unitrade.admin.audit.log` dari setiap aksi admin (info/warning sesuai severity)
+- [x] **Evidence policy enforcement** di `action_approve_refund`: reason `damaged`/`not_as_described`/`wrong_item` wajib punya minimal 1 evidence (photo/unboxing video/packing video/Google Drive URL). Reason `seller_no_handoff` boleh tanpa physical evidence.
+- [x] **`admin_decision_note` wajib** sebelum approve / reject (raise UserError kalau kosong)
+- [x] **SLA fields**: `buyer_response_deadline_at`, `seller_response_deadline_at`, `decision_deadline_at`, computed `is_overdue` + search filter
+- [x] Default SLA dari `ir.config_parameter`: `unitrade.refund.buyer_evidence_hours=48`, `unitrade.dispute_response_hours=48`, `unitrade.refund.decision_hours=72`
+- [x] Auto-set deadline saat state berubah (`submitted` → decision deadline; `need_buyer_evidence` → buyer deadline; `need_seller_response` → seller deadline)
+- [x] **Mail templates**: dispute submitted, need_buyer_evidence, need_seller_response, approved, rejected (dikirim ke buyer/seller email)
+- [x] Form view: tab Timeline ditambah grup SLA / Deadline + indikator overdue
+- [x] Search filter "Lewat SLA"
+- [x] Tree view: kolom is_overdue + deadline (optional)
+- [x] Task queue admin: grup baru "Refund Lewat SLA" untuk overdue cases
+- [ ] Backend smart button dari dispute ke audit log (TBD setelah `unitrade_admin` audit log model dilengkapi search view)
+- [ ] Cron job untuk auto-escalate overdue (mengirim reminder ke admin) — bisa ditambah nanti
+
 Koreksi plan:
 
 - Jangan membuat ulang `unitrade_dispute`; harden model dan view yang sudah ada.

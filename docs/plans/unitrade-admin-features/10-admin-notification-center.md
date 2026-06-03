@@ -1,12 +1,25 @@
 # Admin Notification Center Plan
 
-Status: Updated after source audit
+Status: MVP implemented
 Priority: P2
-Last reviewed: 2026-05-18
+Last reviewed: 2026-05-24
+
+## Progress per 2026-05-24
+
+- [x] Extend `unitrade.notification` dengan `audience`, `priority`, target model/id/url, `action_xmlid`, `dedupe_key`, `read_at`, dan `read_by_id`.
+- [x] Helper `create_admin_notification()` dengan dedupe supaya task yang sama tidak membuat spam.
+- [x] Admin topbar memakai notifikasi persistent dari database, bukan localStorage.
+- [x] API mark read dan mark all read.
+- [x] Halaman inbox `/unitrade/admin/notifications` dengan filter unread/read dan priority.
+- [x] Backend action/menu `Notifikasi Admin` untuk model `unitrade.notification`.
+- [x] Sinkronisasi MVP dari `get_task_queue()`: KTM/manual review, reported seller, refund/dispute, payout, escrow stuck, listing fee pending, order overdue, flagged order.
+- [ ] Event hook langsung dari setiap aksi/domain source saat record dibuat/berubah. Saat ini MVP memakai sync dari task queue agar tetap konsisten dengan source of truth.
+- [ ] Dedupe lifecycle lebih halus untuk resolved task, misalnya badge "resolved" alih-alih hanya auto-read.
+- [ ] Assignment/ownership per admin/CS jika nanti workflow butuh pembagian kerja.
 
 ## Update 2026-05-18
 
-`unitrade.notification` sudah ada, tetapi modelnya masih user-centric: `user_id`, title, message, type, read flag, reference model/id. Ini bisa diperluas untuk admin notification center tanpa membuat model baru dulu, selama ditambah field audience/admin priority dan helper create notification.
+`unitrade.notification` sudah ada, tetapi modelnya masih user-centric: `user_id`, title, message, type, read flag, reference model/id. Ini sekarang diperluas untuk admin notification center tanpa membuat model baru.
 
 Koreksi plan:
 

@@ -4,7 +4,7 @@
     'summary': 'GoSend delivery integration with GPS tracking',
     'author': 'Tim 1 - UNISA Yogyakarta',
     'category': 'Inventory/Delivery',
-    'depends': ['sale', 'unitrade_payment'],
+    'depends': ['sale', 'mail', 'unitrade_payment'],
     'data': [
         'security/ir.model.access.csv',
         'views/delivery_views.xml',

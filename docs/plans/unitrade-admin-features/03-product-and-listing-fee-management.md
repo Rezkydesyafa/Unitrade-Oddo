@@ -8,6 +8,24 @@ Last reviewed: 2026-05-18
 
 Product dan listing fee sudah ada sebagian. `product.template` sudah punya `x_is_marketplace`, `x_seller_id`, `x_listing_fee`, `x_listing_expires_at`, stock field, publish/unpublish action, dan backend view `Produk Marketplace`. Seller website flow juga membuat produk draft unpublished lalu membuat `unitrade.payment.intent` dengan `intent_type = listing_fee`; produk publish setelah intent paid.
 
+## Progress per 2026-05-24
+
+- [x] Field operasional `x_listing_status` (computed): draft/fee_pending/published/rejected/archived/expired
+- [x] Field operasional `x_listing_fee_status`: not_required/unpaid/pending/paid/failed/waived
+- [x] Smart link ke payment intent: `x_listing_fee_payment_id`
+- [x] Field audit waive: `x_listing_fee_waived_by_id`, `x_listing_fee_waive_reason`, `x_listing_fee_paid_at`
+- [x] Field audit reject: `x_listing_rejected_by_id`, `x_listing_rejection_reason`
+- [x] **Wizard `unitrade.product.waive.wizard`**: alasan wajib, opsional auto-publish, audit log severity warning
+- [x] **Wizard `unitrade.product.reject.wizard`**: alasan wajib, set fee_status=failed + unpublish, audit log severity critical
+- [x] Header buttons admin: Waive Fee + Reject Listing (group-gated)
+- [x] Sync otomatis dari `unitrade.payment.intent`: paid → fee_status=paid + paid_at; pending/failed → fee_status pending/failed
+- [x] Tree view: kolom `x_listing_status` + `x_listing_fee_status` (badge, optional show)
+- [x] Search filter berdasarkan listing status & fee status
+- [x] Group By: Status Listing & Status Fee
+- [x] Group gate `_check_admin()` di `action_unitrade_publish_admin` / `action_unitrade_unpublish_admin`
+- [x] Audit log call dari semua admin action
+- [ ] Smart button dari product ke payment intent listing fee (form view sudah punya field, tinggal button)
+
 Koreksi terhadap plan lama:
 
 - Plan lama mengusulkan tier persentase `unitrade.listing.fee.tier`, tetapi source saat ini memakai config sederhana: `unitrade.seller.listing_fee.threshold`, `unitrade.seller.listing_fee.low_amount`, `unitrade.seller.listing_fee.high_amount`, dan `unitrade.seller.posting_admin_fee`.

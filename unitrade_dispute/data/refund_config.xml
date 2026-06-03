@@ -4,4 +4,17 @@
         <value>unitrade.refund.max_upload_mb</value>
         <value>25</value>
     </function>
+    <!-- SLA defaults (jam) -->
+    <function model="ir.config_parameter" name="set_param">
+        <value>unitrade.refund.buyer_evidence_hours</value>
+        <value>48</value>
+    </function>
+    <function model="ir.config_parameter" name="set_param">
+        <value>unitrade.dispute_response_hours</value>
+        <value>48</value>
+    </function>
+    <function model="ir.config_parameter" name="set_param">
+        <value>unitrade.refund.decision_hours</value>
+        <value>72</value>
+    </function>
 </odoo>

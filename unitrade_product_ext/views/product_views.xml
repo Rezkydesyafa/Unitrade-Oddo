@@ -48,6 +48,17 @@
                 <field name="x_listing_fee" optional="hide"/>
                 <field name="x_listing_activated_at" optional="hide"/>
                 <field name="x_listing_expires_at" optional="hide"/>
+                <field name="x_listing_status" widget="badge"
+                       decoration-info="x_listing_status == 'draft'"
+                       decoration-warning="x_listing_status in ('fee_pending', 'expired')"
+                       decoration-success="x_listing_status == 'published'"
+                       decoration-danger="x_listing_status in ('rejected', 'archived')"
+                       optional="show"/>
+                <field name="x_listing_fee_status" widget="badge"
+                       decoration-warning="x_listing_fee_status in ('unpaid', 'pending')"
+                       decoration-success="x_listing_fee_status in ('paid', 'waived')"
+                       decoration-danger="x_listing_fee_status == 'failed'"
+                       optional="show"/>
                 <field name="website_published" widget="boolean_toggle"/>
                 <field name="sale_ok" widget="boolean_toggle" optional="hide"/>
                 <field name="create_date" optional="hide"/>
@@ -70,6 +81,16 @@
                         type="object"
                         string="Unpublish"
                         invisible="not website_published"/>
+                    <button name="action_unitrade_waive_listing_fee"
+                        type="object"
+                        string="Waive Fee"
+                        groups="base.group_system,unitrade_seller.group_unitrade_admin"
+                        invisible="x_listing_fee_status in ('paid', 'waived', 'not_required')"/>
+                    <button name="action_unitrade_reject_listing"
+                        type="object"
+                        string="Reject Listing"
+                        groups="base.group_system,unitrade_seller.group_unitrade_admin"
+                        invisible="not x_is_marketplace or x_listing_fee_status == 'failed'"/>
                 </header>
                 <sheet class="ut_product_admin_sheet">
                     <div class="ut_product_admin_hero">
@@ -106,6 +127,29 @@
                             <field name="x_listing_fee"/>
                             <field name="x_listing_activated_at"/>
                             <field name="x_listing_expires_at"/>
+                            <field name="x_listing_status" widget="badge"
+                                   decoration-info="x_listing_status == 'draft'"
+                                   decoration-warning="x_listing_status in ('fee_pending', 'expired')"
+                                   decoration-success="x_listing_status == 'published'"
+                                   decoration-danger="x_listing_status in ('rejected', 'archived')"
+                                   readonly="1"/>
+                            <field name="x_listing_fee_status" widget="badge"
+                                   decoration-info="x_listing_fee_status == 'not_required'"
+                                   decoration-warning="x_listing_fee_status in ('unpaid', 'pending')"
+                                   decoration-success="x_listing_fee_status in ('paid', 'waived')"
+                                   decoration-danger="x_listing_fee_status == 'failed'"
+                                   readonly="1"/>
+                            <field name="x_listing_fee_payment_id" readonly="1"
+                                   options="{'no_create': True, 'no_open': False}"/>
+                            <field name="x_listing_fee_paid_at" readonly="1"/>
+                            <field name="x_listing_fee_waived_by_id" readonly="1"
+                                   invisible="x_listing_fee_status != 'waived'"/>
+                            <field name="x_listing_fee_waive_reason" readonly="1"
+                                   invisible="x_listing_fee_status != 'waived'"/>
+                            <field name="x_listing_rejected_by_id" readonly="1"
+                                   invisible="not x_listing_rejection_reason"/>
+                            <field name="x_listing_rejection_reason" readonly="1"
+                                   invisible="not x_listing_rejection_reason"/>
                             <field name="x_brand"/>
                             <field name="x_weight_product"/>
                         </group>
@@ -248,10 +292,22 @@
                 <filter name="filter_new" string="Baru" domain="[('x_condition', '=', 'new')]"/>
                 <filter name="filter_used" string="Bekas" domain="[('x_condition', '=', 'used')]"/>
                 <separator/>
+                <filter name="filter_status_draft" string="Status: Draft" domain="[('x_listing_status', '=', 'draft')]"/>
+                <filter name="filter_status_fee_pending" string="Status: Fee Pending" domain="[('x_listing_status', '=', 'fee_pending')]"/>
+                <filter name="filter_status_published" string="Status: Published" domain="[('x_listing_status', '=', 'published')]"/>
+                <filter name="filter_status_rejected" string="Status: Rejected" domain="[('x_listing_status', '=', 'rejected')]"/>
+                <filter name="filter_status_expired" string="Status: Expired" domain="[('x_listing_status', '=', 'expired')]"/>
+                <separator/>
+                <filter name="filter_fee_unpaid" string="Fee Belum Bayar" domain="[('x_listing_fee_status', 'in', ('unpaid', 'pending'))]"/>
+                <filter name="filter_fee_paid" string="Fee Lunas" domain="[('x_listing_fee_status', '=', 'paid')]"/>
+                <filter name="filter_fee_waived" string="Fee Diwaiver" domain="[('x_listing_fee_status', '=', 'waived')]"/>
+                <separator/>
                 <group expand="0" string="Group By">
                     <filter name="group_seller" string="Penjual" context="{'group_by': 'x_seller_id'}"/>
                     <filter name="group_category" string="Kategori" context="{'group_by': 'categ_id'}"/>
                     <filter name="group_condition" string="Kondisi" context="{'group_by': 'x_condition'}"/>
+                    <filter name="group_listing_status" string="Status Listing" context="{'group_by': 'x_listing_status'}"/>
+                    <filter name="group_fee_status" string="Status Fee" context="{'group_by': 'x_listing_fee_status'}"/>
                 </group>
             </search>
         </field>

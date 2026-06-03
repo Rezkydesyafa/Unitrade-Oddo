@@ -2,6 +2,7 @@ import logging
 import math
 
 from odoo import fields, http
+from odoo.exceptions import UserError
 from odoo.http import request
 from odoo.addons.website_sale_stock.controllers.main import WebsiteSale
 
@@ -18,6 +19,16 @@ class UnitradeWebsiteSaleCart(WebsiteSale):
         if len(issues) == 1:
             return issues[0]['message']
         return 'Beberapa produk di keranjang melebihi stok tersedia. Periksa detail stok sebelum checkout.'
+
+    def _unitrade_marketplace_block_message(self, feature_label):
+        user = request.env.user
+        if user._is_public() or not hasattr(user, '_check_unitrade_marketplace_access'):
+            return ''
+        try:
+            user._check_unitrade_marketplace_access(feature_label)
+        except UserError as error:
+            return error.args[0] if error.args else str(error)
+        return ''
 
     def _unitrade_cart_stock_issue_map(self, issues):
         return {
@@ -165,11 +176,11 @@ class UnitradeWebsiteSaleCart(WebsiteSale):
         self._unitrade_cleanup_fee_lines(order)
         values = super()._cart_values(**post)
         issues = self._unitrade_current_stock_issues()
-        request.session.pop(self._STOCK_WARNING_SESSION_KEY, None)
+        session_warning = request.session.pop(self._STOCK_WARNING_SESSION_KEY, '')
         values.update({
             'unitrade_cart_stock_issues': issues,
             'unitrade_cart_stock_issues_by_product': self._unitrade_cart_stock_issue_map(issues),
-            'unitrade_cart_stock_warning': self._unitrade_cart_stock_message(issues),
+            'unitrade_cart_stock_warning': self._unitrade_cart_stock_message(issues) or session_warning,
         })
         return values
 
@@ -195,6 +206,11 @@ class UnitradeWebsiteSaleCart(WebsiteSale):
         product_referrer = self._unitrade_product_referrer()
         is_remove_qty = self._unitrade_is_cart_remove_request(add_qty=add_qty, set_qty=set_qty)
         if not is_remove_qty:
+            block_message = self._unitrade_marketplace_block_message('menambahkan produk ke keranjang')
+            if block_message:
+                request.session[self._PRODUCT_STOCK_WARNING_SESSION_KEY] = block_message
+                return request.redirect(product_referrer or self._unitrade_product_redirect_url(product_id, fallback='/shop/cart'))
+
             stock_warning = self._unitrade_product_stock_warning(
                 product_id,
                 add_qty=add_qty,
@@ -236,6 +252,15 @@ class UnitradeWebsiteSaleCart(WebsiteSale):
         had_stock_warning = bool(order and order._unitrade_has_stock_warning())
         is_remove_qty = self._unitrade_is_cart_remove_request(add_qty=add_qty, set_qty=set_qty)
         if not is_remove_qty:
+            block_message = self._unitrade_marketplace_block_message('menambahkan produk ke keranjang')
+            if block_message:
+                return {
+                    'cart_quantity': order.cart_quantity if order else 0,
+                    'warning': block_message,
+                    'notification_info': {'warning': block_message},
+                    'cart_ready': False,
+                }
+
             stock_warning = self._unitrade_product_stock_warning(product_id, add_qty=add_qty, set_qty=set_qty)
             if stock_warning:
                 return {
@@ -277,6 +302,11 @@ class UnitradeWebsiteSaleCart(WebsiteSale):
 
     @http.route()
     def checkout(self, **post):
+        block_message = self._unitrade_marketplace_block_message('melanjutkan checkout')
+        if block_message:
+            request.session[self._STOCK_WARNING_SESSION_KEY] = block_message
+            return request.redirect('/shop/cart')
+
         issues = self._unitrade_current_stock_issues()
         if issues:
             request.session[self._STOCK_WARNING_SESSION_KEY] = self._unitrade_cart_stock_message(issues)

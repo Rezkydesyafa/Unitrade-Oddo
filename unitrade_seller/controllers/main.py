@@ -10,7 +10,11 @@ from urllib.parse import quote
 import pytz
 
 # pyrefly: ignore [missing-import]
+<<<<<<< HEAD
+from odoo import _, SUPERUSER_ID, fields, http
+=======
 from odoo import SUPERUSER_ID, fields, http
+>>>>>>> origin/main
 # pyrefly: ignore [missing-import]
 from odoo.exceptions import UserError, ValidationError
 # pyrefly: ignore [missing-import]
@@ -368,9 +372,28 @@ class UnitradeSellerController(http.Controller):
         return bool(_safe_get(seller, 'x_store_active', True))
 
     @staticmethod
+<<<<<<< HEAD
+    def _current_user_block_message(feature_label=None):
+        user = request.env.user
+        if user._is_public() or not hasattr(user, '_check_unitrade_marketplace_access'):
+            return ''
+        try:
+            user._check_unitrade_marketplace_access(feature_label or _('menggunakan fitur seller'))
+        except UserError as error:
+            return error.args[0] if error.args else str(error)
+        return ''
+
+    @staticmethod
     def _dashboard_seller(active_only=True):
         user = request.env.user
         Seller = request.env['unitrade.seller'].sudo()
+        if UnitradeSellerController._current_user_block_message(_('menggunakan fitur seller')):
+            return Seller.browse()
+=======
+    def _dashboard_seller(active_only=True):
+        user = request.env.user
+        Seller = request.env['unitrade.seller'].sudo()
+>>>>>>> origin/main
         domain = [
             ('user_id', '=', user.id),
             ('status', '=', 'verified'),
@@ -380,12 +403,23 @@ class UnitradeSellerController(http.Controller):
         return Seller.search(domain, limit=1)
 
     def _seller_not_ready_redirect(self):
+<<<<<<< HEAD
+        if self._current_user_block_message(_('menggunakan fitur seller')):
+            return request.redirect('/my/profile?unitrade_blocked=1')
+=======
+>>>>>>> origin/main
         seller = self._dashboard_seller(active_only=False)
         if seller and not self._seller_store_is_active(seller):
             return request.redirect('/unitrade/seller/settings?store_inactive=1')
         return request.redirect('/seller-onboarding')
 
     def _seller_not_ready_message(self):
+<<<<<<< HEAD
+        block_message = self._current_user_block_message(_('menggunakan fitur seller'))
+        if block_message:
+            return block_message
+=======
+>>>>>>> origin/main
         seller = self._dashboard_seller(active_only=False)
         if seller and not self._seller_store_is_active(seller):
             return 'Toko sedang nonaktif. Aktifkan kembali di Pengaturan Toko untuk memakai fitur seller.'
@@ -1158,7 +1192,19 @@ class UnitradeSellerController(http.Controller):
         }
 
     @staticmethod
+<<<<<<< HEAD
+    def _seller_listing_valid_until():
+        config = request.env['ir.config_parameter'].sudo()
+        try:
+            days = int(float(config.get_param('unitrade.seller.listing_fee.validity_days', 30) or 30))
+        except (TypeError, ValueError):
+            days = 30
+        return fields.Datetime.now() + timedelta(days=max(1, days))
+
+    def _seller_listing_fee_policy(self, product_price, currency):
+=======
     def _seller_listing_fee_policy(product_price, currency):
+>>>>>>> origin/main
         config = request.env['ir.config_parameter'].sudo()
         try:
             price = max(0.0, float(product_price or 0.0))
@@ -1174,21 +1220,47 @@ class UnitradeSellerController(http.Controller):
         threshold = get_amount('unitrade.seller.listing_fee.threshold', 1000000)
         low_fee = get_amount('unitrade.seller.listing_fee.low_amount', 2000)
         high_fee = get_amount('unitrade.seller.listing_fee.high_amount', 5000)
+<<<<<<< HEAD
+        enabled_raw = config.get_param('unitrade.seller.listing_fee.enabled', 'True')
+        enabled = str(enabled_raw).strip().lower() not in ('false', '0', 'no', 'off')
+        threshold_label = self._format_money(threshold, currency)
+        if not enabled:
+            return {
+                'fee': currency.round(0.0),
+                'percent': 0.0,
+                'percent_label': 'Biaya tetap',
+                'tier_label': 'Fee upload nonaktif',
+                'enabled': False,
+            }
+
+=======
+>>>>>>> origin/main
         if price <= 0:
             fee = 0.0
             tier_label = 'Harga belum diisi'
         elif price < threshold:
             fee = low_fee
+<<<<<<< HEAD
+            tier_label = 'Harga < %s' % threshold_label
+        else:
+            fee = high_fee
+            tier_label = 'Harga >= %s' % threshold_label
+=======
             tier_label = 'Harga < Rp1.000.000'
         else:
             fee = high_fee
             tier_label = 'Harga >= Rp1.000.000'
+>>>>>>> origin/main
 
         return {
             'fee': currency.round(fee),
             'percent': 0.0,
             'percent_label': 'Biaya tetap',
             'tier_label': tier_label,
+<<<<<<< HEAD
+            'enabled': True,
+=======
+>>>>>>> origin/main
         }
 
     def _seller_listing_fee_amounts(self, currency, product_price=0.0):
@@ -1202,7 +1274,11 @@ class UnitradeSellerController(http.Controller):
                 return currency.round(float(default))
 
         posting_fee = policy['fee']
+<<<<<<< HEAD
+        admin_fee = get_amount('unitrade.seller.posting_admin_fee', 0) if policy.get('enabled') else 0.0
+=======
         admin_fee = get_amount('unitrade.seller.posting_admin_fee', 0)
+>>>>>>> origin/main
         total = currency.round(posting_fee + admin_fee)
         return posting_fee, admin_fee, total, policy
 
@@ -4057,6 +4133,8 @@ class UnitradeSellerController(http.Controller):
     @http.route('/unitrade/seller/profile', type='http', auth='user', website=True)
     def my_seller_profile(self, **kwargs):
         """Convenience route for the current user's public seller profile."""
+        if self._current_user_block_message(_('membuka profil seller')):
+            return request.redirect('/my/profile?unitrade_blocked=1')
         seller = request.env['unitrade.seller'].sudo().search([
             ('user_id', '=', request.env.uid),
             ('status', '=', 'verified'),
@@ -4074,6 +4152,8 @@ class UnitradeSellerController(http.Controller):
         seller = self._get_seller_by_public_ref(profile_ref=profile_ref, seller_id=seller_id)
         if not seller:
             return request.not_found()
+        if self._current_user_block_message(_('menghubungi seller')):
+            return request.redirect('/seller-profile/%s?chat=blocked' % self._seller_public_ref(seller))
 
         if 'unitrade.chat.conversation' in request.env.registry:
             product_id = kwargs.get('product_id')
@@ -4104,6 +4184,8 @@ class UnitradeSellerController(http.Controller):
         seller = self._get_seller_by_public_ref(profile_ref=profile_ref, seller_id=seller_id)
         if not seller:
             return request.not_found()
+        if self._current_user_block_message(_('melaporkan seller')):
+            return request.redirect('/seller-profile/%s?report_error=account_blocked' % self._seller_public_ref(seller))
 
         reason = (kwargs.get('reason') or 'Report dari halaman profil penjual').strip()[:500]
         media_files = request.httprequest.files.getlist('media')
@@ -4141,11 +4223,15 @@ class UnitradeSellerController(http.Controller):
     @http.route(['/unitrade/seller/register', '/seller/register'], type='http', auth='user', website=True)
     def seller_register_page(self, **kwargs):
         """Keep the old seller URL as an alias for the onboarding flow."""
+        if self._current_user_block_message(_('mendaftar sebagai seller')):
+            return request.redirect('/my/profile?unitrade_blocked=1')
         return request.redirect('/seller-onboarding')
 
     @http.route('/unitrade/seller/register/submit', type='http', auth='user', website=True, methods=['POST'], csrf=True)
     def seller_register_submit(self, **kwargs):
         """Keep the old submit URL from creating a second verification path."""
+        if self._current_user_block_message(_('mendaftar sebagai seller')):
+            return request.redirect('/my/profile?unitrade_blocked=1')
         return request.redirect('/seller-onboarding')
 
     @http.route([
@@ -4632,6 +4718,11 @@ class UnitradeSellerController(http.Controller):
 
     @http.route('/unitrade/seller/refund/<int:dispute_id>/approve', type='http', auth='user', website=True, methods=['POST'], csrf=True, sitemap=False)
     def seller_refund_approve(self, dispute_id, **kwargs):
+<<<<<<< HEAD
+        if self._current_user_block_message(_('merespons refund sebagai seller')):
+            return request.redirect('/my/profile?unitrade_blocked=1')
+=======
+>>>>>>> origin/main
         seller = self._dashboard_seller()
         if not seller or 'unitrade.dispute' not in request.env.registry:
             return request.not_found()
@@ -4649,6 +4740,11 @@ class UnitradeSellerController(http.Controller):
 
     @http.route('/unitrade/seller/refund/<int:dispute_id>/reject', type='http', auth='user', website=True, methods=['POST'], csrf=True, sitemap=False)
     def seller_refund_reject(self, dispute_id, **kwargs):
+<<<<<<< HEAD
+        if self._current_user_block_message(_('merespons refund sebagai seller')):
+            return request.redirect('/my/profile?unitrade_blocked=1')
+=======
+>>>>>>> origin/main
         seller = self._dashboard_seller()
         if not seller or 'unitrade.dispute' not in request.env.registry:
             return request.not_found()
@@ -4703,7 +4799,11 @@ class UnitradeSellerController(http.Controller):
         """Render the standalone seller store settings app shell."""
         seller = self._dashboard_seller(active_only=False)
         if not seller:
+<<<<<<< HEAD
+            return self._seller_not_ready_redirect()
+=======
             return request.redirect('/seller-onboarding')
+>>>>>>> origin/main
         return request.render(
             'unitrade_seller.seller_settings_template',
             self._seller_settings_context(seller),
@@ -4716,7 +4816,11 @@ class UnitradeSellerController(http.Controller):
         if not seller:
             return {
                 'success': False,
+<<<<<<< HEAD
+                'message': self._seller_not_ready_message(),
+=======
                 'message': 'Akun penjual belum ditemukan.',
+>>>>>>> origin/main
             }
         payload = self._seller_settings_payload(seller)
         payload['success'] = True
@@ -4729,7 +4833,11 @@ class UnitradeSellerController(http.Controller):
         if not seller:
             return {
                 'success': False,
+<<<<<<< HEAD
+                'message': self._seller_not_ready_message(),
+=======
                 'message': 'Akun penjual belum ditemukan.',
+>>>>>>> origin/main
             }
         try:
             with request.env.cr.savepoint():
@@ -4759,7 +4867,11 @@ class UnitradeSellerController(http.Controller):
         if not seller:
             return {
                 'success': False,
+<<<<<<< HEAD
+                'message': self._seller_not_ready_message(),
+=======
                 'message': 'Akun penjual belum ditemukan.',
+>>>>>>> origin/main
             }
         if kwargs.get('confirm') != 'CLOSE_STORE':
             return {
@@ -4793,7 +4905,11 @@ class UnitradeSellerController(http.Controller):
         if not seller:
             return {
                 'success': False,
+<<<<<<< HEAD
+                'message': self._seller_not_ready_message(),
+=======
                 'message': 'Akun penjual belum ditemukan.',
+>>>>>>> origin/main
             }
         if kwargs.get('confirm') != 'REQUEST_SELLER_DELETE':
             return {
@@ -4973,6 +5089,24 @@ class UnitradeSellerController(http.Controller):
                 'message': str(error) or 'Produk belum bisa dibuat. Coba lagi beberapa saat lagi.',
             }
 
+<<<<<<< HEAD
+        currency = request.website.currency_id or request.env.company.currency_id
+        product_price = product._unitrade_discounted_price() if hasattr(product, '_unitrade_discounted_price') else product.list_price
+        posting_fee, admin_fee, total, fee_policy = self._seller_listing_fee_amounts(currency, product_price)
+        if total <= 0:
+            self._publish_product_after_listing_paid(product, total)
+            if 'x_listing_fee_status' in product._fields:
+                product.sudo().write({'x_listing_fee_status': 'not_required'})
+            return {
+                'success': True,
+                'message': 'Produk berhasil dipublikasikan.',
+                'product_id': product.id,
+                'payment_url': '',
+                'redirect_url': '/unitrade/seller/products',
+            }
+
+=======
+>>>>>>> origin/main
         return {
             'success': True,
             'message': 'Produk tersimpan sebagai draft. Lanjutkan pembayaran agar tampil di katalog.',
@@ -5014,7 +5148,15 @@ class UnitradeSellerController(http.Controller):
         if 'x_listing_activated_at' in product._fields:
             values['x_listing_activated_at'] = fields.Datetime.now()
         if 'x_listing_expires_at' in product._fields:
+<<<<<<< HEAD
+            values['x_listing_expires_at'] = UnitradeSellerController._seller_listing_valid_until()
+        if 'detailed_type' in product._fields:
+            values['detailed_type'] = 'consu'
+        elif 'type' in product._fields:
+            values['type'] = 'consu'
+=======
             values['x_listing_expires_at'] = fields.Datetime.now() + timedelta(days=30)
+>>>>>>> origin/main
         product.sudo().write(values)
 
     def _create_seller_listing_payment_intent(self, seller, product, method_key, total, currency):
@@ -5049,7 +5191,10 @@ class UnitradeSellerController(http.Controller):
             ('intent_type', '=', 'listing_fee'),
             ('product_template_id', '=', product.id),
             ('seller_id', '=', seller.id),
+<<<<<<< HEAD
+=======
             ('payment_method_code', '=', code),
+>>>>>>> origin/main
             ('state', 'in', ['draft', 'pending']),
         ], order='create_date desc', limit=1)
         if existing:
@@ -5113,6 +5258,31 @@ class UnitradeSellerController(http.Controller):
         currency = request.website.currency_id or request.env.company.currency_id
         product_price = product._unitrade_discounted_price() if hasattr(product, '_unitrade_discounted_price') else product.list_price
         posting_fee, admin_fee, total, fee_policy = self._seller_listing_fee_amounts(currency, product_price)
+<<<<<<< HEAD
+        if total <= 0:
+            self._publish_product_after_listing_paid(product, total)
+            if 'x_listing_fee_status' in product._fields:
+                product.sudo().write({'x_listing_fee_status': 'not_required'})
+            return {
+                'success': True,
+                'message': 'Produk berhasil dipublikasikan.',
+                'payment_intent_id': 0,
+                'payment_status': 'paid',
+                'payment_method': '',
+                'payment_reference': '',
+                'payment_url': '',
+                'redirect_url': '/unitrade/seller/products',
+                'amount_label': self._format_money(0.0, currency),
+                'fees': {
+                    'posting_fee_label': self._format_money(posting_fee, currency),
+                    'admin_fee_label': self._format_money(admin_fee, currency),
+                    'total_label': self._format_money(total, currency),
+                    'tier_label': fee_policy['tier_label'],
+                    'percent_label': fee_policy['percent_label'],
+                },
+            }
+=======
+>>>>>>> origin/main
         try:
             with request.env.cr.savepoint():
                 intent = self._create_seller_listing_payment_intent(seller, product, method_key, total, currency)
@@ -5122,7 +5292,11 @@ class UnitradeSellerController(http.Controller):
                 if intent.state == 'paid' and 'x_listing_activated_at' in product._fields:
                     product_values['x_listing_activated_at'] = fields.Datetime.now()
                 if intent.state == 'paid' and 'x_listing_expires_at' in product._fields:
+<<<<<<< HEAD
+                    product_values['x_listing_expires_at'] = self._seller_listing_valid_until()
+=======
                     product_values['x_listing_expires_at'] = fields.Datetime.now() + timedelta(days=30)
+>>>>>>> origin/main
                 if product_values:
                     product.sudo().write(product_values)
         except ValueError as error:

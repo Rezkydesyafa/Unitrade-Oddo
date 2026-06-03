@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from odoo import http, fields
+from odoo import _, http, fields
+from odoo.exceptions import UserError
 from odoo.http import request
 from odoo.addons.unitrade_theme.controllers.controllers import UnitradeAuthSignup
 import logging
@@ -36,6 +37,17 @@ class SellerVerificationController(http.Controller):
     @staticmethod
     def _seller_otp_verified():
         return bool(request.session.get('seller_onboarding_otp_verified'))
+
+    @staticmethod
+    def _marketplace_block_message(feature_label=None):
+        user = request.env.user
+        if user._is_public() or not hasattr(user, '_check_unitrade_marketplace_access'):
+            return ''
+        try:
+            user._check_unitrade_marketplace_access(feature_label or _('mendaftar sebagai seller'))
+        except UserError as error:
+            return error.args[0] if error.args else str(error)
+        return ''
 
     @staticmethod
     def _rejection_message(reason):
@@ -89,6 +101,8 @@ class SellerVerificationController(http.Controller):
     @http.route('/seller-onboarding', type='http', auth='user', website=True, sitemap=False)
     def seller_onboarding_page(self, **kw):
         """Render the seller onboarding page before OTP and KTM upload."""
+        if self._marketplace_block_message(_('mendaftar sebagai seller')):
+            return request.redirect('/my/profile?unitrade_blocked=1')
         if self._verified_seller_for_current_user():
             return request.redirect('/unitrade/seller/dashboard')
 
@@ -104,6 +118,8 @@ class SellerVerificationController(http.Controller):
     @http.route('/seller-onboarding/start', type='http', auth='user', website=True, methods=['POST'], csrf=True, sitemap=False)
     def seller_onboarding_start(self, **kw):
         """Start a fresh seller OTP challenge, then continue to the shared OTP page."""
+        if self._marketplace_block_message(_('mendaftar sebagai seller')):
+            return request.redirect('/my/profile?unitrade_blocked=1')
         if self._verified_seller_for_current_user():
             return request.redirect('/unitrade/seller/dashboard')
 
@@ -132,6 +148,8 @@ class SellerVerificationController(http.Controller):
         Render the seller verification page with partner and verification context.
         """
         try:
+            if self._marketplace_block_message(_('mengupload verifikasi seller')):
+                return request.redirect('/my/profile?unitrade_blocked=1')
             if self._verified_seller_for_current_user():
                 return request.redirect('/unitrade/seller/dashboard')
             if not self._seller_otp_verified():
@@ -173,6 +191,14 @@ class SellerVerificationController(http.Controller):
         with full debug info for frontend popup display.
         """
         try:
+            block_message = self._marketplace_block_message(_('mengupload verifikasi seller'))
+            if block_message:
+                return self._json_response({
+                    'status': 'blocked',
+                    'message': block_message,
+                    'redirect_url': '/my/profile?unitrade_blocked=1',
+                })
+
             if not self._seller_otp_verified():
                 return self._json_response({
                     'status': 'otp_required',
@@ -431,6 +457,10 @@ class SellerVerificationController(http.Controller):
     def verification_status(self, **kw):
         """JSON-RPC endpoint to check current verification status."""
         try:
+            block_message = self._marketplace_block_message(_('mengakses verifikasi seller'))
+            if block_message:
+                return {'state': 'blocked', 'nim_extracted': False, 'reason': block_message}
+
             partner = request.env.user.partner_id
             record = request.env['unitrade.seller.verification'].sudo().search([
                 ('partner_id', '=', partner.id),

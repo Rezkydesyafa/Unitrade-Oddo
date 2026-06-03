@@ -1,8 +1,9 @@
 import json
 import logging
+from datetime import timedelta
 
 from odoo import _, api, fields, models
-from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.exceptions import AccessDenied, AccessError, UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -64,7 +65,7 @@ class UnitradeDispute(models.Model):
         required=True,
         default=lambda self: self.env.company.currency_id,
     )
-    admin_id = fields.Many2one('res.users', string='Admin/CS', copy=False)
+    admin_id = fields.Many2one('res.users', string='Admin Penengah', copy=False)
     admin_decision_note = fields.Text(copy=False)
     seller_decision_note = fields.Text(string='Seller Note', copy=False)
     seller_decision_user_id = fields.Many2one('res.users', string='Seller Decision User', copy=False)
@@ -84,6 +85,29 @@ class UnitradeDispute(models.Model):
     final_decision_snapshot = fields.Text(string='Final Decision Snapshot', copy=False, readonly=True)
     evidence_ids = fields.One2many('unitrade.dispute.evidence', 'dispute_id', string='Evidence')
     timeline_ids = fields.One2many('unitrade.dispute.timeline', 'dispute_id', string='Timeline')
+
+    # SLA deadlines
+    buyer_response_deadline_at = fields.Datetime(
+        string='Deadline Bukti Buyer',
+        copy=False,
+        help='Buyer harus melengkapi bukti tambahan sebelum deadline ini.',
+    )
+    seller_response_deadline_at = fields.Datetime(
+        string='Deadline Respons Seller',
+        copy=False,
+        help='Seller harus memberikan respons sebelum deadline ini.',
+    )
+    decision_deadline_at = fields.Datetime(
+        string='Deadline Keputusan',
+        copy=False,
+        help='Admin harus memutuskan kasus ini sebelum deadline.',
+    )
+    is_overdue = fields.Boolean(
+        string='Lewat SLA',
+        compute='_compute_is_overdue',
+        store=False,
+        search='_search_is_overdue',
+    )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -162,6 +186,184 @@ class UnitradeDispute(models.Model):
             if not seller_user or seller_user.id != self.env.user.id:
                 raise AccessError(_('Anda hanya bisa mengambil keputusan untuk refund dari toko Anda.'))
         return True
+
+    # ------------------------------------------------------------------
+    # Security & audit helpers
+    # ------------------------------------------------------------------
+    def _is_unitrade_admin(self):
+        """Return True only when current user is allowed to act as admin/CS."""
+        user = self.env.user
+        return (
+            user.has_group('unitrade_seller.group_unitrade_admin')
+            or user.has_group('base.group_system')
+        )
+
+    def _check_admin(self, action_label):
+        """Raise AccessDenied when called by non-admin user."""
+        if not self._is_unitrade_admin():
+            _logger.warning(
+                'Refund dispute %s: unauthorized %s attempt by uid=%s login=%s',
+                self.mapped('name') or '-', action_label, self.env.uid, self.env.user.login,
+            )
+            raise AccessDenied(_('Aksi ini hanya boleh dilakukan oleh admin UniTrade.'))
+
+    def _audit(self, action, description, severity='info', payload=None):
+        """Write an audit entry when unitrade_admin module is installed.
+
+        The dispute module does NOT depend on unitrade_admin, so we look up
+        the model dynamically. When unitrade_admin is not installed, audit
+        recording becomes a no-op and we still keep the existing chatter
+        and python logging.
+        """
+        if 'unitrade.admin.audit.log' not in self.env.registry:
+            return
+        AuditLog = self.env['unitrade.admin.audit.log']
+        for dispute in self:
+            try:
+                AuditLog.sudo().log_action(
+                    action,
+                    description=description,
+                    record=dispute,
+                    severity=severity,
+                    payload=payload,
+                )
+            except Exception:  # noqa: BLE001
+                _logger.exception('Failed to write dispute audit log: %s', action)
+
+    # ------------------------------------------------------------------
+    # SLA helpers (compute overdue based on deadline fields)
+    # ------------------------------------------------------------------
+    @api.depends('state', 'buyer_response_deadline_at', 'seller_response_deadline_at', 'decision_deadline_at')
+    def _compute_is_overdue(self):
+        now = fields.Datetime.now()
+        for dispute in self:
+            overdue = False
+            if dispute.state in self.ACTIVE_STATES:
+                if dispute.state == 'need_buyer_evidence' and dispute.buyer_response_deadline_at and dispute.buyer_response_deadline_at < now:
+                    overdue = True
+                elif dispute.state == 'need_seller_response' and dispute.seller_response_deadline_at and dispute.seller_response_deadline_at < now:
+                    overdue = True
+                elif dispute.state in ('submitted', 'under_review') and dispute.decision_deadline_at and dispute.decision_deadline_at < now:
+                    overdue = True
+            dispute.is_overdue = overdue
+
+    def _search_is_overdue(self, operator, value):
+        """Allow filtering overdue disputes from the search view."""
+        if operator not in ('=', '!='):
+            return [('id', '=', 0)]
+        now = fields.Datetime.now()
+        # Active + overdue per state
+        overdue_ids = self.search([
+            ('state', 'in', list(self.ACTIVE_STATES)),
+        ]).filtered(lambda d: (
+            (d.state == 'need_buyer_evidence' and d.buyer_response_deadline_at and d.buyer_response_deadline_at < now)
+            or (d.state == 'need_seller_response' and d.seller_response_deadline_at and d.seller_response_deadline_at < now)
+            or (d.state in ('submitted', 'under_review') and d.decision_deadline_at and d.decision_deadline_at < now)
+        )).ids
+        if (operator == '=' and value) or (operator == '!=' and not value):
+            return [('id', 'in', overdue_ids or [0])]
+        return [('id', 'not in', overdue_ids or [0])]
+
+    def _hours_param(self, key, default):
+        try:
+            value = int(float(self.env['ir.config_parameter'].sudo().get_param(key, default=str(default))))
+        except (TypeError, ValueError):
+            value = default
+        return max(1, value)
+
+    def _set_buyer_evidence_deadline(self):
+        hours = self._hours_param('unitrade.refund.buyer_evidence_hours', 48)
+        self.write({'buyer_response_deadline_at': fields.Datetime.now() + timedelta(hours=hours)})
+
+    def _set_seller_response_deadline(self):
+        hours = self._hours_param('unitrade.dispute_response_hours', 48)
+        self.write({'seller_response_deadline_at': fields.Datetime.now() + timedelta(hours=hours)})
+
+    def _set_decision_deadline(self):
+        hours = self._hours_param('unitrade.refund.decision_hours', 72)
+        self.write({'decision_deadline_at': fields.Datetime.now() + timedelta(hours=hours)})
+
+    # ------------------------------------------------------------------
+    # Evidence policy enforcement
+    # ------------------------------------------------------------------
+    REASONS_REQUIRING_EVIDENCE = (
+        'damaged',
+        'not_as_described',
+        'wrong_item',
+        'seller_no_handoff',
+    )
+
+    EVIDENCE_TYPES_ACCEPTED = (
+        'buyer_photo',
+        'unboxing_video',
+        'packing_video',
+        'google_drive_url',
+        'other',
+    )
+
+    def _has_minimum_evidence(self):
+        """Check whether the dispute meets evidence policy.
+
+        Policy:
+        - Reason `seller_no_handoff` does not require physical evidence
+          (because there is no item to inspect). Buyer testimony note
+          is sufficient.
+        - Other reasons (`damaged`, `not_as_described`, `wrong_item`)
+          require at least one buyer evidence: photo, unboxing video,
+          packing video, or Google Drive link.
+        """
+        self.ensure_one()
+        if self.reason_code not in self.REASONS_REQUIRING_EVIDENCE:
+            return True
+        if self.reason_code == 'seller_no_handoff':
+            return True
+        evidences = self.evidence_ids.filtered(
+            lambda e: e.evidence_type in self.EVIDENCE_TYPES_ACCEPTED
+            and (e.attachment_id or (e.url or '').strip())
+        )
+        return bool(evidences)
+
+    def _check_evidence_policy(self):
+        for dispute in self:
+            if not dispute._has_minimum_evidence():
+                raise UserError(_(
+                    'Refund %s belum memenuhi syarat bukti minimum. '
+                    'Alasan "%s" wajib disertai foto, video unboxing, video packing, '
+                    'atau link Google Drive sebagai bukti.'
+                ) % (dispute.name, dispute.reason_code))
+
+    def _check_decision_note(self):
+        for dispute in self:
+            if not (dispute.admin_decision_note or '').strip():
+                raise UserError(_(
+                    'Catatan keputusan admin (decision note) wajib diisi sebelum '
+                    'memutuskan refund %s.'
+                ) % dispute.name)
+
+    def _check_ready_for_decision(self, action_label):
+        for dispute in self:
+            if dispute.state != 'under_review':
+                raise UserError(_(
+                    'Refund %s harus ditangani admin penengah terlebih dahulu. '
+                    'Klik "Jadi Penengah" dan pastikan status case menjadi Under Review '
+                    'sebelum %s.'
+                ) % (dispute.name, action_label))
+            if not dispute.admin_id:
+                raise UserError(_(
+                    'Refund %s belum memiliki admin penengah. Klik "Jadi Penengah" '
+                    'sebelum memberi keputusan.'
+                ) % dispute.name)
+
+    def _send_party_template(self, xml_id, force_send=True):
+        """Send mail template to buyer/seller. No-op if template not found."""
+        template = self.env.ref(xml_id, raise_if_not_found=False)
+        if not template:
+            return
+        for dispute in self:
+            try:
+                template.sudo().send_mail(dispute.id, force_send=force_send)
+            except Exception:  # noqa: BLE001
+                _logger.exception('Failed to send dispute mail %s for %s', xml_id, dispute.name)
 
     def _set_order_refund_state(self, state):
         for dispute in self.sudo():
@@ -245,11 +447,19 @@ class UnitradeDispute(models.Model):
                 'submitted_at': dispute.submitted_at or now,
             })
             dispute._record_timeline_event('return_requested', event_time=dispute.submitted_at or now)
+            dispute._set_decision_deadline()
         self._hold_escrow_for_review()
         self._set_order_refund_state('submitted')
+        for dispute in self:
+            dispute._send_party_template('unitrade_dispute.mail_template_dispute_submitted')
+            dispute._audit(
+                'dispute.submit',
+                _('Refund %s diajukan oleh buyer.') % dispute.name,
+            )
         return True
 
     def action_start_review(self):
+        self._check_admin('start_review')
         now = fields.Datetime.now()
         for dispute in self.sudo():
             has_seller_return_confirmation = dispute.evidence_ids.filtered(
@@ -277,28 +487,54 @@ class UnitradeDispute(models.Model):
             else:
                 dispute._record_timeline_event('seller_review', event_time=now)
             dispute._set_order_refund_state(next_state)
+            dispute._audit(
+                'dispute.review.start',
+                _('Refund %s mulai direview oleh %s.') % (dispute.name, self.env.user.name),
+            )
         return True
 
     def action_need_buyer_evidence(self):
+        self._check_admin('need_buyer_evidence')
+        self._check_ready_for_decision(_('meminta bukti buyer'))
         self.sudo().write({
             'state': 'need_buyer_evidence',
             'admin_id': self.env.user.id,
         })
+        for dispute in self:
+            dispute._set_buyer_evidence_deadline()
+            dispute._send_party_template('unitrade_dispute.mail_template_dispute_need_buyer_evidence')
         self._set_order_refund_state('need_buyer_evidence')
+        for dispute in self:
+            dispute._audit(
+                'dispute.need_buyer_evidence',
+                _('Refund %s meminta tambahan bukti dari buyer.') % dispute.name,
+            )
         return True
 
     def action_need_seller_response(self):
+        self._check_admin('need_seller_response')
+        self._check_ready_for_decision(_('meminta respons seller'))
         self.sudo().write({
             'state': 'need_seller_response',
             'admin_id': self.env.user.id,
         })
         self._record_timeline_event('seller_review')
+        for dispute in self:
+            dispute._set_seller_response_deadline()
+            dispute._send_party_template('unitrade_dispute.mail_template_dispute_need_seller_response')
         self._set_order_refund_state('need_seller_response')
+        for dispute in self:
+            dispute._audit(
+                'dispute.need_seller_response',
+                _('Refund %s meminta respons dari seller.') % dispute.name,
+            )
         return True
 
     def action_approve_refund(self):
+        self._check_admin('approve_refund')
         self._require_refund_final_state()
         self._require_admin_decision_note()
+        self._check_evidence_policy()
         self._validate_refund_final_evidence()
         now = fields.Datetime.now()
         for dispute in self.sudo():
@@ -345,10 +581,26 @@ class UnitradeDispute(models.Model):
             )
             dispute._record_timeline_event('refund_approved', event_time=now)
             dispute._record_timeline_event('refund_completed', event_time=now)
+            dispute._send_party_template('unitrade_dispute.mail_template_dispute_approved')
+            dispute._audit(
+                'dispute.approve',
+                _('Refund %s disetujui oleh %s sebesar %s.') % (
+                    dispute.name, self.env.user.name, approved_amount,
+                ),
+                severity='warning',
+                payload={
+                    'order_id': order.id,
+                    'order_name': order.name,
+                    'amount_requested': dispute.requested_amount,
+                    'amount_approved': approved_amount,
+                    'decision_note': dispute.admin_decision_note or '',
+                },
+            )
             _logger.info('Refund dispute %s approved by user %s', dispute.name, self.env.user.id)
         return True
 
     def action_reject_refund(self):
+        self._check_admin('reject_refund')
         self._require_refund_final_state()
         self._require_admin_decision_note()
         now = fields.Datetime.now()
@@ -382,6 +634,18 @@ class UnitradeDispute(models.Model):
                 event_time=now,
             )
             dispute._record_timeline_event('refund_rejected', note=dispute.seller_decision_note, status='failed', event_time=now)
+            dispute._send_party_template('unitrade_dispute.mail_template_dispute_rejected')
+            dispute._audit(
+                'dispute.reject',
+                _('Refund %s ditolak oleh %s.') % (dispute.name, self.env.user.name),
+                severity='warning',
+                payload={
+                    'order_id': dispute.order_id.id,
+                    'order_name': dispute.order_id.name,
+                    'amount_requested': dispute.requested_amount,
+                    'decision_note': dispute.admin_decision_note or '',
+                },
+            )
             _logger.info('Refund dispute %s rejected by user %s', dispute.name, self.env.user.id)
         return True
 
@@ -479,6 +743,7 @@ class UnitradeDispute(models.Model):
         return True
 
     def action_cancel(self):
+        self._check_admin('cancel')
         for dispute in self.sudo():
             if dispute.state in ('approved', 'rejected', 'resolved'):
                 raise UserError(_('Refund case yang sudah selesai tidak bisa dibatalkan.'))
@@ -492,6 +757,11 @@ class UnitradeDispute(models.Model):
                 'x_escrow_state': 'held',
             })
             dispute._record_timeline_event('refund_cancelled', status='failed')
+            dispute._audit(
+                'dispute.cancel',
+                _('Refund %s dibatalkan oleh %s.') % (dispute.name, self.env.user.name),
+                severity='info',
+            )
         return True
 
     def action_seller_respond(self, note='', evidence_items=None):

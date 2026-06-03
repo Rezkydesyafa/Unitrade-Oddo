@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Waive Listing Fee Wizard -->
+    <record id="view_unitrade_product_waive_wizard_form" model="ir.ui.view">
+        <field name="name">unitrade.product.waive.wizard.form</field>
+        <field name="model">unitrade.product.waive.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Waive Fee Listing">
+                <sheet>
+                    <div class="alert alert-info" role="alert">
+                        Waive fee listing akan menandai produk ini lunas tanpa pembayaran.
+                        Audit log akan dicatat. Alasan WAJIB diisi.
+                    </div>
+                    <group>
+                        <field name="product_id" readonly="1"/>
+                        <field name="product_seller_id" readonly="1"/>
+                        <field name="current_fee_status" readonly="1"/>
+                    </group>
+                    <group string="Alasan">
+                        <field name="reason" placeholder="Misal: Promo seller baru, kompensasi gangguan sistem, kebijakan khusus..." nolabel="1"/>
+                    </group>
+                    <group>
+                        <field name="publish_after"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm" string="Waive Fee" type="object" class="btn-primary"/>
+                    <button string="Batal" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Reject Listing Wizard -->
+    <record id="view_unitrade_product_reject_wizard_form" model="ir.ui.view">
+        <field name="name">unitrade.product.reject.wizard.form</field>
+        <field name="model">unitrade.product.reject.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reject Listing">
+                <sheet>
+                    <div class="alert alert-warning" role="alert">
+                        Reject listing akan men-unpublish produk dan menandai fee gagal.
+                        Audit log akan dicatat. Alasan WAJIB diisi dan akan dikomunikasikan ke seller.
+                    </div>
+                    <group>
+                        <field name="product_id" readonly="1"/>
+                        <field name="product_seller_id" readonly="1"/>
+                    </group>
+                    <group string="Alasan Rejeksi">
+                        <field name="reason" placeholder="Misal: Foto produk tidak jelas, deskripsi melanggar pedoman, kategori salah..." nolabel="1"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm" string="Reject Listing" type="object" class="btn-danger"/>
+                    <button string="Batal" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

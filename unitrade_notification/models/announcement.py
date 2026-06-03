@@ -6,10 +6,10 @@ Implements task 15.7 — admin trigger that fires the
 
 Admins draft an announcement (title + body, optional internal action
 URL) on this model and press the ``Publish & Kirim ke Semua User``
-button. The button calls :meth:`unitrade.notification.broadcast` with
-the canonical "active non-shared users" domain so every real user
-account receives one in-app notification (and an email when their
-preference allows).
+button. The button calls :meth:`unitrade.notification.broadcast` for
+all active real accounts, including portal buyer/seller users, so they
+receive one in-app notification (and an email when their preference
+allows).
 
 The dispatcher already enforces:
 
@@ -146,18 +146,21 @@ class UnitradeAnnouncement(models.Model):
                 announcement.id, self.env.user.id,
             )
 
+            public_user = self.env.ref(
+                'base.public_user', raise_if_not_found=False,
+            )
+            user_domain = [('active', '=', True)]
+            if public_user:
+                user_domain.append(('id', '!=', public_user.id))
+
             # ``broadcast`` already honors
-            # ``unitrade.notification.broadcast_batch_size`` (Req 8.2)
-            # and uses the active non-shared users domain by default;
-            # we pass it explicitly to make the contract obvious at
-            # the call site (matches task 15.7 verbatim).
+            # ``unitrade.notification.broadcast_batch_size`` (Req 8.2).
+            # Announcements must also reach portal buyer/seller accounts,
+            # so only the public website user is excluded here.
             result = Notification.broadcast(
                 'system.announcement',
                 payload=payload,
-                user_domain=[
-                    ('active', '=', True),
-                    ('share', '=', False),
-                ],
+                user_domain=user_domain,
             )
 
             announcement.write({

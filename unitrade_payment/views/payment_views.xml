@@ -208,9 +208,10 @@
         <field name="arch" type="xml">
             <form string="Escrow Ledger" create="false" delete="false">
                 <header>
-                    <button name="action_mark_releasable" string="Tandai Releasable" type="object" class="btn-primary" invisible="state != 'held'"/>
+                    <button name="action_open_mark_releasable_wizard" string="Tandai Releasable" type="object" class="btn-primary" invisible="state != 'held'"/>
+                    <button name="action_create_seller_payout" string="Buat Payout Manual" type="object" class="btn-primary" invisible="state != 'releasable' or payout_status in ('processing', 'succeeded')"/>
                     <button name="action_create_xendit_payout" string="Buat Payout Xendit (Legacy)" type="object" class="btn-primary" invisible="1"/>
-                    <button name="action_mark_released" string="Tandai Released Manual" type="object" invisible="state != 'releasable'"/>
+                    <button name="action_open_mark_released_wizard" string="Tandai Released Manual" type="object" invisible="state != 'releasable'"/>
                     <field name="state" widget="statusbar" statusbar_visible="held,releasable,released"/>
                 </header>
                 <sheet>
@@ -271,6 +272,69 @@
         </field>
     </record>
 
+    <record id="view_unitrade_escrow_manual_action_wizard_form" model="ir.ui.view">
+        <field name="name">unitrade.escrow.manual.action.wizard.form</field>
+        <field name="model">unitrade.escrow.manual.action.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Alasan Aksi Manual Escrow">
+                <group>
+                    <field name="action_type" readonly="1"/>
+                    <field name="ledger_ids" widget="many2many_tags" readonly="1"/>
+                    <field name="reason"
+                           placeholder="Tuliskan alasan operasional. Contoh: bukti serah terima valid, release manual setelah rekonsiliasi bank, atau koreksi status escrow."/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Konfirmasi" class="btn-primary"/>
+                    <button string="Batal" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_unitrade_escrow_ledger_search" model="ir.ui.view">
+        <field name="name">unitrade.escrow.ledger.search</field>
+        <field name="model">unitrade.escrow.ledger</field>
+        <field name="arch" type="xml">
+            <search string="Escrow Ledger">
+                <field name="name"/>
+                <field name="order_id"/>
+                <field name="payment_intent_id"/>
+                <field name="buyer_id"/>
+                <field name="seller_id"/>
+                <field name="state"/>
+                <field name="payout_status"/>
+                <field name="amount_total"/>
+                <field name="amount_seller"/>
+                <filter name="state_held" string="Held" domain="[('state','=','held')]"/>
+                <filter name="state_releasable" string="Releasable" domain="[('state','=','releasable')]"/>
+                <filter name="state_released" string="Released" domain="[('state','=','released')]"/>
+                <filter name="state_disputed" string="Disputed" domain="[('state','=','disputed')]"/>
+                <filter name="state_refunded" string="Refunded" domain="[('state','=','refunded')]"/>
+                <separator/>
+                <filter name="payout_ready" string="Payout Siap"
+                        domain="[('state','=','releasable'), ('payout_status','not in',('processing','succeeded'))]"/>
+                <filter name="payout_processing" string="Payout Processing"
+                        domain="[('payout_status','in',('pending','processing'))]"/>
+                <filter name="payout_failed" string="Payout Failed" domain="[('payout_status','=','failed')]"/>
+                <filter name="needs_seller_handoff" string="Seller Belum Serah Terima"
+                        domain="[('state','=','held'), ('seller_confirmed_at','=',False)]"/>
+                <filter name="needs_buyer_confirmation" string="Buyer Belum Konfirmasi"
+                        domain="[('state','=','held'), ('seller_confirmed_at','!=',False), ('buyer_confirmed_at','=',False)]"/>
+                <separator/>
+                <filter name="created_today" string="Dibuat Hari Ini"
+                        domain="[('create_date', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="Escrow State" context="{'group_by':'state'}"/>
+                    <filter name="group_payout_status" string="Payout Status" context="{'group_by':'payout_status'}"/>
+                    <filter name="group_seller" string="Seller" context="{'group_by':'seller_id'}"/>
+                    <filter name="group_buyer" string="Buyer" context="{'group_by':'buyer_id'}"/>
+                    <filter name="group_order" string="Order" context="{'group_by':'order_id'}"/>
+                    <filter name="group_create_date" string="Tanggal Dibuat" context="{'group_by':'create_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <record id="view_unitrade_payment_event_tree" model="ir.ui.view">
         <field name="name">unitrade.payment.event.tree</field>
         <field name="model">unitrade.payment.event</field>
@@ -326,6 +390,7 @@
         <field name="name">Escrow Ledger</field>
         <field name="res_model">unitrade.escrow.ledger</field>
         <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_unitrade_escrow_ledger_search"/>
     </record>
 
     <record id="action_unitrade_payment_event" model="ir.actions.act_window">
@@ -343,8 +408,33 @@
         <field name="code">action = records.action_unitrade_cleanup_draft_fee_lines()</field>
     </record>
 
-    <menuitem id="menu_unitrade_payment_root" name="UniTrade Payment" parent="sale.sale_menu_root" sequence="90"/>
-    <menuitem id="menu_unitrade_payment_intent" name="Payment Intents" parent="menu_unitrade_payment_root" action="action_unitrade_payment_intent" sequence="10"/>
-    <menuitem id="menu_unitrade_escrow_ledger" name="Escrow Ledger" parent="menu_unitrade_payment_root" action="action_unitrade_escrow_ledger" sequence="20"/>
-    <menuitem id="menu_unitrade_payment_event" name="Payment Events" parent="menu_unitrade_payment_root" action="action_unitrade_payment_event" sequence="30"/>
+    <!-- Root menu Keuangan & Pembayaran UniTrade.
+         Children di-extend oleh:
+         - unitrade_payment/views/voucher_views.xml (Voucher)
+         - unitrade_dispute/views/dispute_views.xml (Refund & Dispute)
+         - unitrade_admin/views/backend_views.xml (Audit Log)
+    -->
+    <menuitem id="menu_unitrade_payment_root"
+              name="Keuangan &amp; Dispute"
+              parent="unitrade_seller.menu_unitrade_root"
+              sequence="40"
+              groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
+    <menuitem id="menu_unitrade_payment_intent"
+              name="Payment Intents"
+              parent="menu_unitrade_payment_root"
+              action="action_unitrade_payment_intent"
+              sequence="10"
+              groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
+    <menuitem id="menu_unitrade_escrow_ledger"
+              name="Escrow Ledger"
+              parent="menu_unitrade_payment_root"
+              action="action_unitrade_escrow_ledger"
+              sequence="20"
+              groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
+    <menuitem id="menu_unitrade_payment_event"
+              name="Payment Events"
+              parent="menu_unitrade_payment_root"
+              action="action_unitrade_payment_event"
+              sequence="30"
+              groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
 </odoo>

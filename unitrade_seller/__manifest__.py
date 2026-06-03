@@ -27,6 +27,7 @@
         'views/seller_menus.xml',
         'views/university_views.xml',
         'views/seller_verification_views.xml',
+        'wizards/user_block_wizard_views.xml',
     ],
     'assets': {
         'web.assets_frontend': [

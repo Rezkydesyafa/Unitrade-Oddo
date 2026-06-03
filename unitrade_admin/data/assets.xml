@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="asset_unitrade_admin_dashboard_scss" model="ir.asset">
+        <field name="name">UniTrade Admin Dashboard SCSS</field>
+        <field name="bundle">web.assets_frontend</field>
+        <field name="directive">append</field>
+        <field name="path">unitrade_admin/static/src/scss/dashboard.scss</field>
+        <field name="sequence">90</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <record id="asset_unitrade_admin_dashboard_js" model="ir.asset">
+        <field name="name">UniTrade Admin Dashboard JS</field>
+        <field name="bundle">web.assets_frontend</field>
+        <field name="directive">append</field>
+        <field name="path">unitrade_admin/static/src/js/dashboard.js</field>
+        <field name="sequence">91</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

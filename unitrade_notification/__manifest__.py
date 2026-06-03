@@ -7,6 +7,7 @@
     'depends': [
         'mail',
         'auth_signup',
+        'unitrade_theme',
         'unitrade_seller',
         'unitrade_payment',
         'unitrade_delivery',
