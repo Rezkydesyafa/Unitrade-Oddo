@@ -1,0 +1,36 @@
+version: '3.8'
+services:
+  web:
+    image: odoo:17.0 # Pembaruan mutlak ke Odoo 17
+    depends_on:
+      - db
+    ports:
+      - "8069:8069"
+    volumes:
+      - odoo-web-data:/var/lib/odoo
+      - ./:/mnt/extra-addons
+    environment:
+      - HOST=db
+      - USER=odoo
+      - PASSWORD=odoo
+  
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_USER=odoo
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data
+
+  # Mesin pekerja sementara untuk merender Tailwind CSS
+  frontend-builder:
+    image: node:lts
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -c "npm install && npm run build"
+
+volumes:
+  odoo-web-data:
+  odoo-db-data:
