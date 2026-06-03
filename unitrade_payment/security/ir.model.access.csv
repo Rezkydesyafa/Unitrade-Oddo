@@ -1,6 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-<<<<<<< HEAD
-=======
 access_unitrade_payment_intent_system,unitrade.payment.intent system,model_unitrade_payment_intent,base.group_system,1,1,1,1
 access_unitrade_payment_intent_admin,unitrade.payment.intent admin,model_unitrade_payment_intent,unitrade_seller.group_unitrade_admin,1,1,1,0
 access_unitrade_escrow_ledger_system,unitrade.escrow.ledger system,model_unitrade_escrow_ledger,base.group_system,1,1,1,1
@@ -13,4 +11,3 @@ access_unitrade_seller_payout_system,unitrade.seller.payout system,model_unitrad
 access_unitrade_seller_payout_admin,unitrade.seller.payout admin,model_unitrade_seller_payout,unitrade_seller.group_unitrade_admin,1,1,1,1
 access_unitrade_escrow_manual_action_wizard_admin,unitrade.escrow.manual.action.wizard admin,model_unitrade_escrow_manual_action_wizard,unitrade_seller.group_unitrade_admin,1,1,1,1
 access_unitrade_escrow_manual_action_wizard_system,unitrade.escrow.manual.action.wizard system,model_unitrade_escrow_manual_action_wizard,base.group_system,1,1,1,1
->>>>>>> ca9bf47 (feat : admin fajar anjay sadboy)

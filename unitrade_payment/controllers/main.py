@@ -1,8 +1,15 @@
-from odoo import http
-from odoo.http import request
-import logging
+import base64
 import hashlib
+import io
 import json
+import logging
+from urllib.parse import quote
+
+import qrcode
+import requests
+
+from odoo import _, fields, http
+from odoo.http import request
 
 _logger = logging.getLogger(__name__)
 
@@ -59,9 +66,6 @@ class UnitradePaymentController(http.Controller):
 
         return {'status': 'ok'}
 
-<<<<<<< HEAD
-    @http.route('/unitrade/payment/finish', type='http', auth='public', website=True)
-=======
     def _check_marketplace_access(self, feature_label):
         user = request.env.user
         if not user._is_public() and hasattr(user, '_check_unitrade_marketplace_access'):
@@ -1599,7 +1603,6 @@ class UnitradePaymentController(http.Controller):
         )
 
     @http.route('/unitrade/payment/finish', type='http', auth='public', website=True, sitemap=False)
->>>>>>> ca9bf47 (feat : admin fajar anjay sadboy)
     def payment_finish(self, **kwargs):
         """Payment finish redirect page"""
         values = {'page_title': 'Pembayaran — UniTrade'}

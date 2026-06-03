@@ -17,8 +17,6 @@
             </div>
         </field>
     </record>
-<<<<<<< HEAD
-=======
 
     <!-- ======================================================================
          ACCOUNT TEMPLATES
@@ -416,6 +414,4 @@
             </div>
         </field>
     </record>
-
->>>>>>> ca9bf47 (feat : admin fajar anjay sadboy)
 </odoo>

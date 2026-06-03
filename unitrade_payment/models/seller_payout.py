@@ -58,24 +58,24 @@ class UnitradeSellerPayout(models.Model):
         string='User Seller',
         store=False,
     )
-    payout_channel_code = fields.Selection(
-        related='seller_id.x_payout_channel_code',
+    payout_channel_code = fields.Char(
         string='Channel',
+        compute='_compute_payout_identity',
         store=False,
     )
     payout_account_number = fields.Char(
-        related='seller_id.x_payout_account_number',
         string='Nomor Rekening / HP',
+        compute='_compute_payout_identity',
         store=False,
     )
     payout_account_name = fields.Char(
-        related='seller_id.x_payout_account_name',
         string='Nama Pemilik',
+        compute='_compute_payout_identity',
         store=False,
     )
     payout_ready = fields.Boolean(
-        related='seller_id.x_payout_ready',
         string='Data Payout Lengkap',
+        compute='_compute_payout_identity',
         store=False,
     )
 
@@ -136,6 +136,15 @@ class UnitradeSellerPayout(models.Model):
     # ------------------------------------------------------------------
     # Compute / constrains
     # ------------------------------------------------------------------
+    @api.depends('seller_id', 'seller_id.write_date')
+    def _compute_payout_identity(self):
+        for payout in self:
+            seller = payout.seller_id
+            payout.payout_channel_code = seller['x_payout_channel_code'] if seller and 'x_payout_channel_code' in seller._fields else False
+            payout.payout_account_number = seller['x_payout_account_number'] if seller and 'x_payout_account_number' in seller._fields else False
+            payout.payout_account_name = seller['x_payout_account_name'] if seller and 'x_payout_account_name' in seller._fields else False
+            payout.payout_ready = bool(seller['x_payout_ready']) if seller and 'x_payout_ready' in seller._fields else False
+
     @api.depends('ledger_ids', 'ledger_ids.amount_seller')
     def _compute_totals(self):
         for payout in self:

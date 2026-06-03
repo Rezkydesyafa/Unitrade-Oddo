@@ -13,8 +13,6 @@
             </xpath>
         </field>
     </record>
-<<<<<<< HEAD
-=======
 
     <record id="view_unitrade_payment_intent_tree" model="ir.ui.view">
         <field name="name">unitrade.payment.intent.tree</field>
@@ -424,5 +422,4 @@
               action="action_unitrade_payment_event"
               sequence="30"
               groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
->>>>>>> ca9bf47 (feat : admin fajar anjay sadboy)
 </odoo>

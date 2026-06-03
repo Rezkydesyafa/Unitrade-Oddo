@@ -5,10 +5,7 @@ access_unitrade_seller_admin,unitrade.seller.admin,model_unitrade_seller,unitrad
 access_unisa_student_admin,unisa.student admin,model_unisa_student,base.group_system,1,1,1,1
 access_seller_verif_user,seller.verif user,model_unitrade_seller_verification,base.group_user,1,1,1,0
 access_seller_verif_admin,seller.verif admin,model_unitrade_seller_verification,base.group_system,1,1,1,1
-<<<<<<< HEAD
-=======
 access_unitrade_seller_payout_seller,unitrade.seller.payout seller,model_unitrade_seller_payout,unitrade_seller.group_unitrade_seller,1,0,0,0
 access_unitrade_seller_payout_admin,unitrade.seller.payout admin,model_unitrade_seller_payout,unitrade_seller.group_unitrade_admin,1,1,1,1
 access_unitrade_user_block_wizard_admin,unitrade.user.block.wizard admin,model_unitrade_user_block_wizard,unitrade_seller.group_unitrade_admin,1,1,1,1
 access_unitrade_user_block_wizard_system,unitrade.user.block.wizard system,model_unitrade_user_block_wizard,base.group_system,1,1,1,1
->>>>>>> ca9bf47 (feat : admin fajar anjay sadboy)

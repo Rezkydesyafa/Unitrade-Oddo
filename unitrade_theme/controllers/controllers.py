@@ -107,8 +107,6 @@ class UnitradeAuthSignup(OAuthLogin):
                 )
 
                 if user_sudo:
-<<<<<<< HEAD
-=======
                     if _is_phone(login_value) and user_sudo.partner_id:
                         user_sudo.partner_id.sudo().write({
                             'phone': user_sudo.partner_id.phone or login_value,
@@ -127,7 +125,6 @@ class UnitradeAuthSignup(OAuthLogin):
                         user_agent=request.httprequest.headers.get('User-Agent', ''),
                         session_id=request.session.sid,
                     )
->>>>>>> ca9bf47 (feat : admin fajar anjay sadboy)
                     return self._generate_and_redirect_otp(user_sudo, login_value)
                 else:
                     return self.web_login(*args, **kw)

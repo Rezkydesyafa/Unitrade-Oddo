@@ -7,11 +7,9 @@
     'depends': ['sale', 'website', 'portal', 'unitrade_payment', 'unitrade_theme', 'unitrade_seller'],
     'data': [
         'security/ir.model.access.csv',
-        'data/sequence.xml',
         'data/refund_config.xml',
         'data/mail_templates.xml',
         'views/dispute_views.xml',
-        'views/refund_templates.xml',
     ],
     'assets': {
         'web.assets_frontend': [

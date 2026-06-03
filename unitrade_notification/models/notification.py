@@ -1,5 +1,8 @@
-from odoo import models, fields
+import hashlib
 import logging
+from datetime import timedelta
+
+from odoo import _, api, fields, models, tools
 
 _logger = logging.getLogger(__name__)
 
@@ -7,26 +10,6 @@ _logger = logging.getLogger(__name__)
 class UnitradeNotification(models.Model):
     _name = 'unitrade.notification'
     _description = 'UniTrade System Notification'
-<<<<<<< HEAD
-    _order = 'create_date desc'
-
-    user_id = fields.Many2one('res.users', string='User', required=True, ondelete='cascade', index=True)
-    title = fields.Char(string='Judul', required=True)
-    message = fields.Text(string='Pesan')
-    notification_type = fields.Selection([
-        ('order', 'Pesanan'),
-        ('payment', 'Pembayaran'),
-        ('delivery', 'Pengiriman'),
-        ('chat', 'Chat'),
-        ('system', 'Sistem'),
-    ], string='Tipe', default='system')
-    is_read = fields.Boolean(string='Sudah Dibaca', default=False)
-    reference_model = fields.Char(string='Model Referensi')
-    reference_id = fields.Integer(string='ID Referensi')
-
-    def action_mark_read(self):
-        self.write({'is_read': True})
-=======
     # Unread first for admin/user inboxes; ``id desc`` is the deterministic
     # tie-breaker used by list query invariants.
     _order = 'is_read asc, create_date desc, id desc'
@@ -1544,4 +1527,3 @@ class UnitradeNotification(models.Model):
         except Exception:
             _logger.exception('Failed humanizing notification time')
             return ''
->>>>>>> ca9bf47 (feat : admin fajar anjay sadboy)

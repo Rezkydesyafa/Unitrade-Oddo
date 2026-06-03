@@ -5,13 +5,9 @@ import math
 import logging
 
 # pyrefly: ignore [missing-import]
-<<<<<<< HEAD
-from odoo import fields, http
-=======
 from odoo import _, SUPERUSER_ID, fields, http
 # pyrefly: ignore [missing-import]
 from odoo.exceptions import UserError, ValidationError
->>>>>>> ca9bf47 (feat : admin fajar anjay sadboy)
 # pyrefly: ignore [missing-import]
 from odoo.http import request
 from markupsafe import Markup, escape
@@ -204,14 +200,6 @@ class UnitradeSellerController(http.Controller):
         return localized.strftime('%d %b %Y')
 
     @staticmethod
-<<<<<<< HEAD
-    def _dashboard_seller():
-        user = request.env.user
-        return request.env['unitrade.seller'].sudo().search([
-            ('user_id', '=', user.id),
-            ('status', '=', 'verified'),
-        ], limit=1)
-=======
     def _format_order_datetime_label(value):
         if not value:
             return ''
@@ -302,7 +290,6 @@ class UnitradeSellerController(http.Controller):
         if seller and not self._seller_store_is_active(seller):
             return 'Toko sedang nonaktif. Aktifkan kembali di Pengaturan Toko untuk memakai fitur seller.'
         return 'Akun penjual belum terverifikasi.'
->>>>>>> ca9bf47 (feat : admin fajar anjay sadboy)
 
     @staticmethod
     def _seller_dashboard_product_domain(seller, active_only=False):
@@ -355,10 +342,6 @@ class UnitradeSellerController(http.Controller):
             return {'label': 'Expired', 'state': 'error'}
         days = max(0, int(math.ceil((expires_at - now).total_seconds() / 86400.0)))
         if days <= 0:
-<<<<<<< HEAD
-            return {'label': 'Exp: hari ini', 'state': 'warning'}
-        return {'label': 'Exp: %s hari' % days, 'state': 'warning' if days <= 3 else 'neutral'}
-=======
             label = 'Aktif sampai hari ini'
         else:
             label = 'Sisa %s hari' % days
@@ -1968,7 +1951,6 @@ class UnitradeSellerController(http.Controller):
         if 'active' in product._fields:
             values['active'] = False
         product.write(values)
->>>>>>> ca9bf47 (feat : admin fajar anjay sadboy)
 
     def _seller_dashboard_product_payloads(self, seller):
         payloads = []
@@ -2446,8 +2428,6 @@ class UnitradeSellerController(http.Controller):
             self._seller_dashboard_context(seller),
         )
 
-<<<<<<< HEAD
-=======
     @http.route('/unitrade/seller/dashboard/data', type='json', auth='user', website=True, methods=['POST'])
     def seller_dashboard_data(self, **kwargs):
         """Return seller dashboard data filtered by the requested local date."""
@@ -3600,7 +3580,6 @@ class UnitradeSellerController(http.Controller):
             'add_product_url': self._seller_product_add_url(),
         }
 
->>>>>>> ca9bf47 (feat : admin fajar anjay sadboy)
     @http.route('/unitrade/otp/send', type='json', auth='user', methods=['POST'])
     def send_otp(self, **kwargs):
         """Send OTP through the shared unitrade.otp model."""
