@@ -14,6 +14,7 @@
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin"/>
                 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
                 <t t-call-assets="web.assets_frontend" t-js="false"/>
+                <link rel="stylesheet" href="/unitrade_admin/static/src/css/dashboard.css?v=20260604"/>
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
                 <t t-call-assets="web.assets_frontend" t-css="false"/>
                 <style>
@@ -240,6 +241,7 @@
                 <title>UniTrade Admin · Forbidden</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1"/>
                 <t t-call-assets="web.assets_frontend" t-js="false"/>
+                <link rel="stylesheet" href="/unitrade_admin/static/src/css/dashboard.css?v=20260604"/>
                 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
             </head>
             <body>
