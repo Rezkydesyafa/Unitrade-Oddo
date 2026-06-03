@@ -37,6 +37,7 @@
     ],
     'data': [
         'security/ir.model.access.csv',
+        'data/assets.xml',
         'views/admin_dashboard_views.xml',
         'views/admin_dashboard_templates.xml',
         'views/backend_views.xml',

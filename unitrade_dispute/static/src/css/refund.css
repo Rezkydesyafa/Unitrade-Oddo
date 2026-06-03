@@ -1,0 +1,36 @@
+/* UniTrade refund/dispute frontend assets.
+ * Keep this file present because unitrade_dispute contributes it to
+ * web.assets_frontend; missing files break the whole frontend CSS bundle.
+ */
+
+.unitrade-refund-page {
+    --ut-refund-surface: #ffffff;
+    --ut-refund-border: #e5e7eb;
+    --ut-refund-muted: #6b7280;
+    --ut-refund-text: #111827;
+    --ut-refund-success: #166534;
+    --ut-refund-warning: #92400e;
+    --ut-refund-danger: #991b1b;
+}
+
+.unitrade-refund-page .unitrade-refund-card {
+    background: var(--ut-refund-surface);
+    border: 1px solid var(--ut-refund-border);
+    border-radius: 8px;
+}
+
+.unitrade-refund-page .unitrade-refund-muted {
+    color: var(--ut-refund-muted);
+}
+
+.unitrade-refund-page .unitrade-refund-status-success {
+    color: var(--ut-refund-success);
+}
+
+.unitrade-refund-page .unitrade-refund-status-warning {
+    color: var(--ut-refund-warning);
+}
+
+.unitrade-refund-page .unitrade-refund-status-danger {
+    color: var(--ut-refund-danger);
+}
