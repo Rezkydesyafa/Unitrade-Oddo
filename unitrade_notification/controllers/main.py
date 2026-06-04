@@ -111,9 +111,12 @@ class UnitradeNotificationController(http.Controller):
             return '%s hari yang lalu' % days
         return localized.strftime('%d %b %Y')
 
-    def _notification_tab_counts(self, Notification, user):
+    def _notification_base_domain(self, Notification, user, scope='user'):
+        return [('user_id', '=', user.id)] + Notification._notification_scope_domain(scope)
+
+    def _notification_tab_counts(self, Notification, user, scope='user'):
         rows = Notification.read_group(
-            [('user_id', '=', user.id)],
+            self._notification_base_domain(Notification, user, scope),
             ['category'],
             ['category'],
         )
@@ -151,6 +154,99 @@ class UnitradeNotificationController(http.Controller):
             'time_label': self._notification_time_label(notif.create_date),
         }
 
+    def _current_seller(self):
+        user = request.env.user
+        if user._is_public():
+            return request.env['unitrade.seller'].sudo().browse()
+        Seller = request.env['unitrade.seller'].sudo()
+        domain = [
+            ('user_id', '=', user.id),
+            ('status', '=', 'verified'),
+        ]
+        if 'x_store_active' in Seller._fields:
+            domain.append(('x_store_active', '=', True))
+        return Seller.search(domain, limit=1)
+
+    def _render_notification_center(
+        self,
+        page=1,
+        category='all',
+        scope='user',
+        center_url='/my/notifications',
+        read_all_url='/my/notifications/read_all',
+        title='Notifikasi',
+        empty_message='Aktivitas pesanan, pembayaran, review, chat, dan sistem akan muncul di sini.',
+    ):
+        user = request.env.user
+
+        try:
+            page = int(page)
+        except (TypeError, ValueError):
+            page = 1
+        page = max(1, page)
+
+        if category not in _ALLOWED_CATEGORIES:
+            category = 'all'
+        category = self._ui_category(category)
+
+        Notification = request.env['unitrade.notification'].sudo()
+        domain = self._notification_base_domain(Notification, user, scope)
+        if category != 'all':
+            category_domain = self._ui_category_domain(category)
+            if len(category_domain) == 1:
+                domain.append(('category', '=', category_domain[0]))
+            elif category_domain:
+                domain.append(('category', 'in', category_domain))
+
+        total = Notification.search_count(domain)
+        unread_count = Notification.search_count(
+            self._notification_base_domain(Notification, user, scope) + [
+                ('is_read', '=', False),
+            ]
+        )
+        categories = self._notification_tab_counts(Notification, user, scope)
+
+        pager = request.website.pager(
+            url=center_url,
+            total=total,
+            page=page,
+            step=_PAGE_SIZE,
+            url_args={'category': category},
+        )
+
+        records = Notification.search(
+            domain,
+            order='create_date desc, id desc',
+            limit=_PAGE_SIZE,
+            offset=pager['offset'],
+        )
+
+        _logger.debug(
+            "notification_center served: user_id=%s page=%s category=%s scope=%s count=%s",
+            user.id, page, category, scope, len(records),
+        )
+
+        values = {
+            'notifications': records,
+            'notification_items': [
+                self._notification_item_payload(record) for record in records
+            ],
+            'page': page,
+            'category': category,
+            'total': total,
+            'unread_count': unread_count,
+            'pager': pager,
+            'categories': categories,
+            'notification_scope': scope,
+            'notification_center_url': center_url,
+            'notification_read_all_url': read_all_url,
+            'notification_page_title': title,
+            'notification_empty_message': empty_message,
+        }
+        return request.render(
+            'unitrade_notification.notification_center_page', values,
+        )
+
     # ------------------------------------------------------------------
     # 11.1 Notification center page
     # ------------------------------------------------------------------
@@ -169,80 +265,49 @@ class UnitradeNotificationController(http.Controller):
         if user._is_public():
             return request.redirect('/web/login?redirect=/my/notifications')
 
-        # Coerce ``page`` to a positive int. ``int()`` may raise on garbage
-        # input (e.g. ``?page=abc``); we treat any failure as page 1.
-        try:
-            page = int(page)
-        except (TypeError, ValueError):
-            page = 1
-        page = max(1, page)
-
-        # Constrain ``category`` to the allowed set; unknown values fall
-        # back to the unfiltered ``'all'`` view.
-        if category not in _ALLOWED_CATEGORIES:
-            category = 'all'
-        category = self._ui_category(category)
-
-        # Build the search domain. The user filter is enforced in two
-        # places: explicitly here for query planning and via the
-        # ``unitrade_notification_user_rule`` ir.rule for defense in depth.
-        domain = [('user_id', '=', user.id)]
-        if category != 'all':
-            category_domain = self._ui_category_domain(category)
-            if len(category_domain) == 1:
-                domain.append(('category', '=', category_domain[0]))
-            elif category_domain:
-                domain.append(('category', 'in', category_domain))
-
-        Notification = request.env['unitrade.notification'].sudo()
-        total = Notification.search_count(domain)
-        unread_count = Notification.search_count([
-            ('user_id', '=', user.id),
-            ('is_read', '=', False),
-        ])
-        categories = self._notification_tab_counts(Notification, user)
-
-        # Standard website pager — gives us {url, page, page_count, ...}
-        # with the category preserved across pagination links.
-        pager = request.website.pager(
-            url='/my/notifications',
-            total=total,
+        return self._render_notification_center(
             page=page,
-            step=_PAGE_SIZE,
-            url_args={'category': category},
+            category=category,
+            scope='user',
+            center_url='/my/notifications',
+            read_all_url='/my/notifications/read_all',
+            title='Notifikasi',
         )
 
-        records = Notification.search(
-            domain,
-            order='create_date desc, id desc',
-            limit=_PAGE_SIZE,
-            offset=pager['offset'],
-        )
+    @http.route('/unitrade/seller/notifications', type='http', auth='user', website=True)
+    def seller_notification_center(self, page=1, category='all', **kwargs):
+        user = request.env.user
+        if user._is_public():
+            return request.redirect(
+                '/web/login?redirect=/unitrade/seller/notifications'
+            )
+        if not self._current_seller():
+            return request.redirect('/seller-onboarding')
 
-        _logger.debug(
-            "notification_center served: user_id=%s page=%s category=%s count=%s",
-            user.id, page, category, len(records),
-        )
-
-        values = {
-            'notifications': records,
-            'notification_items': [
-                self._notification_item_payload(record) for record in records
-            ],
-            'page': page,
-            'category': category,
-            'total': total,
-            'unread_count': unread_count,
-            'pager': pager,
-            'categories': categories,
-        }
-        return request.render(
-            'unitrade_notification.notification_center_page', values,
+        return self._render_notification_center(
+            page=page,
+            category=category,
+            scope='seller',
+            center_url='/unitrade/seller/notifications',
+            read_all_url='/unitrade/seller/notifications/read_all',
+            title='Notifikasi Penjual',
+            empty_message='Aktivitas pesanan, ulasan, pembayaran, refund, dan chat penjual akan muncul di sini.',
         )
 
     # ------------------------------------------------------------------
     # 11.2 Unread count + recent JSON endpoints (added in task 11.2)
     # ------------------------------------------------------------------
+    def _unread_count_for_scope(self, scope):
+        user = request.env.user
+        if user._is_public():
+            return 0
+        Notification = request.env['unitrade.notification'].sudo()
+        return Notification.search_count(
+            self._notification_base_domain(Notification, user, scope) + [
+                ('is_read', '=', False),
+            ]
+        )
+
     @http.route('/my/notifications/unread_count', type='json', auth='user')
     def unread_count(self, **kwargs):
         """Return the unread notification count for the current user.
@@ -263,15 +328,50 @@ class UnitradeNotificationController(http.Controller):
         user = request.env.user
         if user._is_public():
             return {'count': 0}
-        count = request.env['unitrade.notification'].sudo().search_count([
-            ('user_id', '=', user.id),
-            ('is_read', '=', False),
-        ])
+        count = self._unread_count_for_scope('user')
         _logger.debug(
             "unread_count: user_id=%s count=%s",
             user.id, count,
         )
         return {'count': count}
+
+    @http.route('/unitrade/seller/notifications/unread_count', type='json', auth='user')
+    def seller_unread_count(self, **kwargs):
+        user = request.env.user
+        if user._is_public() or not self._current_seller():
+            return {'count': 0}
+        count = self._unread_count_for_scope('seller')
+        _logger.debug(
+            "seller_unread_count: user_id=%s count=%s",
+            user.id, count,
+        )
+        return {'count': count}
+
+    def _recent_for_scope(self, scope):
+        user = request.env.user
+        if user._is_public():
+            return []
+        Notification = request.env['unitrade.notification'].sudo()
+        records = Notification.search(
+            self._notification_base_domain(Notification, user, scope),
+            order='create_date desc, id desc',
+            limit=5,
+        )
+        return [
+            {
+                'id': r.id,
+                'title': r.title or '',
+                'message': r.message or '',
+                'action_url': r._get_effective_action_url(),
+                'is_read': bool(r.is_read),
+                'create_date': (
+                    fields.Datetime.to_string(r.create_date)
+                    if r.create_date else False
+                ),
+                'category': r.category or '',
+            }
+            for r in records
+        ]
 
     @http.route('/my/notifications/recent', type='json', auth='user')
     def recent(self, **kwargs):
@@ -288,28 +388,21 @@ class UnitradeNotificationController(http.Controller):
         user = request.env.user
         if user._is_public():
             return []
-        records = request.env['unitrade.notification'].sudo().search(
-            [('user_id', '=', user.id)],
-            order='create_date desc, id desc',
-            limit=5,
-        )
-        payload = [
-            {
-                'id': r.id,
-                'title': r.title or '',
-                'message': r.message or '',
-                'action_url': r._get_effective_action_url(),
-                'is_read': bool(r.is_read),
-                'create_date': (
-                    fields.Datetime.to_string(r.create_date)
-                    if r.create_date else False
-                ),
-                'category': r.category or '',
-            }
-            for r in records
-        ]
+        payload = self._recent_for_scope('user')
         _logger.debug(
             "recent: user_id=%s returned=%s",
+            user.id, len(payload),
+        )
+        return payload
+
+    @http.route('/unitrade/seller/notifications/recent', type='json', auth='user')
+    def seller_recent(self, **kwargs):
+        user = request.env.user
+        if user._is_public() or not self._current_seller():
+            return []
+        payload = self._recent_for_scope('seller')
+        _logger.debug(
+            "seller_recent: user_id=%s returned=%s",
             user.id, len(payload),
         )
         return payload
@@ -375,9 +468,27 @@ class UnitradeNotificationController(http.Controller):
         user = request.env.user
         if user._is_public():
             return {'ok': False, 'updated': 0}
-        updated = request.env['unitrade.notification'].mark_all_as_read(user.id)
+        updated = request.env['unitrade.notification'].mark_all_as_read(
+            user.id,
+            recipient_scope='user',
+        )
         _logger.debug(
             "/my/notifications/read_all user_id=%s updated=%s",
+            user.id, updated,
+        )
+        return {'ok': True, 'updated': updated}
+
+    @http.route('/unitrade/seller/notifications/read_all', type='json', auth='user')
+    def seller_mark_all_read(self, **kwargs):
+        user = request.env.user
+        if user._is_public() or not self._current_seller():
+            return {'ok': False, 'updated': 0}
+        updated = request.env['unitrade.notification'].mark_all_as_read(
+            user.id,
+            recipient_scope='seller',
+        )
+        _logger.debug(
+            "/unitrade/seller/notifications/read_all user_id=%s updated=%s",
             user.id, updated,
         )
         return {'ok': True, 'updated': updated}

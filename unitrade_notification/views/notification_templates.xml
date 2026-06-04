@@ -68,13 +68,13 @@
          ====================================================================== -->
     <template id="notification_center_page" name="UniTrade Notification Center">
         <t t-call="website.layout">
-            <t t-set="page_title">Notifikasi - UniTrade</t>
-            <t t-set="additional_title">Notifikasi</t>
+            <t t-set="page_title" t-value="(notification_page_title or 'Notifikasi') + ' - UniTrade'"/>
+            <t t-set="additional_title" t-value="notification_page_title or 'Notifikasi'"/>
 
             <main class="ut-notifications-page">
                 <div class="ut-notifications-shell">
                     <header class="ut-notifications-header">
-                        <h1 class="ut-notifications-title">Notifikasi</h1>
+                        <h1 class="ut-notifications-title" t-esc="notification_page_title or 'Notifikasi'"/>
                         <p class="ut-notifications-subtitle" data-unread-label="1">
                             <t t-esc="unread_count or 0"/> notifikasi belum dibaca
                         </p>
@@ -86,7 +86,7 @@
                         <div class="ut-notifications-card-head">
                             <nav class="ut-notifications-tabs" aria-label="Filter kategori notifikasi">
                                 <t t-foreach="categories or []" t-as="cat">
-                                    <a t-att-href="'/my/notifications?category=%s' % cat.get('key')"
+                                    <a t-att-href="'%s?category=%s' % (notification_center_url or '/my/notifications', cat.get('key'))"
                                        t-att-data-tab-key="cat.get('key')"
                                        t-att-data-tab-count="cat.get('count')"
                                        t-attf-class="ut-notifications-tab #{'ut-is-active' if cat.get('key') == category else ''}">
@@ -94,7 +94,7 @@
                                     </a>
                                 </t>
                             </nav>
-                            <form action="/my/notifications/read_all"
+                            <form t-att-action="notification_read_all_url or '/my/notifications/read_all'"
                                   method="post"
                                   data-notif-action="read_all"
                                   class="ut-notifications-header-action">
@@ -117,7 +117,7 @@
                             <div class="ut-notifications-empty">
                                 <div class="ut-notifications-empty-icon">🔔</div>
                                 <h2>Belum ada notifikasi</h2>
-                                <p>Aktivitas pesanan, pembayaran, review, chat, dan sistem akan muncul di sini.</p>
+                                <p t-esc="notification_empty_message or 'Aktivitas pesanan, pembayaran, review, chat, dan sistem akan muncul di sini.'"/>
                             </div>
                         </t>
 
@@ -125,7 +125,7 @@
                             <ul class="ut-notifications-list">
                                 <t t-foreach="notification_items" t-as="notif">
                                     <li class="ut-notification-center-item">
-                                        <a t-att-href="notif.get('action_url') or '/my/notifications'"
+                                        <a t-att-href="notif.get('action_url') or (notification_center_url or '/my/notifications')"
                                            t-attf-class="ut-notification-center-row #{'ut-is-unread' if not notif.get('is_read') else ''}"
                                            t-att-data-notification-id="notif.get('id')"
                                            t-att-data-action-url="notif.get('action_url')"
