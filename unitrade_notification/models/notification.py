@@ -40,6 +40,11 @@ _CATEGORY_TO_LEGACY_TYPE = {
     'review': 'system',
 }
 
+_SELLER_ONLY_EVENT_CODES = frozenset({
+    'order.new_for_seller',
+    'review.new_for_seller',
+})
+
 
 # ---------------------------------------------------------------------------
 # Default Indonesian title/message per event_code.
@@ -147,6 +152,19 @@ class UnitradeNotification(models.Model):
         required=True,
         default='user',
         index=True,
+    )
+    recipient_scope = fields.Selection(
+        [
+            ('user', 'User'),
+            ('seller', 'Seller'),
+        ],
+        string='Scope Penerima',
+        compute='_compute_recipient_scope',
+        store=True,
+        default='user',
+        index=True,
+        help="Separates buyer/user notifications from seller-dashboard "
+             "notifications for the same res.users account.",
     )
     title = fields.Char(string='Judul', required=True)
     message = fields.Text(string='Pesan')
@@ -314,6 +332,102 @@ class UnitradeNotification(models.Model):
             'unitrade_notif_user_cat_date_idx',
             self._table,
             ['user_id', 'category', 'create_date'],
+        )
+
+    # ------------------------------------------------------------------
+    # Scope resolution
+    # ------------------------------------------------------------------
+    @api.depends(
+        'audience',
+        'user_id',
+        'event_code',
+        'reference_model',
+        'reference_id',
+        'action_url',
+        'target_model',
+        'target_id',
+        'target_url',
+    )
+    def _compute_recipient_scope(self):
+        for record in self:
+            record.recipient_scope = (
+                'seller' if record._is_seller_scoped_notification() else 'user'
+            )
+
+    @api.model
+    def _notification_scope_domain(self, scope='user'):
+        scope = 'seller' if scope == 'seller' else 'user'
+        return [
+            ('audience', '=', 'user'),
+            ('recipient_scope', '=', scope),
+        ]
+
+    def _is_seller_scoped_notification(self):
+        """Return true when this user notification belongs in seller UI."""
+        self.ensure_one()
+        if self.audience != 'user':
+            return False
+        if self.event_code in _SELLER_ONLY_EVENT_CODES:
+            return True
+        if (
+            self._is_seller_url(self.action_url)
+            or self._is_seller_url(self.target_url)
+        ):
+            return True
+
+        reference_model = self.reference_model or self.target_model
+        reference_id = self.reference_id or self.target_id
+        if not reference_model or not reference_id:
+            return False
+
+        try:
+            record = self.env[reference_model].sudo().browse(reference_id).exists()
+        except KeyError:
+            return False
+        if not record:
+            return False
+
+        if reference_model == 'sale.order':
+            return self._is_recipient_seller_for_order(record)
+        if reference_model == 'unitrade.dispute':
+            seller_user = record.seller_id.user_id if record.seller_id else False
+            return bool(seller_user and seller_user.id == self.user_id.id)
+        if reference_model == 'unitrade.chat.conversation':
+            seller_user = (
+                record.seller_user_id
+                if hasattr(record, 'seller_user_id') else False
+            )
+            return bool(seller_user and seller_user.id == self.user_id.id)
+        if reference_model == 'unitrade.review':
+            return self._product_belongs_to_recipient_seller(record.product_id)
+        if reference_model == 'product.template':
+            return self._product_belongs_to_recipient_seller(record)
+        if reference_model == 'product.product':
+            return self._product_belongs_to_recipient_seller(record.product_tmpl_id)
+        return False
+
+    @staticmethod
+    def _is_seller_url(url):
+        return bool((url or '').strip().startswith('/unitrade/seller/'))
+
+    def _product_belongs_to_recipient_seller(self, product):
+        self.ensure_one()
+        if not product:
+            return False
+        product = product.sudo().exists()
+        if not product or not self.user_id:
+            return False
+        seller_user = (
+            product.x_seller_user_id
+            if 'x_seller_user_id' in product._fields else False
+        )
+        if seller_user and seller_user.id:
+            return seller_user.id == self.user_id.id
+        seller = product.x_seller_id if 'x_seller_id' in product._fields else False
+        return bool(
+            seller
+            and seller.user_id
+            and seller.user_id.id == self.user_id.id
         )
 
     # ------------------------------------------------------------------
@@ -543,6 +657,9 @@ class UnitradeNotification(models.Model):
         stronger project-specific target can be derived.
         """
         self.ensure_one()
+        if self._is_buyer_review_reminder():
+            return self._review_orders_action_url()
+
         resolved_url = self._resolve_reference_action_url()
         if resolved_url:
             return resolved_url
@@ -736,7 +853,7 @@ class UnitradeNotification(models.Model):
         if self.category == 'chat':
             return '/unitrade/chat'
         if self.category == 'review':
-            return '/my/orders?status=done'
+            return self._review_orders_action_url()
         return '/my/notifications'
 
     def _resolve_review_product_action_url(self):
@@ -788,6 +905,16 @@ class UnitradeNotification(models.Model):
         if product and product.exists():
             return self._review_product_action_url(product)
         return False
+
+    def _is_buyer_review_reminder(self):
+        self.ensure_one()
+        return self.category == 'review' and (
+            self.event_code == 'review.reminder'
+            or self.recipient_scope == 'user'
+        )
+
+    def _review_orders_action_url(self):
+        return '/my/orders?status=done'
 
     def _review_public_product(self, product):
         """Return a clickable marketplace product for review notifications."""
@@ -1350,7 +1477,7 @@ class UnitradeNotification(models.Model):
         return True
 
     @api.model
-    def mark_all_as_read(self, user_id):
+    def mark_all_as_read(self, user_id, recipient_scope=None):
         """Bulk mark every unread notification of ``user_id`` as read.
 
         Idempotent (Req 10.3 / Property 6 — Mark-as-Read Invariants):
@@ -1365,10 +1492,13 @@ class UnitradeNotification(models.Model):
         """
         if not user_id:
             return 0
-        records = self.sudo().search([
+        domain = [
             ('user_id', '=', user_id),
             ('is_read', '=', False),
-        ])
+        ]
+        if recipient_scope:
+            domain += self._notification_scope_domain(recipient_scope)
+        records = self.sudo().search(domain)
         if not records:
             return 0
         records.write({
@@ -1502,24 +1632,13 @@ class UnitradeNotification(models.Model):
                     )
 
             try:
-                action_url = '/unitrade/order/status/%s' % order.id
-                order_line = order.order_line.filtered(
-                    lambda line: (
-                        line.product_id and line.product_id.product_tmpl_id
-                    )
-                )[:1]
-                if order_line:
-                    action_url = (
-                        '/unitrade/product/%s?tab=reviews#tab-ulasan'
-                        % order_line.product_id.product_tmpl_id.id
-                    )
                 result = Notification.emit(
                     buyer.id,
                     'review.reminder',
                     payload={
                         'reference_model': 'sale.order',
                         'reference_id': order.id,
-                        'action_url': action_url,
+                        'action_url': Notification._review_orders_action_url(),
                     },
                 )
                 if result:

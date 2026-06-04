@@ -9,6 +9,7 @@
         'security/ir.model.access.csv',
         'data/refund_config.xml',
         'data/mail_templates.xml',
+        'views/refund_templates.xml',
         'views/dispute_views.xml',
     ],
     'assets': {

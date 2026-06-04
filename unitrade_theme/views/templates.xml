@@ -297,7 +297,6 @@
                         <p class="tw-m-0">&#169; 2026 UniTrade. All right reserved.</p>
                         <div class="ut-footer-legal-links tw-flex tw-flex-wrap tw-gap-x-6 tw-gap-y-3 tw-items-center">
                             <a href="/privacy-policy" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Privacy Policy</a>
-                            <a href="/terms" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Terms of Service</a>
                             <a href="/unitrade/sponsorship" class="hover:tw-text-black tw-transition-colors tw-no-underline tw-text-gray-500">Sponsorship</a>
                         </div>
                     </div>

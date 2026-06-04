@@ -16,6 +16,7 @@ from odoo.addons.auth_signup.models.res_users import SignupError
 from odoo.addons.auth_oauth.controllers.main import OAuthLogin, OAuthController
 from odoo.addons.portal.controllers.portal import get_error
 from odoo.addons.sale.controllers.portal import CustomerPortal
+from odoo.addons.web.controllers.home import SIGN_UP_REQUEST_PARAMS
 from odoo.addons.website.controllers.main import Website
 from werkzeug import urls
 
@@ -33,11 +34,11 @@ def _normalize_phone(value):
 
 
 def _normalize_login(value):
-    """Normalize signup/login input without changing the accepted formats."""
+    """Normalize signup/login input for email-only authentication."""
     value = (value or '').strip()
     if _is_email(value):
         return value.lower()
-    return _normalize_phone(value)
+    return value
 
 
 def _is_phone(value):
@@ -48,11 +49,33 @@ def _is_phone(value):
 class UnitradeAuthSignup(OAuthLogin):
     """Override signup and login to redirect to OTP verification page."""
 
+    def _render_login_form_error(self, login_value, error_message):
+        values = {k: v for k, v in request.params.items() if k in SIGN_UP_REQUEST_PARAMS}
+        values.update(self.get_auth_signup_config())
+        values.update({
+            'login': login_value,
+            'redirect': request.params.get('redirect'),
+            'error': error_message,
+            'providers': self.list_providers(),
+        })
+        response = request.render('web.login', values)
+        response.headers['Cache-Control'] = 'no-cache'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
+        return response
+
     @http.route()
     def web_login(self, *args, **kw):
         """Override web_login to enforce OTP verification for unverified portal users."""
         if request.httprequest.method == 'POST' and request.params.get('login'):
-            request.params['login'] = _normalize_login(request.params.get('login'))
+            login_value = _normalize_login(request.params.get('login'))
+            request.params['login'] = login_value
+            admin_username_login = request.params.get('admin') == '1' and not _is_phone(login_value)
+            if not _is_email(login_value) and not admin_username_login:
+                return self._render_login_form_error(
+                    login_value,
+                    _("Masukkan alamat email yang valid untuk login."),
+                )
 
         response = super().web_login(*args, **kw)
 
@@ -96,8 +119,8 @@ class UnitradeAuthSignup(OAuthLogin):
                 if login_value:
                     qcontext['login'] = login_value
                     request.params['login'] = login_value
-                if not (_is_email(login_value) or _is_phone(login_value)):
-                    raise UserError(_("Masukkan email yang valid atau nomor HP yang diawali 08, 62, atau +62."))
+                if not _is_email(login_value):
+                    raise UserError(_("Masukkan alamat email yang valid."))
 
                 if request.params.get('terms_accepted') != '1':
                     raise UserError(_("Anda harus menyetujui Syarat Ketentuan & Kebijakan Privasi."))
@@ -117,11 +140,6 @@ class UnitradeAuthSignup(OAuthLogin):
                 )
 
                 if user_sudo:
-                    if _is_phone(login_value) and user_sudo.partner_id:
-                        user_sudo.partner_id.sudo().write({
-                            'phone': user_sudo.partner_id.phone or login_value,
-                            'mobile': user_sudo.partner_id.mobile or login_value,
-                        })
                     user_sudo.unitrade_record_security_activity(
                         'register',
                         title=_('Akun dibuat'),
@@ -155,9 +173,9 @@ class UnitradeAuthSignup(OAuthLogin):
                         if pre_uid:
                             return self._generate_and_redirect_otp(existing_user, login_value)
                         else:
-                            qcontext["error"] = _("Email/No.HP sudah terdaftar. Password salah.")
+                            qcontext["error"] = _("Email sudah terdaftar. Password salah.")
                     except Exception:
-                        qcontext["error"] = _("Email/No.HP sudah terdaftar. Silakan masuk.")
+                        qcontext["error"] = _("Email sudah terdaftar. Silakan masuk.")
                 else:
                     _logger.warning("%s", e)
                     qcontext['error'] = _("Could not create a new account.") + "\n" + str(e)
@@ -179,9 +197,9 @@ class UnitradeAuthSignup(OAuthLogin):
 
     @http.route('/web/signup/check_email', type='json', auth='public', methods=['POST'], csrf=False)
     def check_email_exists(self, **kw):
-        """Check if an email or phone number already exists in the database."""
+        """Check if an email already exists in the database."""
         login = _normalize_login(kw.get('login', ''))
-        if not login:
+        if not login or not _is_email(login):
             return {'exists': False}
         existing_user = request.env['res.users'].sudo().search(
             [('login', '=', login)], limit=1

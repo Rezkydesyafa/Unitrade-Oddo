@@ -48,9 +48,9 @@
                                             <!-- Email Field -->
                                             <div>
                                                 <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[20px] tw-py-[12px] tw-flex tw-items-center tw-bg-white">
-                                                    <input type="text" placeholder="Email atau Nomor HP" name="login" t-att-value="login" required="required" autofocus="autofocus" autocomplete="username" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[15px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
+                                                    <input type="email" placeholder="Email" name="login" t-att-value="login" required="required" autofocus="autofocus" autocomplete="email" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[15px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
                                                 </div>
-                                                <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[11px] tw-text-[#666] tw-mt-[4px] tw-ml-[16px] tw-m-0">Masukkan email atau nomor HP</p>
+                                                <p class="tw-font-['Urbanist'] tw-font-normal tw-text-[11px] tw-text-[#666] tw-mt-[4px] tw-ml-[16px] tw-m-0">Masukkan email akun Anda</p>
                                             </div>
                                             
                                             <!-- Password Field -->
@@ -240,9 +240,9 @@
                                             <!-- Email Field -->
                                             <div>
                                                 <div class="tw-border tw-border-solid tw-border-[#b3b3b3] tw-rounded-[48px] tw-px-[20px] tw-py-[10px] tw-flex tw-items-center tw-bg-white hover:tw-border-black tw-transition-colors">
-                                                    <input type="text" id="signupLoginInput" placeholder="Email atau Nomor HP" name="login" t-att-value="login" required="required" autocomplete="username" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
+                                                    <input type="email" id="signupLoginInput" placeholder="Email" name="login" t-att-value="login" required="required" autocomplete="email" class="tw-w-full tw-outline-none tw-border-none tw-ring-0 tw-shadow-none tw-bg-transparent tw-font-['Urbanist'] tw-font-normal tw-text-[14px] tw-text-[#212529] tw-p-0 focus:tw-ring-0" style="border: none !important; box-shadow: none !important;"/>
                                                 </div>
-                                                <p id="signupLoginHint" class="tw-font-['Urbanist'] tw-font-normal tw-text-[11px] tw-text-[#666] tw-mt-[2px] tw-ml-[16px] tw-m-0">contoh: nama@gmail.com atau 08xxx</p>
+                                                <p id="signupLoginHint" class="tw-font-['Urbanist'] tw-font-normal tw-text-[11px] tw-text-[#666] tw-mt-[2px] tw-ml-[16px] tw-m-0">contoh: nama@gmail.com</p>
                                                 <p id="signupEmailError" class="tw-font-['Urbanist'] tw-font-normal tw-text-[11px] tw-text-red-500 tw-mt-[2px] tw-ml-[16px] tw-hidden tw-m-0"></p>
                                             </div>
                                             
@@ -383,21 +383,16 @@
                                                 confirmPwd.addEventListener('input', validatePassword);
                                             }
 
-                                            // Email or Phone validation + duplicate check
+                                            // Email validation + duplicate check
                                             const loginInput = document.getElementById("signupLoginInput");
                                             const emailError = document.getElementById("signupEmailError");
                                             const emailFieldWrapper = loginInput ? loginInput.closest('.tw-border') : null;
                                             let checkTimeout = null;
-                                            const normalizePhoneInput = function(value) {
-                                                return (value || '').replace(/[\s\-.()]/g, '');
-                                            };
 
                                             if (loginInput) {
                                                 loginInput.addEventListener('input', function() {
                                                     const val = this.value.trim();
-                                                    const normalizedPhone = normalizePhoneInput(val);
                                                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                                                    const phoneRegex = /^(\+62|62|08)[0-9]{8,13}$/;
 
                                                     // Reset error state
                                                     if (emailError) { emailError.classList.add('tw-hidden'); emailError.textContent = ''; }
@@ -409,9 +404,9 @@
                                                         this.setCustomValidity('Wajib diisi');
                                                         setSubmitState();
                                                         return;
-                                                    } else if (!emailRegex.test(val) &amp;&amp; !phoneRegex.test(normalizedPhone)) {
+                                                    } else if (!emailRegex.test(val)) {
                                                         isLoginFormatValid = false;
-                                                        this.setCustomValidity('Masukkan email yang valid (contoh: nama@gmail.com) atau nomor HP (contoh: 08xxx)');
+                                                        this.setCustomValidity('Masukkan email yang valid (contoh: nama@gmail.com)');
                                                         setSubmitState();
                                                         return;
                                                     } else {
@@ -419,7 +414,7 @@
                                                         this.setCustomValidity('');
                                                     }
                                                     setSubmitState();
-                                                    const lookupVal = emailRegex.test(val) ? val.toLowerCase() : normalizedPhone;
+                                                    const lookupVal = val.toLowerCase();
 
                                                     // Debounced duplicate check
                                                     if (checkTimeout) clearTimeout(checkTimeout);
@@ -432,7 +427,7 @@
                                                         .then(function(r) { return r.json(); })
                                                         .then(function(data) {
                                                             const currentVal = loginInput.value.trim();
-                                                            const currentLookupVal = emailRegex.test(currentVal) ? currentVal.toLowerCase() : normalizePhoneInput(currentVal);
+                                                            const currentLookupVal = emailRegex.test(currentVal) ? currentVal.toLowerCase() : currentVal;
                                                             if (currentLookupVal !== lookupVal) {
                                                                 setSubmitState();
                                                                 return;
@@ -440,12 +435,12 @@
                                                             hasDuplicateLogin = false;
                                                             if (data.result &amp;&amp; data.result.exists) {
                                                                 if (emailError) {
-                                                                    emailError.textContent = 'Email/No.HP sudah terdaftar. Silakan masuk.';
+                                                                    emailError.textContent = 'Email sudah terdaftar. Silakan masuk.';
                                                                     emailError.classList.remove('tw-hidden');
                                                                 }
                                                                 if (emailFieldWrapper) { emailFieldWrapper.classList.add('tw-border-red-500'); }
                                                                 hasDuplicateLogin = true;
-                                                                loginInput.setCustomValidity('Email/No.HP sudah terdaftar');
+                                                                loginInput.setCustomValidity('Email sudah terdaftar');
                                                             }
                                                             setSubmitState();
                                                         })
@@ -460,12 +455,8 @@
                                                 signupForm.addEventListener('submit', function(event) {
                                                     if (loginInput) {
                                                         const rawLogin = loginInput.value.trim();
-                                                        const normalizedPhone = normalizePhoneInput(rawLogin);
                                                         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                                                        const phoneRegex = /^(\+62|62|08)[0-9]{8,13}$/;
-                                                        if (phoneRegex.test(normalizedPhone)) {
-                                                            loginInput.value = normalizedPhone;
-                                                        } else if (emailRegex.test(rawLogin)) {
+                                                        if (emailRegex.test(rawLogin)) {
                                                             loginInput.value = rawLogin.toLowerCase();
                                                         }
                                                     }

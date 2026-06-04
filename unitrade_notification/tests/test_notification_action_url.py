@@ -7,7 +7,12 @@ class TestNotificationActionUrl(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = cls.env.ref('base.user_admin')
+        cls.user = cls.env['res.users'].create({
+            'name': 'Notification Scope User',
+            'login': 'unitrade_notification_scope_user',
+            'email': 'unitrade_notification_scope_user@example.com',
+            'groups_id': [(6, 0, [cls.env.ref('base.group_user').id])],
+        })
         cls.product = cls.env['product.template'].with_context(
             unitrade_skip_marketplace_validation=True,
         ).create({
@@ -49,4 +54,76 @@ class TestNotificationActionUrl(TransactionCase):
         self.assertEqual(
             notification._get_effective_action_url(),
             '/my/orders?status=done',
+        )
+
+    def test_buyer_review_reminder_opens_my_orders_review_filter(self):
+        notification = self._notification(
+            event_code='review.reminder',
+            reference_model='product.template',
+            reference_id=self.product.id,
+            action_url='/unitrade/product/%s?tab=reviews#tab-ulasan' % self.product.id,
+        )
+
+        self.assertEqual(
+            notification._get_effective_action_url(),
+            '/my/orders?status=done',
+        )
+
+    def test_legacy_buyer_review_product_url_opens_my_orders(self):
+        notification = self._notification(
+            event_code='review.reminder',
+            action_url='/unitrade/product/%s?tab=reviews#tab-ulasan' % self.product.id,
+        )
+
+        self.assertEqual(
+            notification._get_effective_action_url(),
+            '/my/orders?status=done',
+        )
+
+    def test_review_user_and_seller_scopes_are_separate(self):
+        buyer_review = self._notification(
+            event_code='review.reminder',
+        )
+        seller_review = self._notification(
+            event_code='review.new_for_seller',
+        )
+
+        self.assertEqual(buyer_review.recipient_scope, 'user')
+        self.assertEqual(seller_review.recipient_scope, 'seller')
+
+        Notification = self.env['unitrade.notification']
+        self.assertIn(
+            buyer_review,
+            Notification.search(
+                [('user_id', '=', self.user.id)]
+                + Notification._notification_scope_domain('user')
+            ),
+        )
+        self.assertIn(
+            seller_review,
+            Notification.search(
+                [('user_id', '=', self.user.id)]
+                + Notification._notification_scope_domain('seller')
+            ),
+        )
+
+    def test_user_mark_all_does_not_read_seller_notifications(self):
+        buyer_review = self._notification(
+            event_code='review.reminder',
+        )
+        seller_review = self._notification(
+            event_code='review.new_for_seller',
+        )
+
+        updated = self.env['unitrade.notification'].mark_all_as_read(
+            self.user.id,
+            recipient_scope='user',
+        )
+
+        self.assertGreaterEqual(updated, 1)
+        self.assertTrue(
+            self.env['unitrade.notification'].browse(buyer_review.id).is_read
+        )
+        self.assertFalse(
+            self.env['unitrade.notification'].browse(seller_review.id).is_read
         )
