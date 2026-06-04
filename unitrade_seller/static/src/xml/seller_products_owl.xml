@@ -51,7 +51,7 @@
                             <a href="/shop/cart" class="ut-dash-nav-round" aria-label="Keranjang">
                                 <i class="fa fa-shopping-cart"></i>
                             </a>
-                            <a href="/unitrade/seller/orders" class="ut-dash-nav-round tw-relative" aria-label="Notifikasi">
+                            <a href="/unitrade/seller/notifications" class="ut-dash-nav-round tw-relative" aria-label="Notifikasi">
                                 <i class="fa fa-bell-o"></i>
                                 <t t-if="stats.notification_count">
                                     <span class="ut-dash-navbar-dot" t-esc="stats.notification_count"></span>

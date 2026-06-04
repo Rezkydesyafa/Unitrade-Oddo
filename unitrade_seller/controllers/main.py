@@ -954,7 +954,7 @@ class UnitradeSellerController(http.Controller):
                 'profile_url': '/seller-profile/%s' % self._seller_public_ref(seller),
             },
             'stats': {
-                'notification_count': pending_order_count,
+                'notification_count': self._seller_dashboard_notification_count(seller),
                 'unread_chat_count': unread_chat_count,
             },
             'products': page_result['products'],
@@ -968,7 +968,7 @@ class UnitradeSellerController(http.Controller):
             'page_title': 'Barang',
             'seller': seller,
             'seller_public_ref': self._seller_public_ref(seller),
-            'notification_count': pending_order_count,
+            'notification_count': self._seller_dashboard_notification_count(seller),
             'unread_chat_count': unread_chat_count,
             'add_product_url': payload['add_product_url'],
             'products_payload_json': json.dumps(payload),
@@ -1084,7 +1084,7 @@ class UnitradeSellerController(http.Controller):
                 'profile_url': '/seller-profile/%s' % self._seller_public_ref(seller),
             },
             'stats': {
-                'notification_count': pending_order_count,
+                'notification_count': self._seller_dashboard_notification_count(seller),
                 'unread_chat_count': unread_chat_count,
             },
             'product': {
@@ -1150,7 +1150,7 @@ class UnitradeSellerController(http.Controller):
                 'profile_url': '/seller-profile/%s' % self._seller_public_ref(seller),
             },
             'stats': {
-                'notification_count': pending_order_count,
+                'notification_count': self._seller_dashboard_notification_count(seller),
                 'unread_chat_count': unread_chat_count,
             },
             'categories': self._seller_product_categories(),
@@ -1170,7 +1170,7 @@ class UnitradeSellerController(http.Controller):
             'page_title': 'Tambah Barang',
             'seller': seller,
             'seller_public_ref': self._seller_public_ref(seller),
-            'notification_count': pending_order_count,
+            'notification_count': self._seller_dashboard_notification_count(seller),
             'unread_chat_count': unread_chat_count,
             'product_create_payload_json': json.dumps(payload),
         }
@@ -1464,7 +1464,7 @@ class UnitradeSellerController(http.Controller):
                 'profile_url': '/seller-profile/%s' % self._seller_public_ref(seller),
             },
             'stats': {
-                'notification_count': pending_order_count,
+                'notification_count': self._seller_dashboard_notification_count(seller),
                 'unread_chat_count': unread_chat_count,
             },
             'product': {
@@ -1590,7 +1590,7 @@ class UnitradeSellerController(http.Controller):
                 'profile_url': '/seller-profile/%s' % self._seller_public_ref(seller),
             },
             'stats': {
-                'notification_count': pending_order_count,
+                'notification_count': self._seller_dashboard_notification_count(seller),
                 'unread_chat_count': unread_chat_count,
             },
             'settings': {
@@ -2635,7 +2635,7 @@ class UnitradeSellerController(http.Controller):
                 seller.user_id.id,
                 seller.user_id.write_date or '',
             ),
-            'notification_count': pending_order_count + unread_chat_count,
+            'notification_count': self._seller_dashboard_notification_count(seller),
             'unread_chat_count': unread_chat_count,
             'page_title': 'Pesanan Penjual - UniTrade',
         }
@@ -2801,7 +2801,7 @@ class UnitradeSellerController(http.Controller):
             },
             'stats': {
                 'incoming_orders': pending_order_count,
-                'notification_count': pending_order_count + unread_chat_count,
+                'notification_count': self._seller_dashboard_notification_count(seller),
                 'unread_chat_count': unread_chat_count,
             },
             'order': {
@@ -3154,7 +3154,7 @@ class UnitradeSellerController(http.Controller):
                 seller.user_id.id,
                 seller.user_id.write_date or '',
             ),
-            'notification_count': pending_order_count + unread_chat_count,
+            'notification_count': self._seller_dashboard_notification_count(seller),
             'unread_chat_count': unread_chat_count,
             'page_title': 'Refund Seller - UniTrade',
         }
@@ -3343,7 +3343,7 @@ class UnitradeSellerController(http.Controller):
             },
             'stats': {
                 'incoming_orders': pending_order_count,
-                'notification_count': pending_order_count + unread_chat_count,
+                'notification_count': self._seller_dashboard_notification_count(seller),
                 'unread_chat_count': unread_chat_count,
             },
             'refund': {
@@ -3426,6 +3426,19 @@ class UnitradeSellerController(http.Controller):
             if status['key'] in ('pending', 'processing', 'shipping'):
                 count += 1
         return count
+
+    def _seller_dashboard_notification_count(self, seller):
+        if 'unitrade.notification' not in request.env.registry:
+            return self._seller_dashboard_pending_order_count(seller)
+        Notification = request.env['unitrade.notification'].sudo()
+        if 'recipient_scope' not in Notification._fields:
+            return self._seller_dashboard_pending_order_count(seller)
+        return Notification.search_count([
+            ('user_id', '=', request.env.uid),
+            ('audience', '=', 'user'),
+            ('recipient_scope', '=', 'seller'),
+            ('is_read', '=', False),
+        ])
 
     def _seller_dashboard_chat_payloads(self, seller, limit=4):
         if 'unitrade.chat.conversation' not in request.env.registry:
@@ -3863,7 +3876,7 @@ class UnitradeSellerController(http.Controller):
                 'profile_url': '/seller-profile/%s' % self._seller_public_ref(seller),
             },
             'stats': {
-                'notification_count': pending_order_count,
+                'notification_count': self._seller_dashboard_notification_count(seller),
                 'unread_chat_count': unread_chat_count,
                 'incoming_orders': pending_order_count,
             },
@@ -3954,7 +3967,7 @@ class UnitradeSellerController(http.Controller):
                 'review_count': review_summary['review_count'],
                 'sold_count': sold_count,
                 'unread_chat_count': unread_chat_count,
-                'notification_count': global_pending_order_count + unread_chat_count,
+                'notification_count': self._seller_dashboard_notification_count(seller),
             },
             'orders': order_payloads,
             'products': self._seller_dashboard_product_payloads(seller),
@@ -4532,7 +4545,7 @@ class UnitradeSellerController(http.Controller):
                 'profile_url': '/seller-profile/%s' % self._seller_public_ref(seller),
             },
             'stats': {
-                'notification_count': pending_order_count + unread_chat_count,
+                'notification_count': self._seller_dashboard_notification_count(seller),
                 'unread_chat_count': unread_chat_count,
             },
             'orders': payload['orders'],
@@ -4601,7 +4614,7 @@ class UnitradeSellerController(http.Controller):
             },
             'stats': {
                 'incoming_orders': pending_order_count,
-                'notification_count': pending_order_count + unread_chat_count,
+                'notification_count': self._seller_dashboard_notification_count(seller),
                 'unread_chat_count': unread_chat_count,
             },
             'refunds': payload['refunds'],
@@ -5007,7 +5020,7 @@ class UnitradeSellerController(http.Controller):
                 'profile_url': '/seller-profile/%s' % self._seller_public_ref(seller),
             },
             'stats': {
-                'notification_count': self._seller_dashboard_pending_order_count(seller),
+                'notification_count': self._seller_dashboard_notification_count(seller),
                 'unread_chat_count': self._seller_dashboard_chat_payloads(seller)[1],
             },
             'categories': self._seller_product_categories(),
@@ -5396,7 +5409,7 @@ class UnitradeSellerController(http.Controller):
                 'profile_url': '/seller-profile/%s' % self._seller_public_ref(seller),
             },
             'stats': {
-                'notification_count': self._seller_dashboard_pending_order_count(seller),
+                'notification_count': self._seller_dashboard_notification_count(seller),
                 'unread_chat_count': self._seller_dashboard_chat_payloads(seller)[1],
             },
             'products': page_result['products'],
