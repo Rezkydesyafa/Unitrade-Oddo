@@ -9,6 +9,7 @@
         'security/ir.model.access.csv',
         'views/review_views.xml',
         'views/review_templates.xml',
+        'data/review_data_repair.xml',
     ],
     'assets': {
         'web.assets_backend': [

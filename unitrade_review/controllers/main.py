@@ -111,11 +111,13 @@ class UnitradeReviewController(http.Controller):
     def _eligible_order(product_id):
         if request.env.user._is_public():
             return request.env['sale.order']
-        return request.env['sale.order'].sudo().search([
+        Review = request.env['unitrade.review'].sudo()
+        orders = request.env['sale.order'].sudo().search([
             ('partner_id', '=', request.env.user.partner_id.id),
             ('state', 'in', ['sale', 'done']),
             ('order_line.product_id.product_tmpl_id', '=', product_id),
-        ], order='date_order desc', limit=1)
+        ], order='date_order desc')
+        return orders.filtered(lambda order: Review._unitrade_order_is_reviewable(order))[:1]
 
     @staticmethod
     def _eligible_order_for_review(product_id, order_id=None):
@@ -131,7 +133,9 @@ class UnitradeReviewController(http.Controller):
         ]
         if order_id:
             domain.append(('id', '=', order_id))
-        return request.env['sale.order'].sudo().search(domain, order='date_order desc', limit=1)
+        Review = request.env['unitrade.review'].sudo()
+        orders = request.env['sale.order'].sudo().search(domain, order='date_order desc')
+        return orders.filtered(lambda order: Review._unitrade_order_is_reviewable(order))[:1]
 
     @staticmethod
     def _can_review(product_id):
@@ -156,12 +160,14 @@ class UnitradeReviewController(http.Controller):
         reviews = Review.search([
             ('product_id', 'in', product_ids),
             ('user_id', '=', request.env.uid),
+            ('is_visible', '=', True),
         ])
+        reviews = reviews.filtered(lambda review: Review._unitrade_order_is_reviewable(review.order_id))
         reviewed_ids = set(reviews.mapped('product_id').ids)
         return {
             str(product_id): {
                 'reviewed': product_id in reviewed_ids,
-                'can_review': product_id not in reviewed_ids,
+                'can_review': product_id not in reviewed_ids and bool(UnitradeReviewController._eligible_order(product_id)),
             }
             for product_id in product_ids
         }
@@ -244,10 +250,13 @@ class UnitradeReviewController(http.Controller):
         if rating < 1 or rating > 5:
             return {'success': False, 'message': 'Rating harus antara 1 sampai 5'}
 
-        user_product_review = request.env['unitrade.review'].sudo().search([
+        Review = request.env['unitrade.review'].sudo()
+        user_product_reviews = Review.search([
             ('product_id', '=', product_id),
             ('user_id', '=', request.env.uid),
-        ], limit=1)
+            ('is_visible', '=', True),
+        ])
+        user_product_review = user_product_reviews.filtered(lambda review: Review._unitrade_order_is_reviewable(review.order_id))[:1]
         if user_product_review:
             return {
                 'success': True,
@@ -265,11 +274,15 @@ class UnitradeReviewController(http.Controller):
                 'message': 'Ulasan hanya bisa diberikan setelah pesanan produk ini selesai.',
             }
 
-        existing_review = request.env['unitrade.review'].sudo().search([
+        existing_review = Review.search([
             ('product_id', '=', product_id),
             ('order_id', '=', order.id),
         ], limit=1)
-        if existing_review:
+        if (
+            existing_review
+            and existing_review.is_visible
+            and Review._unitrade_order_is_reviewable(existing_review.order_id)
+        ):
             return {
                 'success': True,
                 'message': 'Anda sudah memberikan ulasan untuk produk ini.',
@@ -285,7 +298,7 @@ class UnitradeReviewController(http.Controller):
             return {'success': False, 'message': str(exc)}
 
         try:
-            review = request.env['unitrade.review'].sudo().create({
+            review_values = {
                 'product_id': product_id,
                 'user_id': request.env.uid,
                 'order_id': order.id,
@@ -294,7 +307,12 @@ class UnitradeReviewController(http.Controller):
                 'review_tags': ', '.join(tag_values),
                 'is_visible': True,
                 **image_values,
-            })
+            }
+            if existing_review:
+                existing_review.write(review_values)
+                review = existing_review
+            else:
+                review = Review.create(review_values)
         except Exception as exc:
             _logger.exception('Failed to create UniTrade review')
             return {'success': False, 'message': str(exc)}

@@ -8,14 +8,18 @@
     'data': [
         'security/ir.model.access.csv',
         'data/midtrans_config.xml',
+        'data/xendit_config.xml',
+        'data/seller_payout_sequence.xml',
         'data/payment_runtime_config.xml',
         'data/voucher_data.xml',
         'data/mail_templates.xml',
         'data/escrow_cron.xml',
         'data/listing_fee_expiry_cron.xml',
         'views/payment_views.xml',
+        'views/seller_payout_views.xml',
         'views/voucher_views.xml',
         'views/checkout_templates.xml',
+        'data/payment_data_repair.xml',
     ],
     'assets': {
         'web.assets_frontend': [

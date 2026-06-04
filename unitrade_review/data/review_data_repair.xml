@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <function model="unitrade.review" name="_unitrade_repair_invalid_seed_reviews"/>
+</odoo>
