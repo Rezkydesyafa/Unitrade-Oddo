@@ -59,7 +59,7 @@
               inherit_id="web.frontend_layout"
               name="UniTrade Notification Static Fallback CSS">
         <xpath expr="//t[@t-call-assets='web.assets_frontend']" position="after">
-            <link rel="stylesheet" href="/unitrade_notification/static/src/css/notification.css?v=20260604"/>
+            <link rel="stylesheet" href="/unitrade_notification/static/src/css/notification.css?v=20260604-2"/>
         </xpath>
     </template>
 
@@ -124,25 +124,26 @@
                         <t t-if="notification_items and len(notification_items) > 0">
                             <ul class="ut-notifications-list">
                                 <t t-foreach="notification_items" t-as="notif">
-                                    <li t-attf-class="ut-notification-center-row #{'ut-is-unread' if not notif.get('is_read') else ''}"
-                                        t-att-data-notification-id="notif.get('id')"
-                                        t-att-data-action-url="notif.get('action_url')"
-                                        t-att-data-category="notif.get('ui_category')"
-                                        t-att-data-is-read="'1' if notif.get('is_read') else '0'"
-                                        role="button"
-                                        tabindex="0">
-                                        <div class="ut-notification-center-icon" aria-hidden="true">
-                                            <span t-esc="notif.get('icon')"/>
-                                        </div>
-
-                                        <div class="ut-notification-center-body">
-                                            <div class="ut-notification-center-titleline">
-                                                <h3 t-esc="notif.get('title')"/>
-                                                <span t-if="not notif.get('is_read')" class="ut-notification-center-dot"/>
+                                    <li class="ut-notification-center-item">
+                                        <a t-att-href="notif.get('action_url') or '/my/notifications'"
+                                           t-attf-class="ut-notification-center-row #{'ut-is-unread' if not notif.get('is_read') else ''}"
+                                           t-att-data-notification-id="notif.get('id')"
+                                           t-att-data-action-url="notif.get('action_url')"
+                                           t-att-data-category="notif.get('ui_category')"
+                                           t-att-data-is-read="'1' if notif.get('is_read') else '0'">
+                                            <div class="ut-notification-center-icon" aria-hidden="true">
+                                                <span t-esc="notif.get('icon')"/>
                                             </div>
-                                            <p t-if="notif.get('message')" t-esc="notif.get('message')"/>
-                                            <time t-esc="notif.get('time_label')"/>
-                                        </div>
+
+                                            <div class="ut-notification-center-body">
+                                                <div class="ut-notification-center-titleline">
+                                                    <h3 t-esc="notif.get('title')"/>
+                                                    <span t-if="not notif.get('is_read')" class="ut-notification-center-dot"/>
+                                                </div>
+                                                <p t-if="notif.get('message')" t-esc="notif.get('message')"/>
+                                                <time t-esc="notif.get('time_label')"/>
+                                            </div>
+                                        </a>
                                     </li>
                                 </t>
                             </ul>
@@ -273,9 +274,12 @@
                     }
 
                     document.querySelectorAll(".ut-notification-center-row").forEach(function (row) {
-                        function openNotification() {
+                        function openNotification(ev) {
+                            if (ev) {
+                                ev.preventDefault();
+                            }
                             var id = row.dataset.notificationId;
-                            var target = normalizeReviewTarget(row, row.dataset.actionUrl || "");
+                            var target = normalizeReviewTarget(row, row.dataset.actionUrl || row.getAttribute("href") || "");
                             hideError();
                             if (!id || row.dataset.isRead === "1") {
                                 if (target) {
@@ -293,15 +297,18 @@
                                 }
                             }).catch(function (err) {
                                 row.classList.remove("ut-is-busy");
-                                showError(err.message || "Notifikasi belum bisa ditandai dibaca.");
+                                if (target) {
+                                    window.location.href = target;
+                                } else {
+                                    showError(err.message || "Notifikasi belum bisa ditandai dibaca.");
+                                }
                             });
                         }
 
                         row.addEventListener("click", openNotification);
                         row.addEventListener("keydown", function (ev) {
                             if (ev.key === "Enter" || ev.key === " ") {
-                                ev.preventDefault();
-                                openNotification();
+                                openNotification(ev);
                             }
                         });
                     });

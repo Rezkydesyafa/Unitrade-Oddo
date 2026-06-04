@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 import requests
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools.float_utils import float_compare
 from odoo.addons.unitrade_payment.xendit_methods import (
@@ -153,6 +153,99 @@ class SaleOrderUniTrade(models.Model):
         if 'unitrade.escrow.ledger' not in self.env.registry:
             return self.env['sale.order'].browse()
         return self.env['unitrade.escrow.ledger'].sudo().search([('order_id', '=', self.id)])
+
+    def _unitrade_marketplace_order_lines(self):
+        self.ensure_one()
+        return self.order_line.sudo().filtered(
+            lambda line: (
+                not line.display_type
+                and line.product_id
+                and line.product_id.product_tmpl_id
+                and 'x_is_marketplace' in line.product_id.product_tmpl_id._fields
+                and line.product_id.product_tmpl_id.x_is_marketplace
+                and 'x_seller_id' in line.product_id.product_tmpl_id._fields
+                and line.product_id.product_tmpl_id.x_seller_id
+            )
+        )
+
+    def _unitrade_repair_payment_intent(self):
+        self.ensure_one()
+        PaymentIntent = self.env['unitrade.payment.intent'].sudo()
+        intent = self.x_payment_intent_id.sudo() if self.x_payment_intent_id else PaymentIntent.browse()
+        if not intent:
+            intent = PaymentIntent.search([
+                ('sale_order_id', '=', self.id),
+                ('intent_type', '=', 'order_checkout'),
+                ('state', '=', 'paid'),
+            ], order='create_date desc, id desc', limit=1)
+        if intent:
+            if not self.x_payment_intent_id:
+                self.sudo().write({'x_payment_intent_id': intent.id})
+            return intent
+
+        primary_seller = self._unitrade_primary_seller() if hasattr(self, '_unitrade_primary_seller') else False
+        intent = PaymentIntent.create({
+            'name': 'REPAIR-%s-%s' % (self.name or self.id, self.id),
+            'provider': self.x_payment_provider or 'midtrans',
+            'intent_type': 'order_checkout',
+            'state': 'paid',
+            'amount': self.amount_total,
+            'currency_id': self.currency_id.id,
+            'sale_order_id': self.id,
+            'partner_id': self.partner_id.id,
+            'seller_id': primary_seller.id if primary_seller else False,
+            'payment_method_code': 'data_repair',
+            'payment_method_label': _('Data repair'),
+            'paid_at': self.x_paid_at or self.date_order or fields.Datetime.now(),
+            'raw_response': json.dumps({
+                'source': 'unitrade_payment.data_repair',
+                'reason': 'Backfill paid marketplace order without escrow ledger.',
+            }, ensure_ascii=False),
+        })
+        self.sudo().write({'x_payment_intent_id': intent.id})
+        return intent
+
+    @api.model
+    def _unitrade_backfill_missing_escrow_ledgers(self, limit=None):
+        if 'unitrade.escrow.ledger' not in self.env.registry or 'unitrade.payment.intent' not in self.env.registry:
+            return True
+
+        Order = self.sudo()
+        Ledger = self.env['unitrade.escrow.ledger'].sudo()
+        orders = Order.search([
+            ('x_payment_status', '=', 'paid'),
+            ('state', 'in', ('sale', 'done')),
+        ], order='id asc', limit=limit)
+
+        repaired = 0
+        for order in orders:
+            if Ledger.search_count([('order_id', '=', order.id)]):
+                continue
+            if not order._unitrade_marketplace_order_lines():
+                continue
+            try:
+                with self.env.cr.savepoint():
+                    intent = order._unitrade_repair_payment_intent()
+                    ledgers = Ledger._create_for_order(order, intent)
+                    if order.x_unitrade_order_state == 'completed' and ledgers:
+                        completed_at = order.x_completed_at or order.x_paid_at or order.date_order or fields.Datetime.now()
+                        ledgers.write({
+                            'state': 'releasable',
+                            'seller_confirmed_at': completed_at,
+                            'buyer_confirmed_at': completed_at,
+                            'completed_at': completed_at,
+                            'seller_handoff_filename': _('Direkonsiliasi dari data order lama'),
+                            'buyer_received_filename': _('Direkonsiliasi dari data order lama'),
+                        })
+                    if ledgers:
+                        ledgers._sync_order_escrow_state()
+                        repaired += len(ledgers)
+            except Exception:
+                _logger.exception('Failed to backfill UniTrade escrow ledger for order %s', order.name)
+
+        if repaired:
+            _logger.info('Backfilled %s missing UniTrade escrow ledger(s).', repaired)
+        return True
 
     def unitrade_status_payload(self, ledger=False):
         """Centralized UniTrade order status labels matching the analysis document."""

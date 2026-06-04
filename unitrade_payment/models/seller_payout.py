@@ -226,6 +226,31 @@ class UnitradeSellerPayout(models.Model):
                 ledger_ids.append(command[1])
         return [int(ledger_id) for ledger_id in ledger_ids if ledger_id]
 
+    @api.model
+    def _unitrade_repair_empty_amounts(self):
+        if 'amount' not in self._fields:
+            return True
+        payouts = self.sudo().search([('amount', '=', False)])
+        repaired = 0
+        for payout in payouts:
+            amount = 0.0
+            if 'total_amount' in payout._fields and payout.total_amount:
+                amount = payout.total_amount
+            elif 'ledger_ids' in payout._fields and payout.ledger_ids:
+                amount = sum(payout.ledger_ids.mapped('amount_seller'))
+            values = {'amount': amount}
+            if 'currency_id' in payout._fields and not payout.currency_id:
+                values['currency_id'] = self.env.company.currency_id.id
+            try:
+                with self.env.cr.savepoint():
+                    payout.write(values)
+                    repaired += 1
+            except Exception:
+                _logger.exception('Failed repairing empty amount on seller payout %s', payout.id)
+        if repaired:
+            _logger.info('Repaired amount on %s seller payout record(s).', repaired)
+        return True
+
     # ------------------------------------------------------------------
     # Security & audit helpers
     # ------------------------------------------------------------------

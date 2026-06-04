@@ -21,7 +21,6 @@
         <field name="arch" type="xml">
             <form string="Detail Pengiriman">
                 <header>
-                    <button name="action_create_gosend_order" string="Buat Order GoSend" type="object" class="btn-primary" invisible="status != 'pending'"/>
                     <button name="action_calculate_shipping" string="Hitung Ongkir" type="object"/>
                     <field name="status" widget="statusbar" statusbar_visible="pending,picked_up,in_transit,delivered"/>
                 </header>
@@ -29,7 +28,6 @@
                     <group>
                         <group string="Info Pesanan">
                             <field name="order_id"/>
-                            <field name="gosend_order_id"/>
                             <field name="tracking_number"/>
                             <field name="shipping_cost" widget="monetary"/>
                         </group>

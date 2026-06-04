@@ -555,6 +555,9 @@ class UnitradeNotification(models.Model):
         if legacy_url:
             return legacy_url
 
+        if self._is_notification_center_url(self.action_url):
+            return self._default_category_action_url()
+
         if self.action_url:
             return self.action_url
 
@@ -563,37 +566,39 @@ class UnitradeNotification(models.Model):
     def _resolve_reference_action_url(self):
         """Resolve a notification target from ``reference_model``/``id``."""
         self.ensure_one()
-        if not self.reference_model or not self.reference_id:
+        reference_model = self.reference_model or self.target_model
+        reference_id = self.reference_id or self.target_id
+        if not reference_model or not reference_id:
             return False
 
         try:
-            Model = self.env[self.reference_model].sudo()
+            Model = self.env[reference_model].sudo()
         except KeyError:
             return False
 
-        record = Model.browse(self.reference_id).exists()
+        record = Model.browse(reference_id).exists()
         if not record:
             return False
 
-        if self.reference_model == 'sale.order':
+        if reference_model == 'sale.order':
             if self.category == 'review':
                 return self._resolve_review_product_action_url()
             return self._resolve_order_action_url(record)
 
-        if self.reference_model == 'unitrade.dispute':
+        if reference_model == 'unitrade.dispute':
             return self._resolve_refund_action_url(record)
 
-        if self.reference_model == 'unitrade.chat.conversation':
+        if reference_model == 'unitrade.chat.conversation':
             return self._resolve_chat_action_url(record)
 
-        if self.reference_model in (
+        if reference_model in (
             'unitrade.review',
             'product.template',
             'product.product',
         ):
             return self._resolve_review_product_action_url()
 
-        if self.reference_model == 'unitrade.seller':
+        if reference_model == 'unitrade.seller':
             if self.event_code == 'seller.approved':
                 return '/unitrade/seller/dashboard'
             return '/seller-onboarding'
@@ -681,6 +686,15 @@ class UnitradeNotification(models.Model):
 
         return False
 
+    def _is_notification_center_url(self, url):
+        """Return true when a stored URL only points back to the inbox."""
+        self.ensure_one()
+        url = (url or '').strip()
+        if not url:
+            return False
+        parsed = urlparse(url)
+        return (parsed.path or url) == '/my/notifications'
+
     def _normalize_review_product_action_url(self, url):
         """Map stored review product URLs to a clickable product detail."""
         self.ensure_one()
@@ -728,30 +742,32 @@ class UnitradeNotification(models.Model):
     def _resolve_review_product_action_url(self):
         """Resolve ``/unitrade/product/<id>`` for review notifications."""
         self.ensure_one()
+        reference_model = self.reference_model or self.target_model
+        reference_id = self.reference_id or self.target_id
         if (
             self.category != 'review'
-            or not self.reference_model
-            or not self.reference_id
+            or not reference_model
+            or not reference_id
         ):
             return False
 
         try:
-            Model = self.env[self.reference_model].sudo()
+            Model = self.env[reference_model].sudo()
         except KeyError:
             return False
 
-        record = Model.browse(self.reference_id).exists()
+        record = Model.browse(reference_id).exists()
         if not record:
             return False
 
         product = self.env['product.template'].sudo().browse()
-        if self.reference_model == 'unitrade.review':
+        if reference_model == 'unitrade.review':
             product = record.product_id
-        elif self.reference_model == 'product.template':
+        elif reference_model == 'product.template':
             product = record
-        elif self.reference_model == 'product.product':
+        elif reference_model == 'product.product':
             product = record.product_tmpl_id
-        elif self.reference_model == 'sale.order':
+        elif reference_model == 'sale.order':
             review = self.env['unitrade.review'].sudo().search([
                 ('order_id', '=', record.id),
                 ('product_id', '!=', False),

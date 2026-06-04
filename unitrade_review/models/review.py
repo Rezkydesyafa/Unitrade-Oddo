@@ -90,6 +90,30 @@ class UnitradeReview(models.Model):
         self._unitrade_refresh_product_review_stats(products)
         return result
 
+    @api.model
+    def _unitrade_order_is_reviewable(self, order):
+        if not order or order.state not in ('sale', 'done'):
+            return False
+        if 'x_payment_status' in order._fields and order.x_payment_status not in ('paid', 'refunded'):
+            return False
+        if 'x_unitrade_order_state' in order._fields:
+            return order.x_unitrade_order_state in ('completed', 'refunded')
+        return order.state == 'done'
+
+    @api.model
+    def _unitrade_repair_invalid_seed_reviews(self):
+        invalid_reviews = self.sudo().browse()
+        for review in self.sudo().search([]):
+            if not self._unitrade_order_is_reviewable(review.order_id):
+                invalid_reviews |= review
+        if invalid_reviews:
+            count = len(invalid_reviews)
+            products = invalid_reviews.mapped('product_id')
+            invalid_reviews.write({'is_visible': False})
+            self._unitrade_refresh_product_review_stats(products)
+            _logger.info('Hidden %s invalid UniTrade seed review(s).', count)
+        return True
+
     @api.onchange('product_id', 'user_id')
     def _onchange_review_order_domain(self):
         domain = [('state', '=', 'done')]
@@ -104,7 +128,7 @@ class UnitradeReview(models.Model):
     @api.constrains('order_id')
     def _check_order_done(self):
         for record in self:
-            if record.order_id.state not in ('sale', 'done'):
+            if not self._unitrade_order_is_reviewable(record.order_id):
                 raise ValidationError(_('Ulasan hanya bisa diberikan untuk pesanan yang sudah selesai.'))
 
     def action_save_review(self):

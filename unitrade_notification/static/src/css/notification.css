@@ -575,11 +575,13 @@ owl-component[name="unitrade_notification.NotificationBell"] {
     border-bottom: 1px solid #f3f4f6;
     background: #ffffff;
     padding: 20px 24px;
+    color: inherit;
     cursor: pointer;
+    text-decoration: none;
     transition: background-color 160ms ease;
 }
 
-.ut-notification-center-row:last-child {
+.ut-notification-center-item:last-child .ut-notification-center-row {
     border-bottom: 0;
 }
 
