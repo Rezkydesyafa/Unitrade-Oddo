@@ -111,6 +111,14 @@
                                           class="ut-admin-nav-badge"
                                           t-esc="dashboard['counts'].get('payout_pending')"/>
                                 </a>
+                                <a href="/unitrade/admin/refunds"
+                                   t-attf-class="ut-admin-nav-item #{'ut-admin-active' if active_page == 'refunds' else ''}">
+                                    <span class="ut-admin-nav-icon"><i class="fa fa-undo" aria-hidden="true"></i></span>
+                                    Refund &amp; Dispute
+                                    <span t-if="dashboard['counts'].get('refunds_need_admin')"
+                                          class="ut-admin-nav-badge"
+                                          t-esc="dashboard['counts'].get('refunds_need_admin')"/>
+                                </a>
                                 <a href="/unitrade/admin/vouchers"
                                    t-attf-class="ut-admin-nav-item #{'ut-admin-active' if active_page == 'vouchers' else ''}">
                                     <span class="ut-admin-nav-icon"><i class="fa fa-percent" aria-hidden="true"></i></span>
@@ -3543,6 +3551,329 @@
                     </t>
                 </div>
             </t>
+        </t>
+    </template>
+
+    <!-- =============================================================
+         PAGE: REFUNDS (list)
+         ============================================================= -->
+    <template id="admin_refunds_page" name="UniTrade Admin Refunds">
+        <t t-set="page_title" t-value="'Refund &amp; Dispute'"/>
+        <t t-set="active_page" t-value="'refunds'"/>
+        <t t-call="unitrade_admin.admin_layout">
+            <t t-set="stats" t-value="refunds['stats']"/>
+            <div class="ut-admin-page-header">
+                <div>
+                    <div class="ut-admin-headline">Refund &amp; Dispute</div>
+                    <div class="ut-admin-subtitle">
+                        Tinjau pengajuan refund. Alur: buyer ajukan → seller tinjau →
+                        admin putuskan final. Jika seller menolak, admin menjadi penengah.
+                    </div>
+                </div>
+            </div>
+
+            <div class="ut-admin-stats-grid" style="margin-bottom:16px">
+                <div class="ut-admin-stat-card">
+                    <div class="ut-admin-stat-header">
+                        <span class="ut-admin-stat-label">Perlu Keputusan Admin</span>
+                        <div class="ut-admin-stat-icon ut-admin-icon-red"><i class="fa fa-gavel" aria-hidden="true"></i></div>
+                    </div>
+                    <div class="ut-admin-stat-value" t-esc="stats.get('need_admin', 0)"/>
+                    <div class="ut-admin-stat-meta">Menunggu approve/reject final</div>
+                </div>
+                <div class="ut-admin-stat-card">
+                    <div class="ut-admin-stat-header">
+                        <span class="ut-admin-stat-label">Menunggu Pihak Lain</span>
+                        <div class="ut-admin-stat-icon ut-admin-icon-yellow"><i class="fa fa-hourglass-half" aria-hidden="true"></i></div>
+                    </div>
+                    <div class="ut-admin-stat-value" t-esc="stats.get('waiting', 0)"/>
+                    <div class="ut-admin-stat-meta">Buyer/seller diproses</div>
+                </div>
+                <div class="ut-admin-stat-card">
+                    <div class="ut-admin-stat-header">
+                        <span class="ut-admin-stat-label">Baru / Direview</span>
+                        <div class="ut-admin-stat-icon ut-admin-icon-blue"><i class="fa fa-search" aria-hidden="true"></i></div>
+                    </div>
+                    <div class="ut-admin-stat-value" t-esc="stats.get('review', 0)"/>
+                    <div class="ut-admin-stat-meta">Submitted / under review</div>
+                </div>
+                <div class="ut-admin-stat-card">
+                    <div class="ut-admin-stat-header">
+                        <span class="ut-admin-stat-label">Disetujui</span>
+                        <div class="ut-admin-stat-icon ut-admin-icon-green"><i class="fa fa-check" aria-hidden="true"></i></div>
+                    </div>
+                    <div class="ut-admin-stat-value" t-esc="stats.get('approved', 0)"/>
+                    <div class="ut-admin-stat-meta">Refund selesai</div>
+                </div>
+            </div>
+
+            <div class="ut-admin-card" style="margin-bottom:16px">
+                <form method="get" action="/unitrade/admin/refunds" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+                    <input type="text" name="q" class="ut-admin-input"
+                           style="flex:1;min-width:260px"
+                           placeholder="Cari case, order, buyer, seller..."
+                           t-att-value="refunds['query']"/>
+                    <select name="status" class="ut-admin-input" style="min-width:190px">
+                        <option value="" t-att-selected="'selected' if not refunds['status'] else None">Semua Status</option>
+                        <option value="need_admin" t-att-selected="'selected' if refunds['status'] == 'need_admin' else None">Perlu Keputusan Admin</option>
+                        <option value="active" t-att-selected="'selected' if refunds['status'] == 'active' else None">Aktif (semua tahap)</option>
+                        <option value="waiting" t-att-selected="'selected' if refunds['status'] == 'waiting' else None">Menunggu Buyer/Seller</option>
+                        <option value="review" t-att-selected="'selected' if refunds['status'] == 'review' else None">Baru / Direview</option>
+                        <option value="approved" t-att-selected="'selected' if refunds['status'] == 'approved' else None">Disetujui</option>
+                        <option value="rejected" t-att-selected="'selected' if refunds['status'] == 'rejected' else None">Ditolak</option>
+                        <option value="cancelled" t-att-selected="'selected' if refunds['status'] == 'cancelled' else None">Dibatalkan</option>
+                    </select>
+                    <button class="ut-admin-btn ut-admin-btn-primary ut-admin-btn-sm" type="submit">Cari</button>
+                    <a href="/unitrade/admin/refunds" class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm">Reset</a>
+                </form>
+            </div>
+
+            <div class="ut-admin-table-wrapper">
+                <table class="ut-admin-table">
+                    <thead>
+                        <tr>
+                            <th>Case</th>
+                            <th>Order</th>
+                            <th>Buyer</th>
+                            <th>Seller</th>
+                            <th>Alasan</th>
+                            <th>Nominal</th>
+                            <th>Status</th>
+                            <th style="text-align:right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-if="not refunds['rows']">
+                            <td colspan="8" style="text-align:center;padding:32px;color:var(--utad-muted)">
+                                Belum ada refund sesuai filter.
+                            </td>
+                        </tr>
+                        <tr t-foreach="refunds['rows']" t-as="row">
+                            <td>
+                                <div style="font-weight:700;font-size:13px" t-esc="row['name']"/>
+                                <div style="font-size:11px;color:var(--utad-muted)" t-esc="row['submitted_label']"/>
+                            </td>
+                            <td t-esc="row['order_name']"/>
+                            <td t-esc="row['buyer_name']"/>
+                            <td t-esc="row['seller_name']"/>
+                            <td t-esc="row['reason_label']"/>
+                            <td t-esc="row['requested_amount_display']"/>
+                            <td>
+                                <span t-attf-class="ut-admin-task-pill ut-admin-task-pill-#{'urgent' if row['status_key'] == 'need_admin' else ('warning' if row['status_key'] in ('waiting','review') else 'info')}"
+                                      t-esc="row['state_label']"/>
+                                <div t-if="row['is_overdue']" style="font-size:11px;color:var(--utad-red);margin-top:4px">Lewat SLA</div>
+                            </td>
+                            <td style="text-align:right">
+                                <a t-att-href="row['detail_url']" class="ut-admin-btn ut-admin-btn-primary ut-admin-btn-xs">
+                                    Tinjau
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="ut-admin-pagination" t-if="refunds['total_pages'] > 1">
+                <span style="color:var(--utad-muted);font-size:12px">
+                    Halaman <t t-esc="refunds['page']"/> dari <t t-esc="refunds['total_pages']"/>
+                    (<t t-esc="refunds['total']"/> case)
+                </span>
+                <div style="display:flex;gap:6px">
+                    <a t-if="refunds['page'] > 1"
+                       t-attf-href="/unitrade/admin/refunds?q=#{refunds['query']}&amp;status=#{refunds['status']}&amp;page=#{refunds['page'] - 1}"
+                       class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs">‹ Prev</a>
+                    <a t-if="refunds['page'] &lt; refunds['total_pages']"
+                       t-attf-href="/unitrade/admin/refunds?q=#{refunds['query']}&amp;status=#{refunds['status']}&amp;page=#{refunds['page'] + 1}"
+                       class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs">Next ›</a>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- =============================================================
+         PAGE: REFUND DETAIL (admin decision)
+         ============================================================= -->
+    <template id="admin_refund_detail_page" name="UniTrade Admin Refund Detail">
+        <t t-set="page_title" t-value="'Detail Refund'"/>
+        <t t-set="active_page" t-value="'refunds'"/>
+        <t t-call="unitrade_admin.admin_layout">
+            <t t-set="act" t-value="refund['actions']"/>
+            <div class="ut-admin-page-header">
+                <div>
+                    <div class="ut-admin-headline">
+                        <t t-esc="refund['name']"/>
+                        <span t-attf-class="ut-admin-task-pill ut-admin-task-pill-#{'urgent' if refund['status_key'] == 'need_admin' else ('warning' if refund['status_key'] in ('waiting','review') else 'info')}"
+                              style="margin-left:8px" t-esc="refund['state_label']"/>
+                    </div>
+                    <div class="ut-admin-subtitle">
+                        Order <t t-esc="refund['order']['name']"/> ·
+                        Buyer <t t-esc="refund['buyer']['name']"/> ·
+                        Seller <t t-esc="refund['seller']['name']"/>
+                    </div>
+                </div>
+                <a href="/unitrade/admin/refunds" class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm">← Kembali</a>
+            </div>
+
+            <div class="ut-admin-grid-2">
+                <div>
+                    <!-- Detail pengajuan -->
+                    <div class="ut-admin-card ut-admin-card-lg" style="margin-bottom:16px">
+                        <div class="ut-admin-task-title" style="margin-bottom:12px">Detail Pengajuan</div>
+                        <div class="ut-admin-detail-row">
+                            <div class="ut-admin-detail-label">Alasan</div>
+                            <div class="ut-admin-detail-value" t-esc="refund['reason_label']"/>
+                        </div>
+                        <div class="ut-admin-detail-row">
+                            <div class="ut-admin-detail-label">Catatan Buyer</div>
+                            <div class="ut-admin-detail-value" t-esc="refund['reason_note'] or '-'"/>
+                        </div>
+                        <div class="ut-admin-detail-row">
+                            <div class="ut-admin-detail-label">Nominal Diajukan</div>
+                            <div class="ut-admin-detail-value" t-esc="refund['requested_amount_display']"/>
+                        </div>
+                        <div class="ut-admin-detail-row" t-if="refund['approved_amount']">
+                            <div class="ut-admin-detail-label">Nominal Disetujui</div>
+                            <div class="ut-admin-detail-value" t-esc="refund['approved_amount_display']"/>
+                        </div>
+                        <div class="ut-admin-detail-row">
+                            <div class="ut-admin-detail-label">Escrow</div>
+                            <div class="ut-admin-detail-value" t-esc="refund['order']['escrow_state'] or '-'"/>
+                        </div>
+                        <div class="ut-admin-detail-row" t-if="refund['seller_decision_note']">
+                            <div class="ut-admin-detail-label">Catatan Seller</div>
+                            <div class="ut-admin-detail-value" t-esc="refund['seller_decision_note']"/>
+                        </div>
+                        <div class="ut-admin-detail-row" t-if="refund['admin_decision_note']">
+                            <div class="ut-admin-detail-label">Catatan Admin</div>
+                            <div class="ut-admin-detail-value" t-esc="refund['admin_decision_note']"/>
+                        </div>
+                        <div class="ut-admin-detail-row" t-if="refund['final_decision_by']">
+                            <div class="ut-admin-detail-label">Keputusan Final</div>
+                            <div class="ut-admin-detail-value">
+                                <t t-esc="refund['final_decision_by']"/> (<t t-esc="refund['final_decision_role']"/>)
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bukti -->
+                    <div class="ut-admin-card ut-admin-card-lg" style="margin-bottom:16px">
+                        <div class="ut-admin-task-title" style="margin-bottom:12px">Bukti (<t t-esc="len(refund['evidence'])"/>)</div>
+                        <t t-if="not refund['evidence']">
+                            <div class="ut-admin-muted">Belum ada bukti.</div>
+                        </t>
+                        <div t-foreach="refund['evidence']" t-as="ev"
+                             style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--utad-border)">
+                            <img t-if="ev['is_image']" t-att-src="ev['image_url']"
+                                 style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--utad-border)"/>
+                            <div style="flex:1;min-width:0">
+                                <div style="font-weight:600;font-size:13px" t-esc="ev['type_label']"/>
+                                <div t-if="ev['note']" style="font-size:12px;color:var(--utad-muted)" t-esc="ev['note']"/>
+                                <div style="font-size:11px;color:var(--utad-muted)">
+                                    <t t-esc="ev['submitted_by']"/> · <t t-esc="ev['created_label']"/>
+                                </div>
+                                <a t-if="ev['url']" t-att-href="ev['url']" target="_blank" rel="noopener"
+                                   style="font-size:12px">Buka link bukti</a>
+                            </div>
+                            <a t-if="ev['download_url']" t-att-href="ev['download_url']"
+                               class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs"
+                               style="align-self:center">Download</a>
+                        </div>
+                    </div>
+                </div>
+
+                <aside>
+                    <!-- Panel keputusan admin -->
+                    <div class="ut-admin-card ut-admin-card-lg" style="margin-bottom:16px">
+                        <div class="ut-admin-task-title" style="margin-bottom:8px">Tindakan Admin</div>
+                        <p class="ut-admin-muted" style="font-size:12px;margin-bottom:14px">
+                            <t t-if="refund['status_key'] == 'need_admin'">
+                                Case ini sudah masuk tahap keputusan final. Tinjau bukti
+                                lalu approve atau reject. Wajib isi catatan keputusan.
+                            </t>
+                            <t t-elif="refund['state'] in ('submitted', 'under_review')">
+                                Case masih di tahap awal/seller. Klik "Jadi Penengah" untuk
+                                mengambil alih, atau minta bukti/respons tambahan.
+                            </t>
+                            <t t-else="">
+                                Menunggu tindakan buyer/seller. Anda bisa menjadi penengah
+                                bila perlu intervensi.
+                            </t>
+                        </p>
+                        <div style="display:flex;flex-direction:column;gap:8px">
+                            <button t-if="act['can_start_review'] and refund['state'] != 'admin_review_final'"
+                                    type="button"
+                                    class="ut-admin-btn ut-admin-btn-secondary"
+                                    data-action="refund-action"
+                                    t-att-data-refund-id="refund['id']"
+                                    data-refund-action="start_review">
+                                Jadi Penengah
+                            </button>
+                            <button t-if="act['can_request_buyer_evidence']"
+                                    type="button"
+                                    class="ut-admin-btn ut-admin-btn-secondary"
+                                    data-action="refund-action"
+                                    t-att-data-refund-id="refund['id']"
+                                    data-refund-action="need_buyer_evidence">
+                                Minta Bukti Buyer
+                            </button>
+                            <button t-if="act['can_request_seller_response']"
+                                    type="button"
+                                    class="ut-admin-btn ut-admin-btn-secondary"
+                                    data-action="refund-action"
+                                    t-att-data-refund-id="refund['id']"
+                                    data-refund-action="need_seller_response">
+                                Minta Respons Seller
+                            </button>
+                            <button t-if="act['can_decide']"
+                                    type="button"
+                                    class="ut-admin-btn ut-admin-btn-success"
+                                    data-action="refund-action"
+                                    t-att-data-refund-id="refund['id']"
+                                    data-refund-action="approve">
+                                Approve Refund
+                            </button>
+                            <button t-if="act['can_decide']"
+                                    type="button"
+                                    class="ut-admin-btn ut-admin-btn-danger"
+                                    data-action="refund-action"
+                                    t-att-data-refund-id="refund['id']"
+                                    data-refund-action="reject">
+                                Reject Refund
+                            </button>
+                            <button t-if="act['can_cancel']"
+                                    type="button"
+                                    class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm"
+                                    data-action="refund-action"
+                                    t-att-data-refund-id="refund['id']"
+                                    data-refund-action="cancel">
+                                Batalkan Case
+                            </button>
+                            <a t-att-href="refund['order']['backend_url']" target="_blank"
+                               class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm">
+                                Buka di Backend Odoo
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Timeline -->
+                    <div class="ut-admin-card ut-admin-card-lg">
+                        <div class="ut-admin-task-title" style="margin-bottom:12px">Riwayat</div>
+                        <t t-if="not refund['timeline']">
+                            <div class="ut-admin-muted">Belum ada riwayat.</div>
+                        </t>
+                        <div t-foreach="refund['timeline']" t-as="tl"
+                             style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--utad-border)">
+                            <span t-attf-class="ut-admin-notif-dot ut-admin-#{'urgent' if tl['status'] == 'failed' else ('info' if tl['status'] == 'current' else 'warning')}"
+                                  style="margin-top:5px"/>
+                            <div style="flex:1;min-width:0">
+                                <div style="font-weight:600;font-size:13px" t-esc="tl['label']"/>
+                                <div t-if="tl['note']" style="font-size:12px;color:var(--utad-muted)" t-esc="tl['note']"/>
+                                <div style="font-size:11px;color:var(--utad-muted)" t-esc="tl['time_label']"/>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
         </t>
     </template>
 

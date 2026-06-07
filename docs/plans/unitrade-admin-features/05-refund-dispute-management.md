@@ -22,6 +22,30 @@ Refund/dispute sudah diimplementasikan sebagian lewat `unitrade_dispute`. Model 
 - [x] Search filter "Lewat SLA"
 - [x] Tree view: kolom is_overdue + deadline (optional)
 - [x] Task queue admin: grup baru "Refund Lewat SLA" untuk overdue cases
+
+## Progress per 2026-06-04 — Admin Refund Menu di Dashboard Custom
+
+Alur marketplace lengkap sudah terverifikasi & tersinkron (semua memakai method model `unitrade.dispute` yang sama):
+
+**Alur akhir:**
+1. Buyer ajukan refund (`action_submit`) → state `submitted`, escrow → `disputed`
+2. Seller tinjau proaktif di dashboard seller (`action_seller_approve_refund` / `action_seller_reject_refund`):
+   - Seller setuju → buyer kirim barang balik → seller konfirmasi terima → `admin_review_final`
+   - Seller tolak → langsung `admin_review_final` (admin jadi penengah)
+3. Admin keputusan final (`action_approve_refund` / `action_reject_refund`) dari state `admin_review_final`
+4. Approve → escrow `refunded`, intent `refunded`, order `refunded`. Reject → escrow balik ke `held`.
+
+**Menu admin baru di dashboard custom `/unitrade/admin`:**
+- [x] Sidebar item "Refund & Dispute" dengan badge jumlah `admin_review_final`
+- [x] Halaman list `/unitrade/admin/refunds` (filter status, search, stats cards, pagination)
+- [x] Halaman detail `/unitrade/admin/refunds/<id>`: detail pengajuan, bukti (foto/video/drive), timeline, panel tindakan admin
+- [x] Tindakan admin via JSON: Jadi Penengah, Minta Bukti Buyer, Minta Respons Seller, Approve, Reject, Cancel — semua memanggil method model yang sama (data tersinkron dgn sisi buyer & seller)
+- [x] Endpoint action TIDAK pakai sudo() → `final_decision_user_id` & audit mencatat admin asli
+- [x] Aggregator `get_refunds_page`, `get_refund_detail`, `admin_refund_action` di `unitrade.admin.stats`
+- [x] Task queue: grup "Refund Perlu Keputusan Admin" (urgent) + "Refund / Dispute Aktif" (warning), target_url ke halaman admin refund
+- [x] Dashboard count `refunds_need_admin`
+
+
 - [ ] Backend smart button dari dispute ke audit log (TBD setelah `unitrade_admin` audit log model dilengkapi search view)
 - [ ] Cron job untuk auto-escalate overdue (mengirim reminder ke admin) — bisa ditambah nanti
 

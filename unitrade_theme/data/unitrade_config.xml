@@ -3,4 +3,8 @@
         <value>unitrade.terms_privacy_version</value>
         <value>2026-05-17</value>
     </function>
+
+    <!-- Pastikan mata uang sistem memakai Rupiah (IDR), bukan USD default Odoo.
+         Idempoten & aman; tidak mengubah currency company bila sudah ada jurnal. -->
+    <function model="res.company" name="_unitrade_enforce_idr_currency"/>
 </odoo>

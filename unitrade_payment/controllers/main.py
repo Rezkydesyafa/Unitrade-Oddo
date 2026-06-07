@@ -1097,7 +1097,7 @@ class UnitradePaymentController(http.Controller):
             'order_status_service_fee': self._format_money(amounts.get('service_fee'), order.currency_id),
             'order_status_payment_fee': self._format_money(amounts.get('payment_fee'), order.currency_id),
             'order_status_voucher_discount': self._format_money(amounts.get('voucher_discount'), order.currency_id),
-            'order_status_voucher_code': amounts.get('voucher_code') or '',
+            'order_status_voucher_code': amounts.get('voucher_name') or amounts.get('voucher_code') or '',
             'order_status_progress_steps': progress_steps,
             'order_status_progress_count': len(progress_steps),
             'order_status_buyer_confirmed_count': buyer_confirmed_count,

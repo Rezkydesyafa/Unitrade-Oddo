@@ -85,6 +85,7 @@ class SaleOrderUniTrade(models.Model):
     x_cancel_reason = fields.Text(string='Alasan Pembatalan', readonly=True, copy=False)
     x_unitrade_voucher_id = fields.Many2one('unitrade.voucher', string='Voucher UniTrade', readonly=True, copy=False)
     x_unitrade_voucher_code = fields.Char(string='Kode Voucher UniTrade', readonly=True, copy=False)
+    x_unitrade_voucher_name = fields.Char(string='Nama Voucher UniTrade', readonly=True, copy=False)
     x_unitrade_voucher_discount = fields.Monetary(
         string='Diskon Voucher UniTrade',
         currency_field='currency_id',
@@ -527,7 +528,7 @@ class SaleOrderUniTrade(models.Model):
                 'product_id': voucher_product.id,
                 'product_uom_qty': 1.0,
                 'price_unit': -amount,
-                'name': self.x_unitrade_voucher_code or voucher_product.display_name,
+                'name': self.x_unitrade_voucher_name or self.x_unitrade_voucher_code or voucher_product.display_name,
                 'tax_id': [(6, 0, [])],
             }
             if voucher_lines:
@@ -571,6 +572,7 @@ class SaleOrderUniTrade(models.Model):
         self.sudo().write({
             'x_unitrade_voucher_id': voucher.id,
             'x_unitrade_voucher_code': normalized,
+            'x_unitrade_voucher_name': voucher.name or normalized,
             'x_unitrade_voucher_discount': discount,
         })
         self._unitrade_sync_voucher_line(discount)
@@ -582,6 +584,7 @@ class SaleOrderUniTrade(models.Model):
             order.write({
                 'x_unitrade_voucher_id': False,
                 'x_unitrade_voucher_code': False,
+                'x_unitrade_voucher_name': False,
                 'x_unitrade_voucher_discount': 0.0,
             })
             order._unitrade_clear_voucher_lines()
@@ -625,6 +628,11 @@ class SaleOrderUniTrade(models.Model):
                     subtotal=subtotal,
                 )
                 voucher_discount = self.x_unitrade_voucher_id.sudo()._discount_for_order(self, subtotal=subtotal)
+                # Backfill voucher name for orders applied before this field existed
+                if not self.x_unitrade_voucher_name:
+                    voucher_name = self.x_unitrade_voucher_id.sudo().name or self.x_unitrade_voucher_code or ''
+                    if voucher_name:
+                        self.sudo().write({'x_unitrade_voucher_name': voucher_name})
             except ValidationError:
                 if sync_fee and self.state == 'draft':
                     self._unitrade_remove_voucher()
@@ -650,6 +658,7 @@ class SaleOrderUniTrade(models.Model):
             'payment_fee': payment_fee,
             'voucher_discount': voucher_discount,
             'voucher_code': self.x_unitrade_voucher_code or '',
+            'voucher_name': self.x_unitrade_voucher_name or self.x_unitrade_voucher_code or '',
             'tax': 0.0,
             'total': self.currency_id.round(max(subtotal + service_fee + payment_fee - voucher_discount, 0.0)),
             'item_quantity': sum(product_lines.mapped('product_uom_qty')),

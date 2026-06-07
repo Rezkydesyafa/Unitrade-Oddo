@@ -573,6 +573,62 @@ class UnitradeAdminController(http.Controller):
             return {'groups': [], 'totals': {'all': 0, 'urgent': 0, 'warning': 0}}
         return self._stats().get_task_queue(urgency=urgency or '')
 
+    # ---- refund / dispute management -------------------------------------
+
+    @http.route('/unitrade/admin/refunds', type='http', auth='user', website=True)
+    def admin_refunds(self, q='', status='', page=1, **kwargs):
+        if not self._is_admin():
+            return self._forbidden('Akun Anda tidak memiliki akses admin UniTrade.')
+        Stats = self._stats()
+        page = self._to_int(page, 1)
+        refunds = Stats.get_refunds_page(
+            query=q or '', status=status or '', page=page, page_size=20,
+        )
+        dashboard = Stats.get_dashboard_data()
+        return request.render(
+            'unitrade_admin.admin_refunds_page',
+            {'dashboard': dashboard, 'refunds': refunds},
+        )
+
+    @http.route('/unitrade/admin/refunds/<int:dispute_id>', type='http', auth='user', website=True)
+    def admin_refund_detail(self, dispute_id, **kwargs):
+        if not self._is_admin():
+            return self._forbidden('Akun Anda tidak memiliki akses admin UniTrade.')
+        Stats = self._stats()
+        detail = Stats.get_refund_detail(dispute_id)
+        if not detail:
+            return request.not_found()
+        dashboard = Stats.get_dashboard_data()
+        return request.render(
+            'unitrade_admin.admin_refund_detail_page',
+            {'dashboard': dashboard, 'refund': detail},
+        )
+
+    @http.route('/unitrade/admin/api/refunds', type='json', auth='user')
+    def api_refunds(self, q='', status='', page=1, **kwargs):
+        if not self._is_admin():
+            return {'rows': [], 'total': 0}
+        return self._stats().get_refunds_page(
+            query=q or '', status=status or '', page=self._to_int(page, 1), page_size=20,
+        )
+
+    @http.route('/unitrade/admin/api/refunds/detail', type='json', auth='user')
+    def api_refund_detail(self, dispute_id, **kwargs):
+        if not self._is_admin():
+            return {}
+        return self._stats().get_refund_detail(dispute_id)
+
+    @http.route('/unitrade/admin/api/refunds/action', type='json', auth='user')
+    def api_refund_action(self, dispute_id, action, note='', approved_amount=None, admin_fee=None, **kwargs):
+        if not self._is_admin():
+            return {'ok': False, 'error': 'forbidden'}
+        # NOTE: NOT using sudo() so the dispute action records the real admin
+        # user as final_decision_user_id and audit actor.
+        return request.env['unitrade.admin.stats'].admin_refund_action(
+            dispute_id, action, note=note,
+            approved_amount=approved_amount, admin_fee=admin_fee,
+        )
+
     # ---- JSON endpoints for write actions --------------------------------
 
     @http.route('/unitrade/admin/api/users/block', type='json', auth='user')

@@ -1,10 +1,12 @@
-from datetime import timedelta
 import json
 import logging
+from datetime import timedelta
 from urllib.parse import quote_plus
 
+import pytz
+
 from odoo import api, fields, models, _
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -305,6 +307,10 @@ class UnitradeAdminStats(models.AbstractModel):
             self._safe_count(Payout, [('state', 'in', ('draft', 'ready'))])
             if Payout is not None else 0
         )
+        refunds_need_admin = 0
+        if self._has_model('unitrade.dispute'):
+            Dispute = self.env['unitrade.dispute'].sudo()
+            refunds_need_admin = self._safe_count(Dispute, [('state', '=', 'admin_review_final')])
         announcements_draft = (
             self._safe_count(Announcement, [('state', '=', 'draft')])
             if Announcement is not None else 0
@@ -437,6 +443,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 'sponsorship_new': sponsorship_new,
                 'reviews_hidden': reviews_hidden,
                 'payout_pending': payout_pending,
+                'refunds_need_admin': refunds_need_admin,
                 'announcements_draft': announcements_draft,
                 'audit_critical': audit_critical,
             },
@@ -484,8 +491,14 @@ class UnitradeAdminStats(models.AbstractModel):
             return value
         return str(value).strip().lower() in ('1', 'true', 'yes', 'on', 'aktif')
 
-    @staticmethod
-    def _parse_datetime_value(value):
+    def _user_timezone(self):
+        tz_name = self.env.context.get('tz') or self.env.user.tz or 'UTC'
+        try:
+            return pytz.timezone(tz_name)
+        except Exception:  # noqa: BLE001
+            return pytz.UTC
+
+    def _parse_datetime_value(self, value):
         value = (value or '').strip()
         if not value:
             return False
@@ -493,25 +506,35 @@ class UnitradeAdminStats(models.AbstractModel):
         if len(value) == 16:
             value += ':00'
         try:
-            return fields.Datetime.from_string(value)
+            local_dt = fields.Datetime.from_string(value)
         except Exception:  # noqa: BLE001
             return False
+        if not local_dt:
+            return False
+        if local_dt.tzinfo:
+            return local_dt.astimezone(pytz.UTC).replace(tzinfo=None)
+        local_tz = self._user_timezone()
+        try:
+            localized = local_tz.localize(local_dt, is_dst=None)
+        except Exception:  # noqa: BLE001
+            localized = local_tz.localize(local_dt)
+        return localized.astimezone(pytz.UTC).replace(tzinfo=None)
 
-    @staticmethod
-    def _datetime_label(value):
+    def _datetime_label(self, value):
         if not value:
             return '-'
         try:
-            return value.strftime('%d %b %Y %H:%M')
+            local_dt = fields.Datetime.context_timestamp(self, fields.Datetime.to_datetime(value))
+            return local_dt.strftime('%d %b %Y %H:%M')
         except Exception:  # noqa: BLE001
             return fields.Datetime.to_string(value)
 
-    @staticmethod
-    def _datetime_input_value(value):
+    def _datetime_input_value(self, value):
         if not value:
             return ''
         try:
-            return fields.Datetime.to_string(value).replace(' ', 'T')[:16]
+            local_dt = fields.Datetime.context_timestamp(self, fields.Datetime.to_datetime(value))
+            return local_dt.strftime('%Y-%m-%dT%H:%M')
         except Exception:  # noqa: BLE001
             return ''
 
@@ -4603,6 +4626,34 @@ class UnitradeAdminStats(models.AbstractModel):
                 'need_seller_response',
                 'admin_review_final',
             )
+            # 3a. Refund yang butuh KEPUTUSAN FINAL admin (paling mendesak)
+            need_admin = Dispute.search(
+                [('state', '=', 'admin_review_final')],
+                order='create_date asc',
+                limit=limit_per_group,
+            )
+            if need_admin:
+                groups.append({
+                    'key': 'refunds_need_admin',
+                    'title': _('Refund Perlu Keputusan Admin'),
+                    'description': _('Seller sudah meninjau. Admin harus approve/reject final.'),
+                    'urgency': 'urgent',
+                    'count': len(need_admin),
+                    'target_url': '/unitrade/admin/refunds?status=need_admin',
+                    'items': [
+                        {
+                            'id': d.id,
+                            'label': d.name or '-',
+                            'subtitle': 'Rp %s · %s' % (
+                                self._format_idr(d.requested_amount), d.order_id.name or '',
+                            ),
+                            'time_label': self._humanize_time(d.submitted_at or d.create_date),
+                            'href': '/unitrade/admin/refunds/%s' % d.id,
+                        }
+                        for d in need_admin[:10]
+                    ],
+                })
+
             disputes = Dispute.search(
                 [('state', 'in', active_states)],
                 order='create_date asc',
@@ -4612,17 +4663,19 @@ class UnitradeAdminStats(models.AbstractModel):
                 groups.append({
                     'key': 'disputes_active',
                     'title': _('Refund / Dispute Aktif'),
-                    'description': _('Pengajuan refund yang menunggu keputusan admin.'),
-                    'urgency': 'urgent',
+                    'description': _('Semua pengajuan refund yang masih berjalan (semua tahap).'),
+                    'urgency': 'warning',
                     'count': len(disputes),
-                    'target_url': '/web#action=unitrade_dispute.action_unitrade_dispute',
+                    'target_url': '/unitrade/admin/refunds?status=active',
                     'items': [
                         {
                             'id': d.id,
                             'label': d.name or '-',
-                            'subtitle': '%s · %s' % (d.state, d.order_id.name or ''),
+                            'subtitle': '%s · %s' % (
+                                self._refund_state_label(d.state), d.order_id.name or '',
+                            ),
                             'time_label': self._humanize_time(d.submitted_at or d.create_date),
-                            'href': '',
+                            'href': '/unitrade/admin/refunds/%s' % d.id,
                         }
                         for d in disputes[:10]
                     ],
@@ -4642,14 +4695,16 @@ class UnitradeAdminStats(models.AbstractModel):
                     'description': _('Refund case yang sudah melewati deadline keputusan/respons.'),
                     'urgency': 'urgent',
                     'count': len(overdue_disputes),
-                    'target_url': '/web#action=unitrade_dispute.action_unitrade_dispute',
+                    'target_url': '/unitrade/admin/refunds?status=active',
                     'items': [
                         {
                             'id': d.id,
                             'label': d.name or '-',
-                            'subtitle': '%s · %s' % (d.state, d.order_id.name or ''),
+                            'subtitle': '%s · %s' % (
+                                self._refund_state_label(d.state), d.order_id.name or '',
+                            ),
                             'time_label': self._humanize_time(d.submitted_at or d.create_date),
-                            'href': '',
+                            'href': '/unitrade/admin/refunds/%s' % d.id,
                         }
                         for d in overdue_disputes[:10]
                     ],
@@ -4909,3 +4964,268 @@ class UnitradeAdminStats(models.AbstractModel):
             },
             'filter': urgency,
         }
+
+    # ---- refund / dispute management --------------------------------------
+
+    REFUND_STATE_LABELS = {
+        'draft': 'Draft',
+        'submitted': 'Diajukan',
+        'under_review': 'Ditinjau Admin',
+        'need_buyer_evidence': 'Menunggu Bukti Buyer',
+        'need_seller_response': 'Menunggu Seller',
+        'admin_review_final': 'Perlu Keputusan Admin',
+        'approved': 'Disetujui',
+        'rejected': 'Ditolak',
+        'resolved': 'Selesai',
+        'cancelled': 'Dibatalkan',
+    }
+
+    REFUND_ACTIVE_STATES = (
+        'submitted', 'under_review', 'need_buyer_evidence',
+        'need_seller_response', 'admin_review_final',
+    )
+
+    def _refund_state_label(self, state):
+        return self.REFUND_STATE_LABELS.get(state, state or '-')
+
+    def _refund_status_key(self, state):
+        if state == 'admin_review_final':
+            return 'need_admin'
+        if state in ('need_seller_response', 'need_buyer_evidence'):
+            return 'waiting'
+        if state in ('submitted', 'under_review'):
+            return 'review'
+        if state in ('approved', 'resolved'):
+            return 'approved'
+        if state == 'rejected':
+            return 'rejected'
+        if state == 'cancelled':
+            return 'cancelled'
+        return 'draft'
+
+    @api.model
+    def get_refunds_page(self, query='', status='', page=1, page_size=20):
+        """Paginated dispute/refund list for the admin dashboard."""
+        self._check_admin()
+        if not self._has_model('unitrade.dispute'):
+            return {
+                'rows': [], 'page': 1, 'page_size': page_size, 'total': 0,
+                'total_pages': 1, 'query': query, 'status': status, 'stats': {},
+            }
+        Dispute = self.env['unitrade.dispute'].sudo()
+
+        domain = []
+        if query:
+            domain += ['|', '|', '|',
+                       ('name', 'ilike', query),
+                       ('order_id.name', 'ilike', query),
+                       ('buyer_id.name', 'ilike', query),
+                       ('seller_id.name', 'ilike', query)]
+
+        status_map = {
+            'need_admin': [('state', '=', 'admin_review_final')],
+            'waiting': [('state', 'in', ('need_seller_response', 'need_buyer_evidence'))],
+            'review': [('state', 'in', ('submitted', 'under_review'))],
+            'active': [('state', 'in', list(self.REFUND_ACTIVE_STATES))],
+            'approved': [('state', 'in', ('approved', 'resolved'))],
+            'rejected': [('state', '=', 'rejected')],
+            'cancelled': [('state', '=', 'cancelled')],
+        }
+        if status in status_map:
+            domain += status_map[status]
+
+        total = Dispute.search_count(domain)
+        page = max(1, int(page or 1))
+        page_size = int(page_size or 20)
+        offset = (page - 1) * page_size
+        disputes = Dispute.search(domain, limit=page_size, offset=offset, order='create_date desc')
+
+        rows = []
+        for d in disputes:
+            rows.append({
+                'id': d.id,
+                'name': d.name or '-',
+                'order_name': d.order_id.name or '-',
+                'buyer_name': d.buyer_id.name or '-',
+                'buyer_initials': self._initials(d.buyer_id.name),
+                'seller_name': d.seller_id.name if d.seller_id else 'Penjual UniTrade',
+                'reason_label': dict(d._fields['reason_code'].selection).get(d.reason_code, d.reason_code),
+                'requested_amount': d.requested_amount,
+                'requested_amount_display': 'Rp ' + self._format_idr(d.requested_amount),
+                'state': d.state,
+                'state_label': self._refund_state_label(d.state),
+                'status_key': self._refund_status_key(d.state),
+                'is_overdue': bool(d.is_overdue),
+                'submitted_label': self._humanize_time(d.submitted_at or d.create_date),
+                'detail_url': '/unitrade/admin/refunds/%s' % d.id,
+            })
+
+        total_pages = max(1, (total + page_size - 1) // page_size)
+        stats = {
+            'need_admin': Dispute.search_count([('state', '=', 'admin_review_final')]),
+            'waiting': Dispute.search_count([('state', 'in', ('need_seller_response', 'need_buyer_evidence'))]),
+            'review': Dispute.search_count([('state', 'in', ('submitted', 'under_review'))]),
+            'active': Dispute.search_count([('state', 'in', list(self.REFUND_ACTIVE_STATES))]),
+            'approved': Dispute.search_count([('state', 'in', ('approved', 'resolved'))]),
+            'rejected': Dispute.search_count([('state', '=', 'rejected')]),
+        }
+        return {
+            'rows': rows,
+            'page': page,
+            'page_size': page_size,
+            'total': total,
+            'total_pages': total_pages,
+            'query': query,
+            'status': status,
+            'stats': stats,
+        }
+
+    @api.model
+    def get_refund_detail(self, dispute_id):
+        """Full detail of one dispute for the admin decision page."""
+        self._check_admin()
+        if not self._has_model('unitrade.dispute'):
+            return {}
+        dispute = self.env['unitrade.dispute'].sudo().browse(int(dispute_id)).exists()
+        if not dispute:
+            return {}
+
+        currency = dispute.currency_id or self.env.company.currency_id
+
+        # Evidence list
+        evidence = []
+        for ev in dispute.evidence_ids:
+            mimetype = ev.attachment_id.mimetype if ev.attachment_id else ''
+            is_image = mimetype in ('image/jpeg', 'image/png', 'image/webp')
+            evidence.append({
+                'id': ev.id,
+                'type': ev.evidence_type,
+                'type_label': dict(ev._fields['evidence_type'].selection).get(ev.evidence_type, ev.evidence_type),
+                'note': ev.note or '',
+                'url': ev.url or '',
+                'has_attachment': bool(ev.attachment_id),
+                'is_image': is_image,
+                'image_url': '/unitrade/refund/evidence/%s/image' % ev.id if is_image else '',
+                'download_url': '/unitrade/refund/evidence/%s/download' % ev.id if ev.attachment_id else '',
+                'submitted_by': ev.submitted_by_id.name if ev.submitted_by_id else '',
+                'created_label': self._humanize_time(ev.created_at or ev.create_date),
+            })
+
+        # Timeline
+        timeline = []
+        if 'timeline_ids' in dispute._fields:
+            for tl in dispute.timeline_ids.sorted(lambda t: (t.sequence, t.event_time or t.create_date)):
+                timeline.append({
+                    'label': tl.label or tl.event_key,
+                    'status': tl.status,
+                    'note': tl.note or '',
+                    'time_label': self._humanize_time(tl.event_time or tl.create_date),
+                })
+
+        return {
+            'id': dispute.id,
+            'name': dispute.name or '-',
+            'state': dispute.state,
+            'state_label': self._refund_state_label(dispute.state),
+            'status_key': self._refund_status_key(dispute.state),
+            'is_overdue': bool(dispute.is_overdue),
+            'reason_code': dispute.reason_code,
+            'reason_label': dict(dispute._fields['reason_code'].selection).get(dispute.reason_code, dispute.reason_code),
+            'reason_note': dispute.reason_note or '',
+            'requested_amount': dispute.requested_amount,
+            'requested_amount_display': 'Rp ' + self._format_idr(dispute.requested_amount),
+            'approved_amount': dispute.approved_amount,
+            'approved_amount_display': 'Rp ' + self._format_idr(dispute.approved_amount),
+            'admin_fee': dispute.refund_admin_fee_amount,
+            'total_refund_display': 'Rp ' + self._format_idr(dispute.total_refund_amount),
+            'admin_decision_note': dispute.admin_decision_note or '',
+            'seller_decision_note': dispute.seller_decision_note or '',
+            'admin_name': dispute.admin_id.name if dispute.admin_id else '',
+            'final_decision_role': dispute.final_decision_role or '',
+            'final_decision_by': dispute.final_decision_user_id.name if dispute.final_decision_user_id else '',
+            'order': {
+                'id': dispute.order_id.id,
+                'name': dispute.order_id.name or '-',
+                'escrow_state': getattr(dispute.order_id, 'x_escrow_state', '') or '',
+                'backend_url': '/odoo/action-unitrade_dispute.action_unitrade_dispute/%s' % dispute.id,
+            },
+            'buyer': {
+                'name': dispute.buyer_id.name or '-',
+                'email': dispute.buyer_id.email or '',
+                'initials': self._initials(dispute.buyer_id.name),
+            },
+            'seller': {
+                'name': dispute.seller_id.name if dispute.seller_id else 'Penjual UniTrade',
+                'initials': self._initials(dispute.seller_id.name if dispute.seller_id else 'P'),
+            },
+            'submitted_label': self._humanize_time(dispute.submitted_at or dispute.create_date),
+            'evidence': evidence,
+            'timeline': timeline,
+            'actions': {
+                'can_start_review': dispute.state in ('submitted', 'under_review', 'need_buyer_evidence', 'need_seller_response', 'admin_review_final'),
+                'can_request_buyer_evidence': dispute.state == 'under_review',
+                'can_request_seller_response': dispute.state == 'under_review',
+                'can_decide': dispute.state == 'admin_review_final',
+                'can_cancel': dispute.state in self.REFUND_ACTIVE_STATES,
+            },
+        }
+
+    @api.model
+    def admin_refund_action(self, dispute_id, action, note='', approved_amount=None, admin_fee=None):
+        """Run an admin refund action, syncing the shared dispute model.
+
+        Must be called with the REAL admin user (controller should NOT sudo
+        this endpoint) so final_decision_user_id and audit reflect the actor.
+        """
+        self._check_admin()
+        if not self._has_model('unitrade.dispute'):
+            return {'ok': False, 'error': 'Dispute module tidak tersedia.'}
+        dispute = self.env['unitrade.dispute'].browse(int(dispute_id)).exists()
+        if not dispute:
+            return {'ok': False, 'error': 'Refund tidak ditemukan.'}
+
+        note = (note or '').strip()
+        try:
+            if action == 'start_review':
+                dispute.action_start_review()
+                msg = 'Anda kini menjadi penengah refund ini.'
+            elif action == 'need_buyer_evidence':
+                dispute.action_need_buyer_evidence()
+                msg = 'Permintaan bukti tambahan dikirim ke buyer.'
+            elif action == 'need_seller_response':
+                dispute.action_need_seller_response()
+                msg = 'Permintaan respons dikirim ke seller.'
+            elif action == 'approve':
+                # Tulis catatan + nominal sebelum approve (action model membaca field ini)
+                write_vals = {'admin_decision_note': note}
+                if approved_amount not in (None, ''):
+                    try:
+                        write_vals['approved_amount'] = float(approved_amount)
+                    except (TypeError, ValueError):
+                        pass
+                if admin_fee not in (None, ''):
+                    try:
+                        write_vals['refund_admin_fee_amount'] = float(admin_fee)
+                    except (TypeError, ValueError):
+                        pass
+                dispute.write(write_vals)
+                dispute.action_approve_refund()
+                msg = 'Refund disetujui. Dana akan dikembalikan ke buyer.'
+            elif action == 'reject':
+                dispute.write({'admin_decision_note': note})
+                dispute.action_reject_refund()
+                msg = 'Refund ditolak. Escrow dikembalikan ke jalur seller.'
+            elif action == 'cancel':
+                if note:
+                    dispute.write({'admin_decision_note': note})
+                dispute.action_cancel()
+                msg = 'Refund case dibatalkan.'
+            else:
+                return {'ok': False, 'error': 'Aksi tidak dikenal.'}
+        except (UserError, ValidationError, AccessError) as error:
+            return {'ok': False, 'error': error.args[0] if error.args else str(error)}
+        except Exception as error:  # noqa: BLE001
+            _logger.exception('Admin refund action %s failed for dispute %s', action, dispute_id)
+            return {'ok': False, 'error': str(error) or 'Aksi refund gagal diproses.'}
+
+        return {'ok': True, 'message': msg, 'detail': self.get_refund_detail(dispute.id)}

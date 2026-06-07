@@ -5,3 +5,4 @@ from . import sale_order
 from . import security_activity
 from . import sponsorship
 from . import customer_service
+from . import currency_setup
