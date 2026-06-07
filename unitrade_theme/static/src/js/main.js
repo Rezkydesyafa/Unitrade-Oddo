@@ -84,7 +84,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 const query = this.value.trim();
                 if (query.length >= 2) {
                     // Future: fetch search suggestions
-                    console.log('Searching for:', query);
                 }
             }, 300);
         });

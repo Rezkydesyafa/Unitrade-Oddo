@@ -2501,7 +2501,7 @@ class UnitradeAdminStats(models.AbstractModel):
         }
 
     @api.model
-    def admin_update_customer_ticket_status(self, ticket_id, status):
+    def admin_update_customer_ticket_status(self, ticket_id, status, note=''):
         self._check_admin()
         if not self._has_model('unitrade.customer.ticket'):
             return {'ok': False, 'error': 'customer ticket module unavailable'}
@@ -2511,7 +2511,11 @@ class UnitradeAdminStats(models.AbstractModel):
         ticket = self.env['unitrade.customer.ticket'].sudo().browse(int(ticket_id or 0)).exists()
         if not ticket:
             return {'ok': False, 'error': 'ticket not found'}
-        ticket.write({'status': status})
+        try:
+            ticket.action_update_status_from_admin(status, note=note or '', admin=self.env.user)
+        except Exception as error:
+            _logger.exception('Admin failed to update customer ticket %s status', ticket_id)
+            return {'ok': False, 'error': str(error) or _('Status tiket gagal diperbarui.')}
         if self._has_model('unitrade.admin.audit.log'):
             self.env['unitrade.admin.audit.log'].sudo().log_action(
                 'customer_ticket.status',
@@ -2523,6 +2527,42 @@ class UnitradeAdminStats(models.AbstractModel):
                 severity='info',
             )
         return {'ok': True, 'id': ticket.id, 'status': ticket.status}
+
+    @api.model
+    def admin_reply_customer_ticket(self, ticket_id, body):
+        self._check_admin()
+        if not self._has_model('unitrade.customer.ticket'):
+            return {'ok': False, 'error': 'customer ticket module unavailable'}
+        ticket = self.env['unitrade.customer.ticket'].sudo().browse(int(ticket_id or 0)).exists()
+        if not ticket:
+            return {'ok': False, 'error': 'ticket not found'}
+        body = (body or '').strip()
+        if not body:
+            return {'ok': False, 'error': _('Balasan tidak boleh kosong.')}
+        try:
+            ticket.action_add_thread_message(
+                body,
+                author=self.env.user,
+                message_type='admin',
+                notify_customer=True,
+            )
+            if ticket.status == 'pending':
+                ticket.action_update_status_from_admin(
+                    'in_progress',
+                    note=_('Tiket mulai diproses setelah Customer Service mengirim balasan.'),
+                    admin=self.env.user,
+                )
+        except Exception as error:
+            _logger.exception('Admin failed to reply customer ticket %s', ticket_id)
+            return {'ok': False, 'error': str(error) or _('Balasan gagal dikirim.')}
+        if self._has_model('unitrade.admin.audit.log'):
+            self.env['unitrade.admin.audit.log'].sudo().log_action(
+                'customer_ticket.reply',
+                description='Admin membalas tiket %s.' % ticket.name,
+                record=ticket,
+                severity='info',
+            )
+        return {'ok': True, 'id': ticket.id}
 
     def _admin_media_size_label(self, size):
         size = int(size or 0)
@@ -2604,6 +2644,51 @@ class UnitradeAdminStats(models.AbstractModel):
         ticket = self.env['unitrade.customer.ticket'].sudo().browse(int(case_id or 0)).exists()
         if not ticket:
             return {'ok': False, 'error': _('Tiket bantuan tidak ditemukan.')}
+        message_labels = {
+            'customer': _('User'),
+            'admin': _('Customer Service'),
+            'system': _('Sistem'),
+        }
+        messages = []
+        for message in ticket.message_ids.sudo():
+            messages.append({
+                'author': message.author_id.name or message_labels.get(message.message_type, '-'),
+                'time': self._datetime_label(message.create_date),
+                'type': message_labels.get(message.message_type, message.message_type),
+                'body': message.body or '',
+            })
+        notes = []
+        if ticket.resolved_note:
+            notes.append({
+                'label': _('Catatan penyelesaian'),
+                'value': ticket.resolved_note,
+            })
+        if ticket.resolved_at:
+            notes.append({
+                'label': _('Diselesaikan'),
+                'value': '%s%s' % (
+                    self._datetime_label(ticket.resolved_at),
+                    ' oleh %s' % ticket.resolved_by_id.name if ticket.resolved_by_id else '',
+                ),
+            })
+        refund_url = ''
+        refund_label = ''
+        if ticket.category == 'refund_return' and ticket.order_id and self._has_model('unitrade.dispute'):
+            dispute = self.env['unitrade.dispute'].sudo().search(
+                [('order_id', '=', ticket.order_id.id)],
+                order='create_date desc, id desc',
+                limit=1,
+            )
+            if dispute:
+                refund_url = self._record_action_url('unitrade_dispute.action_unitrade_dispute', dispute.id)
+                refund_label = _('Buka dispute refund %s') % dispute.name
+                notes.append({
+                    'label': _('Refund terkait'),
+                    'value': '%s - %s' % (dispute.name, self._selection_label(dispute, 'state')),
+                })
+            else:
+                refund_url = '/unitrade/order/%s/refund/new' % ticket.order_id.id
+                refund_label = _('Buka halaman ajukan refund')
         data = self._admin_case_base(
             'ticket',
             ticket,
@@ -2623,10 +2708,15 @@ class UnitradeAdminStats(models.AbstractModel):
                 {'label': _('Dibuat'), 'value': self._datetime_label(ticket.create_date)},
             ],
             'evidence': self._admin_attachment_payloads(ticket.evidence_ids.mapped('attachment_id'), label=_('Bukti Tiket')),
+            'messages': messages,
+            'notes': notes,
             'actions': {
                 'ticket_id': ticket.id,
+                'can_reply': ticket.status != 'done',
                 'can_start': ticket.status == 'pending',
                 'can_done': ticket.status in ('pending', 'in_progress'),
+                'refund_url': refund_url,
+                'refund_label': refund_label,
             },
         })
         return data

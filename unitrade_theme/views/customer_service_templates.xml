@@ -85,6 +85,7 @@
                         Kembali ke daftar tiket
                     </a>
                     <div class="ut-cs-panel tw-bg-white">
+                        <t t-set="refund" t-value="ticket.get('refund') or {}"/>
                         <div class="tw-flex tw-flex-col tw-gap-4 md:tw-flex-row md:tw-items-start md:tw-justify-between">
                             <div>
                                 <div class="tw-flex tw-flex-wrap tw-items-center tw-gap-3">
@@ -107,6 +108,18 @@
                             </div>
                         </div>
 
+                        <section class="ut-cs-refund-callout" t-if="refund.get('message')">
+                            <div>
+                                <h2 t-esc="refund.get('title')"/>
+                                <p t-esc="refund.get('message')"/>
+                                <span t-if="refund.get('state_label')" t-esc="refund.get('state_label')"/>
+                            </div>
+                            <a t-if="refund.get('url')"
+                               t-att-href="refund.get('url')"
+                               class="tw-no-underline"
+                               t-esc="refund.get('label')"/>
+                        </section>
+
                         <section class="ut-cs-detail-section">
                             <h2>Deskripsi Keluhan</h2>
                             <p t-esc="ticket.get('description')"/>
@@ -128,6 +141,46 @@
                                 </t>
                             </div>
                         </section>
+
+                        <section class="ut-cs-detail-section" t-if="ticket.get('resolved_note')">
+                            <h2>Catatan Penyelesaian</h2>
+                            <p t-esc="ticket.get('resolved_note')"/>
+                            <small t-if="ticket.get('resolved_at')" t-esc="ticket.get('resolved_at')"/>
+                        </section>
+
+                        <section class="ut-cs-detail-section">
+                            <h2>Thread Bantuan</h2>
+                            <div class="ut-cs-thread-list" t-if="ticket.get('messages')">
+                                <t t-foreach="ticket.get('messages')" t-as="message">
+                                    <article t-att-class="'ut-cs-thread-message is-%s' % message.get('type')">
+                                        <div class="ut-cs-thread-meta">
+                                            <strong t-esc="message.get('author')"/>
+                                            <span t-esc="message.get('type_label')"/>
+                                            <small t-esc="message.get('created_at')"/>
+                                        </div>
+                                        <p t-esc="message.get('body')"/>
+                                    </article>
+                                </t>
+                            </div>
+                            <div class="ut-cs-recent-empty" t-else="">
+                                Belum ada balasan pada tiket ini.
+                            </div>
+                        </section>
+
+                        <form class="ut-cs-reply-form"
+                              data-cs-reply-form="1"
+                              t-att-data-reply-url="ticket.get('reply_url')">
+                            <label class="ut-cs-field">
+                                <span>Balas Customer Service</span>
+                                <textarea name="body"
+                                          placeholder="Tambahkan informasi lanjutan untuk Customer Service..."
+                                          required="required"></textarea>
+                            </label>
+                            <div class="ut-cs-reply-actions">
+                                <button type="submit" class="ut-cs-submit">Kirim Balasan</button>
+                                <div class="ut-cs-message tw-hidden" data-cs-reply-message="1"></div>
+                            </div>
+                        </form>
                     </div>
                 </section>
             </main>

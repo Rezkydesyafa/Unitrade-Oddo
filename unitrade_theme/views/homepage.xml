@@ -207,13 +207,6 @@
                         <!-- Slide 5 -->
                         <div class="carousel-item tw-h-full tw-w-full">
                             <picture class="tw-absolute tw-inset-0 tw-block tw-h-full tw-w-full">
-                                <source type="image/webp" srcset="/unitrade_theme/static/src/img/hero/hero-banner-5-960.webp 960w, /unitrade_theme/static/src/img/hero/hero-banner-5-1920.webp 1920w" sizes="(max-width: 768px) 100vw, 1280px"/>
-                                <img src="/unitrade_theme/static/src/img/hero/hero-banner-5.png" alt="Promo Weekend Helper UniTrade" fetchpriority="low" decoding="async" class="tw-h-full tw-w-full tw-object-cover tw-object-center"/>
-                            </picture>
-                        </div>
-                        <!-- Slide 6 -->
-                        <div class="carousel-item tw-h-full tw-w-full">
-                            <picture class="tw-absolute tw-inset-0 tw-block tw-h-full tw-w-full">
                                 <source type="image/webp" srcset="/unitrade_theme/static/src/img/hero/hero-banner-6-960.webp 960w, /unitrade_theme/static/src/img/hero/hero-banner-6-1920.webp 1920w" sizes="(max-width: 768px) 100vw, 1280px"/>
                                 <img src="/unitrade_theme/static/src/img/hero/hero-banner-6.png" alt="Belanja Cerdas UniTrade" fetchpriority="low" decoding="async" class="tw-h-full tw-w-full tw-object-cover tw-object-center"/>
                             </picture>
@@ -228,7 +221,7 @@
                         </button>
 
                         <div class="tw-w-[38px] tw-text-center tw-text-base tw-font-semibold tw-text-[#111827]">
-                            <span id="heroSlideCurrent">1</span>/<span id="heroSlideTotal">6</span>
+                            <span id="heroSlideCurrent">1</span>/<span id="heroSlideTotal">5</span>
                         </div>
 
                         <button class="ut-hero-arrow" type="button" data-bs-target="#unitradeHeroCarousel" data-bs-slide="next">

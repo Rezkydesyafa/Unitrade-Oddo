@@ -2,51 +2,1349 @@
 <odoo>
     <data noupdate="0">
 
-        <record id="demo_student_1" model="unisa.student">
-            <field name="nim">2411501044</field>
-            <field name="name">Mohamad Dwi Rezky Desyafa</field>
-            <field name="faculty">Teknik Informatika</field>
-        </record>
+        <!-- Dummy mahasiswa Teknologi Informasi untuk verifikasi KTM. -->
 
         <record id="demo_student_1" model="unisa.student">
-            <field name="nim">2411501058</field>
-            <field name="name">Fajar Muflihun</field>
-            <field name="faculty">Teknik Informatika</field>
+            <field name="nim">2211501001</field>
+            <field name="name">Rahmat Gunawan Edi Yasanto</field>
+            <field name="faculty">Teknologi Informasi</field>
         </record>
 
         <record id="demo_student_2" model="unisa.student">
-            <field name="nim">2411201078</field>
-            <field name="name">Dewi Lestari</field>
-            <field name="faculty">Teknik Informatika</field>
+            <field name="nim">2311501001</field>
+            <field name="name">Muhammad Rafa Prasetya</field>
+            <field name="faculty">Teknologi Informasi</field>
         </record>
 
         <record id="demo_student_3" model="unisa.student">
-            <field name="nim">2310201055</field>
-            <field name="name">Siti Rahayu</field>
-            <field name="faculty">Ilmu Kesehatan</field>
+            <field name="nim">2411501001</field>
+            <field name="name">Nufaisa Hanif Fathiyya</field>
+            <field name="faculty">Teknologi Informasi</field>
         </record>
 
         <record id="demo_student_4" model="unisa.student">
-            <field name="nim">2210301001</field>
-            <field name="name">Ahmad Fauzi</field>
-            <field name="faculty">Farmasi</field>
+            <field name="nim">2211501002</field>
+            <field name="name">Julian Duwi Prasetya</field>
+            <field name="faculty">Teknologi Informasi</field>
         </record>
 
         <record id="demo_student_5" model="unisa.student">
-            <field name="nim">2312401033</field>
-            <field name="name">Rizky Pratama</field>
-            <field name="faculty">Psikologi</field>
+            <field name="nim">2311501002</field>
+            <field name="name">Hilman Satia Pebrian</field>
+            <field name="faculty">Teknologi Informasi</field>
         </record>
 
         <record id="demo_student_6" model="unisa.student">
+            <field name="nim">2411501002</field>
+            <field name="name">Miska 'Aisyah 'Afaf</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_7" model="unisa.student">
+            <field name="nim">2511501001</field>
+            <field name="name">Abdullah Habib</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_8" model="unisa.student">
+            <field name="nim">2211501003</field>
+            <field name="name">Aditya Cahyadi</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_9" model="unisa.student">
+            <field name="nim">2311501003</field>
+            <field name="name">Arif Rahman</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_10" model="unisa.student">
+            <field name="nim">2411501003</field>
+            <field name="name">Wa Ode Amelia Sutari</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_11" model="unisa.student">
+            <field name="nim">2511501002</field>
+            <field name="name">Sulemana Abdul Majeed</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_12" model="unisa.student">
+            <field name="nim">2211501004</field>
+            <field name="name">Kharisma Alya Septiana</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_13" model="unisa.student">
+            <field name="nim">2311501004</field>
+            <field name="name">Dzunnuroit Bahrun</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_14" model="unisa.student">
+            <field name="nim">2411501004</field>
+            <field name="name">Ghina Fadhilah</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_15" model="unisa.student">
+            <field name="nim">2511501003</field>
+            <field name="name">Suci umi kholifah</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_16" model="unisa.student">
+            <field name="nim">2211501005</field>
+            <field name="name">Wahyu Saofi</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_17" model="unisa.student">
+            <field name="nim">2311501005</field>
+            <field name="name">Miqdad Dzaki Nashiruddien</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_18" model="unisa.student">
+            <field name="nim">2411501005</field>
+            <field name="name">Rosyida Hani Maryam</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_19" model="unisa.student">
+            <field name="nim">2511501004</field>
+            <field name="name">Panji Kurniawan Lidjo</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_20" model="unisa.student">
+            <field name="nim">2211501006</field>
+            <field name="name">Ilham Krisna Mahardika Putra</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_21" model="unisa.student">
+            <field name="nim">2311501006</field>
+            <field name="name">Syamsul Amilien</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_22" model="unisa.student">
+            <field name="nim">2411501006</field>
+            <field name="name">Nurul Miftahillah Hasbi</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_23" model="unisa.student">
+            <field name="nim">2511501005</field>
+            <field name="name">Yutika Alfafa</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_24" model="unisa.student">
+            <field name="nim">2211501007</field>
+            <field name="name">Osama</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_25" model="unisa.student">
+            <field name="nim">2311501007</field>
+            <field name="name">Alexander Ade Putra</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_26" model="unisa.student">
+            <field name="nim">2411501007</field>
+            <field name="name">Bayu Aji Pratama</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_27" model="unisa.student">
+            <field name="nim">2511501007</field>
+            <field name="name">destianna neliza</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_28" model="unisa.student">
+            <field name="nim">2211501008</field>
+            <field name="name">Dimas Rizki Setyaji</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_29" model="unisa.student">
+            <field name="nim">2311501008</field>
+            <field name="name">Nabilla Humayra Az-Zahra</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_30" model="unisa.student">
+            <field name="nim">2411501008</field>
+            <field name="name">Moh. Afandi Irawan</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_31" model="unisa.student">
+            <field name="nim">2511501008</field>
+            <field name="name">Adis Medya Nuragustin</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_32" model="unisa.student">
+            <field name="nim">2211501010</field>
+            <field name="name">Ahmad Haikal Naser</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_33" model="unisa.student">
+            <field name="nim">2311501009</field>
+            <field name="name">Fuad Fadhlil 'Azhiim</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_34" model="unisa.student">
+            <field name="nim">2411501009</field>
+            <field name="name">Muh.Sigit Tri Pramono</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_35" model="unisa.student">
+            <field name="nim">2511501009</field>
+            <field name="name">almido syaban</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_36" model="unisa.student">
+            <field name="nim">2211501011</field>
+            <field name="name">Nazwa Rafilla</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_37" model="unisa.student">
+            <field name="nim">2311501010</field>
+            <field name="name">Dewi Nur Aisa</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_38" model="unisa.student">
+            <field name="nim">2411501010</field>
+            <field name="name">Wahyu Hidayat</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_39" model="unisa.student">
+            <field name="nim">2511501010</field>
+            <field name="name">Megitha Hanawidhita</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_40" model="unisa.student">
+            <field name="nim">2211501012</field>
+            <field name="name">Almon Lanang Prasojo</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_41" model="unisa.student">
+            <field name="nim">2311501011</field>
+            <field name="name">Faza Artha Fabian</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_42" model="unisa.student">
+            <field name="nim">2411501011</field>
+            <field name="name">Nur Meilianti</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_43" model="unisa.student">
+            <field name="nim">2511501011</field>
+            <field name="name">Brilliana Candra Dewi Viola</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_44" model="unisa.student">
+            <field name="nim">2211501014</field>
+            <field name="name">Syarifah Najmah</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_45" model="unisa.student">
+            <field name="nim">2311501012</field>
+            <field name="name">Nadia Putri Rahmadani</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_46" model="unisa.student">
+            <field name="nim">2411501012</field>
+            <field name="name">Diva Nadia Zulaika</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_47" model="unisa.student">
+            <field name="nim">2511501012</field>
+            <field name="name">fawwaz almahdi</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_48" model="unisa.student">
+            <field name="nim">2211501015</field>
+            <field name="name">Dicky Candra</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_49" model="unisa.student">
+            <field name="nim">2311501013</field>
+            <field name="name">Muhammad Arrizal Hasan</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_50" model="unisa.student">
+            <field name="nim">2411501013</field>
+            <field name="name">Virdaus Ilham Sadewa Aji</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_51" model="unisa.student">
+            <field name="nim">2511501013</field>
+            <field name="name">Musyrifah Alyiah</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_52" model="unisa.student">
+            <field name="nim">2211501016</field>
+            <field name="name">Vrica Gede Pengalih</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_53" model="unisa.student">
+            <field name="nim">2311501014</field>
+            <field name="name">Melati Ayu Salsabila</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_54" model="unisa.student">
+            <field name="nim">2411501014</field>
+            <field name="name">Chelsea Olivia</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_55" model="unisa.student">
+            <field name="nim">2511501014</field>
+            <field name="name">Ananda muthia</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_56" model="unisa.student">
+            <field name="nim">2211501017</field>
+            <field name="name">Muhammad Farhan Husen</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_57" model="unisa.student">
+            <field name="nim">2311501016</field>
+            <field name="name">Naufal Zaki Ammar Fadilla</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_58" model="unisa.student">
+            <field name="nim">2411501015</field>
+            <field name="name">Salsabilla Az-Zahra</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_59" model="unisa.student">
+            <field name="nim">2511501015</field>
+            <field name="name">Zuhud Abdillah</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_60" model="unisa.student">
+            <field name="nim">2211501018</field>
+            <field name="name">Virgiawan Aqil Ridwan</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_61" model="unisa.student">
+            <field name="nim">2311501017</field>
+            <field name="name">Muh Hidayat</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_62" model="unisa.student">
+            <field name="nim">2411501016</field>
+            <field name="name">Iqbal Muhamad Furqon</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_63" model="unisa.student">
+            <field name="nim">2511501016</field>
+            <field name="name">Khumaira</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_64" model="unisa.student">
+            <field name="nim">2211501019</field>
+            <field name="name">Qeis Irsal Ziúl Haq</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_65" model="unisa.student">
+            <field name="nim">2311501018</field>
+            <field name="name">Launia Izzati Zawwardah</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_66" model="unisa.student">
+            <field name="nim">2411501017</field>
+            <field name="name">Anto Wijaya</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_67" model="unisa.student">
+            <field name="nim">2511501018</field>
+            <field name="name">Axl Helguera</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_68" model="unisa.student">
+            <field name="nim">2211501020</field>
+            <field name="name">Ody Pangestu Wicaksono</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_69" model="unisa.student">
+            <field name="nim">2311501019</field>
+            <field name="name">Muhammad Rizky Budi Saputra</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_70" model="unisa.student">
+            <field name="nim">2411501018</field>
+            <field name="name">Hilda Rhamadani</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_71" model="unisa.student">
+            <field name="nim">2511501020</field>
+            <field name="name">Ananda Ditya Dwi Sahputra</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_72" model="unisa.student">
+            <field name="nim">2211501021</field>
+            <field name="name">Putri Indah Cahyani</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_73" model="unisa.student">
+            <field name="nim">2311501020</field>
+            <field name="name">Ajeng Hidayat Basyarotuz Zahra</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_74" model="unisa.student">
+            <field name="nim">2411501019</field>
+            <field name="name">Athiya Ghisa Virganita</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_75" model="unisa.student">
+            <field name="nim">2511501021</field>
+            <field name="name">Ahmad Khoirul Albab</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_76" model="unisa.student">
+            <field name="nim">2211501022</field>
+            <field name="name">Nico Ardiansyah Saputra</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_77" model="unisa.student">
+            <field name="nim">2311501021</field>
+            <field name="name">Muhammad Satrio Gandhi</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_78" model="unisa.student">
+            <field name="nim">2411501020</field>
+            <field name="name">Lyra Zulaikha Azzahra</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_79" model="unisa.student">
+            <field name="nim">2511501022</field>
+            <field name="name">Fachrur Rizqi K</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_80" model="unisa.student">
+            <field name="nim">2211501023</field>
+            <field name="name">Rafita Kusuma</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_81" model="unisa.student">
+            <field name="nim">2311501022</field>
+            <field name="name">Novi Diana Ningsih</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_82" model="unisa.student">
+            <field name="nim">2411501021</field>
+            <field name="name">Fuad Adi Darmawan</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_83" model="unisa.student">
+            <field name="nim">2511501023</field>
+            <field name="name">Siti syariah Nim</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_84" model="unisa.student">
+            <field name="nim">2211501024</field>
+            <field name="name">Susi Fanlai</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_85" model="unisa.student">
+            <field name="nim">2311501023</field>
+            <field name="name">Hanna Usyaroh Nurhasanah</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_86" model="unisa.student">
+            <field name="nim">2411501022</field>
+            <field name="name">Aulia Fatmala Azzahra Syafei</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_87" model="unisa.student">
+            <field name="nim">2511501024</field>
+            <field name="name">Reyna Karnelia</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_88" model="unisa.student">
+            <field name="nim">2211501025</field>
+            <field name="name">Miftahur Rizqy</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_89" model="unisa.student">
+            <field name="nim">2311501024</field>
+            <field name="name">Nessa Aulia Rahma</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_90" model="unisa.student">
+            <field name="nim">2411501023</field>
+            <field name="name">Zulfah Sa'adah</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_91" model="unisa.student">
+            <field name="nim">2511501025</field>
+            <field name="name">Lutfhia Revi Nafisa</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_92" model="unisa.student">
+            <field name="nim">2211501026</field>
+            <field name="name">Ridha Aditya Nugraha</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_93" model="unisa.student">
+            <field name="nim">2311501025</field>
+            <field name="name">Indah Sandiarosa</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_94" model="unisa.student">
+            <field name="nim">2411501024</field>
+            <field name="name">Intan Nurlita Febri Atmaja</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_95" model="unisa.student">
+            <field name="nim">2511501026</field>
+            <field name="name">Sekai Putri Ramadhani</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_96" model="unisa.student">
+            <field name="nim">2211501027</field>
+            <field name="name">Zefila Ardya Salsabila</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_97" model="unisa.student">
+            <field name="nim">2311501026</field>
+            <field name="name">Madinatul Inadila</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_98" model="unisa.student">
+            <field name="nim">2411501025</field>
+            <field name="name">Kinar Aurasae</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_99" model="unisa.student">
+            <field name="nim">2511501027</field>
+            <field name="name">Vincensius Adit Indra</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_100" model="unisa.student">
+            <field name="nim">2211501028</field>
+            <field name="name">Nisa Afriyani</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_101" model="unisa.student">
+            <field name="nim">2311501027</field>
+            <field name="name">Mohammad Zufar Arsalan</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_102" model="unisa.student">
+            <field name="nim">2411501026</field>
+            <field name="name">Valentino Bellamy Bintang Hutomo</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_103" model="unisa.student">
+            <field name="nim">2511501028</field>
+            <field name="name">Dinda Shafa Nalaratih</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_104" model="unisa.student">
+            <field name="nim">2211501029</field>
+            <field name="name">Cornelia Santa</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_105" model="unisa.student">
+            <field name="nim">2311501028</field>
+            <field name="name">Muhammad Satrioadi</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_106" model="unisa.student">
+            <field name="nim">2411501027</field>
+            <field name="name">Yuliya Astrining Sejati</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_107" model="unisa.student">
+            <field name="nim">2511501029</field>
+            <field name="name">Miftahul Jannah Az-Zahra</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_108" model="unisa.student">
+            <field name="nim">2211501030</field>
+            <field name="name">Yuliana Putri</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_109" model="unisa.student">
+            <field name="nim">2311501029</field>
+            <field name="name">Zahra Aulia Ananta</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_110" model="unisa.student">
+            <field name="nim">2411501028</field>
+            <field name="name">Budi Rohman</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_111" model="unisa.student">
+            <field name="nim">2511501030</field>
+            <field name="name">Kurnia Ramadhani</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_112" model="unisa.student">
+            <field name="nim">2211501031</field>
+            <field name="name">Nadifa Aprilia</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_113" model="unisa.student">
+            <field name="nim">2311501030</field>
+            <field name="name">Amelia Kusuma Paramesti</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_114" model="unisa.student">
+            <field name="nim">2411501029</field>
+            <field name="name">Nurpia Cahaya Ramadani</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_115" model="unisa.student">
+            <field name="nim">2511501031</field>
+            <field name="name">Mochamad Hafidz Azzakiy</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_116" model="unisa.student">
+            <field name="nim">2211501032</field>
+            <field name="name">Ayyesa Azzahra Mulia Ramadani</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_117" model="unisa.student">
+            <field name="nim">2311501031</field>
+            <field name="name">Putri Malika Molantong</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_118" model="unisa.student">
+            <field name="nim">2411501030</field>
+            <field name="name">Fadhil Ariq Musyaffa</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_119" model="unisa.student">
+            <field name="nim">2511501032</field>
+            <field name="name">Aulya Rahma Chairunnisa</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_120" model="unisa.student">
+            <field name="nim">2211501033</field>
+            <field name="name">Dimas Edwin Saputra</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_121" model="unisa.student">
+            <field name="nim">2311501032</field>
+            <field name="name">Rangga Arsena</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_122" model="unisa.student">
+            <field name="nim">2411501031</field>
+            <field name="name">Adrian Tuahuns</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_123" model="unisa.student">
+            <field name="nim">2511501033</field>
+            <field name="name">Wisnu Adhitya</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_124" model="unisa.student">
+            <field name="nim">2211501034</field>
+            <field name="name">Mahyana</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_125" model="unisa.student">
+            <field name="nim">2311501033</field>
+            <field name="name">Nuzulul Abdilah Amar</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_126" model="unisa.student">
+            <field name="nim">2411501032</field>
+            <field name="name">Sahrine Estari Ditara</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_127" model="unisa.student">
+            <field name="nim">2511501034</field>
+            <field name="name">Ahmaddian Rhassid N</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_128" model="unisa.student">
+            <field name="nim">2211501035</field>
+            <field name="name">Suci Mutiarani</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_129" model="unisa.student">
+            <field name="nim">2311501035</field>
+            <field name="name">Fauzan Annas Hibatullah</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_130" model="unisa.student">
+            <field name="nim">2411501033</field>
+            <field name="name">Nesa Agustina Patma Azhari</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_131" model="unisa.student">
+            <field name="nim">2511501035</field>
+            <field name="name">Mohammad Haedir Alimuddin</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_132" model="unisa.student">
+            <field name="nim">2211501036</field>
+            <field name="name">Muhammad Farhan</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_133" model="unisa.student">
+            <field name="nim">2311501036</field>
+            <field name="name">Pradnya Nirmala Dwisafira Pirenaningtyas</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_134" model="unisa.student">
+            <field name="nim">2411501034</field>
+            <field name="name">Najwa Algadri</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_135" model="unisa.student">
+            <field name="nim">2511501036</field>
+            <field name="name">arza al-a'la putra usgianto</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_136" model="unisa.student">
+            <field name="nim">2211501037</field>
+            <field name="name">Ahsanu Nadiyya Id</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_137" model="unisa.student">
+            <field name="nim">2311501037</field>
+            <field name="name">Devina Octacahyani</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_138" model="unisa.student">
             <field name="nim">2411501035</field>
             <field name="name">Ibnu Al Wahit Prayoga</field>
             <field name="faculty">Teknologi Informasi</field>
         </record>
 
-        <record id="demo_student_7" model="unisa.student">
-            <field name="nim">2411501021</field>
-            <field name="name">Fuad Adl Darmawan</field>
+        <record id="demo_student_139" model="unisa.student">
+            <field name="nim">2511501037</field>
+            <field name="name">Fidela Iffah Ardiningrum</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_140" model="unisa.student">
+            <field name="nim">2211501038</field>
+            <field name="name">Nandito Raka Yuliano</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_141" model="unisa.student">
+            <field name="nim">2311501038</field>
+            <field name="name">Irsyad Winarko</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_142" model="unisa.student">
+            <field name="nim">2411501036</field>
+            <field name="name">Revalina Ramadhani Bambela</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_143" model="unisa.student">
+            <field name="nim">2511501038</field>
+            <field name="name">Rafi Nur Musthofa</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_144" model="unisa.student">
+            <field name="nim">2211501039</field>
+            <field name="name">Nurul Afifa Djanti</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_145" model="unisa.student">
+            <field name="nim">2311501039</field>
+            <field name="name">Ahmad Pandu Wijaya</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_146" model="unisa.student">
+            <field name="nim">2411501037</field>
+            <field name="name">Intan Pri Permatasari</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_147" model="unisa.student">
+            <field name="nim">2511501039</field>
+            <field name="name">Najwa Chairumafaaza</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_148" model="unisa.student">
+            <field name="nim">2211501040</field>
+            <field name="name">Ahmad Widad Saksana</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_149" model="unisa.student">
+            <field name="nim">2311501040</field>
+            <field name="name">Audytia Wira Admaja</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_150" model="unisa.student">
+            <field name="nim">2411501038</field>
+            <field name="name">Aninda Ibrahim</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_151" model="unisa.student">
+            <field name="nim">2511501040</field>
+            <field name="name">Andung Toppo Nugroho</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_152" model="unisa.student">
+            <field name="nim">2211501041</field>
+            <field name="name">Muhammad Aziz Alfajri</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_153" model="unisa.student">
+            <field name="nim">2311501041</field>
+            <field name="name">Asinin Ahmad</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_154" model="unisa.student">
+            <field name="nim">2411501039</field>
+            <field name="name">Ilmi Navia</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_155" model="unisa.student">
+            <field name="nim">2511501041</field>
+            <field name="name">Nirwana Riduha Ahmad</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_156" model="unisa.student">
+            <field name="nim">2211501042</field>
+            <field name="name">Umi Zakiyah</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_157" model="unisa.student">
+            <field name="nim">2311501042</field>
+            <field name="name">Abel Hendistya Jaya Saputra</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_158" model="unisa.student">
+            <field name="nim">2411501040</field>
+            <field name="name">Nur Syafna Humairah</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_159" model="unisa.student">
+            <field name="nim">2511501042</field>
+            <field name="name">Yuli Andriani</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_160" model="unisa.student">
+            <field name="nim">2211501043</field>
+            <field name="name">Faiz Naufal Putra Guntur</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_161" model="unisa.student">
+            <field name="nim">2311501043</field>
+            <field name="name">Marsalina</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_162" model="unisa.student">
+            <field name="nim">2411501041</field>
+            <field name="name">Waina Fanlay</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_163" model="unisa.student">
+            <field name="nim">2511501043</field>
+            <field name="name">Hanif Nur Faiz</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_164" model="unisa.student">
+            <field name="nim">2211501044</field>
+            <field name="name">Muhammad Luthfi Abdillah</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_165" model="unisa.student">
+            <field name="nim">2311501044</field>
+            <field name="name">Yunan Singgih Mukti Hidayah</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_166" model="unisa.student">
+            <field name="nim">2411501042</field>
+            <field name="name">Muhammad Saiful Amin</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_167" model="unisa.student">
+            <field name="nim">2511501044</field>
+            <field name="name">Aldian Ramadhan</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_168" model="unisa.student">
+            <field name="nim">2211501045</field>
+            <field name="name">Zahdal Aisy Rahman Averusy</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_169" model="unisa.student">
+            <field name="nim">2311501045</field>
+            <field name="name">Dentri Seviana</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_170" model="unisa.student">
+            <field name="nim">2411501043</field>
+            <field name="name">Muhammad Fa'iz Aljundi</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_171" model="unisa.student">
+            <field name="nim">2511501045</field>
+            <field name="name">Ganes Aravat</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_172" model="unisa.student">
+            <field name="nim">2211501046</field>
+            <field name="name">Legawan Perkasa</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_173" model="unisa.student">
+            <field name="nim">2311501046</field>
+            <field name="name">Sarah Jasmine</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_174" model="unisa.student">
+            <field name="nim">2411501044</field>
+            <field name="name">Mohamad Dwi Rezky Desyafa</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_175" model="unisa.student">
+            <field name="nim">2511501046</field>
+            <field name="name">Angga Adriansah</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_176" model="unisa.student">
+            <field name="nim">2211501047</field>
+            <field name="name">Syahrur Ramadhan</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_177" model="unisa.student">
+            <field name="nim">2311501047</field>
+            <field name="name">Yukri Andriani Astuti</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_178" model="unisa.student">
+            <field name="nim">2411501045</field>
+            <field name="name">Andri</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_179" model="unisa.student">
+            <field name="nim">2511501048</field>
+            <field name="name">Aulia Margaretha R. Sidauruk</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_180" model="unisa.student">
+            <field name="nim">2211501048</field>
+            <field name="name">Arya Apriansyah Lasulika</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_181" model="unisa.student">
+            <field name="nim">2311501048</field>
+            <field name="name">Muhammad Salman Alfarisi</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_182" model="unisa.student">
+            <field name="nim">2411501046</field>
+            <field name="name">Muhammad Adzan Azhar</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_183" model="unisa.student">
+            <field name="nim">2511501049</field>
+            <field name="name">Stifa Aliya Fauziyyah</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_184" model="unisa.student">
+            <field name="nim">2211501049</field>
+            <field name="name">M.Ilham Wahyudi</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_185" model="unisa.student">
+            <field name="nim">2311501049</field>
+            <field name="name">Muhammad Burhan Ismail</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_186" model="unisa.student">
+            <field name="nim">2411501047</field>
+            <field name="name">Arifa Fitra Salima</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_187" model="unisa.student">
+            <field name="nim">2511501052</field>
+            <field name="name">Muhammad Ghani Benjamin</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_188" model="unisa.student">
+            <field name="nim">2211501051</field>
+            <field name="name">Ahmad Dhani Saputra</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_189" model="unisa.student">
+            <field name="nim">2311501050</field>
+            <field name="name">Annisa Ashadia Nurhaliza Savana</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_190" model="unisa.student">
+            <field name="nim">2411501048</field>
+            <field name="name">Crystallova Nur Izzati</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_191" model="unisa.student">
+            <field name="nim">2511501053</field>
+            <field name="name">Ananda Muhammad Syaiful Hadjim</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_192" model="unisa.student">
+            <field name="nim">2211501052</field>
+            <field name="name">Yunan Al-Husaini Djaibakal</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_193" model="unisa.student">
+            <field name="nim">2311501051</field>
+            <field name="name">Ahmad Nurcholiq</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_194" model="unisa.student">
+            <field name="nim">2411501049</field>
+            <field name="name">Muhamad Istajib</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_195" model="unisa.student">
+            <field name="nim">2511501054</field>
+            <field name="name">Rofiul Haq</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_196" model="unisa.student">
+            <field name="nim">2211501053</field>
+            <field name="name">Edy Arwanto</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_197" model="unisa.student">
+            <field name="nim">2311501052</field>
+            <field name="name">Muhammad Nafis Firdaus</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_198" model="unisa.student">
+            <field name="nim">2411501050</field>
+            <field name="name">Maulana Rivaldo Pratama</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_199" model="unisa.student">
+            <field name="nim">2511501055</field>
+            <field name="name">Muhammad Zaky Wisanggeni El Paradise</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_200" model="unisa.student">
+            <field name="nim">2211501054</field>
+            <field name="name">Muhammad Zikri Muzaki</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_201" model="unisa.student">
+            <field name="nim">2311501053</field>
+            <field name="name">Badrun Nafis</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_202" model="unisa.student">
+            <field name="nim">2411501051</field>
+            <field name="name">Muhamad.Azhari</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_203" model="unisa.student">
+            <field name="nim">2511501056</field>
+            <field name="name">Huzifa Mohamed Ali</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_204" model="unisa.student">
+            <field name="nim">2311501054</field>
+            <field name="name">Rizki Fachriadi Iskandar</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_205" model="unisa.student">
+            <field name="nim">2411501052</field>
+            <field name="name">Daffa Alfairoez Ramadhan</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_206" model="unisa.student">
+            <field name="nim">2511501057</field>
+            <field name="name">eca</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_207" model="unisa.student">
+            <field name="nim">2311501055</field>
+            <field name="name">Sindi Setiawati</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_208" model="unisa.student">
+            <field name="nim">2411501053</field>
+            <field name="name">Khubaib Sidqo Ahmada</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_209" model="unisa.student">
+            <field name="nim">2511601051</field>
+            <field name="name">Andre galang</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_210" model="unisa.student">
+            <field name="nim">2311501056</field>
+            <field name="name">Anggi Vinatasya Kilwouw</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_211" model="unisa.student">
+            <field name="nim">2411501054</field>
+            <field name="name">Gagas Ilmiawan Putra Guntur</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_212" model="unisa.student">
+            <field name="nim">2311501057</field>
+            <field name="name">Dian Gita Meilani</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_213" model="unisa.student">
+            <field name="nim">2411501055</field>
+            <field name="name">Muhammad Hiban Zafran</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_214" model="unisa.student">
+            <field name="nim">2311501058</field>
+            <field name="name">Nathasya Destia Fany Sitorus</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_215" model="unisa.student">
+            <field name="nim">2411501056</field>
+            <field name="name">Syahrul Yuhaad Al-Ma'ruf</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_216" model="unisa.student">
+            <field name="nim">2311501059</field>
+            <field name="name">Muhammad Syamsudhuha Abdullah</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_217" model="unisa.student">
+            <field name="nim">2411501057</field>
+            <field name="name">Muhammad Iqbal Firdaus</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_218" model="unisa.student">
+            <field name="nim">2311501060</field>
+            <field name="name">Farhan Faraj Huda</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_219" model="unisa.student">
+            <field name="nim">2411501058</field>
+            <field name="name">Fajar Muflihun</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_220" model="unisa.student">
+            <field name="nim">2311501061</field>
+            <field name="name">Abdan Syakura</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_221" model="unisa.student">
+            <field name="nim">2311501062</field>
+            <field name="name">Leni Samrotul Fuadah</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_222" model="unisa.student">
+            <field name="nim">2311501063</field>
+            <field name="name">Yuli Antika Sari</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_223" model="unisa.student">
+            <field name="nim">2311501064</field>
+            <field name="name">Perdana Fahru Rozikin</field>
+            <field name="faculty">Teknologi Informasi</field>
+        </record>
+
+        <record id="demo_student_224" model="unisa.student">
+            <field name="nim">2311501065</field>
+            <field name="name">Puma Arfah</field>
             <field name="faculty">Teknologi Informasi</field>
         </record>
 

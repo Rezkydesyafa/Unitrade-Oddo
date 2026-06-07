@@ -28,7 +28,7 @@ with the following keys:
     via the in-app channel regardless of preferences (mirrors
     :data:`CRITICAL_CATEGORIES`).
 
-The 18 registered events cover the full event coverage matrix described
+The registered events cover the full event coverage matrix described
 in the design document (``§Event_Registry``):
 
 * account: ``account.welcome``, ``account.password_reset``
@@ -40,7 +40,8 @@ in the design document (``§Event_Registry``):
            ``payment.failed``, ``payment.expired``
 * chat:    ``chat.new_message``
 * review:  ``review.reminder``, ``review.new_for_seller``
-* system:  ``system.announcement``
+* system:  ``system.announcement``, ``system.customer_ticket_reply``,
+           ``system.customer_ticket_status``
 """
 
 import logging
@@ -175,6 +176,18 @@ EVENT_REGISTRY = {
         'category': 'system',
         'channels': ('in_app', 'email'),
         'template': 'unitrade_notification.mail_template_system_announcement',
+        'critical': False,
+    },
+    'system.customer_ticket_reply': {
+        'category': 'system',
+        'channels': ('in_app',),
+        'template': None,
+        'critical': False,
+    },
+    'system.customer_ticket_status': {
+        'category': 'system',
+        'channels': ('in_app',),
+        'template': None,
         'critical': False,
     },
 }

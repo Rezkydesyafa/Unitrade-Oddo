@@ -8,3 +8,5 @@ access_unitrade_customer_ticket_portal,unitrade.customer.ticket portal,model_uni
 access_unitrade_customer_ticket_admin,unitrade.customer.ticket admin,model_unitrade_customer_ticket,base.group_system,1,1,1,1
 access_unitrade_customer_ticket_evidence_portal,unitrade.customer.ticket.evidence portal,model_unitrade_customer_ticket_evidence,base.group_portal,1,0,0,0
 access_unitrade_customer_ticket_evidence_admin,unitrade.customer.ticket.evidence admin,model_unitrade_customer_ticket_evidence,base.group_system,1,1,1,1
+access_unitrade_customer_ticket_message_portal,unitrade.customer.ticket.message portal,model_unitrade_customer_ticket_message,base.group_portal,1,0,1,0
+access_unitrade_customer_ticket_message_admin,unitrade.customer.ticket.message admin,model_unitrade_customer_ticket_message,base.group_system,1,1,1,1

@@ -53,7 +53,7 @@ class TestNotificationActionUrl(TransactionCase):
 
         self.assertEqual(
             notification._get_effective_action_url(),
-            '/my/orders?status=done',
+            '/my/orders?status=done&tab=reviews#tab-ulasan',
         )
 
     def test_buyer_review_reminder_opens_my_orders_review_filter(self):
@@ -66,7 +66,7 @@ class TestNotificationActionUrl(TransactionCase):
 
         self.assertEqual(
             notification._get_effective_action_url(),
-            '/my/orders?status=done',
+            '/my/orders?status=done&tab=reviews#tab-ulasan',
         )
 
     def test_legacy_buyer_review_product_url_opens_my_orders(self):
@@ -77,7 +77,7 @@ class TestNotificationActionUrl(TransactionCase):
 
         self.assertEqual(
             notification._get_effective_action_url(),
-            '/my/orders?status=done',
+            '/my/orders?status=done&tab=reviews#tab-ulasan',
         )
 
     def test_review_user_and_seller_scopes_are_separate(self):
