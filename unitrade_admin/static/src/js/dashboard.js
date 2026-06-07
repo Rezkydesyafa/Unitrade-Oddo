@@ -1577,6 +1577,62 @@
                             if (res.result && res.result.ok) refresh();
                             else showToast((res.result && res.result.error) || "Gagal menjalankan aksi payout.", "error");
                         });
+                } else if (action === "refund-action") {
+                    var refundId = btn.dataset.refundId;
+                    var refundAction = btn.dataset.refundAction;
+                    var refundPayload = { dispute_id: refundId, action: refundAction };
+
+                    if (refundAction === "start_review") {
+                        if (!await confirmAdmin("Jadikan diri Anda penengah refund ini?", { title: "Jadi Penengah" })) return;
+                    } else if (refundAction === "need_buyer_evidence") {
+                        if (!await confirmAdmin("Minta bukti tambahan dari buyer?", { title: "Minta Bukti Buyer" })) return;
+                    } else if (refundAction === "need_seller_response") {
+                        if (!await confirmAdmin("Minta respons dari seller?", { title: "Minta Respons Seller" })) return;
+                    } else if (refundAction === "approve") {
+                        var approveNote = await promptAdmin("Catatan keputusan approve (min 10 karakter, wajib):", {
+                            title: "Approve Refund",
+                            multiline: true,
+                            placeholder: "Alasan menyetujui refund berdasarkan bukti.",
+                        });
+                        if (!approveNote || approveNote.trim().length < 10) {
+                            showToast("Catatan keputusan minimal 10 karakter.", "warning");
+                            return;
+                        }
+                        refundPayload.note = approveNote.trim();
+                    } else if (refundAction === "reject") {
+                        var rejectNote = await promptAdmin("Catatan keputusan reject (min 10 karakter, wajib):", {
+                            title: "Reject Refund",
+                            multiline: true,
+                            placeholder: "Alasan menolak refund berdasarkan bukti.",
+                        });
+                        if (!rejectNote || rejectNote.trim().length < 10) {
+                            showToast("Catatan keputusan minimal 10 karakter.", "warning");
+                            return;
+                        }
+                        refundPayload.note = rejectNote.trim();
+                    } else if (refundAction === "cancel") {
+                        var cancelRefundReason = await promptAdmin("Alasan membatalkan case refund:", {
+                            title: "Batalkan Case",
+                            multiline: true,
+                        });
+                        if (!cancelRefundReason || !cancelRefundReason.trim()) return;
+                        refundPayload.note = cancelRefundReason.trim();
+                    }
+                    btn.disabled = true;
+                    callJsonRpc("/unitrade/admin/api/refunds/action", refundPayload)
+                        .then(function (res) {
+                            btn.disabled = false;
+                            if (res.result && res.result.ok) {
+                                showToast(res.result.message || "Keputusan refund tersimpan.", "success");
+                                refresh();
+                            } else {
+                                showToast((res.result && res.result.error) || "Gagal memproses refund.", "error");
+                            }
+                        })
+                        .catch(function () {
+                            btn.disabled = false;
+                            showToast("Gagal memproses refund.", "error");
+                        });
                 } else if (action === "open-announcement-modal") {
                     var announcementForm = document.getElementById("utAdminAnnouncementForm");
                     if (announcementForm) announcementForm.reset();

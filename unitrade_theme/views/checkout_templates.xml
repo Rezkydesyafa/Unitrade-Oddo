@@ -931,7 +931,7 @@
                             <section class="ut-checkout-card">
                                 <h2 class="ut-checkout-section-title">Produk Dibeli</h2>
                                 <t t-foreach="order.order_line" t-as="line">
-                                    <div t-if="not line.display_type and line.product_id and line.product_id.id != unitrade_service_fee_product_id and line.product_id.id != unitrade_payment_fee_product_id">
+                                    <div t-if="not line.display_type and line.product_id and line.product_id.id != unitrade_service_fee_product_id and line.product_id.id != unitrade_payment_fee_product_id and line.product_id.id != unitrade_voucher_discount_product_id">
                                         <t t-set="ut_product_template" t-value="line.product_id.product_tmpl_id.sudo()"/>
                                         <t t-set="ut_seller" t-value="ut_product_template.x_seller_id if 'x_seller_id' in ut_product_template._fields else False"/>
                                         <t t-set="ut_seller_safe" t-value="ut_seller.sudo() if ut_seller else False"/>
@@ -1025,7 +1025,7 @@
                                     </span>
                                 </div>
                                 <div t-att-class="'ut-summary-row %s' % ('' if unitrade_checkout_amounts.get('voucher_discount') else 'tw-hidden')" data-voucher-summary-row="1">
-                                    <span>Voucher <span data-voucher-code-label="1" t-esc="unitrade_checkout_amounts.get('voucher_code') or ''"/></span>
+                                    <span>Voucher <span data-voucher-code-label="1" t-esc="unitrade_checkout_amounts.get('voucher_name') or ''"/></span>
                                     <span data-voucher-discount-summary="1">
                                         -<t t-set="ut_money_amount" t-value="unitrade_checkout_amounts.get('voucher_discount')"/>
                                         <t t-set="ut_money_currency" t-value="order.currency_id"/>
@@ -1043,7 +1043,7 @@
                                 </span>
                             </div>
                             <div class="ut-voucher-row">
-                                <input type="text" placeholder="Kode Voucher" data-voucher-input="1" t-att-value="unitrade_checkout_amounts.get('voucher_code') or ''"/>
+                                <input type="text" placeholder="Kode Voucher" data-voucher-input="1"/>
                                 <button type="button" data-voucher-apply="1">Terapkan</button>
                                 <button t-att-class="'' if unitrade_checkout_amounts.get('voucher_discount') else 'tw-hidden'" type="button" data-voucher-remove="1">Hapus</button>
                             </div>
@@ -1510,7 +1510,7 @@
                                 removeButton.classList.toggle("tw-hidden", !hasVoucher);
                             }
                             if (codeLabel) {
-                                codeLabel.textContent = data.voucher_code || "";
+                                codeLabel.textContent = data.voucher_name || data.voucher_code || "";
                             }
                             if (discountSummary) {
                                 discountSummary.textContent = hasVoucher ? "-" + data.voucher_discount_label : "";
@@ -1521,8 +1521,10 @@
                             if (paymentFeeSummary && data.payment_fee_label) {
                                 paymentFeeSummary.textContent = data.payment_fee_label;
                             }
-                            if (input && data.voucher_code) {
-                                input.value = data.voucher_code;
+                            if (input) {
+                                // Kosongkan input setelah voucher diterapkan; input hanya untuk
+                                // memasukkan kode, label voucher ditampilkan di ringkasan.
+                                input.value = "";
                             }
                             var baseTotal = Math.max((parseInt(data.total || 0, 10) || 0) - (parseInt(data.payment_fee || 0, 10) || 0), 0);
                             root.dataset.paymentBaseTotal = String(baseTotal);

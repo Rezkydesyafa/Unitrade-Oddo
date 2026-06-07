@@ -2,7 +2,7 @@ import logging
 import math
 
 from odoo import fields, http
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.http import request
 from odoo.addons.website_sale_stock.controllers.main import WebsiteSale
 
@@ -62,6 +62,52 @@ class UnitradeWebsiteSaleCart(WebsiteSale):
 
     def _unitrade_is_cart_remove_request(self, add_qty=None, set_qty=None):
         return set_qty in (0, '0') and add_qty in (None, '', 0, '0')
+
+    def _unitrade_redirect_with_unavailable_code(self, redirect):
+        separator = '&' if '?' in (redirect or '') else '?'
+        return request.redirect('%s%scode_not_available=1' % (redirect or '/shop/cart', separator))
+
+    def _unitrade_voucher_response_from_promo(self, promo, redirect):
+        order = request.website.sale_get_order()
+        promo_code = (promo or '').strip()
+
+        if not promo_code:
+            if order and hasattr(order, '_unitrade_remove_voucher') and order.x_unitrade_voucher_id:
+                order.sudo()._unitrade_remove_voucher()
+            return None
+
+        if 'unitrade.voucher' not in request.env.registry.models:
+            return None
+
+        Voucher = request.env['unitrade.voucher'].sudo().with_context(active_test=False)
+        normalized = Voucher._normalize_code(promo_code) if hasattr(Voucher, '_normalize_code') else promo_code.upper()
+        voucher = Voucher.search([('code', '=', normalized)], limit=1)
+        if not voucher:
+            return None
+
+        if not order or order.state != 'draft' or not hasattr(order, '_unitrade_apply_voucher_code'):
+            return self._unitrade_redirect_with_unavailable_code(redirect)
+        if not request.env.user._is_public() and order.partner_id.commercial_partner_id != request.env.user.partner_id.commercial_partner_id:
+            return self._unitrade_redirect_with_unavailable_code(redirect)
+
+        block_message = self._unitrade_marketplace_block_message('menggunakan voucher checkout')
+        if block_message:
+            return self._unitrade_redirect_with_unavailable_code(redirect)
+
+        try:
+            order.sudo()._unitrade_apply_voucher_code(promo_code)
+        except (UserError, ValidationError) as error:
+            _logger.info(
+                'UniTrade voucher promo form rejected code %s for order %s: %s',
+                normalized,
+                order.name,
+                error.args[0] if error.args else str(error),
+            )
+            return self._unitrade_redirect_with_unavailable_code(redirect)
+        except Exception:
+            _logger.exception('Failed applying UniTrade voucher from promo form to order %s', order.name)
+            return self._unitrade_redirect_with_unavailable_code(redirect)
+        return request.redirect(redirect or '/shop/cart')
 
     def _unitrade_truthy(self, value):
         return value is True or str(value).lower() in ('1', 'true', 'yes', 'on')
@@ -183,6 +229,40 @@ class UnitradeWebsiteSaleCart(WebsiteSale):
             'unitrade_cart_stock_warning': self._unitrade_cart_stock_message(issues) or session_warning,
         })
         return values
+
+    @http.route(['/shop/pricelist'], type='http', auth='public', website=True, sitemap=False)
+    def pricelist(self, promo=None, **post):
+        redirect = post.get('r', '/shop/cart')
+        voucher_response = self._unitrade_voucher_response_from_promo(promo, redirect)
+        if voucher_response is not None:
+            return voucher_response
+        return super().pricelist(promo or '', **post)
+
+    @http.route(['/unitrade/cart/voucher/remove'], type='http', auth='public', website=True, sitemap=False, methods=['GET', 'POST'])
+    def unitrade_cart_voucher_remove(self, **post):
+        """Remove the applied voucher from the cart and return to /shop/cart.
+
+        Lets the buyer detach a voucher directly from the cart page so the
+        voucher is always optional (checkout can proceed without it).
+        """
+        redirect = post.get('r', '/shop/cart')
+        order = request.website.sale_get_order()
+        if (
+            order
+            and order.state == 'draft'
+            and hasattr(order, '_unitrade_remove_voucher')
+            and order.x_unitrade_voucher_id
+        ):
+            owns_cart = (
+                request.env.user._is_public()
+                or order.partner_id.commercial_partner_id == request.env.user.partner_id.commercial_partner_id
+            )
+            if owns_cart:
+                try:
+                    order.sudo()._unitrade_remove_voucher()
+                except Exception:
+                    _logger.exception('Failed removing voucher from cart %s', order.id)
+        return request.redirect(redirect or '/shop/cart')
 
     def _unitrade_render_cart_lines(self, order, issues):
         return request.env['ir.ui.view']._render_template(

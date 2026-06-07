@@ -284,6 +284,12 @@ function Invoke-Seed {
     param([bool]$Execute)
     Assert-OdooRuntime
     $seedScript = Join-Path $ProjectRoot "scripts\seed_unitrade_test_data.py"
+    if (-not (Test-Path -LiteralPath $seedScript -PathType Leaf)) {
+        $fallbackSeedScript = Join-Path $ProjectRoot "scripts\seed_unitrade_test_data_restored.py"
+        if (Test-Path -LiteralPath $fallbackSeedScript -PathType Leaf) {
+            $seedScript = $fallbackSeedScript
+        }
+    }
     Assert-File -Path $seedScript -Label "Seed script"
 
     $logName = if ($Execute) { "seed_unitrade_test_data_execute.log" } else { "seed_unitrade_test_data_dry_run.log" }
@@ -313,7 +319,61 @@ function Invoke-Seed {
 
         $mode = if ($Execute) { "execute reset + seed" } else { "dry-run seed" }
         Write-Step $mode
-        Get-Content -LiteralPath $seedScript | & $OdooPython $OdooBin shell -c $OdooConf -d $Database --no-http "--data-dir=$DataDir" "--logfile=$logFile"
+        $runnerScript = Join-Path $ProjectRoot "tmp\run_unitrade_seed.py"
+        Ensure-Directory -Path (Split-Path -Parent $runnerScript)
+        $runnerContent = @"
+import logging
+import os
+import sys
+import threading
+
+odoo_bin, conf, dbname, data_dir, logfile, seed_script = sys.argv[1:]
+sys.path.insert(0, os.path.dirname(odoo_bin))
+
+import odoo
+import odoo.cli.server
+import odoo.service.server
+from odoo.tools import config
+
+_logger = logging.getLogger(__name__)
+
+config.parse_config([
+    "-c", conf,
+    "-d", dbname,
+    "--no-http",
+    "--data-dir=%s" % data_dir,
+    "--logfile=%s" % logfile,
+])
+odoo.cli.server.report_configuration()
+odoo.service.server.start(preload=[], stop=True)
+threading.current_thread().dbname = dbname
+registry = odoo.registry(dbname)
+with registry.cursor() as cr:
+    uid = odoo.SUPERUSER_ID
+    ctx = odoo.api.Environment(cr, uid, {})["res.users"].context_get()
+    env = odoo.api.Environment(cr, uid, ctx)
+    cr.rollback()
+    local_vars = {
+        "__name__": "__main__",
+        "openerp": odoo,
+        "odoo": odoo,
+        "env": env,
+        "self": env.user,
+    }
+    try:
+        with open(seed_script, "r", encoding="utf-8-sig") as handle:
+            code = handle.read()
+        exec(compile(code, seed_script, "exec"), local_vars)
+    except Exception:
+        _logger.exception("UniTrade seed runner failed")
+        raise
+    finally:
+        cr.rollback()
+"@
+        $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+        [System.IO.File]::WriteAllText($runnerScript, $runnerContent, $utf8NoBom)
+
+        & $OdooPython $runnerScript $OdooBin $OdooConf $Database $DataDir $logFile $seedScript
         if ($LASTEXITCODE -ne 0) {
             throw "Seed gagal dengan exit code $LASTEXITCODE"
         }

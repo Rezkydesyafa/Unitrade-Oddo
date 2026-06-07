@@ -416,7 +416,22 @@
                     font-size: 15px !important;
                     vertical-align: middle !important;
                 }
+                .ut-cart-voucher-row .ut-cart-voucher-cell {
+                    padding: 10px 0 !important;
+                    color: #6a7282 !important;
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-size: 15px !important;
+                    vertical-align: middle !important;
+                }
                 .ut-cart-service-fee-line {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    width: 100%;
+                    gap: 16px;
+                    line-height: 1.45;
+                }
+                .ut-cart-voucher-line {
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
@@ -431,11 +446,45 @@
                     font-weight: 500;
                     white-space: nowrap;
                 }
+                .ut-cart-voucher-label {
+                    display: block;
+                    flex: 1 1 auto;
+                    min-width: 0;
+                    color: #6a7282;
+                    font-weight: 500;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+                .ut-cart-voucher-code {
+                    color: #212529;
+                    font-weight: 700;
+                }
+                .ut-cart-voucher-remove {
+                    margin-left: 10px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: #dc2626 !important;
+                    text-decoration: none;
+                    cursor: pointer;
+                }
+                .ut-cart-voucher-remove:hover {
+                    text-decoration: underline;
+                }
                 .ut-cart-service-fee-row .monetary_field {
                     display: block;
                     flex: 0 0 auto;
                     margin-left: auto;
                     color: #212529 !important;
+                    font-weight: 700 !important;
+                    text-align: right;
+                    white-space: nowrap;
+                }
+                .ut-cart-voucher-row .monetary_field {
+                    display: block;
+                    flex: 0 0 auto;
+                    margin-left: auto;
+                    color: #16a34a !important;
                     font-weight: 700 !important;
                     text-align: right;
                     white-space: nowrap;
@@ -831,6 +880,28 @@
                         <span class="ut-cart-service-fee-label">Biaya Layanan</span>
                         <span class="monetary_field">
                             <t t-set="ut_money_amount" t-value="unitrade_cart_amounts.get('service_fee')"/>
+                            <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
+                            <t t-call="unitrade_theme.unitrade_money"/>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+            <tr t-if="website_sale_order and website_sale_order.x_unitrade_voucher_discount" class="ut-cart-voucher-row">
+                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_checkout_amounts(sync_fee=False)"/>
+                <td colspan="3" class="ut-cart-voucher-cell">
+                    <div class="ut-cart-voucher-line">
+                        <span class="ut-cart-voucher-label">
+                            Voucher
+                            <span t-if="unitrade_cart_amounts.get('voucher_name')" class="ut-cart-voucher-code">
+                                <t t-esc="unitrade_cart_amounts.get('voucher_name')"/>
+                            </span>
+                            <a href="/unitrade/cart/voucher/remove"
+                               class="ut-cart-voucher-remove"
+                               title="Hapus voucher"
+                               aria-label="Hapus voucher">Hapus</a>
+                        </span>
+                        <span class="monetary_field">
+                            -<t t-set="ut_money_amount" t-value="unitrade_cart_amounts.get('voucher_discount')"/>
                             <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
                             <t t-call="unitrade_theme.unitrade_money"/>
                         </span>

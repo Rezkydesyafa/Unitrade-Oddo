@@ -1,50 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo noupdate="1">
-    <record id="param_unitrade_xendit_secret_key" model="ir.config_parameter">
+    <record id="param_unitrade_xendit_secret_key" model="ir.config_parameter" forcecreate="False">
         <field name="key">unitrade.xendit.secret_key</field>
         <field name="value"></field>
     </record>
-    <record id="param_unitrade_xendit_webhook_token" model="ir.config_parameter">
+    <record id="param_unitrade_xendit_webhook_token" model="ir.config_parameter" forcecreate="False">
         <field name="key">unitrade.xendit.webhook_token</field>
         <field name="value"></field>
     </record>
-    <record id="param_unitrade_xendit_is_production" model="ir.config_parameter">
+    <record id="param_unitrade_xendit_is_production" model="ir.config_parameter" forcecreate="False">
         <field name="key">unitrade.xendit.is_production</field>
         <field name="value">False</field>
     </record>
-    <record id="param_unitrade_xendit_payment_expiry_minutes" model="ir.config_parameter">
+    <record id="param_unitrade_xendit_payment_expiry_minutes" model="ir.config_parameter" forcecreate="False">
         <field name="key">unitrade.xendit.payment_expiry_minutes</field>
         <field name="value">30</field>
     </record>
-    <record id="param_unitrade_xendit_method_bca_va_enabled" model="ir.config_parameter">
+    <record id="param_unitrade_xendit_method_bca_va_enabled" model="ir.config_parameter" forcecreate="False">
         <field name="key">unitrade.xendit.method.bca_va.enabled</field>
         <field name="value">True</field>
     </record>
-    <record id="param_unitrade_xendit_method_mandiri_va_enabled" model="ir.config_parameter">
+    <record id="param_unitrade_xendit_method_mandiri_va_enabled" model="ir.config_parameter" forcecreate="False">
         <field name="key">unitrade.xendit.method.mandiri_va.enabled</field>
         <field name="value">True</field>
     </record>
-    <record id="param_unitrade_xendit_method_bni_va_enabled" model="ir.config_parameter">
+    <record id="param_unitrade_xendit_method_bni_va_enabled" model="ir.config_parameter" forcecreate="False">
         <field name="key">unitrade.xendit.method.bni_va.enabled</field>
         <field name="value">True</field>
     </record>
-    <record id="param_unitrade_xendit_method_bri_va_enabled" model="ir.config_parameter">
+    <record id="param_unitrade_xendit_method_bri_va_enabled" model="ir.config_parameter" forcecreate="False">
         <field name="key">unitrade.xendit.method.bri_va.enabled</field>
         <field name="value">True</field>
     </record>
-    <record id="param_unitrade_xendit_method_qris_enabled" model="ir.config_parameter">
+    <record id="param_unitrade_xendit_method_qris_enabled" model="ir.config_parameter" forcecreate="False">
         <field name="key">unitrade.xendit.method.qris.enabled</field>
         <field name="value">True</field>
     </record>
-    <record id="param_unitrade_xendit_method_ovo_enabled" model="ir.config_parameter">
+    <record id="param_unitrade_xendit_method_ovo_enabled" model="ir.config_parameter" forcecreate="False">
         <field name="key">unitrade.xendit.method.ovo.enabled</field>
         <field name="value">False</field>
     </record>
-    <record id="param_unitrade_xendit_method_dana_enabled" model="ir.config_parameter">
+    <record id="param_unitrade_xendit_method_dana_enabled" model="ir.config_parameter" forcecreate="False">
         <field name="key">unitrade.xendit.method.dana.enabled</field>
         <field name="value">False</field>
     </record>
-    <record id="param_unitrade_xendit_method_card_enabled" model="ir.config_parameter">
+    <record id="param_unitrade_xendit_method_card_enabled" model="ir.config_parameter" forcecreate="False">
         <field name="key">unitrade.xendit.method.card.enabled</field>
         <field name="value">False</field>
     </record>
