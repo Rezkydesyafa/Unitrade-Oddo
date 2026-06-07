@@ -28,7 +28,7 @@
     margin: 0;
     color: #101828;
     font-size: 44px;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0;
     line-height: 1.05;
 }
@@ -99,7 +99,7 @@
     margin-bottom: 5px;
     color: #101828;
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.25;
 }
 
@@ -137,7 +137,7 @@
     margin: 0 0 20px;
     color: #101828;
     font-size: 28px;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.18;
 }
 
@@ -468,7 +468,7 @@
     margin: 0;
     color: #101828;
     font-size: 24px;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .ut-cs-empty-state p {
@@ -502,7 +502,7 @@
     margin: 0 0 8px;
     color: #667085;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 500;
 }
 
 .ut-cs-detail-meta strong {
@@ -519,6 +519,144 @@
     color: #344054;
     font-size: 15px;
     line-height: 1.7;
+}
+
+.ut-cs-detail-section small {
+    display: block;
+    margin-top: 10px;
+    color: #98a2b3;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ut-cs-refund-callout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-top: 24px;
+    border: 1px solid #bfdbfe;
+    border-radius: 20px;
+    background: #eff6ff;
+    padding: 18px;
+}
+
+.ut-cs-refund-callout h2 {
+    margin: 0 0 6px;
+    color: #101828;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.ut-cs-refund-callout p {
+    margin: 0;
+    color: #475467;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
+.ut-cs-refund-callout span {
+    display: inline-flex;
+    margin-top: 10px;
+    border-radius: 999px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 6px 10px;
+}
+
+.ut-cs-refund-callout a {
+    display: inline-flex;
+    min-height: 42px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #155dfc;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 0 18px;
+}
+
+.ut-cs-thread-list {
+    display: grid;
+    gap: 12px;
+}
+
+.ut-cs-thread-message {
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    background: #ffffff;
+    padding: 14px;
+}
+
+.ut-cs-thread-message.is-admin {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+}
+
+.ut-cs-thread-message.is-system {
+    border-style: dashed;
+    background: #f8fafc;
+}
+
+.ut-cs-thread-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: #667085;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ut-cs-thread-meta strong {
+    color: #101828;
+    font-size: 13px;
+}
+
+.ut-cs-thread-meta span {
+    border-radius: 999px;
+    background: #eef0f4;
+    color: #475467;
+    padding: 4px 8px;
+}
+
+.ut-cs-thread-message p {
+    margin: 0;
+    color: #344054;
+    font-size: 14px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+}
+
+.ut-cs-reply-form {
+    display: grid;
+    gap: 14px;
+    margin-top: 18px;
+    border: 1px solid #eef0f4;
+    border-radius: 20px;
+    background: #fbfbfc;
+    padding: 18px;
+}
+
+.ut-cs-reply-form textarea {
+    min-height: 120px;
+}
+
+.ut-cs-reply-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.ut-cs-reply-actions .ut-cs-message {
+    flex: 1 1 240px;
 }
 
 .ut-cs-evidence-grid {
@@ -570,6 +708,7 @@
     color: #b91c1c;
 }
 
+.ut-cs-message.is-success,
 .ut-cs-toast.is-success {
     background: #dcfce7;
     color: #15803d;
@@ -676,6 +815,15 @@
     .ut-cs-recent-card,
     .ut-cs-panel {
         padding: 22px;
+    }
+
+    .ut-cs-refund-callout {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .ut-cs-refund-callout a {
+        width: 100%;
     }
 
     .ut-cs-preview-grid,

@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <template id="unitrade_refund_frontend_fallback_css"
+              inherit_id="web.frontend_layout"
+              name="UniTrade Refund Static Fallback CSS">
+        <xpath expr="//t[@t-call-assets='web.assets_frontend']" position="after">
+            <link rel="stylesheet" href="/unitrade_dispute/static/src/css/refund.css?v=20260606-1"/>
+        </xpath>
+    </template>
+
     <template id="unitrade_my_orders_refund_actions" inherit_id="unitrade_theme.unitrade_portal_my_orders" name="UniTrade My Orders Refund Actions">
         <xpath expr="//footer[hasclass('ut-user-order-actions')]/form[contains(@t-if, 'can_cancel_order')]" position="before">
             <a t-if="item.get('refund_detail_url')" t-att-href="item.get('refund_detail_url')" class="ut-user-order-btn ut-user-order-btn-outline">

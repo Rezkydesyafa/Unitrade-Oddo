@@ -841,7 +841,7 @@
                         messageHtml += '</div>';
                     });
                     messageHtml += '</div>';
-                    html += section("Cuplikan Chat", messageHtml);
+                    html += section(d.type === "ticket" ? "Thread Bantuan" : "Cuplikan Chat", messageHtml);
                 }
 
                 if (d.notes && d.notes.length) {
@@ -872,8 +872,12 @@
                     html += section("Timeline", timelineHtml);
                 }
 
-                if (d.actions && (d.actions.can_start || d.actions.can_done)) {
+                if (d.actions && (d.actions.can_reply || d.actions.can_start || d.actions.can_done || d.actions.refund_url)) {
                     var actionHtml = '<div class="ut-admin-product-detail-actions">';
+                    if (d.actions.can_reply) {
+                        actionHtml += '<button type="button" class="ut-admin-btn ut-admin-btn-primary ut-admin-btn-sm" ' +
+                            'data-action="ticket-reply" data-ticket-id="' + escapeHtml(d.actions.ticket_id) + '">Balas User</button>';
+                    }
                     if (d.actions.can_start) {
                         actionHtml += '<button type="button" class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm" ' +
                             'data-action="ticket-status" data-ticket-id="' + escapeHtml(d.actions.ticket_id) + '" ' +
@@ -883,6 +887,11 @@
                         actionHtml += '<button type="button" class="ut-admin-btn ut-admin-btn-primary ut-admin-btn-sm" ' +
                             'data-action="ticket-status" data-ticket-id="' + escapeHtml(d.actions.ticket_id) + '" ' +
                             'data-status="done">Selesaikan Tiket</button>';
+                    }
+                    if (d.actions.refund_url) {
+                        actionHtml += '<a class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm" ' +
+                            'href="' + escapeHtml(d.actions.refund_url) + '" target="_blank" rel="noopener">' +
+                            escapeHtml(d.actions.refund_label || "Buka Refund") + '</a>';
                     }
                     actionHtml += '</div>';
                     html += section("Aksi Admin", actionHtml);
@@ -1485,14 +1494,51 @@
                             btn.textContent = originalProductLabel;
                             showToast("Gagal memproses produk.", "error");
                         });
+                } else if (action === "ticket-reply") {
+                    var replyBody = await promptAdmin("Balasan untuk user:", {
+                        title: "Balas Tiket Bantuan",
+                        multiline: true,
+                        placeholder: "Tulis jawaban atau instruksi lanjutan untuk user.",
+                    });
+                    if (!replyBody || !replyBody.trim()) return;
+                    callJsonRpc("/unitrade/admin/api/customer-tickets/reply", {
+                        ticket_id: ticketId,
+                        body: replyBody.trim(),
+                    }).then(function (res) {
+                        if (res.result && res.result.ok) {
+                            showToast("Balasan terkirim.", "success");
+                            openCustomerServiceDetail("ticket", ticketId);
+                        } else {
+                            showToast((res.result && res.result.error) || "Gagal mengirim balasan.", "error");
+                        }
+                    });
                 } else if (action === "ticket-status") {
                     var ticketStatus = btn.dataset.status;
+                    var ticketNote = "";
+                    if (ticketStatus === "done") {
+                        ticketNote = await promptAdmin("Catatan penyelesaian untuk user:", {
+                            title: "Selesaikan Tiket",
+                            multiline: true,
+                            placeholder: "Contoh: Refund sudah diarahkan ke halaman pengembalian resmi dan akan ditinjau admin.",
+                        });
+                        if (!ticketNote || !ticketNote.trim()) return;
+                        ticketNote = ticketNote.trim();
+                    }
                     callJsonRpc("/unitrade/admin/api/customer-tickets/status", {
                         ticket_id: ticketId,
                         status: ticketStatus,
+                        note: ticketNote,
                     }).then(function (res) {
-                        if (res.result && res.result.ok) refresh();
-                        else showToast((res.result && res.result.error) || "Gagal memperbarui tiket.", "error");
+                        if (res.result && res.result.ok) {
+                            var csModal = document.getElementById("utAdminCsCaseModal");
+                            if (csModal && csModal.classList.contains("ut-admin-show")) {
+                                openCustomerServiceDetail("ticket", ticketId);
+                            } else {
+                                refresh();
+                            }
+                        } else {
+                            showToast((res.result && res.result.error) || "Gagal memperbarui tiket.", "error");
+                        }
                     });
                 } else if (action === "open-sponsorship-modal") {
                     openSponsorshipModal(btn);

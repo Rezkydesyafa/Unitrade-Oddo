@@ -281,3 +281,57 @@ publicWidget.registry.UnitradeCustomerServicePage = publicWidget.Widget.extend({
         }
     },
 });
+
+publicWidget.registry.UnitradeCustomerTicketReply = publicWidget.Widget.extend({
+    selector: "[data-cs-reply-form]",
+    events: {
+        submit: "_onSubmit",
+    },
+
+    start() {
+        this.messageEl = this.el.querySelector("[data-cs-reply-message]");
+        this.textarea = this.el.querySelector('textarea[name="body"]');
+        this.submitButton = this.el.querySelector('button[type="submit"]');
+        return this._super ? this._super.apply(this, arguments) : Promise.resolve();
+    },
+
+    _setMessage(message, type) {
+        if (!this.messageEl) {
+            return;
+        }
+        this.messageEl.textContent = message || "";
+        this.messageEl.classList.remove("tw-hidden", "is-error", "is-success");
+        this.messageEl.classList.add(type === "error" ? "is-error" : "is-success");
+    },
+
+    async _onSubmit(ev) {
+        ev.preventDefault();
+        const url = this.el.dataset.replyUrl;
+        const body = (this.textarea && this.textarea.value ? this.textarea.value : "").trim();
+        if (!url || !body) {
+            this._setMessage("Balasan tidak boleh kosong.", "error");
+            return;
+        }
+        if (this.submitButton) {
+            this.submitButton.disabled = true;
+            this.submitButton.textContent = "Mengirim...";
+        }
+        try {
+            const result = await jsonrpc(url, { body });
+            if (!result || !result.success) {
+                this._setMessage((result && result.message) || "Balasan gagal dikirim.", "error");
+                return;
+            }
+            this._setMessage(result.message || "Balasan terkirim.", "success");
+            window.setTimeout(() => window.location.reload(), 650);
+        } catch (error) {
+            console.error("[UniTrade] Customer ticket reply:", error);
+            this._setMessage("Balasan gagal dikirim.", "error");
+        } finally {
+            if (this.submitButton) {
+                this.submitButton.disabled = false;
+                this.submitButton.textContent = "Kirim Balasan";
+            }
+        }
+    },
+});

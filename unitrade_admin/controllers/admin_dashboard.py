@@ -348,10 +348,16 @@ class UnitradeAdminController(http.Controller):
         return self._stats().save_settings(values or {})
 
     @http.route('/unitrade/admin/api/customer-tickets/status', type='json', auth='user')
-    def api_update_customer_ticket_status(self, ticket_id=0, status='', **kwargs):
+    def api_update_customer_ticket_status(self, ticket_id=0, status='', note='', **kwargs):
         if not self._is_admin():
             return {'ok': False, 'error': 'forbidden'}
-        return self._stats().admin_update_customer_ticket_status(ticket_id, status)
+        return self._stats().admin_update_customer_ticket_status(ticket_id, status, note=note)
+
+    @http.route('/unitrade/admin/api/customer-tickets/reply', type='json', auth='user')
+    def api_reply_customer_ticket(self, ticket_id=0, body='', **kwargs):
+        if not self._is_admin():
+            return {'ok': False, 'error': 'forbidden'}
+        return self._stats().admin_reply_customer_ticket(ticket_id, body)
 
     @http.route('/unitrade/admin/api/customer-service/detail', type='json', auth='user')
     def api_customer_service_detail(self, case_type='', case_id=0, **kwargs):

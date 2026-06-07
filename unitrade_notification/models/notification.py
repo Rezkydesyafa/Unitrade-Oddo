@@ -57,7 +57,7 @@ _SELLER_ONLY_EVENT_CODES = frozenset({
 # (resi number, rejection reason, etc.) is meant to be passed by the caller
 # as an override.
 #
-# All 18 event codes registered in :mod:`event_registry` are covered.
+# All event codes registered in :mod:`event_registry` are covered.
 _DEFAULT_TITLES = {
     'account.welcome': 'Selamat datang di UniTrade!',
     'account.password_reset': 'Password berhasil direset',
@@ -77,6 +77,8 @@ _DEFAULT_TITLES = {
     'review.reminder': 'Beri review pesananmu',
     'review.new_for_seller': 'Review baru',
     'system.announcement': 'Pengumuman UniTrade',
+    'system.customer_ticket_reply': 'Balasan Customer Service',
+    'system.customer_ticket_status': 'Status tiket bantuan berubah',
 }
 
 _DEFAULT_MESSAGES = {
@@ -98,6 +100,8 @@ _DEFAULT_MESSAGES = {
     'review.reminder': 'Bantu seller dengan ulasan kamu.',
     'review.new_for_seller': 'Pelanggan memberikan review baru.',
     'system.announcement': 'Ada pengumuman baru dari tim UniTrade.',
+    'system.customer_ticket_reply': 'Customer Service membalas tiket bantuan kamu.',
+    'system.customer_ticket_status': 'Lihat detail tiket untuk informasi terbaru.',
 }
 
 
@@ -914,7 +918,7 @@ class UnitradeNotification(models.Model):
         )
 
     def _review_orders_action_url(self):
-        return '/my/orders?status=done'
+        return '/my/orders?status=done&tab=reviews#tab-ulasan'
 
     def _review_public_product(self, product):
         """Return a clickable marketplace product for review notifications."""

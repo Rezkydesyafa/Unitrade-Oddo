@@ -11,6 +11,7 @@ import requests
 
 from odoo import _, fields, http
 from odoo.http import request
+from odoo.tools.image import image_data_uri
 from odoo.addons.unitrade_payment.midtrans_methods import MIDTRANS_PAYMENT_METHODS
 
 _logger = logging.getLogger(__name__)
@@ -522,7 +523,7 @@ class UnitradePaymentController(http.Controller):
         )
         return {
             'name': seller.name or 'Penjual UniTrade',
-            'avatar_url': image_data_uri(avatar_image.encode() if isinstance(avatar_image, str) else avatar_image) if avatar_image else '/web/static/img/user_menu_avatar.png',
+            'avatar_url': self._binary_image_data_uri(avatar_image, '/web/static/img/user_menu_avatar.png'),
             'rating': ('%.1f (%s Ulasan)' % (average_rating, review_count)) if review_count else 'Belum ada ulasan',
             'chat_url': chat_url,
         }

@@ -124,6 +124,23 @@ class UnitradeCustomerServiceController(http.Controller):
             with request.env.cr.savepoint():
                 ticket = request.env['unitrade.customer.ticket'].sudo().create(ticket_vals)
                 self._create_evidence_records(ticket, prepared_files)
+                ticket.action_add_thread_message(
+                    description,
+                    author=request.env.user,
+                    message_type='customer',
+                    notify_customer=False,
+                )
+                if category == 'refund_return' and order:
+                    refund_context = self._refund_context(ticket)
+                    if refund_context.get('url'):
+                        ticket.action_add_thread_message(
+                            _(
+                                'Untuk proses refund resmi, buka tombol "%s" pada detail tiket agar alur pengembalian tercatat lengkap.'
+                            ) % refund_context.get('label'),
+                            author=request.env.user,
+                            message_type='system',
+                            notify_customer=False,
+                        )
         except Exception as error:
             request.env.clear()
             _logger.exception('Failed to create customer service ticket for user %s', uid)
@@ -169,6 +186,51 @@ class UnitradeCustomerServiceController(http.Controller):
             'page_title': ticket.name,
             'ticket': self._ticket_detail_payload(ticket),
         })
+
+    @http.route(
+        '/my/customer-service/tickets/<int:ticket_id>/reply',
+        type='json',
+        auth='user',
+        website=True,
+        methods=['POST'],
+    )
+    def customer_ticket_reply(self, ticket_id, **kwargs):
+        ticket = self._customer_ticket(ticket_id)
+        if not ticket:
+            return {'success': False, 'message': _('Tiket bantuan tidak ditemukan.')}
+        body = (kwargs.get('body') or '').strip()
+        if not body:
+            return {'success': False, 'message': _('Balasan tidak boleh kosong.')}
+        try:
+            with request.env.cr.savepoint():
+                if ticket.status == 'done':
+                    ticket.sudo().write({
+                        'status': 'pending',
+                        'resolved_note': False,
+                        'resolved_at': False,
+                        'resolved_by_id': False,
+                    })
+                    ticket.sudo().action_add_thread_message(
+                        _('User membuka kembali tiket karena ada balasan lanjutan.'),
+                        author=request.env.user,
+                        message_type='system',
+                        notify_customer=False,
+                    )
+                ticket.sudo().action_add_thread_message(
+                    body,
+                    author=request.env.user,
+                    message_type='customer',
+                    notify_customer=False,
+                )
+        except Exception:
+            request.env.clear()
+            _logger.exception('Failed to add customer reply to ticket %s', ticket_id)
+            return {'success': False, 'message': _('Balasan belum bisa dikirim. Coba lagi.')}
+        return {
+            'success': True,
+            'message': _('Balasan terkirim.'),
+            'ticket': self._ticket_detail_payload(ticket.sudo()),
+        }
 
     @http.route(
         '/my/customer-service/tickets/evidence/<int:evidence_id>',
@@ -282,6 +344,7 @@ class UnitradeCustomerServiceController(http.Controller):
             'category_label': category.get('label') or ticket.category,
             'order_name': ticket.order_id.name if ticket.order_id else '',
             'detail_url': '/my/customer-service/tickets/%s' % ticket.id,
+            'last_message_label': self._relative_time(ticket.last_message_at) if ticket.last_message_at else '',
         }
         if include_description:
             payload['description'] = description
@@ -289,6 +352,7 @@ class UnitradeCustomerServiceController(http.Controller):
 
     def _ticket_detail_payload(self, ticket):
         payload = self._ticket_payload(ticket, include_description=True)
+        refund_context = self._refund_context(ticket)
         payload.update({
             'evidence': [
                 {
@@ -300,8 +364,79 @@ class UnitradeCustomerServiceController(http.Controller):
                 }
                 for evidence in ticket.evidence_ids.sudo()
             ],
+            'messages': self._ticket_message_payloads(ticket),
+            'reply_url': '/my/customer-service/tickets/%s/reply' % ticket.id,
+            'resolved_note': ticket.resolved_note or '',
+            'resolved_at': self._format_datetime(ticket.resolved_at) if ticket.resolved_at else '',
+            'refund': refund_context,
         })
         return payload
+
+    def _ticket_message_payloads(self, ticket):
+        labels = {
+            'customer': _('User'),
+            'admin': _('Customer Service'),
+            'system': _('Sistem'),
+        }
+        return [
+            {
+                'id': message.id,
+                'body': message.body or '',
+                'type': message.message_type,
+                'type_label': labels.get(message.message_type, message.message_type),
+                'author': message.author_id.name or labels.get(message.message_type, '-'),
+                'created_at': self._format_datetime(message.create_date),
+                'created_label': self._relative_time(message.create_date),
+                'is_admin': message.message_type == 'admin',
+                'is_system': message.message_type == 'system',
+            }
+            for message in ticket.message_ids.sudo()
+        ]
+
+    def _refund_context(self, ticket):
+        if ticket.category != 'refund_return' or not ticket.order_id:
+            return {}
+        order = ticket.order_id.sudo()
+        context = {
+            'title': _('Alur refund resmi'),
+            'message': _('Tiket ini terkait refund. Gunakan halaman refund resmi agar bukti, SLA, dan keputusan admin tercatat di alur pengembalian.'),
+            'url': '',
+            'label': '',
+            'state_label': '',
+            'is_blocked': False,
+        }
+        if 'unitrade.dispute' in request.env.registry:
+            dispute = request.env['unitrade.dispute'].sudo().search(
+                [('order_id', '=', order.id)],
+                order='create_date desc, id desc',
+                limit=1,
+            )
+            if dispute:
+                context.update({
+                    'url': '/unitrade/order/%s/refund/%s' % (order.id, dispute.id),
+                    'label': _('Lihat status refund'),
+                    'state_label': self._selection_label(dispute, 'state'),
+                    'message': _('Pengajuan refund untuk pesanan ini sudah tercatat. Pantau status refund melalui halaman refund resmi.'),
+                })
+                return context
+        blocker = False
+        if hasattr(order, '_unitrade_refund_blocker'):
+            try:
+                blocker = order._unitrade_refund_blocker(partner=request.env.user.partner_id)
+            except Exception:
+                _logger.exception('Failed to evaluate refund blocker for order %s', order.name)
+                blocker = _('Status refund belum bisa dicek saat ini.')
+        if blocker:
+            context.update({
+                'is_blocked': True,
+                'message': str(blocker),
+            })
+            return context
+        context.update({
+            'url': '/unitrade/order/%s/refund/new' % order.id,
+            'label': _('Ajukan refund resmi'),
+        })
+        return context
 
     def _prepare_evidence_payload(self, file_payload):
         if not isinstance(file_payload, dict):
@@ -339,6 +474,13 @@ class UnitradeCustomerServiceController(http.Controller):
                 'ticket_id': ticket.id,
                 'attachment_id': attachment.id,
             })
+
+    @staticmethod
+    def _selection_label(record, field_name):
+        if not record or field_name not in record._fields:
+            return ''
+        value = record[field_name]
+        return dict(record._fields[field_name].selection).get(value, value or '')
 
     @staticmethod
     def _truncate(value, limit):

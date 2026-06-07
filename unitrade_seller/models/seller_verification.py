@@ -36,6 +36,21 @@ class UnisaStudent(models.Model):
         ('nim_unique', 'UNIQUE(nim)', 'NIM sudah terdaftar!'),
     ]
 
+    def _load_records_create(self, vals_list):
+        """Attach seed XML IDs to existing students during module upgrades."""
+        records = self.browse()
+        for vals in vals_list:
+            nim = vals.get('nim')
+            existing = self.search([('nim', '=', nim)], limit=1) if nim else self.browse()
+            if existing:
+                update_vals = {key: value for key, value in vals.items() if key != 'nim'}
+                if update_vals:
+                    existing.write(update_vals)
+                records += existing
+            else:
+                records += super(UnisaStudent, self)._load_records_create([vals])
+        return records
+
 
 class SellerVerification(models.Model):
     """KTM verification record for seller onboarding."""

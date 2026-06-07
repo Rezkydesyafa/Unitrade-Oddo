@@ -33,6 +33,8 @@
 
 .unitrade-refund-page .unitrade-refund-status-danger {
     color: var(--ut-refund-danger);
+}
+
 .ut-refund-modal-open {
     overflow: hidden;
 }
