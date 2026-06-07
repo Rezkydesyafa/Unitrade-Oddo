@@ -58,10 +58,22 @@ jobs:
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.VPS_SSH_KEY }}
         script: |
+          set -e
+
           cd /root/unitrade
 
           docker compose pull
 
-          docker compose down
+          docker compose up -d db
 
-          docker compose up -d --force-recreate
+          docker compose stop web || true
+
+          trap 'docker compose up -d --force-recreate web' EXIT
+
+          docker compose run --rm web odoo -d unitrade_db -u unitrade_theme,unitrade_notification,unitrade_admin,unitrade_seller,unitrade_dispute,unitrade_payment,unitrade_review,unitrade_product_ext --stop-after-init
+
+          docker compose up -d --force-recreate web
+
+          trap - EXIT
+
+          docker compose ps
