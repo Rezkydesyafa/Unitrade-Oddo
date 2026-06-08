@@ -50,7 +50,8 @@
                    class="ut-notification-fallback">
                     <img src="/unitrade_theme/static/src/img/navbar-bell.svg" alt=""/>
                 </a>
-                <owl-component name="unitrade_notification.NotificationBell"/>
+                <owl-component t-if="not request.httprequest.path.startswith('/unitrade/seller/')"
+                               name="unitrade_notification.NotificationBell"/>
             </div>
         </xpath>
     </template>

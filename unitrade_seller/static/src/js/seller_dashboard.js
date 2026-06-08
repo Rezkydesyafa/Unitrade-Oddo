@@ -691,6 +691,7 @@ publicWidget.registry.UnitradeSellerDashboardStaticSidebar = publicWidget.Widget
             return superPromise;
         }
         this.el.dataset.utSellerStaticSidebarMounted = "1";
+        document.body.classList.add("ut-has-seller-dashboard-page");
         this.dashboardPage = this.el.querySelector("[data-ut-dashboard-static-fallback='1']");
         this.toggleButton = this.el.querySelector("[data-ut-static-sidebar-toggle='1']");
         this._setSidebarOpen(false);

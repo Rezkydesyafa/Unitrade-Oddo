@@ -1,14 +1,22 @@
 .ut-seller-dashboard-page {
     color: #0a0a0a;
     font-family: Urbanist, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    pointer-events: auto;
 }
 
-body:has(.ut-seller-dashboard-page) > #wrapwrap > header,
-body:has(.ut-seller-dashboard-page) > #wrapwrap > footer {
+.ut-seller-dashboard-page [hidden],
+#wrap.ut-seller-dashboard-static > .ut-owl-mount-host:empty,
+#wrap.ut-seller-dashboard-static:not(.ut-owl-mount-failed) > .ut-owl-fallback-error {
+    display: none !important;
+    pointer-events: none !important;
+}
+
+body.ut-has-seller-dashboard-page > #wrapwrap > header,
+body.ut-has-seller-dashboard-page > #wrapwrap > footer {
     display: none !important;
 }
 
-body:has(.ut-seller-dashboard-page) {
+body.ut-has-seller-dashboard-page {
     overflow: hidden;
 }
 
@@ -50,7 +58,7 @@ body:has(.ut-seller-dashboard-page) {
     box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.58) !important;
 }
 
-.ut-seller-dashboard-page .ut-dash-navbar div:has(> input[placeholder="Cari produk di UniTrade"]) {
+.ut-seller-dashboard-page .ut-dash-navbar .ut-dash-search-shell {
     border: 1px solid rgba(255, 255, 255, 0.46);
     background: rgba(255, 255, 255, 0.34) !important;
     -webkit-backdrop-filter: blur(18px) saturate(165%);
@@ -365,8 +373,7 @@ body:has(.ut-seller-dashboard-page) {
     text-decoration: none;
 }
 
-.ut-seller-dashboard-page .ut-dash-navbar form:has(input[placeholder="Cari produk di UniTrade"]),
-.ut-seller-dashboard-page .ut-dash-navbar div:has(> input[placeholder="Cari produk di UniTrade"]),
+.ut-seller-dashboard-page .ut-dash-navbar .ut-dash-search-shell,
 .ut-seller-dashboard-page .ut-dash-navbar a[href="/shop/cart"],
 .ut-seller-dashboard-page .ut-dash-navbar a[href*="/delivery"],
 .ut-seller-dashboard-page .ut-dash-navbar a[href*="/pengiriman"],
