@@ -51,7 +51,7 @@
     </template>
 
     <template id="seller_owl_fallback" name="Seller OWL Loading Fallback">
-        <script type="text/javascript"><![CDATA[
+        <script type="text/javascript">
             (function () {
                 window.__unitradeSellerNotificationDropdownStarted = true;
                 if (window.__unitradeSellerUnreadCountFetchGuard || !window.fetch) {
@@ -63,12 +63,19 @@
                     var url = "";
                     if (typeof input === "string") {
                         url = input;
-                    } else if (input && input.url) {
-                        url = input.url;
+                    } else if (input) {
+                        if (input.url) {
+                            url = input.url;
+                        }
                     }
                     if (url.indexOf("/unitrade/seller/notifications/unread_count") !== -1) {
                         var wrap = document.getElementById("wrap");
-                        var count = wrap && wrap.dataset ? Number(wrap.dataset.notificationCount || 0) : 0;
+                        var count = 0;
+                        if (wrap) {
+                            if (wrap.dataset) {
+                                count = Number(wrap.dataset.notificationCount || 0);
+                            }
+                        }
                         return Promise.resolve(new Response(JSON.stringify({
                             jsonrpc: "2.0",
                             id: null,
@@ -81,7 +88,7 @@
                     return originalFetch(input, options);
                 };
             })();
-        ]]></script>
+        </script>
         <div data-ut-seller-fallback="1"
              class="ut-seller-owl-static-fallback"
              style="display:none; position:fixed; right:32px; bottom:32px; z-index:1300; width:min(390px, calc(100vw - 40px)); padding:18px; border:1px solid #e5e7eb; border-radius:16px; background:#ffffff; box-shadow:0 22px 60px rgba(15,23,42,.18); color:#111827; font-family:inherit;">
@@ -368,14 +375,22 @@
                     (function () {
                         window.setTimeout(function () {
                             var wrap = document.getElementById("wrap");
-                            if (!wrap || wrap.querySelector(".ut-owl-mount-host")) {
+                            if (!wrap) {
+                                return;
+                            }
+                            var mountedDashboard = wrap.querySelector(".ut-owl-mount-host .ut-seller-dashboard-page");
+                            if (mountedDashboard) {
                                 return;
                             }
                             var fallback = wrap.querySelector("[data-ut-dashboard-static-fallback='1']");
                             if (fallback) {
                                 fallback.style.display = "block";
                             }
-                        }, 8000);
+                            var host = wrap.querySelector(".ut-owl-mount-host");
+                            if (host) {
+                                host.style.display = "none";
+                            }
+                        }, 2500);
                     })();
                 </script>
             </div>
