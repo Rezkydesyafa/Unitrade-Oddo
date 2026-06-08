@@ -397,21 +397,12 @@ function enhanceNotificationAnchor(anchor) {
     });
 }
 
-let initializeQueued = false;
-
 function initializeSellerNotificationDropdowns() {
     document.querySelectorAll(NOTIFICATION_SELECTOR).forEach(enhanceNotificationAnchor);
 }
 
-function scheduleInitializeSellerNotificationDropdowns() {
-    if (initializeQueued) {
-        return;
-    }
-    initializeQueued = true;
-    window.requestAnimationFrame(() => {
-        initializeQueued = false;
-        initializeSellerNotificationDropdowns();
-    });
+function hasEnhancedNotificationDropdown() {
+    return Boolean(document.querySelector(`${NOTIFICATION_SELECTOR}[${ENHANCED_ATTR}="1"]`));
 }
 
 function startObserver() {
@@ -420,11 +411,18 @@ function startObserver() {
     }
     window[STARTED_FLAG] = true;
     initializeSellerNotificationDropdowns();
-    const observer = new MutationObserver(scheduleInitializeSellerNotificationDropdowns);
-    observer.observe(document.documentElement, {
-        childList: true,
-        subtree: true,
-    });
+    if (hasEnhancedNotificationDropdown()) {
+        return;
+    }
+
+    let attempts = 0;
+    const retryTimer = window.setInterval(() => {
+        attempts += 1;
+        initializeSellerNotificationDropdowns();
+        if (hasEnhancedNotificationDropdown() || attempts >= 40) {
+            window.clearInterval(retryTimer);
+        }
+    }, 250);
 }
 
 if (document.readyState === "loading") {
