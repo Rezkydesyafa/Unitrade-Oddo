@@ -244,12 +244,27 @@ function enhanceNotificationAnchor(anchor) {
     let filter = "all";
     let closeTimer = null;
     let openedByClick = false;
-    let polling = null;
+    let countInFlight = null;
+    let recentInFlight = null;
+    let pollTimer = null;
+
+    const stopPolling = () => {
+        if (pollTimer !== null) {
+            window.clearInterval(pollTimer);
+            pollTimer = null;
+        }
+    };
+    const startPolling = () => {
+        if (pollTimer === null) {
+            pollTimer = window.setInterval(refreshCount, POLL_INTERVAL_MS);
+        }
+    };
 
     const close = () => {
         panel.hidden = true;
         anchor.setAttribute("aria-expanded", "false");
         openedByClick = false;
+        stopPolling();
     };
     const clearCloseTimer = () => {
         if (closeTimer !== null) {
@@ -272,28 +287,53 @@ function enhanceNotificationAnchor(anchor) {
         renderList(listEl, records, filter);
     };
     const refreshCount = async () => {
-        try {
-            const result = await jsonPost(UNREAD_COUNT_URL);
-            updateBadge(anchor, result && typeof result.count === "number" ? result.count : 0);
-        } catch (error) {
-            updateBadge(anchor, 0);
+        if (countInFlight) {
+            return countInFlight;
         }
+        countInFlight = (async () => {
+            try {
+                const result = await jsonPost(UNREAD_COUNT_URL);
+                updateBadge(anchor, result && typeof result.count === "number" ? result.count : 0);
+            } catch (error) {
+                updateBadge(anchor, 0);
+            } finally {
+                countInFlight = null;
+            }
+        })();
+        return countInFlight;
     };
     const loadRecent = async () => {
-        listEl.innerHTML = '<div class="ut-seller-notification-empty">Memuat notifikasi...</div>';
+        if (recentInFlight) {
+            return recentInFlight;
+        }
         try {
-            records = await jsonPost(RECENT_URL) || [];
-            renderList(listEl, records, filter);
+            listEl.innerHTML = '<div class="ut-seller-notification-empty">Memuat notifikasi...</div>';
+            recentInFlight = (async () => {
+                try {
+                    records = await jsonPost(RECENT_URL) || [];
+                    renderList(listEl, records, filter);
+                } catch (error) {
+                    records = [];
+                    listEl.innerHTML = emptyMarkup("Notifikasi penjual belum bisa dimuat.");
+                } finally {
+                    recentInFlight = null;
+                }
+            })();
+            return recentInFlight;
         } catch (error) {
-            records = [];
-            listEl.innerHTML = emptyMarkup("Notifikasi penjual belum bisa dimuat.");
+            recentInFlight = null;
+            throw error;
         }
     };
     const open = async () => {
         clearCloseTimer();
+        if (!panel.hidden) {
+            return;
+        }
         panel.hidden = false;
         anchor.setAttribute("aria-expanded", "true");
         await Promise.all([refreshCount(), loadRecent()]);
+        startPolling();
     };
 
     anchor.setAttribute("aria-haspopup", "dialog");
@@ -352,13 +392,8 @@ function enhanceNotificationAnchor(anchor) {
             close();
         }
     });
-
-    refreshCount();
-    polling = window.setInterval(refreshCount, POLL_INTERVAL_MS);
     window.addEventListener("beforeunload", () => {
-        if (polling !== null) {
-            window.clearInterval(polling);
-        }
+        stopPolling();
     });
 }
 
