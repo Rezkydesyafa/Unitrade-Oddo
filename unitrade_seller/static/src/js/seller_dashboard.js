@@ -149,7 +149,7 @@ export class SellerDashboard extends Component {
             searchOpen: false,
             sidebarOpen: readSellerSidebarOpen(),
             sidebarActiveKey: sellerSidebarActiveKey("dashboard"),
-            ready: false,
+            ready: true,
             handoffOrder: null,
             datePickerOpen: false,
             dateValue: initialDate,
@@ -163,10 +163,7 @@ export class SellerDashboard extends Component {
             window.addEventListener("resize", this.onResize);
             window.addEventListener("hashchange", this.onSidebarHashChange);
             document.addEventListener("click", this.onDocumentClick);
-            window.setTimeout(() => {
-                this.state.ready = true;
-                window.requestAnimationFrame(() => this.drawChart());
-            }, 220);
+            window.requestAnimationFrame(() => this.drawChart());
         });
 
         onWillUnmount(() => {

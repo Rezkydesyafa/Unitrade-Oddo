@@ -81,6 +81,237 @@
         </script>
     </template>
 
+    <template id="seller_dashboard_static_fallback" name="Seller Dashboard Static Fallback">
+        <div class="ut-seller-dashboard-page tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
+            <div class="ut-dash-stage">
+                <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px] tw-text-[12px] tw-leading-6 tw-text-black">
+                    <div class="tw-flex tw-items-center tw-gap-[18px]">
+                        <span>Gratis Ongkir + Diskon 30%</span>
+                        <a href="/shop" class="tw-font-semibold tw-text-black tw-no-underline">Belanja Sekarang +</a>
+                        <span class="tw-font-semibold tw-text-[#939393]">|</span>
+                        <a href="/seller-onboarding" class="tw-font-semibold tw-text-black tw-no-underline">Mulai Berjualan</a>
+                    </div>
+                    <div class="tw-flex tw-items-center tw-gap-[18px]">
+                        <a href="/faq" class="tw-text-black tw-no-underline">FAQ</a>
+                        <a href="/customer-service" class="tw-text-black tw-no-underline">Customer Service</a>
+                    </div>
+                </div>
+
+                <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
+                    <a href="/" class="tw-flex tw-h-[52px] tw-w-[129px] tw-items-center tw-gap-2 tw-rounded-full tw-px-[15px] tw-text-black tw-no-underline">
+                        <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="UniTrade" class="tw-h-[37px] tw-w-[41px] tw-object-contain"/>
+                        <span class="tw-text-[12px] tw-font-bold">UniTrade</span>
+                    </a>
+                    <div class="tw-ml-auto tw-flex tw-items-center tw-gap-[25px]">
+                        <a href="/unitrade/seller/chat" class="ut-dash-nav-round tw-relative" aria-label="Chat Pembeli">
+                            <i class="fa fa-commenting-o"></i>
+                            <t t-if="dashboard_stats.get('unread_chat_count')">
+                                <span class="ut-dash-navbar-dot" t-esc="dashboard_stats.get('unread_chat_count')"></span>
+                            </t>
+                        </a>
+                        <a href="/unitrade/seller/notifications" class="ut-dash-nav-round tw-relative" aria-label="Notifikasi">
+                            <i class="fa fa-bell-o"></i>
+                            <t t-if="dashboard_stats.get('notification_count')">
+                                <span class="ut-dash-navbar-dot" t-esc="dashboard_stats.get('notification_count')"></span>
+                            </t>
+                        </a>
+                        <span class="tw-h-[38.5px] tw-w-px tw-bg-[#e5e7eb]"></span>
+                        <img t-attf-src="/web/image/res.users/#{seller.user_id.id}/avatar_128" alt="Avatar penjual" class="tw-size-[45px] tw-rounded-full tw-object-cover"/>
+                        <span class="tw-mr-5 tw-max-w-[150px] tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[16px] tw-font-medium tw-leading-6 tw-text-[#212529]" t-esc="seller.name"></span>
+                    </div>
+                </header>
+
+                <aside class="ut-dash-sidebar">
+                    <div class="ut-dash-sidebar-brand">
+                        <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="UniTrade"/>
+                    </div>
+                    <nav class="ut-dash-sidebar-nav">
+                        <a href="/unitrade/seller/dashboard" class="ut-dash-sidebar-item active">
+                            <i class="fa fa-dashboard"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="/unitrade/seller/orders" class="ut-dash-sidebar-item">
+                            <i class="fa fa-shopping-cart"></i>
+                            <span>Order</span>
+                        </a>
+                        <a href="/unitrade/seller/refunds" class="ut-dash-sidebar-item">
+                            <i class="fa fa-undo"></i>
+                            <span>Refund</span>
+                        </a>
+                        <a href="/unitrade/seller/products" class="ut-dash-sidebar-item">
+                            <i class="fa fa-cube"></i>
+                            <span>Produk</span>
+                        </a>
+                        <a href="/unitrade/seller/payouts" class="ut-dash-sidebar-item">
+                            <i class="fa fa-money"></i>
+                            <span>Pencairan</span>
+                        </a>
+                    </nav>
+                    <div class="ut-dash-sidebar-footer">
+                        <a href="/" class="ut-dash-sidebar-item">
+                            <i class="fa fa-home"></i>
+                            <span>Beranda</span>
+                        </a>
+                        <a href="/unitrade/seller/settings" class="ut-dash-sidebar-item">
+                            <i class="fa fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </div>
+                </aside>
+
+                <main class="ut-dash-main-area tw-absolute tw-left-[168px] tw-right-[66px] tw-top-[173px] tw-pb-10">
+                    <section class="tw-mb-[26px]">
+                        <h1 class="tw-m-0 tw-text-[40px] tw-font-normal tw-leading-none tw-text-black">Dashboard Penjual</h1>
+                        <p class="tw-m-0 tw-mt-[7px] tw-text-[16px] tw-leading-6 tw-text-[#6a7282]">Berikut adalah hal-hal yang terjadi di toko Anda hari ini.</p>
+                    </section>
+
+                    <div class="ut-dash-filter-row tw-mb-7 tw-flex tw-items-center tw-gap-3">
+                        <a t-att-href="add_product_url" class="ut-dash-add-product">
+                            <i class="fa fa-plus"></i>
+                            Tambah Produk
+                        </a>
+                    </div>
+
+                    <div class="ut-dash-stat-row tw-mb-[27px] tw-grid tw-grid-cols-4 tw-gap-[18px]">
+                        <article class="ut-dash-figma-card tw-h-[176px] tw-px-[25px] tw-py-[26px]">
+                            <h2 class="tw-m-0 tw-text-[20px] tw-font-medium tw-leading-6 tw-text-black">Total Pendapatan</h2>
+                            <span class="tw-mt-[7px] tw-inline-flex tw-h-6 tw-items-center tw-rounded tw-bg-[#dcfce7] tw-px-2 tw-text-[12px] tw-font-medium tw-leading-4 tw-text-[#008236]">Transaksi selesai</span>
+                            <strong class="tw-mt-[18px] tw-block tw-text-[32px] tw-font-semibold tw-leading-10 tw-text-black" t-esc="dashboard_stats.get('revenue_label') or 'Rp 0'"></strong>
+                        </article>
+                        <article class="ut-dash-figma-card tw-h-[176px] tw-px-[25px] tw-py-[26px]">
+                            <h2 class="tw-m-0 tw-text-[20px] tw-font-medium tw-leading-6 tw-text-black">Penjualan produk</h2>
+                            <p class="tw-m-0 tw-mt-[36px] tw-text-[32px] tw-font-semibold tw-leading-10 tw-text-black" t-esc="dashboard_stats.get('sold_count') or 0"></p>
+                            <p class="tw-m-0 tw-text-[12px] tw-font-medium tw-text-[#6a7282]">produk terjual</p>
+                        </article>
+                        <article class="ut-dash-figma-card tw-h-[176px] tw-px-[25px] tw-py-[26px]">
+                            <h2 class="tw-m-0 tw-text-[20px] tw-font-medium tw-leading-6 tw-text-black">Produk toko aktif</h2>
+                            <p class="tw-m-0 tw-mt-[45px] tw-text-[32px] tw-font-semibold tw-leading-10 tw-text-black" t-esc="dashboard_stats.get('active_products') or 0"></p>
+                        </article>
+                        <article class="ut-dash-figma-card ut-dash-balance-card tw-h-[176px]">
+                            <div class="ut-dash-balance-head">
+                                <span>
+                                    <h2 class="ut-dash-balance-title">Saldo Tersedia</h2>
+                                </span>
+                                <span class="ut-dash-balance-icon" aria-hidden="true">
+                                    <i class="fa fa-credit-card"></i>
+                                </span>
+                            </div>
+                            <strong class="ut-dash-balance-amount" t-esc="dashboard_stats.get('available_balance_label') or 'Rp 0'"></strong>
+                            <a href="/unitrade/seller/payouts" class="ut-dash-payout-button">
+                                <i class="fa fa-money"></i>
+                                <span>Tarik Saldo</span>
+                            </a>
+                        </article>
+                    </div>
+
+                    <div class="ut-dash-grid tw-grid tw-grid-cols-[minmax(0,797px)_381px] tw-gap-7">
+                        <section class="ut-dash-figma-card tw-h-[422px] tw-p-[24px]">
+                            <div class="tw-flex tw-items-start tw-justify-between">
+                                <div>
+                                    <h2 class="tw-m-0 tw-text-[18px] tw-font-semibold tw-leading-7 tw-text-[#0a0a0a]">Ringkasan Penjualan</h2>
+                                    <p class="tw-m-0 tw-text-[14px] tw-leading-5 tw-text-[#6a7282]">Data lengkap dimuat otomatis saat asset dashboard aktif.</p>
+                                </div>
+                            </div>
+                            <div class="ut-dash-empty tw-mt-12">Dashboard tetap dapat digunakan. Gunakan menu samping untuk mengelola toko.</div>
+                        </section>
+
+                        <section class="ut-dash-figma-card tw-h-[422px] tw-p-[20px]">
+                            <div class="tw-flex tw-items-center tw-justify-between">
+                                <h2 class="tw-m-0 tw-text-[16px] tw-font-medium tw-leading-5 tw-text-[#212529]">Chat Pembeli</h2>
+                                <a href="/unitrade/seller/chat" class="tw-text-[12px] tw-leading-4 tw-text-[#525252] tw-no-underline">Lihat semua</a>
+                            </div>
+                            <div t-if="dashboard_messages" class="tw-mt-[31px] tw-flex tw-flex-col tw-gap-5">
+                                <t t-foreach="dashboard_messages" t-as="message">
+                                    <a t-att-href="message.get('url') or '/unitrade/seller/chat'" class="ut-dash-chat-item tw-grid tw-grid-cols-[45px_minmax(0,1fr)_72px_9px] tw-items-start tw-gap-[14px] tw-text-black tw-no-underline">
+                                        <img t-att-src="message.get('avatar_url')" alt="" class="tw-size-[45px] tw-rounded-full tw-object-cover"/>
+                                        <span class="tw-min-w-0">
+                                            <strong class="tw-block tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[12px] tw-font-semibold tw-leading-4 tw-text-black" t-esc="message.get('title')"></strong>
+                                            <span class="tw-block tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[10px] tw-font-light tw-leading-4 tw-text-[#525252]" t-esc="message.get('last_message')"></span>
+                                            <span class="tw-block tw-overflow-hidden tw-text-ellipsis tw-whitespace-nowrap tw-text-[8px] tw-leading-3 tw-text-[#939393]" t-esc="message.get('subtitle')"></span>
+                                        </span>
+                                        <span class="tw-text-right tw-text-[8px] tw-font-light tw-leading-3 tw-text-[#212529]" t-esc="message.get('last_message_label') or ''"></span>
+                                        <span t-att-class="message.get('unread_count') and 'tw-mt-1 tw-size-[9px] tw-rounded-full tw-bg-[#212529]' or 'tw-mt-1 tw-size-[9px] tw-rounded-full tw-bg-transparent'"></span>
+                                    </a>
+                                </t>
+                            </div>
+                            <div t-else="" class="ut-dash-empty tw-mt-12">Belum ada chat pembeli.</div>
+                        </section>
+
+                        <section class="ut-dash-figma-card ut-dash-orders-card tw-p-[24px]">
+                            <div class="tw-mb-5 tw-flex tw-items-center tw-justify-between tw-gap-3">
+                                <div class="tw-min-w-0">
+                                    <h2 class="tw-m-0 tw-text-[16px] tw-font-semibold tw-leading-5 tw-text-[#0a0a0a]">Pesanan</h2>
+                                    <p class="tw-m-0 tw-mt-1 tw-text-[11px] tw-font-medium tw-leading-4 tw-text-[#6a7282]">Pesanan terbaru toko</p>
+                                </div>
+                                <a href="/unitrade/seller/orders" class="tw-text-[12px] tw-font-medium tw-leading-4 tw-text-[#155dfc] tw-no-underline">Lihat Semua Pesanan</a>
+                            </div>
+                            <div t-if="dashboard_orders" class="ut-dash-orders-table-wrap">
+                                <table class="ut-dash-orders-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID PESANAN</th>
+                                            <th>PELANGGAN</th>
+                                            <th>TANGGAL</th>
+                                            <th>TOTAL</th>
+                                            <th>STATUS</th>
+                                            <th>AKSI</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="dashboard_orders" t-as="order">
+                                            <tr>
+                                                <td><span class="ut-dash-order-id" t-esc="order.get('order_name')"></span></td>
+                                                <td class="ut-dash-order-customer-cell">
+                                                    <span class="ut-dash-order-customer-name" t-esc="order.get('customer_name')"></span>
+                                                </td>
+                                                <td class="ut-dash-order-date-cell" t-esc="order.get('date_label')"></td>
+                                                <td class="ut-dash-order-total-cell"><strong class="ut-orders-total" t-esc="order.get('total_label')"></strong></td>
+                                                <td class="ut-dash-order-status-cell">
+                                                    <span class="ut-dash-status-pill" t-esc="order.get('status_label')"></span>
+                                                </td>
+                                                <td class="ut-dash-order-action-cell">
+                                                    <a t-att-href="order.get('detail_url') or order.get('order_detail_url') or order.get('action_url')" class="ut-dash-order-icon-action tw-text-[#212529] tw-no-underline" aria-label="Lihat detail pesanan">
+                                                        <i class="fa fa-eye"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div t-else="" class="ut-dash-empty">Belum ada order untuk produk seller ini.</div>
+                        </section>
+
+                        <section class="ut-dash-figma-card tw-p-[24px]">
+                            <div class="tw-mb-4 tw-flex tw-items-center tw-justify-between">
+                                <div>
+                                    <h2 class="tw-m-0 tw-text-[16px] tw-font-semibold tw-leading-5 tw-text-[#0a0a0a]">Ulasan Pembeli</h2>
+                                    <p class="tw-m-0 tw-mt-1 tw-text-[11px] tw-font-medium tw-leading-4 tw-text-[#6a7282]">Rating terbaru dari produk toko</p>
+                                </div>
+                                <span class="tw-rounded-full tw-bg-[#f3f4f6] tw-px-3 tw-py-1 tw-text-[11px] tw-font-semibold tw-text-[#4a5565]">
+                                    <t t-esc="dashboard_stats.get('review_count') or 0"/> ulasan
+                                </span>
+                            </div>
+                            <div t-if="dashboard_reviews" class="ut-dash-review-grid">
+                                <t t-foreach="dashboard_reviews" t-as="review">
+                                    <article class="ut-dash-review-card">
+                                        <div class="tw-flex tw-items-center tw-justify-between tw-gap-3">
+                                            <strong t-esc="review.get('reviewer_name')"></strong>
+                                            <span><i class="fa fa-star"></i> <t t-esc="review.get('rating')"/></span>
+                                        </div>
+                                        <p t-esc="review.get('comment')"></p>
+                                        <small><t t-esc="review.get('product_name')"/> / <t t-esc="review.get('date_label')"/></small>
+                                    </article>
+                                </t>
+                            </div>
+                            <div t-else="" class="ut-dash-empty">Belum ada ulasan pembeli.</div>
+                        </section>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </template>
+
     <template id="seller_dashboard_template" name="Seller Dashboard">
         <t t-call="website.layout">
             <t t-set="title" t-value="page_title"/>
@@ -99,85 +330,7 @@
                 t-att-data-notification-count="dashboard_stats.get('notification_count')"
                 t-att-data-add-product-url="add_product_url">
                 <t t-call="unitrade_seller.seller_owl_fallback"/>
-                <div class="ut-seller-dashboard-page tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
-                    <div class="ut-dash-stage ut-orders-stage ut-dash-skeleton-stage">
-                        <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px]">
-                            <span class="ut-dash-skeleton-line tw-w-[280px]"></span>
-                            <span class="ut-dash-skeleton-line tw-w-[210px]"></span>
-                        </div>
-                        <header class="ut-dash-navbar tw-absolute tw-left-8 tw-right-8 tw-top-[46px] tw-flex tw-h-[70px] tw-items-center tw-rounded-[54px] tw-bg-white tw-px-[14px] tw-shadow-[0_6px_8.95px_rgba(0,0,0,0.05)]">
-                            <span class="ut-dash-skeleton-circle tw-size-[41px]"></span>
-                            <span class="ut-dash-skeleton-line tw-ml-3 tw-w-[74px]"></span>
-                            <span class="ut-dash-skeleton-block tw-ml-[55px] tw-h-12 tw-flex-1 tw-max-w-[658px] tw-rounded-[22px]"></span>
-                            <span class="ut-dash-skeleton-circle tw-ml-auto tw-size-[38px]"></span>
-                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
-                            <span class="ut-dash-skeleton-circle tw-size-[38px]"></span>
-                            <span class="ut-dash-skeleton-circle tw-size-[45px]"></span>
-                            <span class="ut-dash-skeleton-line tw-w-[116px]"></span>
-                        </header>
-                        <aside class="ut-dash-sidebar ut-dash-skeleton-sidebar">
-                            <div class="ut-dash-sidebar-brand">
-                                <span class="ut-dash-skeleton-block tw-size-8 tw-rounded-[10px]"></span>
-                            </div>
-                            <div class="ut-dash-sidebar-nav">
-                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
-                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
-                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
-                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
-                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
-                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
-                            </div>
-                            <div class="ut-dash-sidebar-footer">
-                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
-                                <span class="ut-dash-skeleton-block tw-h-10 tw-w-[52px] tw-rounded-[14px]"></span>
-                            </div>
-                        </aside>
-                        <main class="ut-dash-main-area tw-absolute tw-left-[168px] tw-right-[66px] tw-top-[173px] tw-pb-10">
-                            <section class="tw-mb-[26px]">
-                                <span class="ut-dash-skeleton-line tw-h-11 tw-w-[360px] tw-rounded-[16px]"></span>
-                                <span class="ut-dash-skeleton-line tw-mt-3 tw-h-5 tw-w-[430px]"></span>
-                            </section>
-                            <div class="ut-dash-filter-row tw-mb-7 tw-flex tw-items-center tw-gap-3">
-                                <span class="ut-dash-skeleton-block tw-h-[58px] tw-w-[226px] tw-rounded-[17px]"></span>
-                                <span class="ut-dash-skeleton-block tw-h-[58px] tw-w-[178px] tw-rounded-[17px]"></span>
-                            </div>
-                            <div class="ut-dash-stat-row tw-mb-[27px] tw-grid tw-grid-cols-4 tw-gap-[18px]">
-                                <span class="ut-dash-skeleton-card tw-h-[176px]"></span>
-                                <span class="ut-dash-skeleton-card tw-h-[176px]"></span>
-                                <span class="ut-dash-skeleton-card tw-h-[176px]"></span>
-                                <span class="ut-dash-skeleton-card tw-h-[176px]"></span>
-                            </div>
-                            <div class="ut-dash-grid tw-grid tw-grid-cols-[minmax(0,797px)_381px] tw-gap-7">
-                                <section class="ut-dash-skeleton-card tw-h-[422px] tw-p-[24px]">
-                                    <span class="ut-dash-skeleton-line tw-h-6 tw-w-[180px]"></span>
-                                    <span class="ut-dash-skeleton-line tw-mt-2 tw-h-4 tw-w-[220px]"></span>
-                                    <span class="ut-dash-skeleton-block tw-mt-8 tw-h-[300px] tw-w-full tw-rounded-[18px]"></span>
-                                </section>
-                                <section class="ut-dash-skeleton-card tw-h-[422px] tw-p-[20px]">
-                                    <span class="ut-dash-skeleton-line tw-h-5 tw-w-[140px]"></span>
-                                    <div class="tw-mt-8 tw-flex tw-flex-col tw-gap-5">
-                                        <span class="ut-dash-skeleton-row"></span>
-                                        <span class="ut-dash-skeleton-row"></span>
-                                        <span class="ut-dash-skeleton-row"></span>
-                                        <span class="ut-dash-skeleton-row"></span>
-                                    </div>
-                                </section>
-                                <section class="ut-dash-skeleton-card tw-h-[320px] tw-p-[24px]">
-                                    <span class="ut-dash-skeleton-line tw-h-5 tw-w-[120px]"></span>
-                                    <span class="ut-dash-skeleton-block tw-mt-7 tw-h-[230px] tw-w-full tw-rounded-[18px]"></span>
-                                </section>
-                                <section class="ut-dash-skeleton-card tw-h-[400px] tw-p-[24px]">
-                                    <div class="tw-flex tw-flex-col tw-gap-4">
-                                        <span class="ut-dash-skeleton-row"></span>
-                                        <span class="ut-dash-skeleton-row"></span>
-                                        <span class="ut-dash-skeleton-row"></span>
-                                    </div>
-                                    <span class="ut-dash-skeleton-block tw-mt-[130px] tw-h-[52px] tw-w-full tw-rounded-[26px]"></span>
-                                </section>
-                            </div>
-                        </main>
-                    </div>
-                </div>
+                <t t-call="unitrade_seller.seller_dashboard_static_fallback"/>
             </div>
         </t>
     </template>

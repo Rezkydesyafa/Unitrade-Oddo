@@ -6,7 +6,6 @@ const UNREAD_COUNT_URL = "/unitrade/seller/notifications/unread_count";
 const RECENT_URL = "/unitrade/seller/notifications/recent";
 const READ_ALL_URL = "/unitrade/seller/notifications/read_all";
 const CENTER_URL = "/unitrade/seller/notifications";
-const POLL_INTERVAL_MS = 60000;
 const STARTED_FLAG = "__unitradeSellerNotificationDropdownStarted";
 
 async function jsonPost(url, params = {}) {
@@ -246,25 +245,11 @@ function enhanceNotificationAnchor(anchor) {
     let openedByClick = false;
     let countInFlight = null;
     let recentInFlight = null;
-    let pollTimer = null;
-
-    const stopPolling = () => {
-        if (pollTimer !== null) {
-            window.clearInterval(pollTimer);
-            pollTimer = null;
-        }
-    };
-    const startPolling = () => {
-        if (pollTimer === null) {
-            pollTimer = window.setInterval(refreshCount, POLL_INTERVAL_MS);
-        }
-    };
 
     const close = () => {
         panel.hidden = true;
         anchor.setAttribute("aria-expanded", "false");
         openedByClick = false;
-        stopPolling();
     };
     const clearCloseTimer = () => {
         if (closeTimer !== null) {
@@ -333,7 +318,6 @@ function enhanceNotificationAnchor(anchor) {
         panel.hidden = false;
         anchor.setAttribute("aria-expanded", "true");
         await Promise.all([refreshCount(), loadRecent()]);
-        startPolling();
     };
 
     anchor.setAttribute("aria-haspopup", "dialog");
@@ -392,9 +376,6 @@ function enhanceNotificationAnchor(anchor) {
             close();
         }
     });
-    window.addEventListener("beforeunload", () => {
-        stopPolling();
-    });
 }
 
 function initializeSellerNotificationDropdowns() {
@@ -411,18 +392,6 @@ function startObserver() {
     }
     window[STARTED_FLAG] = true;
     initializeSellerNotificationDropdowns();
-    if (hasEnhancedNotificationDropdown()) {
-        return;
-    }
-
-    let attempts = 0;
-    const retryTimer = window.setInterval(() => {
-        attempts += 1;
-        initializeSellerNotificationDropdowns();
-        if (hasEnhancedNotificationDropdown() || attempts >= 40) {
-            window.clearInterval(retryTimer);
-        }
-    }, 250);
 }
 
 if (document.readyState === "loading") {
