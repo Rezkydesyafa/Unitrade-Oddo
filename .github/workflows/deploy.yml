@@ -72,6 +72,14 @@ jobs:
 
           docker compose run --rm web odoo -d unitrade_db -u unitrade_theme,unitrade_notification,unitrade_admin,unitrade_seller,unitrade_dispute,unitrade_payment,unitrade_review,unitrade_product_ext --stop-after-init
 
+          docker compose run --rm web odoo shell -d unitrade_db --no-http <<'PY'
+          attachments = env['ir.attachment'].sudo().search([('url', 'like', '/web/assets/')])
+          count = len(attachments)
+          attachments.unlink()
+          env.cr.commit()
+          print('Cleared %s Odoo web asset attachment(s).' % count)
+          PY
+
           docker compose up -d --force-recreate web
 
           trap - EXIT
