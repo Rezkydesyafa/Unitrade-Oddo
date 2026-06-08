@@ -50,7 +50,7 @@
         </t>
     </template>
 
-    <template id="seller_owl_fallback" name="Seller OWL Loading Fallback">
+    <template id="seller_notification_loop_guard" name="Seller Notification Loop Guard">
         <script type="text/javascript">
             (function () {
                 window.__unitradeSellerNotificationDropdownStarted = true;
@@ -89,6 +89,10 @@
                 };
             })();
         </script>
+    </template>
+
+    <template id="seller_owl_fallback" name="Seller OWL Loading Fallback">
+        <t t-call="unitrade_seller.seller_notification_loop_guard"/>
         <div data-ut-seller-fallback="1"
              class="ut-seller-owl-static-fallback"
              style="display:none; position:fixed; right:32px; bottom:32px; z-index:1300; width:min(390px, calc(100vw - 40px)); padding:18px; border:1px solid #e5e7eb; border-radius:16px; background:#ffffff; box-shadow:0 22px 60px rgba(15,23,42,.18); color:#111827; font-family:inherit;">
@@ -121,7 +125,6 @@
 
     <template id="seller_dashboard_static_fallback" name="Seller Dashboard Static Fallback">
         <div data-ut-dashboard-static-fallback="1"
-             style="display:none"
              class="ut-seller-dashboard-page tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
             <div class="ut-dash-stage">
                 <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px] tw-text-[12px] tw-leading-6 tw-text-black">
@@ -356,7 +359,7 @@
         <t t-call="website.layout">
             <t t-set="title" t-value="page_title"/>
             <div id="wrap"
-                class="ut-seller-dashboard-mount"
+                class="ut-seller-dashboard-static"
                 t-att-data-dashboard-payload="dashboard_chart_json"
                 t-att-data-seller-name="seller.name"
                 t-attf-data-seller-avatar-url="/web/image/res.users/#{seller.user_id.id}/avatar_128"
@@ -369,30 +372,8 @@
                 t-att-data-unread-chat-count="dashboard_stats.get('unread_chat_count')"
                 t-att-data-notification-count="dashboard_stats.get('notification_count')"
                 t-att-data-add-product-url="add_product_url">
-                <t t-call="unitrade_seller.seller_owl_fallback"/>
+                <t t-call="unitrade_seller.seller_notification_loop_guard"/>
                 <t t-call="unitrade_seller.seller_dashboard_static_fallback"/>
-                <script type="text/javascript">
-                    (function () {
-                        window.setTimeout(function () {
-                            var wrap = document.getElementById("wrap");
-                            if (!wrap) {
-                                return;
-                            }
-                            var mountedDashboard = wrap.querySelector(".ut-owl-mount-host .ut-seller-dashboard-page");
-                            if (mountedDashboard) {
-                                return;
-                            }
-                            var fallback = wrap.querySelector("[data-ut-dashboard-static-fallback='1']");
-                            if (fallback) {
-                                fallback.style.display = "block";
-                            }
-                            var host = wrap.querySelector(".ut-owl-mount-host");
-                            if (host) {
-                                host.style.display = "none";
-                            }
-                        }, 2500);
-                    })();
-                </script>
             </div>
         </t>
     </template>
