@@ -79,8 +79,9 @@ jobs:
           docker compose up -d db
 
           docker compose stop web || true
+          docker compose rm -f web || true
 
-          trap 'docker compose up -d --force-recreate web' EXIT
+          trap 'docker compose pull web && docker compose up -d --no-deps --force-recreate web' EXIT
 
           docker compose run --rm web odoo -d unitrade_db -u unitrade_theme,unitrade_notification,unitrade_admin,unitrade_seller,unitrade_dispute,unitrade_payment,unitrade_review,unitrade_product_ext --stop-after-init
 
@@ -92,7 +93,8 @@ jobs:
           print('Cleared %s Odoo web asset attachment(s).' % count)
           PY
 
-          docker compose up -d --force-recreate web
+          docker compose pull web
+          docker compose up -d --no-deps --force-recreate web
 
           for i in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:8069/web/login >/dev/null; then
