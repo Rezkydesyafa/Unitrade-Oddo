@@ -608,6 +608,10 @@ publicWidget.registry.UnitradeSellerDashboard = publicWidget.Widget.extend({
             mountTarget.remove();
             console.error("[UniTrade] Seller dashboard mount:", error);
             this.el.classList.add("ut-owl-mount-failed");
+            const staticFallback = this.el.querySelector("[data-ut-dashboard-static-fallback='1']");
+            if (staticFallback) {
+                staticFallback.style.display = "block";
+            }
             if (!this.el.querySelector(".ut-owl-fallback-error")) {
                 const fallback = document.createElement("div");
                 fallback.className = "ut-owl-fallback-error";
