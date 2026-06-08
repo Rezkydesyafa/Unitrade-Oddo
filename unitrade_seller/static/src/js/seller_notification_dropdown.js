@@ -1,12 +1,13 @@
 /** @odoo-module **/
 
-const NOTIFICATION_SELECTOR = '.ut-dash-navbar a[href="/unitrade/seller/notifications"]';
+const NOTIFICATION_SELECTOR = '.ut-dash-navbar a.ut-dash-nav-round[href="/unitrade/seller/notifications"]';
 const ENHANCED_ATTR = "data-seller-notification-enhanced";
 const UNREAD_COUNT_URL = "/unitrade/seller/notifications/unread_count";
 const RECENT_URL = "/unitrade/seller/notifications/recent";
 const READ_ALL_URL = "/unitrade/seller/notifications/read_all";
 const CENTER_URL = "/unitrade/seller/notifications";
 const POLL_INTERVAL_MS = 60000;
+const STARTED_FLAG = "__unitradeSellerNotificationDropdownStarted";
 
 async function jsonPost(url, params = {}) {
     const response = await fetch(url, {
@@ -216,7 +217,13 @@ function escapeAttr(value) {
 }
 
 function enhanceNotificationAnchor(anchor) {
+    if (!anchor || !anchor.matches(NOTIFICATION_SELECTOR) || anchor.closest(".ut-seller-notification-panel")) {
+        return;
+    }
     if (anchor.getAttribute(ENHANCED_ATTR) === "1") {
+        return;
+    }
+    if (anchor.closest(".ut-seller-notification-wrapper")) {
         return;
     }
     anchor.setAttribute(ENHANCED_ATTR, "1");
@@ -355,13 +362,30 @@ function enhanceNotificationAnchor(anchor) {
     });
 }
 
+let initializeQueued = false;
+
 function initializeSellerNotificationDropdowns() {
     document.querySelectorAll(NOTIFICATION_SELECTOR).forEach(enhanceNotificationAnchor);
 }
 
+function scheduleInitializeSellerNotificationDropdowns() {
+    if (initializeQueued) {
+        return;
+    }
+    initializeQueued = true;
+    window.requestAnimationFrame(() => {
+        initializeQueued = false;
+        initializeSellerNotificationDropdowns();
+    });
+}
+
 function startObserver() {
+    if (window[STARTED_FLAG]) {
+        return;
+    }
+    window[STARTED_FLAG] = true;
     initializeSellerNotificationDropdowns();
-    const observer = new MutationObserver(initializeSellerNotificationDropdowns);
+    const observer = new MutationObserver(scheduleInitializeSellerNotificationDropdowns);
     observer.observe(document.documentElement, {
         childList: true,
         subtree: true,
