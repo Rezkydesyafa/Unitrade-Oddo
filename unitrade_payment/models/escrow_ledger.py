@@ -1,8 +1,5 @@
 import logging
-import json
 from datetime import timedelta
-
-import requests
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessDenied, UserError
@@ -39,7 +36,7 @@ class UnitradeEscrowLedger(models.Model):
     ], default='held', required=True, index=True)
     released_at = fields.Datetime(copy=False)
     payout_reference = fields.Char(copy=False)
-    xendit_payout_id = fields.Char(string='Xendit Payout ID', copy=False, index=True)
+    xendit_payout_id = fields.Char(string='Legacy Payout ID', copy=False, index=True)
     payout_status = fields.Selection([
         ('draft', 'Draft'),
         ('pending', 'Pending'),
@@ -158,16 +155,27 @@ class UnitradeEscrowLedger(models.Model):
         if existing:
             return existing
 
-        fee_product = order._unitrade_service_fee_product() if hasattr(order, '_unitrade_service_fee_product') else self.env['product.product']
-        payment_fee_product = order._unitrade_payment_fee_product() if hasattr(order, '_unitrade_payment_fee_product') else self.env['product.product']
-        excluded_product_ids = set()
-        if fee_product:
-            excluded_product_ids.add(fee_product.id)
-        if payment_fee_product:
-            excluded_product_ids.add(payment_fee_product.id)
-        product_lines = order.order_line.filtered(
-            lambda line: not line.display_type and line.product_id and line.product_id.id not in excluded_product_ids
-        )
+        if hasattr(order, '_unitrade_product_lines_for_checkout'):
+            product_lines = order._unitrade_product_lines_for_checkout()
+        else:
+            fee_product = order._unitrade_service_fee_product() if hasattr(order, '_unitrade_service_fee_product') else self.env['product.product']
+            payment_fee_product = order._unitrade_payment_fee_product() if hasattr(order, '_unitrade_payment_fee_product') else self.env['product.product']
+            voucher_product = order._unitrade_voucher_discount_product() if hasattr(order, '_unitrade_voucher_discount_product') else self.env['product.product']
+            excluded_product_ids = set()
+            for excluded_product in (fee_product, payment_fee_product, voucher_product):
+                if excluded_product:
+                    excluded_product_ids.add(excluded_product.id)
+            product_lines = order.order_line.filtered(
+                lambda line: not line.display_type and line.product_id and line.product_id.id not in excluded_product_ids
+            )
+        lines_without_seller = product_lines.filtered(lambda line: not self._seller_from_line(line))
+        if lines_without_seller:
+            _logger.warning(
+                'Skipping %s order line(s) without seller while creating escrow ledger for order %s',
+                len(lines_without_seller),
+                order.name,
+            )
+            product_lines = product_lines - lines_without_seller
         if not product_lines:
             _logger.warning('Skipping escrow ledger for order %s: no product lines found', order.name)
             return self.browse()
@@ -467,113 +475,18 @@ class UnitradeEscrowLedger(models.Model):
             )
         return True
 
-    def _get_xendit_param(self, key_name, default=''):
-        return self.env['ir.config_parameter'].sudo().get_param(key_name, default=default)
-
-    def _xendit_api_base_url(self):
-        return 'https://api.xendit.co'
-
-    def _xendit_payout_payload(self):
-        self.ensure_one()
-        seller = self.seller_id
-        if not seller or not seller.x_payout_ready:
-            raise UserError(_('Data payout seller belum lengkap. Isi channel, nomor rekening/HP, dan nama pemilik.'))
-
-        reference = self.payout_reference or ('UTP%s' % self.id)
-        return reference, {
-            'reference_id': reference,
-            'channel_code': seller.x_payout_channel_code,
-            'channel_properties': {
-                'account_number': seller.x_payout_account_number,
-                'account_holder_name': seller.x_payout_account_name,
-            },
-            'amount': int(round(self.amount_seller)),
-            'currency': 'IDR',
-            'description': _('Payout UniTrade untuk %s') % (self.order_id.name or self.name),
-            'metadata': {
-                'unitrade_ledger_id': self.id,
-                'unitrade_order': self.order_id.name,
-                'seller_id': seller.id,
-            },
-        }
+    def action_simulate_seller_payout(self, payout=False):
+        """Deprecated compatibility hook: seller payout is admin-managed."""
+        raise UserError(_(
+            'Payout otomatis/simulasi langsung sudah dinonaktifkan. '
+            'Buat request payout manual lalu tandai Paid setelah admin transfer.'
+        ))
 
     def action_create_xendit_payout(self):
-        self._check_admin('create_xendit_payout')
-        secret_key = self._get_xendit_param('unitrade.xendit.secret_key')
-        if not secret_key:
-            raise UserError(_('Konfigurasi Xendit belum lengkap. Isi Secret Key di System Parameters.'))
-
-        for ledger in self.sudo():
-            if ledger.state != 'releasable':
-                raise UserError(_('Payout hanya bisa dibuat dari escrow yang sudah releasable.'))
-            if ledger.xendit_payout_id and ledger.payout_status in ('pending', 'processing', 'succeeded'):
-                continue
-
-            reference, payload = ledger._xendit_payout_payload()
-            headers = {
-                'Content-Type': 'application/json',
-                'Idempotency-key': 'unitrade-payout-%s' % ledger.id,
-            }
-            try:
-                response = requests.post(
-                    ledger._xendit_api_base_url().rstrip('/') + '/v2/payouts',
-                    data=json.dumps(payload, separators=(',', ':'), ensure_ascii=False).encode('utf-8'),
-                    headers=headers,
-                    auth=(secret_key, ''),
-                    timeout=30,
-                )
-            except requests.RequestException as error:
-                _logger.exception('Xendit payout request failed for escrow ledger %s', ledger.id)
-                raise UserError(_('Gagal menghubungi Xendit Payout. Coba lagi beberapa saat lagi.')) from error
-
-            try:
-                response_payload = response.json()
-            except ValueError:
-                response_payload = {'raw_response': response.text}
-
-            if response.status_code >= 400:
-                message = response_payload.get('message') or response_payload.get('error') or response.text
-                ledger.write({
-                    'payout_status': 'failed',
-                    'payout_failure_reason': str(message),
-                })
-                raise UserError(_('Xendit menolak payout: %s') % message)
-
-            status = str(response_payload.get('status') or 'pending').lower()
-            write_values = {
-                'payout_reference': reference,
-                'xendit_payout_id': response_payload.get('id') or response_payload.get('payout_id'),
-                'payout_status': 'processing' if status in ('accepted', 'processing', 'pending') else status,
-                'payout_requested_at': fields.Datetime.now(),
-            }
-            if status in ('succeeded', 'completed'):
-                write_values.update({
-                    'state': 'released',
-                    'released_at': fields.Datetime.now(),
-                    'payout_status': 'succeeded',
-                    'payout_completed_at': fields.Datetime.now(),
-                })
-            ledger.write(write_values)
-            ledger._sync_order_escrow_state()
-            ledger._audit(
-                'escrow.payout.create',
-                _('Payout Xendit %s dibuat oleh %s status=%s amount=%s.') % (
-                    write_values.get('xendit_payout_id') or '-',
-                    self.env.user.name,
-                    write_values.get('payout_status'),
-                    ledger.amount_seller,
-                ),
-                severity='warning',
-                payload={
-                    'order_id': ledger.order_id.id,
-                    'order_name': ledger.order_id.name,
-                    'seller_id': ledger.seller_id.id,
-                    'amount_seller': ledger.amount_seller,
-                    'reference': reference,
-                    'xendit_payout_id': write_values.get('xendit_payout_id'),
-                    'status_initial': status,
-                },
-            )
+        """Deprecated compatibility hook: never call a payout gateway."""
+        raise UserError(_(
+            'Payout gateway dinonaktifkan untuk seller. Gunakan Buat Payout Manual.'
+        ))
 
 
     # ------------------------------------------------------------------
@@ -587,11 +500,11 @@ class UnitradeEscrowLedger(models.Model):
 
         # Validate all ledgers are eligible
         invalid = self.filtered(
-            lambda l: l.state != 'releasable' or l.payout_status in ('succeeded', 'processing')
+            lambda l: l.state != 'releasable' or l.payout_status in ('pending', 'processing', 'succeeded')
         )
         if invalid:
             raise UserError(_(
-                'Beberapa ledger tidak releasable atau payout-nya sudah diproses: %s'
+                'Beberapa ledger tidak releasable atau sudah masuk/diproses payout: %s'
             ) % ', '.join(invalid.mapped('name') or []))
 
         no_seller = self.filtered(lambda l: not l.seller_id)
@@ -611,7 +524,7 @@ class UnitradeEscrowLedger(models.Model):
             # Cek ledger yang sudah masuk payout aktif
             existing = Payout.search([
                 ('seller_id', '=', seller_id),
-                ('state', 'in', ('draft', 'ready', 'paid')),
+                ('state', 'in', Payout._active_payout_states(include_paid=True)),
                 ('ledger_ids', 'in', ledgers.ids),
             ])
             if existing:
@@ -626,6 +539,8 @@ class UnitradeEscrowLedger(models.Model):
                 'amount': sum(ledgers.mapped('amount_seller')),
                 'currency_id': ledgers[:1].currency_id.id or self.env.company.currency_id.id,
                 'ledger_ids': [(6, 0, ledgers.ids)],
+                'ledger_ids_json': Payout._ledger_ids_json(ledgers),
+                **Payout._destination_snapshot_vals(ledgers[:1].seller_id),
             })
             created |= payout
 

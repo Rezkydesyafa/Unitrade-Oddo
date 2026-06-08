@@ -129,7 +129,7 @@ class UnitradeSeller(models.Model):
         ('ID_BRI', 'BRI'),
         ('OVO', 'OVO'),
         ('DANA', 'DANA'),
-    ], string='Channel Payout Xendit')
+    ], string='Channel Payout')
     x_payout_account_number = fields.Char(string='Nomor Rekening / HP Payout')
     x_payout_account_name = fields.Char(string='Nama Pemilik Rekening')
     x_payout_ready = fields.Boolean(
@@ -281,6 +281,26 @@ class UnitradeSeller(models.Model):
         ('store_slug_unique', 'UNIQUE(x_store_slug)', 'Slug toko penjual harus unik!'),
     ]
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        sellers = super().create(vals_list)
+        sellers._unitrade_sync_user_seller_flags()
+        return sellers
+
+    def write(self, vals):
+        sync_flags = bool({'status', 'user_id'} & set(vals))
+        old_users = self.mapped('user_id') if sync_flags else self.env['res.users']
+        result = super().write(vals)
+        if sync_flags:
+            stale_users = old_users - self.mapped('user_id')
+            if stale_users:
+                stale_users.sudo().write({
+                    'x_is_seller': False,
+                    'x_seller_id': False,
+                })
+            self._unitrade_sync_user_seller_flags()
+        return result
+
     def init(self):
         """Backfill UUIDs for seller records created before the public profile route existed."""
         self.env.cr.execute("ALTER TABLE unitrade_seller DROP CONSTRAINT IF EXISTS unitrade_seller_nim_unique")
@@ -320,6 +340,33 @@ class UnitradeSeller(models.Model):
                 "UPDATE unitrade_seller SET x_profile_uuid = %s WHERE id = %s",
                 (str(uuid.uuid4()), seller_id),
             )
+        self.env.cr.execute("""
+            UPDATE res_users user_account
+               SET x_is_seller = TRUE,
+                   x_seller_id = seller.id
+              FROM unitrade_seller seller
+             WHERE seller.user_id = user_account.id
+               AND seller.status = 'verified'
+               AND (
+                    COALESCE(user_account.x_is_seller, FALSE) IS DISTINCT FROM TRUE
+                 OR user_account.x_seller_id IS DISTINCT FROM seller.id
+               )
+        """)
+        self.env.cr.execute("""
+            UPDATE res_users
+               SET x_is_seller = FALSE,
+                   x_seller_id = NULL
+             WHERE (
+                    COALESCE(x_is_seller, FALSE) IS TRUE
+                 OR x_seller_id IS NOT NULL
+               )
+               AND NOT EXISTS (
+                    SELECT 1
+                      FROM unitrade_seller seller
+                     WHERE seller.id = res_users.x_seller_id
+                       AND seller.status = 'verified'
+               )
+        """)
 
     @api.constrains('nim', 'status', 'user_id')
     def _check_verified_nim_unique(self):
@@ -551,6 +598,45 @@ class UnitradeSeller(models.Model):
             )
             raise AccessDenied(_('Aksi ini hanya boleh dilakukan oleh admin UniTrade.'))
 
+    def _unitrade_deactivate_marketplace_products(self):
+        """Keep buyer-facing product state aligned when seller is not verified."""
+        Product = self.env['product.template'].sudo()
+        if not {'x_seller_id', 'x_is_marketplace'}.issubset(Product._fields):
+            return 0
+        products = Product.search([
+            ('x_seller_id', 'in', self.ids),
+            ('x_is_marketplace', '=', True),
+            '|',
+            ('website_published', '=', True),
+            ('sale_ok', '=', True),
+        ])
+        if products:
+            products.write({
+                'website_published': False,
+                'sale_ok': False,
+            })
+        return len(products)
+
+    def _unitrade_sync_user_seller_flags(self):
+        """Mirror the canonical seller status onto denormalized user flags."""
+        for record in self.sudo():
+            user = record.user_id
+            if not user:
+                continue
+            if record.status == 'verified':
+                user.sudo().write({
+                    'x_is_seller': True,
+                    'x_seller_id': record.id,
+                })
+                continue
+            if user.x_seller_id.id == record.id or user.x_is_seller:
+                user.sudo().write({
+                    'x_is_seller': False,
+                    'x_seller_id': False,
+                })
+            record._unitrade_deactivate_marketplace_products()
+        return True
+
     def action_verify(self):
         """Admin approves seller verification"""
         self.ensure_one()
@@ -559,12 +645,6 @@ class UnitradeSeller(models.Model):
             'status': 'verified',
             'verified_date': fields.Datetime.now(),
             'verified_by': self.env.uid,
-        })
-
-        # Update user flags
-        self.user_id.write({
-            'x_is_seller': True,
-            'x_seller_id': self.id,
         })
 
         # Send notification
@@ -721,6 +801,7 @@ class UnitradeSeller(models.Model):
     def action_reset_to_draft(self):
         """Reset seller back to draft status"""
         self.ensure_one()
+        self._check_admin('reset_seller_to_draft')
         self.write({
             'status': 'draft',
             'rejection_reason': False,

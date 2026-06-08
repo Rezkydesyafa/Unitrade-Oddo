@@ -209,8 +209,7 @@
             <form string="Escrow Ledger" create="false" delete="false">
                 <header>
                     <button name="action_open_mark_releasable_wizard" string="Tandai Releasable" type="object" class="btn-primary" invisible="state != 'held'"/>
-                    <button name="action_create_seller_payout" string="Buat Payout Manual" type="object" class="btn-primary" invisible="state != 'releasable' or payout_status in ('processing', 'succeeded')"/>
-                    <button name="action_create_xendit_payout" string="Buat Payout Xendit (Legacy)" type="object" class="btn-primary" invisible="1"/>
+                    <button name="action_create_seller_payout" string="Buat Payout Manual" type="object" class="btn-primary" invisible="state != 'releasable' or payout_status in ('pending', 'processing', 'succeeded')"/>
                     <button name="action_open_mark_released_wizard" string="Tandai Released Manual" type="object" invisible="state != 'releasable'"/>
                     <field name="state" widget="statusbar" statusbar_visible="held,releasable,released"/>
                 </header>
@@ -312,7 +311,7 @@
                 <filter name="state_refunded" string="Refunded" domain="[('state','=','refunded')]"/>
                 <separator/>
                 <filter name="payout_ready" string="Payout Siap"
-                        domain="[('state','=','releasable'), ('payout_status','not in',('processing','succeeded'))]"/>
+                        domain="[('state','=','releasable'), ('payout_status','not in',('pending','processing','succeeded'))]"/>
                 <filter name="payout_processing" string="Payout Processing"
                         domain="[('payout_status','in',('pending','processing'))]"/>
                 <filter name="payout_failed" string="Payout Failed" domain="[('payout_status','=','failed')]"/>
