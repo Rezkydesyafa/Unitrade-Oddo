@@ -60,7 +60,7 @@
               inherit_id="web.frontend_layout"
               name="UniTrade Notification Static Fallback CSS">
         <xpath expr="//t[@t-call-assets='web.assets_frontend']" position="after">
-            <link rel="stylesheet" href="/unitrade_notification/static/src/css/notification.css?v=20260604-2"/>
+            <link rel="stylesheet" href="/unitrade_notification/static/src/css/notification.css?v=20260609-2"/>
         </xpath>
     </template>
 

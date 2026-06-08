@@ -1299,10 +1299,10 @@
                         </aside>
 
                         <main class="tw-min-w-0">
-                            <div class="tw-mb-7 tw-flex tw-flex-col tw-gap-5 md:tw-flex-row md:tw-items-start md:tw-justify-between">
-                                <div class="tw-flex tw-items-center tw-gap-6">
-                                    <img t-att-src="image_data_uri(seller.x_avatar_128) if seller.x_avatar_128 else '/web/static/img/user_menu_avatar.png'" alt="Avatar penjual" class="tw-h-[114px] tw-w-[114px] tw-rounded-full tw-object-cover"/>
-                                    <div>
+                            <div class="ut-seller-profile-header tw-mb-7 tw-flex tw-flex-col tw-gap-5 md:tw-flex-row md:tw-items-start md:tw-justify-between">
+                                <div class="ut-seller-profile-identity tw-flex tw-items-center tw-gap-6">
+                                    <img t-att-src="image_data_uri(seller.x_avatar_128) if seller.x_avatar_128 else '/web/static/img/user_menu_avatar.png'" alt="Avatar penjual" class="ut-seller-profile-avatar tw-h-[114px] tw-w-[114px] tw-rounded-full tw-object-cover"/>
+                                    <div class="ut-seller-profile-meta">
                                         <h1 class="tw-m-0 tw-text-[20px] tw-font-medium tw-leading-6 tw-text-black">
                                             <t t-esc="seller.name"/>
                                         </h1>
@@ -1313,14 +1313,14 @@
                                         <p class="tw-m-0 tw-text-[12px] tw-leading-6 tw-text-[#525252]">
                                             Bergabung <t t-esc="seller_joined_date"/>
                                         </p>
-                                        <a t-attf-href="/seller-profile/#{seller_public_ref}/chat" class="tw-mt-3 tw-flex tw-h-[42px] tw-w-[178px] tw-items-center tw-justify-center tw-gap-3 tw-rounded-[21px] tw-border tw-border-[#212529] tw-bg-[#212529] tw-text-[14px] tw-text-[#f5f5f7] tw-no-underline">
+                                        <a t-attf-href="/seller-profile/#{seller_public_ref}/chat" class="ut-seller-profile-chat tw-mt-3 tw-flex tw-h-[42px] tw-w-[178px] tw-items-center tw-justify-center tw-gap-3 tw-rounded-[21px] tw-border tw-border-[#212529] tw-bg-[#212529] tw-text-[14px] tw-text-[#f5f5f7] tw-no-underline">
                                             <i class="fa fa-commenting"></i>
                                             Chat penjual
                                         </a>
                                     </div>
                                 </div>
 
-                                <div class="tw-flex tw-items-start tw-gap-2 md:tw-mt-[15px] md:tw-pr-5">
+                                <div class="ut-seller-profile-rating tw-flex tw-items-start tw-gap-2 md:tw-mt-[15px] md:tw-pr-5">
                                     <i class="fa fa-star tw-mt-1 tw-text-[#ffb000]"></i>
                                     <div>
                                         <p class="tw-m-0 tw-text-[14px] tw-font-semibold tw-leading-[17px] tw-text-[#212529]">

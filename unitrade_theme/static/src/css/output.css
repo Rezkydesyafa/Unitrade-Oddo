@@ -8623,6 +8623,130 @@
     font-size: 14px;
   }
 
+  #product_detail {
+    overflow-x: hidden;
+    padding-bottom: 48px !important;
+  }
+
+  #product_detail .ut-product-detail-content {
+    width: 100%;
+    max-width: 100% !important;
+    padding-top: 16px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  #ut-product-main-card {
+    margin-bottom: 28px !important;
+    padding: 16px !important;
+    border-radius: 22px !important;
+  }
+
+  #ut-product-main-card .tw-w-max {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  #ut-product-main-card .tw-w-max::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ut-product-detail-main-grid {
+    gap: 22px !important;
+    margin-bottom: 24px !important;
+  }
+
+  .ut-product-detail-gallery {
+    padding: 10px !important;
+    border-radius: 18px !important;
+  }
+
+  .ut-product-main-image-trigger {
+    aspect-ratio: 1 / 1 !important;
+  }
+
+  #ut-main-image,
+  .ut-thumb-img {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    -o-object-fit: contain;
+       object-fit: contain;
+  }
+
+  .ut-thumbnail-container {
+    margin-left: -2px;
+    margin-right: -2px;
+    padding: 0 2px 8px !important;
+  }
+
+  .ut-thumbnail-container .ut-thumb {
+    width: 64px !important;
+    height: 52px !important;
+    flex: 0 0 64px;
+  }
+
+  .ut-product-detail-info {
+    gap: 16px !important;
+    padding: 0 !important;
+  }
+
+  .ut-product-detail-title {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    font-size: 24px !important;
+    line-height: 30px !important;
+  }
+
+  .ut-product-cta-row {
+    gap: 10px !important;
+  }
+
+  .ut-product-wishlist-direct,
+  .ut-product-cta-row > a[title="Bagikan"] {
+    width: 44px !important;
+    height: 44px !important;
+    flex: 0 0 44px !important;
+  }
+
+  .ut-product-seller-card {
+    gap: 14px !important;
+  }
+
+  .ut-product-seller-actions {
+    flex-direction: column;
+    gap: 10px !important;
+  }
+
+  .ut-product-seller-actions > a {
+    width: 100% !important;
+  }
+
+  .ut-product-map-card {
+    height: 180px !important;
+  }
+
+  .ut-product-map-frame {
+    height: 360px !important;
+    top: -90px !important;
+  }
+
+  #tab-deskripsi,
+  #tab-ulasan {
+    padding: 18px !important;
+    border-radius: 20px !important;
+    overflow-wrap: anywhere;
+  }
+
+  #product_detail h2 {
+    margin-bottom: 20px !important;
+    font-size: 24px !important;
+    line-height: 30px !important;
+  }
+
   .ut-main-footer {
     padding-top: 48px !important;
     padding-bottom: 112px !important;
@@ -8696,6 +8820,18 @@
   line-height: 1.25;
 }
 
+.ut-shop-filter-toggle-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ut-shop-mobile-filter-row {
+  display: none;
+}
+
 @media (max-width: 991px) {
   body:has(#ut-shop-owl-mount) #wrap,
   body:has(.ut-product-catalog-page) #wrap {
@@ -8709,6 +8845,68 @@
     max-width: 100% !important;
     padding-left: 16px !important;
     padding-right: 16px !important;
+  }
+
+  .ut-shop-mobile-filter-row {
+    display: flex;
+    flex: 0 0 100%;
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 12px;
+  }
+
+  .ut-shop-filter-toggle-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    background: #ffffff;
+    padding: 0 18px;
+    color: #212529;
+    font-family: 'Urbanist', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none !important;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    cursor: pointer;
+  }
+
+  .ut-shop-filter-panel {
+    display: none !important;
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-bottom: 16px;
+  }
+
+  .ut-shop-filter-toggle-input:checked ~ .ut-shop-filter-panel {
+    display: block !important;
+  }
+
+  .ut-shop-filter-panel > div {
+    padding: 20px !important;
+  }
+
+  .ut-shop-filter-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    color: #212529;
+    cursor: pointer;
+  }
+
+  .ut-shop-filter-panel #ut-kondisi-group {
+    width: 100% !important;
   }
 
   .ut-shop-products-grid,
@@ -8745,8 +8943,19 @@
   }
 
   #unitradeHeroCarousel {
-    height: clamp(176px, 54vw, 236px) !important;
+    aspect-ratio: 2.35 / 1;
+    height: auto !important;
+    min-height: 150px;
+    max-height: 220px;
     border-radius: 22px !important;
+    background: #ffffff !important;
+  }
+
+  #unitradeHeroCarousel .carousel-inner,
+  #unitradeHeroCarousel .carousel-item,
+  #unitradeHeroCarousel picture {
+    height: 100%;
+    width: 100%;
   }
 
   #unitradeHeroCarousel img,
@@ -8756,16 +8965,25 @@
     max-width: 100%;
   }
 
+  #unitradeHeroCarousel img {
+    width: 100% !important;
+    height: 100% !important;
+    -o-object-fit: contain !important;
+       object-fit: contain !important;
+    -o-object-position: center !important;
+       object-position: center !important;
+  }
+
   .ut-hero-control-bar {
     right: 10px !important;
     bottom: 10px !important;
-    gap: 10px !important;
-    padding: 8px !important;
+    gap: 8px !important;
+    padding: 7px !important;
   }
 
   .ut-hero-control-bar .tw-w-\[38px\] {
-    width: 32px !important;
-    font-size: 13px !important;
+    width: 30px !important;
+    font-size: 12px !important;
   }
 
   .ut-category-grid {
@@ -8881,27 +9099,33 @@
   }
 
   #ut-sort-bar {
+    display: block !important;
     width: 100%;
     max-width: 100%;
     height: auto !important;
-    min-height: 58px;
+    min-height: 0;
     padding: 10px !important;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
   }
 
   #ut-sort-bar > div {
-    min-width: -moz-max-content;
-    min-width: max-content;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    min-width: 0;
     gap: 8px !important;
   }
 
   #ut-sort-bar [data-sort] {
     height: 34px !important;
-    padding-left: 14px !important;
-    padding-right: 14px !important;
-    white-space: nowrap;
-    font-size: 13px !important;
+    width: 100%;
+    min-width: 0;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    white-space: normal;
+    text-align: center;
+    font-size: 12px !important;
+    line-height: 1.1;
   }
 
   .products_pager {
@@ -9037,7 +9261,7 @@
 
 @media (max-width: 380px) {
   #unitradeHeroCarousel {
-    height: 172px !important;
+    min-height: 132px;
     border-radius: 20px !important;
   }
 
@@ -9073,8 +9297,12 @@
   }
 
   #ut-sort-bar [data-sort] {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  #ut-sort-bar > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -13113,22 +13341,250 @@ body:has(.ut-seller-profile-page) {
 @media (max-width: 767px) {
   .ut-seller-profile-page {
     padding-top: 20px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    overflow-x: hidden;
   }
 
   .ut-seller-navbar {
     margin-bottom: 32px !important;
   }
 
+  .ut-seller-shell {
+    max-width: 100%;
+  }
+
+  .ut-seller-sidebar {
+    order: 2;
+    width: 100%;
+    padding: 14px !important;
+    border-radius: 24px !important;
+  }
+
+  .ut-seller-sidebar + main {
+    order: 1;
+    min-width: 0;
+  }
+
+  .ut-seller-profile-header {
+    margin-bottom: 24px !important;
+    gap: 16px !important;
+  }
+
+  .ut-seller-profile-identity {
+    align-items: flex-start !important;
+    gap: 14px !important;
+    min-width: 0;
+  }
+
+  .ut-seller-profile-avatar {
+    width: 76px !important;
+    height: 76px !important;
+    flex: 0 0 76px;
+  }
+
+  .ut-seller-profile-meta {
+    min-width: 0;
+  }
+
+  .ut-seller-profile-meta h1,
+  .ut-seller-profile-meta p {
+    overflow-wrap: anywhere;
+  }
+
+  .ut-seller-profile-chat {
+    width: min(100%, 178px) !important;
+  }
+
+  .ut-seller-profile-rating {
+    align-self: stretch;
+    margin-top: 0 !important;
+    padding-right: 0 !important;
+  }
+
   .ut-seller-product-card {
     max-width: none;
+    height: 278px !important;
+    border-radius: 18px !important;
+  }
+
+  .ut-seller-product-card .ut-product-card-image-wrap {
+    height: 156px;
+    min-height: 156px;
+    max-height: 156px;
+    border-radius: 12px !important;
+  }
+
+  .ut-seller-product-card h3 {
+    font-size: 14px !important;
+    line-height: 20px !important;
+  }
+
+  .ut-seller-product-grid,
+  .ut-seller-product-skeleton {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    justify-items: stretch;
   }
 
   .ut-seller-skeleton-card {
     max-width: none;
+    height: 278px;
+    border-radius: 18px;
+  }
+
+  .ut-seller-skeleton-image {
+    height: 156px;
+    min-height: 156px;
+  }
+
+  .ut-seller-profile-tabs > div:first-child {
+    margin-bottom: 24px !important;
+    border-radius: 22px !important;
+  }
+
+  .ut-seller-reviews {
+    padding: 18px 14px 22px;
+    border-radius: 22px;
   }
 
   .ut-seller-reviews .ut-review-summary-card {
-    padding: 20px;
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+    margin-bottom: 24px;
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .ut-seller-reviews .ut-review-filter-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .ut-seller-reviews .ut-review-chip {
+    width: 100%;
+    min-width: 0;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+
+  .ut-seller-reviews .ut-review-score {
+    min-width: 0;
+  }
+
+  .ut-seller-reviews .ut-review-list {
+    padding: 0;
+  }
+
+  .ut-seller-reviews .ut-review-item {
+    gap: 12px;
+    padding-bottom: 24px;
+    margin-bottom: 24px;
+  }
+
+  .ut-seller-reviews .ut-review-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .ut-seller-report-dialog {
+    padding: 24px 18px 20px;
+    border-radius: 24px;
+  }
+
+  .ut-seller-report-actions {
+    flex-direction: column-reverse;
+  }
+
+  .ut-seller-report-cancel,
+  .ut-seller-report-submit {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  #product_detail .ut-product-detail-content {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  #ut-product-main-card {
+    padding: 14px !important;
+  }
+
+  .ut-product-main-image-trigger {
+    aspect-ratio: 4 / 5 !important;
+  }
+
+  .ut-product-detail-title {
+    font-size: 22px !important;
+    line-height: 28px !important;
+  }
+
+  .ut-product-cta-row > button,
+  .ut-product-cta-row > a:not([title="Bagikan"]) {
+    min-height: 46px;
+    font-size: 14px !important;
+  }
+
+  .ut-related-products-row .ut-product-card-link {
+    height: 258px;
+    min-height: 258px;
+  }
+
+  .ut-related-products-row .ut-product-card-image-wrap {
+    height: 140px;
+    min-height: 140px;
+    max-height: 140px;
+  }
+
+  .ut-seller-profile-page {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .ut-seller-profile-identity {
+    gap: 12px !important;
+  }
+
+  .ut-seller-profile-avatar {
+    width: 64px !important;
+    height: 64px !important;
+    flex-basis: 64px;
+  }
+
+  .ut-seller-profile-chat {
+    width: 100% !important;
+    max-width: 178px;
+  }
+
+  .ut-seller-product-grid,
+  .ut-seller-product-skeleton {
+    gap: 10px !important;
+  }
+
+  .ut-seller-product-card,
+  .ut-seller-skeleton-card {
+    height: 252px !important;
+    padding: 8px !important;
+  }
+
+  .ut-seller-product-card .ut-product-card-image-wrap,
+  .ut-seller-skeleton-image {
+    height: 132px;
+    min-height: 132px;
+    max-height: 132px;
+  }
+
+  .ut-seller-product-card h3 {
+    font-size: 13px !important;
+    line-height: 18px !important;
+  }
+
+  .ut-seller-reviews .ut-review-filter-row {
+    grid-template-columns: 1fr;
   }
 }
 
