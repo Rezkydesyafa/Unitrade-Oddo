@@ -88,10 +88,6 @@ class UnitradeAdminStats(models.AbstractModel):
         if verification.state == 'approved':
             return 'verified'
         if verification.state == 'rejected':
-            reason = (verification.rejection_reason or '').lower()
-            raw = (verification.ocr_raw_text or '').lower()
-            if 'ocr' in reason or 'vision_api_failed' in reason or 'api error' in raw:
-                return 'pending'
             return 'rejected'
         return 'unverified'
 
@@ -244,7 +240,7 @@ class UnitradeAdminStats(models.AbstractModel):
         if self._has_model('unitrade.seller.verification'):
             pending_ktm += len(
                 self.env['unitrade.seller.verification'].sudo().search(
-                    [('state', 'in', ('pending', 'manual_review', 'rejected'))]
+                    [('state', 'in', ('pending', 'manual_review'))]
                 ).filtered(
                     lambda verification: self._verification_status_for_admin(verification) == 'pending'
                 )
@@ -1112,7 +1108,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 if Seller is not None:
                     user_ids += Seller.search([('status', '=', 'pending')]).mapped('user_id').ids
                 if Verification is not None:
-                    partners = Verification.search([('state', 'in', ('pending', 'manual_review', 'rejected'))]).filtered(
+                    partners = Verification.search([('state', 'in', ('pending', 'manual_review'))]).filtered(
                         lambda verification: self._verification_status_for_admin(verification) == 'pending'
                     ).mapped('partner_id').ids
                     if partners:
@@ -3313,6 +3309,10 @@ class UnitradeAdminStats(models.AbstractModel):
             'ready': {'label': _('Ready to Pay'), 'badge_class': 'yellow'},
             'paid': {'label': _('Paid'), 'badge_class': 'green'},
             'cancelled': {'label': _('Cancelled'), 'badge_class': 'red'},
+            'pending': {'label': _('Legacy: Pending'), 'badge_class': 'yellow'},
+            'processing': {'label': _('Legacy: Processing'), 'badge_class': 'yellow'},
+            'succeeded': {'label': _('Legacy: Paid'), 'badge_class': 'green'},
+            'failed': {'label': _('Legacy: Failed'), 'badge_class': 'red'},
         }.get(state or 'draft', {'label': state or '-', 'badge_class': 'gray'})
 
     @api.model
@@ -4633,7 +4633,7 @@ class UnitradeAdminStats(models.AbstractModel):
         # 1. KTM pending / manual review
         if Verification is not None:
             verifications = Verification.search(
-                [('state', 'in', ('pending', 'manual_review', 'rejected'))],
+                [('state', 'in', ('pending', 'manual_review'))],
                 order='create_date asc',
                 limit=limit_per_group,
             ).filtered(
@@ -4861,7 +4861,7 @@ class UnitradeAdminStats(models.AbstractModel):
         if EscrowLedger is not None:
             payout_ready = EscrowLedger.search(
                 [('state', '=', 'releasable'),
-                 ('payout_status', 'not in', ('succeeded', 'processing'))],
+                 ('payout_status', 'not in', ('pending', 'processing', 'succeeded'))],
                 order='create_date asc',
                 limit=limit_per_group,
             )

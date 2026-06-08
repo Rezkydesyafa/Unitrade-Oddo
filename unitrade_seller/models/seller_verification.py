@@ -193,6 +193,21 @@ class SellerVerification(models.Model):
         index=True,
     )
 
+    def init(self):
+        super().init()
+        self.env.cr.execute("""
+            UPDATE unitrade_seller_verification
+               SET state = 'manual_review',
+                   review_note = COALESCE(NULLIF(review_note, ''), rejection_reason),
+                   rejection_reason = NULL
+             WHERE state = 'rejected'
+               AND (
+                    LOWER(COALESCE(rejection_reason, '')) LIKE '%%ocr%%'
+                 OR LOWER(COALESCE(rejection_reason, '')) LIKE '%%vision_api_failed%%'
+                 OR LOWER(COALESCE(ocr_raw_text, '')) LIKE '%%api error%%'
+               )
+        """)
+
     def write(self, vals):
         old_states = {record.id: record.state for record in self} if 'state' in vals else {}
         if 'state' in vals:
@@ -242,6 +257,12 @@ class SellerVerification(models.Model):
             'ocr_student_name': self.student_name or '',
             'ocr_name_match_token': self.name_match_token or '',
             'status': 'verified',
+            'rejection_reason': False,
+            'revoke_reason': False,
+            'revoked_date': False,
+            'revoked_by': False,
+            'report_state': 'none',
+            'report_admin_note': False,
             'verified_date': fields.Datetime.now(),
             'verified_by': self.env.uid,
         }
@@ -335,7 +356,16 @@ class SellerVerification(models.Model):
                 })
                 user = record._user_for_partner()
                 if user:
-                    user.sudo().write({'x_is_seller': False})
+                    seller = self.env['unitrade.seller'].sudo().search([
+                        ('user_id', '=', user.id),
+                    ], limit=1)
+                    if seller and seller.status == 'verified':
+                        seller._unitrade_sync_user_seller_flags()
+                    else:
+                        user.sudo().write({
+                            'x_is_seller': False,
+                            'x_seller_id': False,
+                        })
                 record._send_verification_template('unitrade_seller.mail_template_seller_verification_rejected')
                 log_admin_action(
                     self.env,

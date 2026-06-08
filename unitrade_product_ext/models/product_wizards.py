@@ -155,6 +155,8 @@ class UnitradeProductRejectWizard(models.TransientModel):
             'website_published': False,
             'sale_ok': False,
             'x_listing_fee_status': 'failed',
+            'x_listing_activated_at': False,
+            'x_listing_expires_at': False,
             'x_listing_rejected_by_id': self.env.user.id,
             'x_listing_rejection_reason': self.reason.strip(),
         })
