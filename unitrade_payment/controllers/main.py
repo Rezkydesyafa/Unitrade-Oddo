@@ -11,6 +11,7 @@ import requests
 
 from odoo import _, fields, http
 from odoo.http import request
+from odoo.osv import expression
 from odoo.tools.image import image_data_uri
 from odoo.addons.unitrade_payment.midtrans_methods import MIDTRANS_PAYMENT_METHODS
 
