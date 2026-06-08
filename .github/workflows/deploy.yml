@@ -94,6 +94,23 @@ jobs:
 
           docker compose up -d --force-recreate web
 
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8069/web/login >/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+
+          curl -fsS "http://127.0.0.1:8069/unitrade_seller/static/src/css/seller_dashboard.css?sha=${{ github.sha }}" > /tmp/unitrade_seller_dashboard.css
+          grep -q 'body.ut-has-seller-dashboard-page' /tmp/unitrade_seller_dashboard.css
+          ! grep -q 'body:has(.ut-seller-dashboard-page)' /tmp/unitrade_seller_dashboard.css
+
           trap - EXIT
 
           docker compose ps
+
+    - name: Verify public production asset
+      run: |
+        curl -fsS "https://unitrade.web.id/unitrade_seller/static/src/css/seller_dashboard.css?sha=${GITHUB_SHA}" > /tmp/unitrade_public_seller_dashboard.css
+        grep -q 'body.ut-has-seller-dashboard-page' /tmp/unitrade_public_seller_dashboard.css
+        ! grep -q 'body:has(.ut-seller-dashboard-page)' /tmp/unitrade_public_seller_dashboard.css
