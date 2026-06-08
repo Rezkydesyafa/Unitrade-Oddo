@@ -103,6 +103,8 @@ class UnitradePaymentIntent(models.Model):
                 product._unitrade_apply_listing_payment(
                     listing_fee=intent.amount,
                     paid_at=paid_at,
+                    payment_intent=intent,
+                    fee_status='paid',
                 )
                 _logger.info('Published listing fee product %s after payment intent %s paid', product.id, intent.id)
                 continue
@@ -133,6 +135,11 @@ class UnitradePaymentIntent(models.Model):
         PaymentIntent = self.env['unitrade.payment.intent'].sudo()
         products = self.sudo().mapped('product_template_id').exists()
         for product in products:
+            if (
+                'x_listing_fee_status' in product._fields
+                and product.x_listing_fee_status in ('paid', 'waived', 'not_required')
+            ):
+                continue
             paid_intent = PaymentIntent.search([
                 ('intent_type', '=', 'listing_fee'),
                 ('product_template_id', '=', product.id),
@@ -197,7 +204,7 @@ class UnitradePaymentIntent(models.Model):
                 new_status = 'pending'
             elif intent.state in ('failed', 'expired', 'cancelled'):
                 new_status = 'failed'
-            if new_status and product.x_listing_fee_status not in ('paid', 'waived'):
+            if new_status and product.x_listing_fee_status not in ('paid', 'waived', 'not_required'):
                 product.sudo().write({'x_listing_fee_status': new_status})
 
     def write(self, vals):

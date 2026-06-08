@@ -1491,38 +1491,8 @@ class UnitradePaymentController(http.Controller):
         )
 
     def _handle_xendit_payout_webhook(self, payload):
-        data = payload.get('data') if isinstance(payload, dict) else {}
-        if not isinstance(data, dict):
-            data = payload
-        payout_id = data.get('id') or data.get('payout_id')
-        reference = data.get('reference_id')
-        ledger_env = request.env['unitrade.escrow.ledger'].sudo()
-        ledger = ledger_env.browse()
-        if payout_id:
-            ledger = ledger_env.search([('xendit_payout_id', '=', payout_id)], limit=1)
-        if not ledger and reference:
-            ledger = ledger_env.search([('payout_reference', '=', reference)], limit=1)
-        if not ledger:
-            return False
-
-        status = str(data.get('status') or '').lower()
-        if status in ('succeeded', 'completed'):
-            ledger.write({
-                'state': 'released',
-                'payout_status': 'succeeded',
-                'released_at': fields.Datetime.now(),
-                'payout_completed_at': fields.Datetime.now(),
-                'payout_failure_reason': False,
-            })
-        elif status in ('failed', 'reversed', 'cancelled', 'canceled'):
-            ledger.write({
-                'payout_status': 'failed',
-                'payout_failure_reason': data.get('failure_reason') or data.get('failure_code') or json.dumps(data, ensure_ascii=False),
-            })
-        elif status:
-            ledger.write({'payout_status': 'processing'})
-        ledger._sync_order_escrow_state()
-        return ledger
+        _logger.info('Ignoring Xendit payout webhook because seller payout runs in simulation mode.')
+        return False
 
     @http.route('/unitrade/payment/xendit/webhook', type='http', auth='none', csrf=False, methods=['POST'])
     def xendit_webhook(self, **kwargs):
@@ -1555,12 +1525,11 @@ class UnitradePaymentController(http.Controller):
 
         try:
             if self._is_payout_payload(payload):
-                ledger = self._handle_xendit_payout_webhook(payload)
                 event.write({
                     'state': 'processed',
-                    'error_message': False if ledger else 'No matching payout ledger.',
+                    'error_message': 'Seller payout webhook ignored: payout runs in simulation mode.',
                 })
-                return self._json_response({'status': 'ok'})
+                return self._json_response({'status': 'ok', 'ignored': True})
 
             intent = self._find_xendit_intent_from_payload(payload)
             if not intent:

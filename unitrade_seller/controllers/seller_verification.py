@@ -317,6 +317,9 @@ class SellerVerificationController(http.Controller):
 
             reason = ocr_result.get('reason', '')
             rejected_message = self._rejection_message(reason)
+            if reason and str(reason).startswith('vision_api_failed'):
+                verification_status = 'manual_review'
+                ocr_result['verification_status'] = 'manual_review'
             record_state = {
                 'approved': 'approved',
                 'manual_review': 'manual_review',
@@ -380,6 +383,12 @@ class SellerVerificationController(http.Controller):
                     'ocr_student_name': ocr_result.get('student_name') or '',
                     'ocr_name_match_token': ocr_result.get('name_match_token') or '',
                     'status': 'verified',
+                    'rejection_reason': False,
+                    'revoke_reason': False,
+                    'revoked_date': False,
+                    'revoked_by': False,
+                    'report_state': 'none',
+                    'report_admin_note': False,
                     'verified_date': fields.Datetime.now(),
                     'verified_by': request.env.uid,
                 }

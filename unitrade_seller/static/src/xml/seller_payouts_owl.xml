@@ -97,7 +97,7 @@
                                 <button type="button" class="ut-payout-secondary-button" t-on-click="openAccountModal">+ Tambah Rekening</button>
                                 <button type="button" class="ut-payout-primary-button" t-att-disabled="primaryPayoutDisabled ? true : undefined" t-on-click="() => this.requestPayout()">
                                     <i t-att-class="state.loading ? 'fa fa-spinner fa-spin' : 'fa fa-arrow-up'"></i>
-                                    <span t-esc="state.loading ? 'Memproses...' : 'Tarik Saldo'"></span>
+                                    <span t-esc="state.loading ? 'Memproses...' : 'Ajukan Pencairan'"></span>
                                 </button>
                             </div>
                         </section>
@@ -190,7 +190,7 @@
                                                 <td>
                                                     <button type="button" class="ut-payout-table-action" t-att-disabled="(!ledger.ready || state.actionLedgerId === ledger.id) ? true : undefined" t-on-click="() => this.requestPayout(ledger.id)">
                                                         <t t-if="state.actionLedgerId === ledger.id">...</t>
-                                                        <t t-else="">Tarik Dana</t>
+                                                        <t t-else="">Ajukan</t>
                                                     </button>
                                                 </td>
                                             </tr>

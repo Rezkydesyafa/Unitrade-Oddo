@@ -3758,7 +3758,12 @@ class UnitradeSellerController(http.Controller):
         statuses = set(ledgers.mapped('payout_status'))
         payout_fields = payout._fields
         values = {}
-        if 'failed' in statuses and 'state' in payout_fields:
+        current_state = _safe_get(payout, 'state', 'pending')
+        if current_state in ('draft', 'ready', 'paid', 'cancelled'):
+            references = [ref for ref in ledgers.mapped('payout_reference') if ref]
+            if references and 'payout_reference' in payout_fields and not _safe_get(payout, 'payout_reference'):
+                values['payout_reference'] = ', '.join(references[:3])
+        elif 'failed' in statuses and 'state' in payout_fields:
             values['state'] = 'failed'
             failures = [reason for reason in ledgers.mapped('payout_failure_reason') if reason]
             if failures and 'failure_reason' in payout_fields:
@@ -3769,9 +3774,9 @@ class UnitradeSellerController(http.Controller):
                 values['completed_at'] = _safe_get(payout, 'completed_at') or fields.Datetime.now()
         elif statuses & {'processing', 'pending'} and 'state' in payout_fields:
             values['state'] = 'processing'
-        references = [ref for ref in ledgers.mapped('payout_reference') if ref]
-        if references and 'payout_reference' in payout_fields and not _safe_get(payout, 'payout_reference'):
-            values['payout_reference'] = ', '.join(references[:3])
+            references = [ref for ref in ledgers.mapped('payout_reference') if ref]
+            if references and 'payout_reference' in payout_fields and not _safe_get(payout, 'payout_reference'):
+                values['payout_reference'] = ', '.join(references[:3])
         if values:
             payout.sudo().write(values)
         return payout
@@ -4423,39 +4428,30 @@ class UnitradeSellerController(http.Controller):
                 'success': False,
                 'message': 'Belum ada transaksi selesai yang siap dicairkan.',
             }
-        payout = request.env['unitrade.seller.payout'].sudo().create({
-            'seller_id': seller.id,
-            'currency_id': currency.id,
-            'amount': currency.round(sum(ledgers.mapped('amount_seller'))),
-            'state': 'pending',
-            'ledger_ids_json': json.dumps(ledgers.ids),
-            **self._seller_payout_destination_values(seller),
-        }) if 'unitrade.seller.payout' in request.env.registry else False
+        if 'unitrade.seller.payout' not in request.env.registry:
+            return {
+                'success': False,
+                'message': 'Sistem request pencairan belum aktif.',
+            }
+        Payout = request.env['unitrade.seller.payout'].sudo()
         try:
             with request.env.cr.savepoint():
-                ledgers.action_create_xendit_payout()
-                if payout:
-                    payout.write({
-                        'state': 'processing',
-                        'processed_at': fields.Datetime.now(),
-                    })
-        except UserError as error:
-            if payout:
-                payout.write({
-                    'state': 'failed',
-                    'failure_reason': error.args[0] if error.args else str(error),
+                Payout.create({
+                    'seller_id': seller.id,
+                    'currency_id': currency.id,
+                    'amount': currency.round(sum(ledgers.mapped('amount_seller'))),
+                    'state': 'draft',
+                    'ledger_ids': [(6, 0, ledgers.ids)],
+                    'ledger_ids_json': json.dumps(ledgers.ids),
+                    **self._seller_payout_destination_values(seller),
                 })
+        except UserError as error:
             return {
                 'success': False,
                 'message': error.args[0] if error.args else str(error),
             }
         except Exception:
             _logger.exception('Seller payout request failed for seller %s', seller.id)
-            if payout:
-                payout.write({
-                    'state': 'failed',
-                    'failure_reason': 'Permintaan pencairan belum bisa diproses. Silakan coba lagi.',
-                })
             return {
                 'success': False,
                 'message': 'Permintaan pencairan belum bisa diproses. Silakan coba lagi.',
@@ -4468,7 +4464,7 @@ class UnitradeSellerController(http.Controller):
         payout_payload['success'] = True
         return {
             'success': True,
-            'message': 'Permintaan pencairan berhasil dikirim.',
+            'message': 'Permintaan pencairan berhasil dibuat. Admin akan memvalidasi dan memproses transfer manual.',
             'dashboard_payload': payload,
             'payout_payload': payout_payload,
         }
@@ -5079,9 +5075,7 @@ class UnitradeSellerController(http.Controller):
         product_price = product._unitrade_discounted_price() if hasattr(product, '_unitrade_discounted_price') else product.list_price
         posting_fee, admin_fee, total, fee_policy = self._seller_listing_fee_amounts(currency, product_price)
         if total <= 0:
-            self._publish_product_after_listing_paid(product, total)
-            if 'x_listing_fee_status' in product._fields:
-                product.sudo().write({'x_listing_fee_status': 'not_required'})
+            self._publish_product_after_listing_paid(product, total, fee_status='not_required')
             return {
                 'success': True,
                 'message': 'Produk berhasil dipublikasikan.',
@@ -5115,11 +5109,18 @@ class UnitradeSellerController(http.Controller):
         return methods.get(method_key or '')
 
     @staticmethod
-    def _publish_product_after_listing_paid(product, listing_fee=0.0):
+    def _publish_product_after_listing_paid(product, listing_fee=0.0, payment_intent=False, fee_status='paid'):
+        paid_at = (
+            payment_intent.paid_at
+            if payment_intent and payment_intent.paid_at
+            else fields.Datetime.now()
+        )
         if hasattr(product, '_unitrade_apply_listing_payment'):
             product._unitrade_apply_listing_payment(
                 listing_fee=listing_fee,
-                paid_at=fields.Datetime.now(),
+                paid_at=paid_at,
+                payment_intent=payment_intent,
+                fee_status=fee_status,
             )
             return
         values = {
@@ -5129,9 +5130,15 @@ class UnitradeSellerController(http.Controller):
         if 'x_listing_fee' in product._fields:
             values['x_listing_fee'] = listing_fee
         if 'x_listing_activated_at' in product._fields:
-            values['x_listing_activated_at'] = fields.Datetime.now()
+            values['x_listing_activated_at'] = paid_at
         if 'x_listing_expires_at' in product._fields:
             values['x_listing_expires_at'] = UnitradeSellerController._seller_listing_valid_until()
+        if 'x_listing_fee_status' in product._fields:
+            values['x_listing_fee_status'] = fee_status
+        if payment_intent and 'x_listing_fee_payment_id' in product._fields:
+            values['x_listing_fee_payment_id'] = payment_intent.id
+        if 'x_listing_fee_paid_at' in product._fields:
+            values['x_listing_fee_paid_at'] = paid_at
         if 'detailed_type' in product._fields:
             values['detailed_type'] = 'consu'
         elif 'type' in product._fields:
@@ -5199,7 +5206,7 @@ class UnitradeSellerController(http.Controller):
             'method': method_key,
             'amount': total,
         })
-        self._publish_product_after_listing_paid(product, total)
+        self._publish_product_after_listing_paid(product, total, payment_intent=intent, fee_status='paid')
         return intent
 
     @http.route('/unitrade/seller/products/<int:product_id>/payment/submit', type='json', auth='user', website=True, methods=['POST'])
@@ -5235,9 +5242,7 @@ class UnitradeSellerController(http.Controller):
         product_price = product._unitrade_discounted_price() if hasattr(product, '_unitrade_discounted_price') else product.list_price
         posting_fee, admin_fee, total, fee_policy = self._seller_listing_fee_amounts(currency, product_price)
         if total <= 0:
-            self._publish_product_after_listing_paid(product, total)
-            if 'x_listing_fee_status' in product._fields:
-                product.sudo().write({'x_listing_fee_status': 'not_required'})
+            self._publish_product_after_listing_paid(product, total, fee_status='not_required')
             return {
                 'success': True,
                 'message': 'Produk berhasil dipublikasikan.',
