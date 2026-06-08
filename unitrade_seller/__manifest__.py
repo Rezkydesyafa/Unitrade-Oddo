@@ -45,7 +45,6 @@
             'unitrade_seller/static/src/xml/seller_settings_owl.xml',
             'unitrade_seller/static/src/xml/seller_profile_owl.xml',
             'unitrade_seller/static/src/js/seller_sidebar.js',
-            'unitrade_seller/static/src/js/seller_notification_dropdown.js',
             'unitrade_seller/static/src/js/seller_mount.js',
             'unitrade_seller/static/src/js/seller_handoff_upload.js',
             'unitrade_seller/static/src/js/seller_dashboard.js',
