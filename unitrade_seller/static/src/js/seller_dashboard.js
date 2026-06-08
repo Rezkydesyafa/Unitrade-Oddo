@@ -631,3 +631,51 @@ publicWidget.registry.UnitradeSellerDashboard = publicWidget.Widget.extend({
         }
     },
 });
+
+publicWidget.registry.UnitradeSellerDashboardStaticSidebar = publicWidget.Widget.extend({
+    selector: "#wrap.ut-seller-dashboard-static",
+    events: {
+        "click [data-ut-static-sidebar-toggle='1']": "_onToggleSidebar",
+        "click .ut-dash-mobile-scrim": "_onCloseSidebar",
+    },
+
+    start() {
+        const superPromise = this._super ? this._super.apply(this, arguments) : Promise.resolve();
+        this.dashboardPage = this.el.querySelector("[data-ut-dashboard-static-fallback='1']");
+        this.toggleButton = this.el.querySelector("[data-ut-static-sidebar-toggle='1']");
+        this._setSidebarOpen(false);
+        return superPromise;
+    },
+
+    _onToggleSidebar() {
+        this._setSidebarOpen(!this._isSidebarOpen());
+    },
+
+    _onCloseSidebar() {
+        this._setSidebarOpen(false);
+    },
+
+    _isSidebarOpen() {
+        return Boolean(this.dashboardPage && this.dashboardPage.classList.contains("ut-is-sidebar-open"));
+    },
+
+    _setSidebarOpen(isOpen) {
+        if (!this.dashboardPage) {
+            return;
+        }
+        this.dashboardPage.classList.toggle("ut-is-sidebar-open", isOpen);
+        if (!this.toggleButton) {
+            return;
+        }
+        const icon = this.toggleButton.querySelector("i");
+        const label = this.toggleButton.querySelector(".ut-dash-sidebar-button-label");
+        this.toggleButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        this.toggleButton.setAttribute("aria-label", isOpen ? "Tutup sidebar" : "Buka sidebar");
+        if (icon) {
+            icon.className = isOpen ? "fa fa-angle-left" : "fa fa-angle-right";
+        }
+        if (label) {
+            label.textContent = isOpen ? "Sembunyikan" : "Buka";
+        }
+    },
+});

@@ -125,7 +125,7 @@
 
     <template id="seller_dashboard_static_fallback" name="Seller Dashboard Static Fallback">
         <div data-ut-dashboard-static-fallback="1"
-             class="ut-seller-dashboard-page ut-is-sidebar-open tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
+             class="ut-seller-dashboard-page tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
             <div class="ut-dash-stage">
                 <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px] tw-text-[12px] tw-leading-6 tw-text-black">
                     <div class="tw-flex tw-items-center tw-gap-[18px]">
@@ -226,14 +226,22 @@
                         </section>
                     </nav>
                     <div class="ut-dash-sidebar-footer">
+                        <button type="button"
+                                class="ut-dash-sidebar-toggle"
+                                data-ut-static-sidebar-toggle="1"
+                                aria-expanded="false"
+                                aria-label="Buka sidebar">
+                            <i class="fa fa-angle-right"></i>
+                            <span class="ut-dash-sidebar-button-label">Buka</span>
+                        </button>
+                    </div>
+                    <div class="ut-dash-sidebar-settings">
                         <a href="/" class="ut-dash-sidebar-item" aria-label="Kembali ke Beranda UniTrade">
                             <span class="ut-dash-sidebar-icon">
                                 <img src="/unitrade_seller/static/src/img/dashboard-icon-home.svg" alt=""/>
                             </span>
                             <span class="ut-dash-sidebar-label">Beranda</span>
                         </a>
-                    </div>
-                    <div class="ut-dash-sidebar-settings">
                         <a href="/unitrade/seller/settings" class="ut-dash-sidebar-item" aria-label="Pengaturan Toko">
                             <span class="ut-dash-sidebar-icon">
                                 <img src="/unitrade_seller/static/src/img/dashboard-icon-settings.svg" alt=""/>
