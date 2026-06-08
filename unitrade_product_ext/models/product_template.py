@@ -17,6 +17,7 @@ DIY_DISTRICT_COORDINATES = {
 }
 
 UNITRADE_LISTING_DURATION_DAYS = 30
+UNITRADE_SETTLED_LISTING_FEE_STATUSES = ('paid', 'waived', 'not_required')
 
 
 class ProductTemplateUniTrade(models.Model):
@@ -266,8 +267,11 @@ class ProductTemplateUniTrade(models.Model):
                 [('x_seller_id', '=', False)],
                 [
                     ('x_seller_id', '!=', False),
+                    ('x_seller_id.status', '=', 'verified'),
+                    ('x_seller_id.x_store_active', '=', True),
                     ('x_listing_expires_at', '!=', False),
                     ('x_listing_expires_at', '>=', now),
+                    ('x_listing_fee_status', 'in', UNITRADE_SETTLED_LISTING_FEE_STATUSES),
                 ],
             ]),
         ])
@@ -278,9 +282,11 @@ class ProductTemplateUniTrade(models.Model):
             return False
         if self.x_seller_id:
             return bool(
-                self.x_listing_expires_at
+                self.x_seller_id.status == 'verified'
+                and self.x_seller_id.x_store_active
+                and self.x_listing_expires_at
                 and self.x_listing_expires_at >= fields.Datetime.now()
-                and self._unitrade_has_paid_listing_fee()
+                and self._unitrade_listing_fee_is_settled()
             )
         return True
 
@@ -300,6 +306,8 @@ class ProductTemplateUniTrade(models.Model):
         self.ensure_one()
         if not self.x_seller_id:
             return True
+        if self.x_listing_fee_status in UNITRADE_SETTLED_LISTING_FEE_STATUSES:
+            return True
         if 'unitrade.payment.intent' not in self.env.registry:
             return False
         return bool(self.env['unitrade.payment.intent'].sudo().search_count([
@@ -308,7 +316,16 @@ class ProductTemplateUniTrade(models.Model):
             ('product_template_id', '=', self.id),
         ]))
 
-    def _unitrade_apply_listing_payment(self, listing_fee=0.0, paid_at=False):
+    def _unitrade_listing_fee_is_settled(self):
+        self.ensure_one()
+        if not self.x_seller_id:
+            return True
+        return bool(
+            self.x_listing_fee_status in UNITRADE_SETTLED_LISTING_FEE_STATUSES
+            or self._unitrade_has_paid_listing_fee()
+        )
+
+    def _unitrade_apply_listing_payment(self, listing_fee=0.0, paid_at=False, payment_intent=False, fee_status='paid'):
         paid_at = fields.Datetime.to_datetime(paid_at) if paid_at else fields.Datetime.now()
         values = {
             'sale_ok': True,
@@ -318,6 +335,12 @@ class ProductTemplateUniTrade(models.Model):
         }
         if 'x_listing_fee' in self._fields:
             values['x_listing_fee'] = listing_fee or 0.0
+        if 'x_listing_fee_status' in self._fields:
+            values['x_listing_fee_status'] = fee_status or 'paid'
+        if payment_intent and 'x_listing_fee_payment_id' in self._fields:
+            values['x_listing_fee_payment_id'] = payment_intent.id
+        if 'x_listing_fee_paid_at' in self._fields:
+            values['x_listing_fee_paid_at'] = paid_at
         self.sudo().write(values)
 
     def _unitrade_listing_state_payload(self):
@@ -386,8 +409,10 @@ class ProductTemplateUniTrade(models.Model):
 
         domain = [
             ('x_is_marketplace', '=', True),
-            ('x_listing_expires_at', '=', False),
             ('x_seller_id', '!=', False),
+            '|',
+            ('x_listing_expires_at', '=', False),
+            ('x_listing_fee_status', 'not in', ('paid', 'waived')),
         ]
         if seller:
             domain.append(('x_seller_id', '=', seller.id))
@@ -415,12 +440,42 @@ class ProductTemplateUniTrade(models.Model):
             values = {
                 'x_listing_activated_at': paid_at,
                 'x_listing_expires_at': product._unitrade_listing_expiry_from(paid_at),
+                'x_listing_fee_status': 'paid',
+                'x_listing_fee_payment_id': intent.id,
+                'x_listing_fee_paid_at': paid_at,
             }
             if intent and not product.x_listing_fee:
                 values['x_listing_fee'] = intent.amount
             product.sudo().write(values)
             updated += 1
         return updated
+
+    @api.model
+    def _unitrade_deactivate_invalid_seller_listings(self, seller=False):
+        domain = [
+            ('x_is_marketplace', '=', True),
+            ('x_seller_id', '!=', False),
+            '|',
+            ('website_published', '=', True),
+            ('sale_ok', '=', True),
+        ]
+        if seller:
+            domain.insert(1, ('x_seller_id', '=', seller.id))
+        candidates = self.sudo().with_context(active_test=False).search(domain)
+        invalid_products = candidates.filtered(
+            lambda product: (
+                product.x_seller_id.status != 'verified'
+                or not product.x_seller_id.x_store_active
+            )
+        )
+        if not invalid_products:
+            return 0
+        invalid_products.write({
+            'website_published': False,
+            'sale_ok': False,
+        })
+        _logger.info('Deactivated %s UniTrade listing(s) with invalid seller/store state.', len(invalid_products))
+        return len(invalid_products)
 
     @api.model
     def _unitrade_deactivate_unpaid_seller_listings(self, seller=False):
@@ -436,8 +491,7 @@ class ProductTemplateUniTrade(models.Model):
         if seller:
             domain.insert(1, ('x_seller_id', '=', seller.id))
         candidates = self.sudo().with_context(active_test=False).search(domain)
-        paid_product_ids = self._unitrade_paid_listing_product_ids(candidates)
-        unpaid_products = candidates.filtered(lambda product: product.id not in paid_product_ids)
+        unpaid_products = candidates.filtered(lambda product: not product._unitrade_listing_fee_is_settled())
         if not unpaid_products:
             return 0
         unpaid_products.write({
@@ -477,6 +531,9 @@ class ProductTemplateUniTrade(models.Model):
         now = fields.Datetime.now()
         domain = [
             ('x_is_marketplace', '=', True),
+            ('x_seller_id.status', '=', 'verified'),
+            ('x_seller_id.x_store_active', '=', True),
+            ('x_listing_fee_status', 'in', UNITRADE_SETTLED_LISTING_FEE_STATUSES),
             ('x_listing_expires_at', '!=', False),
             ('x_listing_expires_at', '>=', now),
             '|',
@@ -486,6 +543,7 @@ class ProductTemplateUniTrade(models.Model):
         if seller:
             domain.insert(1, ('x_seller_id', '=', seller.id))
         current_products = self.sudo().search(domain)
+        current_products = current_products.filtered(lambda product: product._unitrade_listing_fee_is_settled())
         if not current_products:
             return 0
         values = {
@@ -499,11 +557,13 @@ class ProductTemplateUniTrade(models.Model):
     @api.model
     def _unitrade_refresh_listing_states(self, seller=False):
         backfilled = self._unitrade_backfill_listing_expiry_from_paid_intents(seller=seller)
+        invalid_seller_deactivated = self._unitrade_deactivate_invalid_seller_listings(seller=seller)
         unpaid_deactivated = self._unitrade_deactivate_unpaid_seller_listings(seller=seller)
         reactivated = self._unitrade_reactivate_current_listings(seller=seller)
         deactivated = self._unitrade_deactivate_expired_listings(seller=seller)
         return {
             'backfilled': backfilled,
+            'invalid_seller_deactivated': invalid_seller_deactivated,
             'unpaid_deactivated': unpaid_deactivated,
             'reactivated': reactivated,
             'deactivated': deactivated,
@@ -513,8 +573,9 @@ class ProductTemplateUniTrade(models.Model):
     def _cron_unitrade_deactivate_expired_listings(self):
         result = self._unitrade_refresh_listing_states()
         _logger.info(
-            'UniTrade listing expiry cron completed: backfilled=%s unpaid_deactivated=%s reactivated=%s deactivated=%s',
+            'UniTrade listing expiry cron completed: backfilled=%s invalid_seller_deactivated=%s unpaid_deactivated=%s reactivated=%s deactivated=%s',
             result.get('backfilled', 0),
+            result.get('invalid_seller_deactivated', 0),
             result.get('unpaid_deactivated', 0),
             result.get('reactivated', 0),
             result.get('deactivated', 0),
@@ -812,6 +873,8 @@ class ProductTemplateUniTrade(models.Model):
         'website_published',
         'sale_ok',
         'active',
+        'x_seller_id.status',
+        'x_seller_id.x_store_active',
     )
     def _compute_x_listing_status(self):
         now = fields.Datetime.now()
@@ -827,6 +890,12 @@ class ProductTemplateUniTrade(models.Model):
                 continue
             if record.x_listing_fee_status in ('unpaid', 'pending'):
                 record.x_listing_status = 'fee_pending'
+                continue
+            if record.x_seller_id and (
+                record.x_seller_id.status != 'verified'
+                or not record.x_seller_id.x_store_active
+            ):
+                record.x_listing_status = 'draft'
                 continue
             # Check expired
             if record.x_listing_expires_at and record.x_listing_expires_at < now:

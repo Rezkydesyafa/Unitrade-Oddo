@@ -129,7 +129,12 @@ export class SellerDashboard extends Component {
     setup() {
         this.chartRef = useRef("chart");
         this.rootRef = useRef("root");
-        this.onResize = () => this.drawChart();
+        this.chartFrame = null;
+        this.dashboardDataInFlightKey = "";
+        this.dashboardDataInFlightPromise = null;
+        this.dashboardRequestSeq = 0;
+        this.isDestroyed = false;
+        this.onResize = () => this.scheduleDrawChart();
         const initialPayload = this.props.payload || {};
         const initialDate = (initialPayload.date_filter && initialPayload.date_filter.value) || todayInputValue();
         const initialDateMode = (initialPayload.date_filter && initialPayload.date_filter.mode) || "day";
@@ -163,10 +168,15 @@ export class SellerDashboard extends Component {
             window.addEventListener("resize", this.onResize);
             window.addEventListener("hashchange", this.onSidebarHashChange);
             document.addEventListener("click", this.onDocumentClick);
-            window.requestAnimationFrame(() => this.drawChart());
+            this.scheduleDrawChart();
         });
 
         onWillUnmount(() => {
+            this.isDestroyed = true;
+            if (this.chartFrame) {
+                window.cancelAnimationFrame(this.chartFrame);
+                this.chartFrame = null;
+            }
             window.removeEventListener("resize", this.onResize);
             window.removeEventListener("hashchange", this.onSidebarHashChange);
             document.removeEventListener("click", this.onDocumentClick);
@@ -175,7 +185,7 @@ export class SellerDashboard extends Component {
         useEffect(
             () => {
                 if (this.state.ready) {
-                    this.drawChart();
+                    this.scheduleDrawChart();
                 }
             },
             () => [this.state.period, this.state.ready, this.state.payload]
@@ -366,36 +376,68 @@ export class SellerDashboard extends Component {
         const selectedDate = inputValueFromDate(value || this.state.dateValue);
         const selectedMode = ["day", "month", "all"].includes(mode) ? mode : "day";
         const selectedOrdersPeriod = ["weekly", "monthly"].includes(ordersPeriod) ? ordersPeriod : "weekly";
+        const requestKey = `${selectedDate}|${selectedMode}|${selectedOrdersPeriod}`;
+        if (this.dashboardDataInFlightPromise && this.dashboardDataInFlightKey === requestKey) {
+            return this.dashboardDataInFlightPromise;
+        }
+        const requestSeq = ++this.dashboardRequestSeq;
         this.state.dateValue = selectedDate;
         this.state.dateMode = selectedMode;
         this.state.ordersPeriod = selectedOrdersPeriod;
         this.state.dateLoading = true;
         this.state.dateError = "";
-        try {
-            const payload = await jsonrpc(this.payload.data_url || "/unitrade/seller/dashboard/data", {
-                date: selectedDate,
-                date_mode: selectedMode,
-                orders_period: selectedOrdersPeriod,
-            });
-            if (!payload || payload.success === false) {
-                throw new Error((payload && payload.message) || "Data dashboard belum bisa dimuat.");
+        this.dashboardDataInFlightKey = requestKey;
+        this.dashboardDataInFlightPromise = (async () => {
+            try {
+                const payload = await jsonrpc(this.payload.data_url || "/unitrade/seller/dashboard/data", {
+                    date: selectedDate,
+                    date_mode: selectedMode,
+                    orders_period: selectedOrdersPeriod,
+                });
+                if (!payload || payload.success === false) {
+                    throw new Error((payload && payload.message) || "Data dashboard belum bisa dimuat.");
+                }
+                if (this.isDestroyed || requestSeq !== this.dashboardRequestSeq) {
+                    return payload;
+                }
+                this.state.payload = payload;
+                this.state.dateValue = (payload.date_filter && payload.date_filter.value) || selectedDate;
+                this.state.dateMode = (payload.date_filter && payload.date_filter.mode) || selectedMode;
+                this.state.ordersPeriod = payload.orders_period || selectedOrdersPeriod;
+                this.state.datePickerOpen = false;
+                const url = new URL(window.location.href);
+                url.searchParams.set("date", this.state.dateValue);
+                url.searchParams.set("date_mode", this.state.dateMode);
+                url.searchParams.set("orders_period", this.state.ordersPeriod);
+                window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+                this.scheduleDrawChart();
+                return payload;
+            } catch (error) {
+                if (!this.isDestroyed && requestSeq === this.dashboardRequestSeq) {
+                    this.state.dateError = error.message || "Data dashboard belum bisa dimuat.";
+                }
+                return null;
+            } finally {
+                if (requestSeq === this.dashboardRequestSeq) {
+                    this.state.dateLoading = false;
+                }
+                if (this.dashboardDataInFlightKey === requestKey) {
+                    this.dashboardDataInFlightKey = "";
+                    this.dashboardDataInFlightPromise = null;
+                }
             }
-            this.state.payload = payload;
-            this.state.dateValue = (payload.date_filter && payload.date_filter.value) || selectedDate;
-            this.state.dateMode = (payload.date_filter && payload.date_filter.mode) || selectedMode;
-            this.state.ordersPeriod = payload.orders_period || selectedOrdersPeriod;
-            this.state.datePickerOpen = false;
-            const url = new URL(window.location.href);
-            url.searchParams.set("date", this.state.dateValue);
-            url.searchParams.set("date_mode", this.state.dateMode);
-            url.searchParams.set("orders_period", this.state.ordersPeriod);
-            window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
-            window.requestAnimationFrame(() => this.drawChart());
-        } catch (error) {
-            this.state.dateError = error.message || "Data dashboard belum bisa dimuat.";
-        } finally {
-            this.state.dateLoading = false;
+        })();
+        return this.dashboardDataInFlightPromise;
+    }
+
+    scheduleDrawChart() {
+        if (this.isDestroyed || this.chartFrame) {
+            return;
         }
+        this.chartFrame = window.requestAnimationFrame(() => {
+            this.chartFrame = null;
+            this.drawChart();
+        });
     }
 
     applyDateFilter() {
@@ -435,13 +477,13 @@ export class SellerDashboard extends Component {
     toggleSidebar() {
         this.state.sidebarOpen = !this.state.sidebarOpen;
         writeSellerSidebarOpen(this.state.sidebarOpen);
-        window.setTimeout(() => this.drawChart(), 300);
+        window.setTimeout(() => this.scheduleDrawChart(), 300);
     }
 
     closeSidebar() {
         this.state.sidebarOpen = false;
         writeSellerSidebarOpen(false);
-        window.setTimeout(() => this.drawChart(), 300);
+        window.setTimeout(() => this.scheduleDrawChart(), 300);
     }
 
     openHandoff(order) {
@@ -459,7 +501,7 @@ export class SellerDashboard extends Component {
     }
 
     drawChart() {
-        if (!this.state.ready) {
+        if (this.isDestroyed || !this.state.ready) {
             return;
         }
         const canvas = this.chartRef.el;
@@ -587,6 +629,10 @@ publicWidget.registry.UnitradeSellerDashboard = publicWidget.Widget.extend({
 
     async start() {
         const superPromise = this._super ? this._super.apply(this, arguments) : Promise.resolve();
+        if (this.el.dataset.utSellerDashboardMounted === "1") {
+            return superPromise;
+        }
+        this.el.dataset.utSellerDashboardMounted = "1";
         let parsed = {};
         try {
             parsed = JSON.parse(this.el.dataset.dashboardPayload || "{}");
@@ -608,6 +654,10 @@ publicWidget.registry.UnitradeSellerDashboard = publicWidget.Widget.extend({
             mountTarget.remove();
             console.error("[UniTrade] Seller dashboard mount:", error);
             this.el.classList.add("ut-owl-mount-failed");
+            const staticFallback = this.el.querySelector("[data-ut-dashboard-static-fallback='1']");
+            if (staticFallback) {
+                staticFallback.style.display = "block";
+            }
             if (!this.el.querySelector(".ut-owl-fallback-error")) {
                 const fallback = document.createElement("div");
                 fallback.className = "ut-owl-fallback-error";
@@ -624,6 +674,59 @@ publicWidget.registry.UnitradeSellerDashboard = publicWidget.Widget.extend({
         }
         if (this._super) {
             this._super.apply(this, arguments);
+        }
+    },
+});
+
+publicWidget.registry.UnitradeSellerDashboardStaticSidebar = publicWidget.Widget.extend({
+    selector: "#wrap.ut-seller-dashboard-static",
+    events: {
+        "click [data-ut-static-sidebar-toggle='1']": "_onToggleSidebar",
+        "click .ut-dash-mobile-scrim": "_onCloseSidebar",
+    },
+
+    start() {
+        const superPromise = this._super ? this._super.apply(this, arguments) : Promise.resolve();
+        if (this.el.dataset.utSellerStaticSidebarMounted === "1") {
+            return superPromise;
+        }
+        this.el.dataset.utSellerStaticSidebarMounted = "1";
+        document.body.classList.add("ut-has-seller-dashboard-page");
+        this.dashboardPage = this.el.querySelector("[data-ut-dashboard-static-fallback='1']");
+        this.toggleButton = this.el.querySelector("[data-ut-static-sidebar-toggle='1']");
+        this._setSidebarOpen(false);
+        return superPromise;
+    },
+
+    _onToggleSidebar() {
+        this._setSidebarOpen(!this._isSidebarOpen());
+    },
+
+    _onCloseSidebar() {
+        this._setSidebarOpen(false);
+    },
+
+    _isSidebarOpen() {
+        return Boolean(this.dashboardPage && this.dashboardPage.classList.contains("ut-is-sidebar-open"));
+    },
+
+    _setSidebarOpen(isOpen) {
+        if (!this.dashboardPage) {
+            return;
+        }
+        this.dashboardPage.classList.toggle("ut-is-sidebar-open", isOpen);
+        if (!this.toggleButton) {
+            return;
+        }
+        const icon = this.toggleButton.querySelector("i");
+        const label = this.toggleButton.querySelector(".ut-dash-sidebar-button-label");
+        this.toggleButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        this.toggleButton.setAttribute("aria-label", isOpen ? "Tutup sidebar" : "Buka sidebar");
+        if (icon) {
+            icon.className = isOpen ? "fa fa-angle-left" : "fa fa-angle-right";
+        }
+        if (label) {
+            label.textContent = isOpen ? "Sembunyikan" : "Buka";
         }
     },
 });

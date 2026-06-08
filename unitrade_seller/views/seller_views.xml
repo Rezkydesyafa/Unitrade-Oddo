@@ -78,7 +78,7 @@
                             <field name="x_profile_longitude"/>
                         </group>
                     </group>
-                    <group string="Payout Xendit">
+                    <group string="Payout Manual / Simulasi">
                         <group>
                             <field name="x_payout_channel_code"/>
                             <field name="x_payout_account_number"/>

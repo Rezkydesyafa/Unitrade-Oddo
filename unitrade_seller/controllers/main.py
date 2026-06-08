@@ -3565,6 +3565,106 @@ class UnitradeSellerController(http.Controller):
         }
         return {'weekly': weekly, 'monthly': monthly}
 
+    def _seller_dashboard_static_sales_chart(self, chart_data, currency):
+        weekly = (chart_data or {}).get('weekly') or {}
+        labels = list(weekly.get('labels') or [])
+        revenues = [float(value or 0.0) for value in (weekly.get('revenue') or [])]
+        orders = [int(value or 0) for value in (weekly.get('orders') or [])]
+        point_count = max(len(labels), len(revenues), len(orders), 7)
+
+        if len(labels) < point_count:
+            anchor_date = fields.Date.context_today(request.env.user)
+            fallback_days = [anchor_date - timedelta(days=offset) for offset in range(point_count - 1, -1, -1)]
+            labels = [day.strftime('%d/%m') for day in fallback_days]
+        revenues += [0.0] * max(0, point_count - len(revenues))
+        orders += [0] * max(0, point_count - len(orders))
+
+        width = 720
+        height = 260
+        pad_left = 62
+        pad_right = 24
+        pad_top = 22
+        pad_bottom = 42
+        plot_width = width - pad_left - pad_right
+        plot_height = height - pad_top - pad_bottom
+        bottom_y = pad_top + plot_height
+        max_revenue = max(revenues or [0.0])
+        max_orders = max(orders or [0])
+        revenue_scale = max_revenue * 1.15 if max_revenue > 0 else 100000.0
+        order_scale = max_orders if max_orders > 0 else 1
+        gap = plot_width / float(point_count - 1) if point_count > 1 else plot_width
+        bar_width = min(42, max(18, (plot_width / max(point_count, 1)) * 0.42))
+
+        grid_lines = []
+        for index in range(5):
+            y = pad_top + (plot_height / 4.0) * index
+            value = revenue_scale - ((revenue_scale / 4.0) * index)
+            grid_lines.append({
+                'y': round(y, 2),
+                'label': self._format_money(value, currency),
+            })
+
+        revenue_points = []
+        order_points = []
+        bars = []
+        ticks = []
+        for index in range(point_count):
+            x = pad_left + gap * index
+            revenue = revenues[index]
+            order_count = orders[index]
+            revenue_y = bottom_y - ((revenue / revenue_scale) * plot_height if revenue_scale else 0)
+            order_y = bottom_y - ((order_count / order_scale) * plot_height if order_scale else 0)
+            bar_height = (revenue / revenue_scale) * plot_height if revenue_scale else 0
+            revenue_points.append({'x': round(x, 2), 'y': round(revenue_y, 2), 'value': revenue})
+            order_points.append({'x': round(x, 2), 'y': round(order_y, 2), 'value': order_count})
+            bars.append({
+                'x': round(x - (bar_width / 2.0), 2),
+                'y': round(bottom_y - bar_height, 2),
+                'width': round(bar_width, 2),
+                'height': round(bar_height, 2),
+            })
+            ticks.append({
+                'x': round(x, 2),
+                'label': labels[index] if index < len(labels) else '',
+            })
+
+        line_points = ' '.join('%s,%s' % (point['x'], point['y']) for point in revenue_points)
+        order_line_points = ' '.join('%s,%s' % (point['x'], point['y']) for point in order_points)
+        area_points = ''
+        if revenue_points:
+            area_points = '%s,%s %s %s,%s' % (
+                revenue_points[0]['x'],
+                bottom_y,
+                line_points,
+                revenue_points[-1]['x'],
+                bottom_y,
+            )
+        total_revenue = sum(revenues)
+        total_orders = sum(orders)
+        return {
+            'width': width,
+            'height': height,
+            'view_box': '0 0 %s %s' % (width, height),
+            'grid_x1': pad_left,
+            'grid_x2': width - pad_right,
+            'bottom_y': bottom_y,
+            'grid_lines': grid_lines,
+            'bars': bars,
+            'ticks': ticks,
+            'revenue_points': revenue_points,
+            'order_points': order_points,
+            'line_points': line_points,
+            'order_line_points': order_line_points,
+            'area_points': area_points,
+            'has_data': bool(total_revenue or total_orders),
+            'total_revenue_label': self._format_money(total_revenue, currency),
+            'total_orders': total_orders,
+            'aria_label': 'Grafik penjualan 7 hari terakhir: %s, %s pesanan' % (
+                self._format_money(total_revenue, currency),
+                total_orders,
+            ),
+        }
+
     def _seller_payout_channel_label(self, seller):
         channel_code = _safe_get(seller, 'x_payout_channel_code') or ''
         if not channel_code:
@@ -3758,7 +3858,12 @@ class UnitradeSellerController(http.Controller):
         statuses = set(ledgers.mapped('payout_status'))
         payout_fields = payout._fields
         values = {}
-        if 'failed' in statuses and 'state' in payout_fields:
+        current_state = _safe_get(payout, 'state', 'pending')
+        if current_state in ('draft', 'ready', 'paid', 'cancelled'):
+            references = [ref for ref in ledgers.mapped('payout_reference') if ref]
+            if references and 'payout_reference' in payout_fields and not _safe_get(payout, 'payout_reference'):
+                values['payout_reference'] = ', '.join(references[:3])
+        elif 'failed' in statuses and 'state' in payout_fields:
             values['state'] = 'failed'
             failures = [reason for reason in ledgers.mapped('payout_failure_reason') if reason]
             if failures and 'failure_reason' in payout_fields:
@@ -3769,9 +3874,9 @@ class UnitradeSellerController(http.Controller):
                 values['completed_at'] = _safe_get(payout, 'completed_at') or fields.Datetime.now()
         elif statuses & {'processing', 'pending'} and 'state' in payout_fields:
             values['state'] = 'processing'
-        references = [ref for ref in ledgers.mapped('payout_reference') if ref]
-        if references and 'payout_reference' in payout_fields and not _safe_get(payout, 'payout_reference'):
-            values['payout_reference'] = ', '.join(references[:3])
+            references = [ref for ref in ledgers.mapped('payout_reference') if ref]
+            if references and 'payout_reference' in payout_fields and not _safe_get(payout, 'payout_reference'):
+                values['payout_reference'] = ', '.join(references[:3])
         if values:
             payout.sudo().write(values)
         return payout
@@ -3941,6 +4046,7 @@ class UnitradeSellerController(http.Controller):
         chart_data = self._seller_dashboard_chart_data(seller, selected_date=selected_day)
         review_payloads = self._seller_dashboard_review_payloads(all_products)
         refund_payloads = self._seller_dashboard_refund_payloads(seller, date_start=date_start, date_end=date_end)
+        static_sales_chart = self._seller_dashboard_static_sales_chart(chart_data, currency)
 
         dashboard_payload = {
             'seller': {
@@ -3994,6 +4100,7 @@ class UnitradeSellerController(http.Controller):
             'dashboard_orders': order_payloads,
             'dashboard_messages': chat_payloads,
             'dashboard_reviews': review_payloads,
+            'dashboard_sales_chart': static_sales_chart,
             'dashboard_chart_json': json.dumps(dashboard_payload),
             'dashboard_payload_json': json.dumps(dashboard_payload),
             'dashboard_search_items_json': json.dumps([]),
@@ -4423,39 +4530,30 @@ class UnitradeSellerController(http.Controller):
                 'success': False,
                 'message': 'Belum ada transaksi selesai yang siap dicairkan.',
             }
-        payout = request.env['unitrade.seller.payout'].sudo().create({
-            'seller_id': seller.id,
-            'currency_id': currency.id,
-            'amount': currency.round(sum(ledgers.mapped('amount_seller'))),
-            'state': 'pending',
-            'ledger_ids_json': json.dumps(ledgers.ids),
-            **self._seller_payout_destination_values(seller),
-        }) if 'unitrade.seller.payout' in request.env.registry else False
+        if 'unitrade.seller.payout' not in request.env.registry:
+            return {
+                'success': False,
+                'message': 'Sistem request pencairan belum aktif.',
+            }
+        Payout = request.env['unitrade.seller.payout'].sudo()
         try:
             with request.env.cr.savepoint():
-                ledgers.action_create_xendit_payout()
-                if payout:
-                    payout.write({
-                        'state': 'processing',
-                        'processed_at': fields.Datetime.now(),
-                    })
-        except UserError as error:
-            if payout:
-                payout.write({
-                    'state': 'failed',
-                    'failure_reason': error.args[0] if error.args else str(error),
+                Payout.create({
+                    'seller_id': seller.id,
+                    'currency_id': currency.id,
+                    'amount': currency.round(sum(ledgers.mapped('amount_seller'))),
+                    'state': 'draft',
+                    'ledger_ids': [(6, 0, ledgers.ids)],
+                    'ledger_ids_json': json.dumps(ledgers.ids),
+                    **self._seller_payout_destination_values(seller),
                 })
+        except UserError as error:
             return {
                 'success': False,
                 'message': error.args[0] if error.args else str(error),
             }
         except Exception:
             _logger.exception('Seller payout request failed for seller %s', seller.id)
-            if payout:
-                payout.write({
-                    'state': 'failed',
-                    'failure_reason': 'Permintaan pencairan belum bisa diproses. Silakan coba lagi.',
-                })
             return {
                 'success': False,
                 'message': 'Permintaan pencairan belum bisa diproses. Silakan coba lagi.',
@@ -4468,7 +4566,7 @@ class UnitradeSellerController(http.Controller):
         payout_payload['success'] = True
         return {
             'success': True,
-            'message': 'Permintaan pencairan berhasil dikirim.',
+            'message': 'Permintaan pencairan berhasil dibuat. Admin akan memvalidasi dan memproses transfer manual.',
             'dashboard_payload': payload,
             'payout_payload': payout_payload,
         }
@@ -5079,9 +5177,7 @@ class UnitradeSellerController(http.Controller):
         product_price = product._unitrade_discounted_price() if hasattr(product, '_unitrade_discounted_price') else product.list_price
         posting_fee, admin_fee, total, fee_policy = self._seller_listing_fee_amounts(currency, product_price)
         if total <= 0:
-            self._publish_product_after_listing_paid(product, total)
-            if 'x_listing_fee_status' in product._fields:
-                product.sudo().write({'x_listing_fee_status': 'not_required'})
+            self._publish_product_after_listing_paid(product, total, fee_status='not_required')
             return {
                 'success': True,
                 'message': 'Produk berhasil dipublikasikan.',
@@ -5115,11 +5211,18 @@ class UnitradeSellerController(http.Controller):
         return methods.get(method_key or '')
 
     @staticmethod
-    def _publish_product_after_listing_paid(product, listing_fee=0.0):
+    def _publish_product_after_listing_paid(product, listing_fee=0.0, payment_intent=False, fee_status='paid'):
+        paid_at = (
+            payment_intent.paid_at
+            if payment_intent and payment_intent.paid_at
+            else fields.Datetime.now()
+        )
         if hasattr(product, '_unitrade_apply_listing_payment'):
             product._unitrade_apply_listing_payment(
                 listing_fee=listing_fee,
-                paid_at=fields.Datetime.now(),
+                paid_at=paid_at,
+                payment_intent=payment_intent,
+                fee_status=fee_status,
             )
             return
         values = {
@@ -5129,9 +5232,15 @@ class UnitradeSellerController(http.Controller):
         if 'x_listing_fee' in product._fields:
             values['x_listing_fee'] = listing_fee
         if 'x_listing_activated_at' in product._fields:
-            values['x_listing_activated_at'] = fields.Datetime.now()
+            values['x_listing_activated_at'] = paid_at
         if 'x_listing_expires_at' in product._fields:
             values['x_listing_expires_at'] = UnitradeSellerController._seller_listing_valid_until()
+        if 'x_listing_fee_status' in product._fields:
+            values['x_listing_fee_status'] = fee_status
+        if payment_intent and 'x_listing_fee_payment_id' in product._fields:
+            values['x_listing_fee_payment_id'] = payment_intent.id
+        if 'x_listing_fee_paid_at' in product._fields:
+            values['x_listing_fee_paid_at'] = paid_at
         if 'detailed_type' in product._fields:
             values['detailed_type'] = 'consu'
         elif 'type' in product._fields:
@@ -5199,7 +5308,7 @@ class UnitradeSellerController(http.Controller):
             'method': method_key,
             'amount': total,
         })
-        self._publish_product_after_listing_paid(product, total)
+        self._publish_product_after_listing_paid(product, total, payment_intent=intent, fee_status='paid')
         return intent
 
     @http.route('/unitrade/seller/products/<int:product_id>/payment/submit', type='json', auth='user', website=True, methods=['POST'])
@@ -5235,9 +5344,7 @@ class UnitradeSellerController(http.Controller):
         product_price = product._unitrade_discounted_price() if hasattr(product, '_unitrade_discounted_price') else product.list_price
         posting_fee, admin_fee, total, fee_policy = self._seller_listing_fee_amounts(currency, product_price)
         if total <= 0:
-            self._publish_product_after_listing_paid(product, total)
-            if 'x_listing_fee_status' in product._fields:
-                product.sudo().write({'x_listing_fee_status': 'not_required'})
+            self._publish_product_after_listing_paid(product, total, fee_status='not_required')
             return {
                 'success': True,
                 'message': 'Produk berhasil dipublikasikan.',

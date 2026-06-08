@@ -13,7 +13,7 @@ Scope: Admin/back-office UniTrade
 - [x] Menu `unitrade_payment` dipindah dari `sale.sale_menu_root` ke `unitrade_seller.menu_unitrade_root` dengan grup filter (`base.group_system,unitrade_seller.group_unitrade_admin`)
 - [x] Menu Voucher, Refund/Dispute, dan Audit Log konsisten di bawah root UniTrade dan punya `groups` filter
 - [x] Group gate di method `unitrade.dispute`: `action_start_review`, `action_need_buyer_evidence`, `action_need_seller_response`, `action_approve_refund`, `action_reject_refund`, `action_cancel`
-- [x] Group gate di method `unitrade.escrow.ledger`: `action_mark_releasable`, `action_mark_released`, `action_create_xendit_payout`
+- [x] Group gate di method `unitrade.escrow.ledger`: `action_mark_releasable`, `action_mark_released`, `action_create_seller_payout`
 - [x] Group gate di method `unitrade.seller`: `action_verify`, `action_reject`, `action_revoke_seller_verification`
 - [x] Group gate di method `unitrade.seller.verification`: `action_approve`, `action_reject`
 - [x] Audit log call dari setiap method admin di atas (lookup runtime via `self.env.registry`, no-op kalau `unitrade_admin` belum terinstall)

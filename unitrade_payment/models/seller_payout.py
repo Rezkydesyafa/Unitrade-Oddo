@@ -4,8 +4,8 @@ Workflow:
 1. Admin buka daftar escrow ledger releasable per seller.
 2. Klik "Create Payout" → buat record `unitrade.seller.payout` state=draft
    yang ngumpulin semua ledger releasable seller tsb (atau subset pilihan).
-3. Admin transfer dana manual ke rekening seller (sesuai tujuan payout
-   yang sudah disimpan di unitrade.seller).
+3. Admin transfer dana manual ke rekening seller (sesuai snapshot tujuan
+   payout yang tersimpan di record payout).
 4. Admin upload bukti transfer + isi payment reference, klik "Mark Paid".
    Ledger berubah state=released, payout_status=succeeded.
 5. Audit log + (optional) email notif ke seller.
@@ -17,6 +17,7 @@ Guard:
 - Mark paid wajib payment_reference atau proof_image.
 - Hanya admin UniTrade yang boleh akses.
 """
+import json
 import logging
 
 from odoo import _, api, fields, models
@@ -145,14 +146,35 @@ class UnitradeSellerPayout(models.Model):
     # ------------------------------------------------------------------
     # Compute / constrains
     # ------------------------------------------------------------------
-    @api.depends('seller_id', 'seller_id.write_date')
+    @api.depends(
+        'seller_id',
+        'seller_id.write_date',
+        'destination_channel_code',
+        'destination_channel_label',
+        'destination_account_number',
+        'destination_account_name',
+    )
     def _compute_payout_identity(self):
         for payout in self:
             seller = payout.seller_id
-            payout.payout_channel_code = seller['x_payout_channel_code'] if seller and 'x_payout_channel_code' in seller._fields else False
-            payout.payout_account_number = seller['x_payout_account_number'] if seller and 'x_payout_account_number' in seller._fields else False
-            payout.payout_account_name = seller['x_payout_account_name'] if seller and 'x_payout_account_name' in seller._fields else False
-            payout.payout_ready = bool(seller['x_payout_ready']) if seller and 'x_payout_ready' in seller._fields else False
+            payout.payout_channel_code = (
+                payout.destination_channel_label
+                or payout.destination_channel_code
+                or (seller['x_payout_channel_code'] if seller and 'x_payout_channel_code' in seller._fields else False)
+            )
+            payout.payout_account_number = (
+                payout.destination_account_number
+                or (seller['x_payout_account_number'] if seller and 'x_payout_account_number' in seller._fields else False)
+            )
+            payout.payout_account_name = (
+                payout.destination_account_name
+                or (seller['x_payout_account_name'] if seller and 'x_payout_account_name' in seller._fields else False)
+            )
+            payout.payout_ready = bool(
+                payout.payout_channel_code
+                and payout.payout_account_number
+                and payout.payout_account_name
+            )
 
     @api.depends('ledger_ids', 'ledger_ids.amount_seller')
     def _compute_totals(self):
@@ -177,13 +199,13 @@ class UnitradeSellerPayout(models.Model):
     def _check_no_double_payout(self):
         """Pastikan ledger tidak terhubung ke payout aktif lain."""
         for payout in self:
-            if payout.state == 'cancelled':
+            if payout.state in ('cancelled', 'failed'):
                 continue
             for ledger in payout.ledger_ids:
                 other = self.search([
                     ('id', '!=', payout.id),
                     ('ledger_ids', 'in', ledger.id),
-                    ('state', 'in', ('draft', 'ready', 'paid')),
+                    ('state', 'in', payout._active_payout_states(include_paid=True)),
                 ], limit=1)
                 if other:
                     raise ValidationError(_(
@@ -203,15 +225,41 @@ class UnitradeSellerPayout(models.Model):
             }
             if is_manual_batch:
                 vals.setdefault('state', 'draft')
+                seller = self.env['unitrade.seller'].sudo().browse(vals.get('seller_id')).exists() if vals.get('seller_id') else False
+                if seller:
+                    vals.update(self._missing_destination_snapshot_vals(vals, seller))
                 ledger_ids = self._ledger_ids_from_commands(vals.get('ledger_ids'))
                 if ledger_ids:
                     ledgers = self.env['unitrade.escrow.ledger'].sudo().browse(ledger_ids).exists()
+                    self._validate_ledgers_for_payout(ledgers, seller=seller, current_payout=False)
                     vals.setdefault('amount', sum(ledgers.mapped('amount_seller')) if ledgers else 0.0)
                     if ledgers and not vals.get('currency_id'):
                         vals['currency_id'] = ledgers[:1].currency_id.id or self.env.company.currency_id.id
+                    vals.setdefault('ledger_ids_json', self._ledger_ids_json(ledgers))
             if is_manual_batch and vals.get('name', 'New') == 'New':
                 vals['name'] = sequence.next_by_code('unitrade.seller.payout') or 'PB%05d' % (self.search_count([]) + 1)
-        return super().create(vals_list)
+        records = super().create(vals_list)
+        records.filtered(lambda payout: payout.state in ('draft', 'ready') and payout.ledger_ids)._reserve_ledgers()
+        return records
+
+    def write(self, vals):
+        old_ledgers_by_payout = {
+            payout.id: payout.ledger_ids
+            for payout in self
+            if 'ledger_ids' in vals or 'state' in vals
+        }
+        result = super().write(vals)
+        for payout in self:
+            old_ledgers = old_ledgers_by_payout.get(payout.id)
+            if old_ledgers is not None:
+                removed = old_ledgers - payout.ledger_ids
+                if removed:
+                    payout._release_reserved_ledgers(removed)
+            if payout.state in ('draft', 'ready') and payout.ledger_ids:
+                payout._reserve_ledgers()
+            elif payout.state == 'cancelled' and payout.ledger_ids:
+                payout._release_reserved_ledgers(payout.ledger_ids)
+        return result
 
     @staticmethod
     def _ledger_ids_from_commands(commands):
@@ -225,6 +273,156 @@ class UnitradeSellerPayout(models.Model):
             elif opcode == 4 and len(command) >= 2:
                 ledger_ids.append(command[1])
         return [int(ledger_id) for ledger_id in ledger_ids if ledger_id]
+
+    @staticmethod
+    def _ledger_ids_json(ledgers):
+        return json.dumps([int(ledger_id) for ledger_id in ledgers.ids])
+
+    @api.model
+    def _active_payout_states(self, include_paid=False):
+        states = ['draft', 'ready', 'pending', 'processing']
+        if include_paid:
+            states += ['paid', 'succeeded']
+        return tuple(states)
+
+    @api.model
+    def _seller_channel_label(self, seller):
+        if not seller or 'x_payout_channel_code' not in seller._fields:
+            return ''
+        selection = dict(seller._fields['x_payout_channel_code'].selection)
+        code = seller.x_payout_channel_code or ''
+        return selection.get(code, code)
+
+    @api.model
+    def _destination_snapshot_vals(self, seller):
+        return {
+            'destination_channel_code': seller.x_payout_channel_code if 'x_payout_channel_code' in seller._fields else '',
+            'destination_channel_label': self._seller_channel_label(seller),
+            'destination_account_number': seller.x_payout_account_number if 'x_payout_account_number' in seller._fields else '',
+            'destination_account_name': seller.x_payout_account_name if 'x_payout_account_name' in seller._fields else '',
+        }
+
+    @api.model
+    def _missing_destination_snapshot_vals(self, vals, seller):
+        snapshot = self._destination_snapshot_vals(seller)
+        return {
+            key: value
+            for key, value in snapshot.items()
+            if not vals.get(key)
+        }
+
+    def _reservation_reference_values(self):
+        self.ensure_one()
+        values = [self.name]
+        if self.payment_reference:
+            values.append(self.payment_reference)
+        return [value for value in values if value]
+
+    def _is_reserved_by_current_payout(self, ledger):
+        self.ensure_one()
+        return (
+            ledger.payout_status == 'pending'
+            and ledger.payout_reference in self._reservation_reference_values()
+        )
+
+    def _active_dispute_for_ledgers(self, ledgers):
+        if 'unitrade.dispute' not in self.env.registry or not ledgers:
+            return False
+        Dispute = self.env['unitrade.dispute'].sudo()
+        active_states = getattr(Dispute, 'ACTIVE_STATES', (
+            'submitted',
+            'under_review',
+            'need_buyer_evidence',
+            'need_seller_response',
+            'admin_review_final',
+        ))
+        domain = [
+            ('state', 'in', list(active_states)),
+            '|',
+            ('escrow_ledger_id', 'in', ledgers.ids),
+            ('order_id', 'in', ledgers.mapped('order_id').ids),
+        ]
+        return Dispute.search(domain, limit=1)
+
+    def _validate_ledgers_for_payout(self, ledgers, seller=False, current_payout=False, allow_current_reservation=False):
+        ledgers = ledgers.sudo().exists()
+        if not ledgers:
+            raise UserError(_('Payout belum punya ledger yang valid.'))
+        seller = seller or (current_payout.seller_id if current_payout else False)
+
+        wrong_seller = ledgers.filtered(lambda ledger: not ledger.seller_id or (seller and ledger.seller_id.id != seller.id))
+        if wrong_seller:
+            raise UserError(_('Ledger payout harus berasal dari seller yang sama: %s') % ', '.join(wrong_seller.mapped('name') or []))
+
+        invalid_state = ledgers.filtered(lambda ledger: ledger.state != 'releasable')
+        if invalid_state:
+            raise UserError(_('Ledger harus berstatus releasable sebelum payout: %s') % ', '.join(invalid_state.mapped('name') or []))
+
+        invalid_payout_status = self.env['unitrade.escrow.ledger'].sudo().browse()
+        for ledger in ledgers:
+            if ledger.payout_status in ('processing', 'succeeded'):
+                invalid_payout_status |= ledger
+            elif ledger.payout_status == 'pending':
+                if not (
+                    allow_current_reservation
+                    and current_payout
+                    and current_payout._is_reserved_by_current_payout(ledger)
+                ):
+                    invalid_payout_status |= ledger
+        if invalid_payout_status:
+            raise UserError(_('Ledger sudah sedang/done payout: %s') % ', '.join(invalid_payout_status.mapped('name') or []))
+
+        if 'x_payment_status' in self.env['sale.order']._fields:
+            unpaid_orders = ledgers.filtered(lambda ledger: ledger.order_id.x_payment_status != 'paid')
+            if unpaid_orders:
+                raise UserError(_('Order ledger harus sudah paid sebelum payout: %s') % ', '.join(unpaid_orders.mapped('order_id.name') or []))
+
+        active_dispute = self._active_dispute_for_ledgers(ledgers)
+        if active_dispute:
+            raise UserError(_('Payout diblokir karena ada refund/dispute aktif: %s') % (active_dispute.name or active_dispute.id))
+
+        other_payout = self.sudo().search([
+            ('id', '!=', current_payout.id if current_payout else 0),
+            ('ledger_ids', 'in', ledgers.ids),
+            ('state', 'in', self._active_payout_states(include_paid=True)),
+        ], limit=1)
+        if other_payout:
+            raise UserError(_('Ledger sudah masuk payout %s.') % other_payout.name)
+        return True
+
+    def _reserve_ledgers(self):
+        now = fields.Datetime.now()
+        for payout in self.sudo():
+            if payout.state not in ('draft', 'ready') or not payout.ledger_ids:
+                continue
+            payout._validate_ledgers_for_payout(
+                payout.ledger_ids,
+                seller=payout.seller_id,
+                current_payout=payout,
+                allow_current_reservation=True,
+            )
+            payout.ledger_ids.write({
+                'payout_status': 'pending',
+                'payout_requested_at': payout.requested_at or now,
+                'payout_reference': payout.name,
+                'payout_failure_reason': False,
+            })
+        return True
+
+    def _release_reserved_ledgers(self, ledgers):
+        for payout in self.sudo():
+            reserved = ledgers.sudo().filtered(lambda ledger: (
+                ledger.payout_status == 'pending'
+                and ledger.payout_reference in payout._reservation_reference_values()
+            ))
+            if reserved:
+                reserved.write({
+                    'payout_status': 'draft',
+                    'payout_requested_at': False,
+                    'payout_reference': False,
+                    'payout_failure_reason': False,
+                })
+        return True
 
     @api.model
     def _unitrade_repair_empty_amounts(self):
@@ -294,7 +492,7 @@ class UnitradeSellerPayout(models.Model):
         domain = [
             ('seller_id', '=', seller.id),
             ('state', '=', 'releasable'),
-            ('payout_status', 'not in', ('succeeded', 'processing')),
+            ('payout_status', 'not in', ('pending', 'processing', 'succeeded')),
         ]
         return domain
 
@@ -303,7 +501,7 @@ class UnitradeSellerPayout(models.Model):
         ledgers = Ledger.search(self._eligible_ledgers_domain(seller))
         # Exclude yang sudah masuk payout aktif
         active_payouts = self.search([
-            ('state', 'in', ('draft', 'ready', 'paid')),
+            ('state', 'in', self._active_payout_states(include_paid=True)),
             ('seller_id', '=', seller.id),
         ])
         already_in_payout = active_payouts.mapped('ledger_ids').ids
@@ -318,8 +516,12 @@ class UnitradeSellerPayout(models.Model):
         for payout in self:
             if payout.state != 'draft':
                 raise UserError(_('Hanya payout draft yang bisa di-refresh.'))
+            payout._release_reserved_ledgers(payout.ledger_ids)
             ledgers = self._get_eligible_ledgers(payout.seller_id)
             payout.ledger_ids = [(6, 0, ledgers.ids)]
+            if 'ledger_ids_json' in payout._fields:
+                payout.ledger_ids_json = self._ledger_ids_json(ledgers)
+            payout._reserve_ledgers()
         return True
 
     def action_mark_ready(self):
@@ -334,6 +536,13 @@ class UnitradeSellerPayout(models.Model):
                     'Data payout seller %s belum lengkap (channel/no rek/nama pemilik). '
                     'Lengkapi dulu di profil seller.'
                 ) % payout.seller_id.display_name)
+            payout._validate_ledgers_for_payout(
+                payout.ledger_ids,
+                seller=payout.seller_id,
+                current_payout=payout,
+                allow_current_reservation=True,
+            )
+            payout._reserve_ledgers()
             payout.write({'state': 'ready'})
             payout._audit(
                 'payout.ready',
@@ -359,6 +568,12 @@ class UnitradeSellerPayout(models.Model):
                 raise UserError(_(
                     'Wajib isi Payment Reference atau upload Bukti Transfer sebelum tandai paid.'
                 ))
+            payout._validate_ledgers_for_payout(
+                payout.ledger_ids,
+                seller=payout.seller_id,
+                current_payout=payout,
+                allow_current_reservation=True,
+            )
 
             now = fields.Datetime.now()
             payout.write({
@@ -369,14 +584,14 @@ class UnitradeSellerPayout(models.Model):
 
             # Update related escrow ledgers
             for ledger in payout.ledger_ids:
-                if ledger.state == 'releasable':
-                    ledger.sudo().write({
-                        'state': 'released',
-                        'released_at': now,
-                        'payout_status': 'succeeded',
-                        'payout_completed_at': now,
-                        'payout_reference': payout.payment_reference or payout.name,
-                    })
+                ledger.sudo().write({
+                    'state': 'released',
+                    'released_at': now,
+                    'payout_status': 'succeeded',
+                    'payout_completed_at': now,
+                    'payout_reference': payout.payment_reference or payout.name,
+                    'payout_failure_reason': False,
+                })
             payout.ledger_ids._sync_order_escrow_state()
 
             payout._audit(
@@ -427,6 +642,7 @@ class UnitradeSellerPayout(models.Model):
                 raise UserError(_('Payout %s sudah PAID. Tidak bisa dibatalkan.') % payout.name)
             if payout.state == 'cancelled':
                 continue
+            payout._release_reserved_ledgers(payout.ledger_ids)
             payout.write({
                 'state': 'cancelled',
                 'cancelled_at': fields.Datetime.now(),
@@ -477,6 +693,8 @@ class UnitradeSellerPayout(models.Model):
             'amount': sum(ledgers.mapped('amount_seller')),
             'currency_id': ledgers[:1].currency_id.id or self.env.company.currency_id.id,
             'ledger_ids': [(6, 0, ledgers.ids)],
+            'ledger_ids_json': self._ledger_ids_json(ledgers),
+            **self._destination_snapshot_vals(seller),
         })
         return {
             'id': payout.id,
