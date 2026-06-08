@@ -3565,6 +3565,106 @@ class UnitradeSellerController(http.Controller):
         }
         return {'weekly': weekly, 'monthly': monthly}
 
+    def _seller_dashboard_static_sales_chart(self, chart_data, currency):
+        weekly = (chart_data or {}).get('weekly') or {}
+        labels = list(weekly.get('labels') or [])
+        revenues = [float(value or 0.0) for value in (weekly.get('revenue') or [])]
+        orders = [int(value or 0) for value in (weekly.get('orders') or [])]
+        point_count = max(len(labels), len(revenues), len(orders), 7)
+
+        if len(labels) < point_count:
+            anchor_date = fields.Date.context_today(request.env.user)
+            fallback_days = [anchor_date - timedelta(days=offset) for offset in range(point_count - 1, -1, -1)]
+            labels = [day.strftime('%d/%m') for day in fallback_days]
+        revenues += [0.0] * max(0, point_count - len(revenues))
+        orders += [0] * max(0, point_count - len(orders))
+
+        width = 720
+        height = 260
+        pad_left = 62
+        pad_right = 24
+        pad_top = 22
+        pad_bottom = 42
+        plot_width = width - pad_left - pad_right
+        plot_height = height - pad_top - pad_bottom
+        bottom_y = pad_top + plot_height
+        max_revenue = max(revenues or [0.0])
+        max_orders = max(orders or [0])
+        revenue_scale = max_revenue * 1.15 if max_revenue > 0 else 100000.0
+        order_scale = max_orders if max_orders > 0 else 1
+        gap = plot_width / float(point_count - 1) if point_count > 1 else plot_width
+        bar_width = min(42, max(18, (plot_width / max(point_count, 1)) * 0.42))
+
+        grid_lines = []
+        for index in range(5):
+            y = pad_top + (plot_height / 4.0) * index
+            value = revenue_scale - ((revenue_scale / 4.0) * index)
+            grid_lines.append({
+                'y': round(y, 2),
+                'label': self._format_money(value, currency),
+            })
+
+        revenue_points = []
+        order_points = []
+        bars = []
+        ticks = []
+        for index in range(point_count):
+            x = pad_left + gap * index
+            revenue = revenues[index]
+            order_count = orders[index]
+            revenue_y = bottom_y - ((revenue / revenue_scale) * plot_height if revenue_scale else 0)
+            order_y = bottom_y - ((order_count / order_scale) * plot_height if order_scale else 0)
+            bar_height = (revenue / revenue_scale) * plot_height if revenue_scale else 0
+            revenue_points.append({'x': round(x, 2), 'y': round(revenue_y, 2), 'value': revenue})
+            order_points.append({'x': round(x, 2), 'y': round(order_y, 2), 'value': order_count})
+            bars.append({
+                'x': round(x - (bar_width / 2.0), 2),
+                'y': round(bottom_y - bar_height, 2),
+                'width': round(bar_width, 2),
+                'height': round(bar_height, 2),
+            })
+            ticks.append({
+                'x': round(x, 2),
+                'label': labels[index] if index < len(labels) else '',
+            })
+
+        line_points = ' '.join('%s,%s' % (point['x'], point['y']) for point in revenue_points)
+        order_line_points = ' '.join('%s,%s' % (point['x'], point['y']) for point in order_points)
+        area_points = ''
+        if revenue_points:
+            area_points = '%s,%s %s %s,%s' % (
+                revenue_points[0]['x'],
+                bottom_y,
+                line_points,
+                revenue_points[-1]['x'],
+                bottom_y,
+            )
+        total_revenue = sum(revenues)
+        total_orders = sum(orders)
+        return {
+            'width': width,
+            'height': height,
+            'view_box': '0 0 %s %s' % (width, height),
+            'grid_x1': pad_left,
+            'grid_x2': width - pad_right,
+            'bottom_y': bottom_y,
+            'grid_lines': grid_lines,
+            'bars': bars,
+            'ticks': ticks,
+            'revenue_points': revenue_points,
+            'order_points': order_points,
+            'line_points': line_points,
+            'order_line_points': order_line_points,
+            'area_points': area_points,
+            'has_data': bool(total_revenue or total_orders),
+            'total_revenue_label': self._format_money(total_revenue, currency),
+            'total_orders': total_orders,
+            'aria_label': 'Grafik penjualan 7 hari terakhir: %s, %s pesanan' % (
+                self._format_money(total_revenue, currency),
+                total_orders,
+            ),
+        }
+
     def _seller_payout_channel_label(self, seller):
         channel_code = _safe_get(seller, 'x_payout_channel_code') or ''
         if not channel_code:
@@ -3946,6 +4046,7 @@ class UnitradeSellerController(http.Controller):
         chart_data = self._seller_dashboard_chart_data(seller, selected_date=selected_day)
         review_payloads = self._seller_dashboard_review_payloads(all_products)
         refund_payloads = self._seller_dashboard_refund_payloads(seller, date_start=date_start, date_end=date_end)
+        static_sales_chart = self._seller_dashboard_static_sales_chart(chart_data, currency)
 
         dashboard_payload = {
             'seller': {
@@ -3999,6 +4100,7 @@ class UnitradeSellerController(http.Controller):
             'dashboard_orders': order_payloads,
             'dashboard_messages': chat_payloads,
             'dashboard_reviews': review_payloads,
+            'dashboard_sales_chart': static_sales_chart,
             'dashboard_chart_json': json.dumps(dashboard_payload),
             'dashboard_payload_json': json.dumps(dashboard_payload),
             'dashboard_search_items_json': json.dumps([]),

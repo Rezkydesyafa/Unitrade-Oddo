@@ -298,13 +298,45 @@
 
                     <div class="ut-dash-grid tw-grid tw-grid-cols-[minmax(0,797px)_381px] tw-gap-7">
                         <section class="ut-dash-figma-card tw-h-[422px] tw-p-[24px]">
+                            <t t-set="sales_chart" t-value="dashboard_sales_chart or {}"/>
                             <div class="tw-flex tw-items-start tw-justify-between">
                                 <div>
                                     <h2 class="tw-m-0 tw-text-[18px] tw-font-semibold tw-leading-7 tw-text-[#0a0a0a]">Ringkasan Penjualan</h2>
-                                    <p class="tw-m-0 tw-text-[14px] tw-leading-5 tw-text-[#6a7282]">Data lengkap dimuat otomatis saat asset dashboard aktif.</p>
+                                    <p class="tw-m-0 tw-text-[14px] tw-leading-5 tw-text-[#6a7282]">Pendapatan transaksi selesai dan jumlah pesanan</p>
                                 </div>
                             </div>
-                            <div class="ut-dash-empty tw-mt-12">Dashboard tetap dapat digunakan. Gunakan menu samping untuk mengelola toko.</div>
+                            <div class="ut-dash-static-chart tw-mt-5" role="img" t-att-aria-label="sales_chart.get('aria_label') or 'Grafik penjualan'">
+                                <div class="ut-dash-static-chart-head">
+                                    <span>7 hari terakhir</span>
+                                    <strong t-esc="sales_chart.get('total_revenue_label') or dashboard_stats.get('revenue_label') or 'Rp 0'"></strong>
+                                </div>
+                                <svg class="ut-dash-static-chart-svg" t-att-viewBox="sales_chart.get('view_box') or '0 0 720 260'" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                                    <t t-foreach="sales_chart.get('grid_lines') or []" t-as="line">
+                                        <line class="ut-dash-static-chart-grid" t-att-x1="sales_chart.get('grid_x1')" t-att-x2="sales_chart.get('grid_x2')" t-att-y1="line.get('y')" t-att-y2="line.get('y')"/>
+                                        <text class="ut-dash-static-chart-axis" x="54" t-att-y="line.get('y')" text-anchor="end" dominant-baseline="middle" t-esc="line.get('label')"/>
+                                    </t>
+                                    <t t-foreach="sales_chart.get('bars') or []" t-as="bar">
+                                        <rect class="ut-dash-static-chart-bar" t-att-x="bar.get('x')" t-att-y="bar.get('y')" t-att-width="bar.get('width')" t-att-height="bar.get('height')" rx="6"/>
+                                    </t>
+                                    <polygon t-if="sales_chart.get('area_points')" class="ut-dash-static-chart-area" t-att-points="sales_chart.get('area_points')"/>
+                                    <polyline t-if="sales_chart.get('line_points')" class="ut-dash-static-chart-revenue-line" t-att-points="sales_chart.get('line_points')"/>
+                                    <polyline t-if="sales_chart.get('order_line_points')" class="ut-dash-static-chart-order-line" t-att-points="sales_chart.get('order_line_points')"/>
+                                    <t t-foreach="sales_chart.get('revenue_points') or []" t-as="point">
+                                        <circle class="ut-dash-static-chart-revenue-dot" t-att-cx="point.get('x')" t-att-cy="point.get('y')" r="4"/>
+                                    </t>
+                                    <t t-foreach="sales_chart.get('order_points') or []" t-as="point">
+                                        <circle class="ut-dash-static-chart-order-dot" t-att-cx="point.get('x')" t-att-cy="point.get('y')" r="3"/>
+                                    </t>
+                                    <t t-foreach="sales_chart.get('ticks') or []" t-as="tick">
+                                        <text class="ut-dash-static-chart-tick" t-att-x="tick.get('x')" y="246" text-anchor="middle" t-esc="tick.get('label')"/>
+                                    </t>
+                                </svg>
+                                <div class="ut-dash-static-chart-footer">
+                                    <span><i class="ut-dash-static-chart-legend is-revenue"></i> Pendapatan</span>
+                                    <span><i class="ut-dash-static-chart-legend is-orders"></i> Pesanan <t t-esc="sales_chart.get('total_orders') or 0"/></span>
+                                </div>
+                                <p t-if="not sales_chart.get('has_data')" class="ut-dash-static-chart-empty">Belum ada transaksi selesai pada periode ini.</p>
+                            </div>
                         </section>
 
                         <section class="ut-dash-figma-card tw-h-[422px] tw-p-[20px]">
