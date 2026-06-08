@@ -51,6 +51,37 @@
     </template>
 
     <template id="seller_owl_fallback" name="Seller OWL Loading Fallback">
+        <script type="text/javascript"><![CDATA[
+            (function () {
+                window.__unitradeSellerNotificationDropdownStarted = true;
+                if (window.__unitradeSellerUnreadCountFetchGuard || !window.fetch) {
+                    return;
+                }
+                window.__unitradeSellerUnreadCountFetchGuard = true;
+                var originalFetch = window.fetch.bind(window);
+                window.fetch = function (input, options) {
+                    var url = "";
+                    if (typeof input === "string") {
+                        url = input;
+                    } else if (input && input.url) {
+                        url = input.url;
+                    }
+                    if (url.indexOf("/unitrade/seller/notifications/unread_count") !== -1) {
+                        var wrap = document.getElementById("wrap");
+                        var count = wrap && wrap.dataset ? Number(wrap.dataset.notificationCount || 0) : 0;
+                        return Promise.resolve(new Response(JSON.stringify({
+                            jsonrpc: "2.0",
+                            id: null,
+                            result: { count: count || 0 }
+                        }), {
+                            status: 200,
+                            headers: { "Content-Type": "application/json" }
+                        }));
+                    }
+                    return originalFetch(input, options);
+                };
+            })();
+        ]]></script>
         <div data-ut-seller-fallback="1"
              class="ut-seller-owl-static-fallback"
              style="display:none; position:fixed; right:32px; bottom:32px; z-index:1300; width:min(390px, calc(100vw - 40px)); padding:18px; border:1px solid #e5e7eb; border-radius:16px; background:#ffffff; box-shadow:0 22px 60px rgba(15,23,42,.18); color:#111827; font-family:inherit;">
