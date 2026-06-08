@@ -5,8 +5,13 @@
  * Handles UI interactions, animations, and dynamic features.
  */
 
-document.addEventListener('DOMContentLoaded', function () {
+function initUnitradeFrontend() {
     'use strict';
+
+    if (document.body.dataset.unitradeFrontendBound === '1') {
+        return;
+    }
+    document.body.dataset.unitradeFrontendBound = '1';
 
     // =============================================
     // Intersection Observer for scroll animations
@@ -96,9 +101,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const mobileMenu = document.querySelector('#unitrade-mobile-menu');
 
     if (mobileMenuBtn && mobileMenu) {
+        mobileMenuBtn.setAttribute('aria-expanded', mobileMenu.classList.contains('tw-hidden') ? 'false' : 'true');
         mobileMenuBtn.addEventListener('click', function () {
-            mobileMenu.classList.toggle('tw-hidden');
-            mobileMenu.classList.toggle('unitrade-slide-in');
+            const isOpening = mobileMenu.classList.contains('tw-hidden');
+            mobileMenu.classList.toggle('tw-hidden', !isOpening);
+            mobileMenu.classList.toggle('unitrade-slide-in', isOpening);
+            mobileMenuBtn.setAttribute('aria-expanded', isOpening ? 'true' : 'false');
+            mobileMenuBtn.setAttribute('aria-label', isOpening ? 'Tutup menu' : 'Buka menu');
         });
     }
 
@@ -206,4 +215,10 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initUnitradeFrontend, { once: true });
+} else {
+    initUnitradeFrontend();
+}

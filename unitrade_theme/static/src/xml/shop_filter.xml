@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="unitrade_theme.ShopFilter">
-        <div class="row o_wsale_products_main_row align-items-start flex-nowrap tw-w-full tw-max-w-[1200px] tw-mx-auto tw-m-0 tw-px-0 md:tw-px-4">
+        <div class="row o_wsale_products_main_row ut-shop-layout-row align-items-start flex-nowrap tw-w-full tw-max-w-[1200px] tw-mx-auto tw-m-0 tw-px-0 md:tw-px-4">
             <aside id="products_grid_before" class="d-none d-lg-block col-3 px-3 clearfix">
                 <div class="tw-bg-white tw-rounded-[14px] tw-p-[30px] tw-w-full tw-shadow-sm tw-border tw-border-solid tw-border-gray-200">
                     <div class="tw-flex tw-items-center tw-justify-between tw-mb-8">
@@ -62,7 +62,7 @@
                 </div>
             </aside>
 
-            <div id="products_grid" class="col-12 col-lg-9 tw-pl-4">
+            <div id="products_grid" class="ut-shop-products-grid col-12 col-lg-9 tw-pl-4">
                 <div id="ut-sort-bar" class="tw-bg-white tw-rounded-[14px] tw-h-[64px] tw-px-[24px] tw-flex tw-items-center tw-mb-6 tw-shadow-sm tw-border tw-border-solid tw-border-gray-200">
                     <div class="tw-flex tw-gap-[12px]">
                         <div data-sort="terkait" t-att-class="sortClass('terkait')" t-on-click="() => this.changeSort('terkait')">Terkait</div>

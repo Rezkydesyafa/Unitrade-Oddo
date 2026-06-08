@@ -259,7 +259,7 @@
                 <t t-set="ut_category_health" t-value="request.env['product.category'].sudo().search([('name', '=ilike', 'Kesehatan &amp; Kecantikan')], limit=1)"/>
                 <t t-set="ut_category_hobbies" t-value="request.env['product.category'].sudo().search([('name', '=ilike', 'Hobi &amp; Koleksi')], limit=1)"/>
                 <t t-set="ut_category_other" t-value="request.env['product.category'].sudo().search([('name', '=ilike', 'Lainnya')], limit=1)"/>
-                <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-4 tw-gap-6">
+                <div class="ut-category-grid tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-4 tw-gap-6">
                     <!-- Kategori 1 -->
                     <a t-att-href="'/unitrade/products?category=%s' % ut_category_food.id if ut_category_food else '/unitrade/products'" class="ut-category-card tw-bg-white tw-rounded-[22px] tw-h-[85px] tw-flex tw-items-center tw-px-6 tw-border tw-border-solid tw-border-gray-200 tw-shadow-sm hover:tw-shadow-md hover:tw-border-gray-300 tw-transition-all">
                         <img src="/unitrade_theme/static/src/img/categories/makanan.png" alt="Makanan" loading="lazy" decoding="async" class="ut-category-icon tw-rounded-xl tw-object-cover tw-mr-4 tw-shrink-0"/>

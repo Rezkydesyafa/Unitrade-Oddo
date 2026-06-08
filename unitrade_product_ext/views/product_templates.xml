@@ -3,14 +3,14 @@
     <template id="product_catalog_template" name="UniTrade Product Catalog">
         <t t-call="website.layout">
             <t t-set="title" t-value="page_title"/>
-            <div class="tw-max-w-7xl tw-mx-auto tw-px-4 tw-py-8">
+            <div class="ut-product-catalog-page tw-max-w-7xl tw-mx-auto tw-px-4 tw-py-8">
                 <h1 class="unitrade-section-title tw-mb-2" t-esc="catalog_heading or 'Katalog Produk'">Katalog Produk</h1>
                 <p t-if="selected_category" class="tw-mb-8 tw-text-sm tw-text-gray-500">
                     Kategori: <strong class="tw-text-gray-900" t-esc="catalog_category_label or selected_category.name"/>
                 </p>
                 <p t-else="" class="tw-mb-8 tw-text-sm tw-text-gray-500">Temukan barang dari semua kategori UniTrade.</p>
                 <t t-if="category_banner">
-                    <section class="tw-relative tw-w-full tw-overflow-hidden tw-bg-gray-100 tw-shadow-sm" t-att-style="'margin-top: 28px; margin-bottom: 36px; height: clamp(190px, 24vw, 340px); border-radius: 28px; background-image: url(%s); background-size: cover; background-position: center; box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);' % category_banner.get('image')" aria-label="Banner kategori produk">
+                    <section class="ut-category-banner tw-relative tw-w-full tw-overflow-hidden tw-bg-gray-100 tw-shadow-sm" t-att-style="'margin-top: 28px; margin-bottom: 36px; height: clamp(190px, 24vw, 340px); border-radius: 28px; background-image: url(%s); background-size: cover; background-position: center; box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);' % category_banner.get('image')" aria-label="Banner kategori produk">
                         <div class="tw-absolute tw-inset-0" style="background: linear-gradient(90deg, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.84) 38%, rgba(255,255,255,0.24) 68%, rgba(255,255,255,0) 100%);"></div>
                         <div class="tw-relative tw-z-10 tw-flex tw-h-full tw-flex-col tw-items-start tw-justify-center" style="max-width: 500px; padding-left: clamp(22px, 3.5vw, 42px); padding-right: 22px;">
                             <h2 class="tw-m-0 tw-font-bold tw-text-gray-900" style="font-size: clamp(24px, 3.2vw, 42px); line-height: 1.08; letter-spacing: 0;">
