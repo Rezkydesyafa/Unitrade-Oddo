@@ -710,6 +710,101 @@ owl-component[name="unitrade_notification.NotificationBell"] {
     margin-top: 24px;
 }
 
+@media (max-width: 640px) {
+    .ut-notification-panel {
+        position: fixed;
+        top: 96px;
+        right: 12px;
+        left: 12px;
+        display: flex;
+        width: auto;
+        max-width: none;
+        max-height: calc(100vh - 128px);
+        flex-direction: column;
+        border-radius: 18px;
+    }
+
+    .ut-notification-panel-header {
+        flex: 0 0 auto;
+        padding: 0 12px;
+    }
+
+    .ut-notification-tabs {
+        flex: 0 0 auto;
+        gap: 10px;
+        overflow-x: auto;
+        padding: 0 12px;
+        scrollbar-width: none;
+    }
+
+    .ut-notification-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .ut-notification-tab {
+        flex: 0 0 auto;
+    }
+
+    .ut-notification-list {
+        max-height: none;
+        min-height: 0;
+        flex: 1 1 auto;
+    }
+
+    .ut-notification-footer-link {
+        flex: 0 0 auto;
+    }
+
+    .ut-notification-item {
+        grid-template-columns: 28px minmax(0, 1fr);
+        gap: 9px;
+        padding: 10px 12px;
+    }
+
+    .ut-notification-item-title {
+        white-space: normal;
+    }
+
+    .ut-notification-empty {
+        min-height: 128px;
+        padding: 20px 16px;
+    }
+
+    .ut-notification-read-all {
+        flex: 0 0 auto;
+        min-width: 30px;
+        justify-content: center;
+        width: auto;
+        font-size: 0;
+        gap: 0;
+    }
+
+    .ut-notification-read-all svg {
+        width: 17px;
+        height: 17px;
+    }
+}
+
+@media (max-width: 380px) {
+    .ut-notification-panel {
+        right: 8px;
+        left: 8px;
+    }
+
+    .ut-notification-panel-title {
+        font-size: 15px;
+    }
+
+    .ut-notification-tab {
+        gap: 4px;
+        font-size: 11px;
+    }
+
+    .ut-notification-item-message {
+        -webkit-line-clamp: 3;
+    }
+}
+
 @media (max-width: 900px) {
     .ut-notifications-page {
         padding: 36px 0 80px;

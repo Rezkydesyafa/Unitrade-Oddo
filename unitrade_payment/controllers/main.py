@@ -474,6 +474,10 @@ class UnitradePaymentController(http.Controller):
             voucher_product = order._unitrade_voucher_discount_product()
             if voucher_product:
                 excluded_product_ids.add(voucher_product.id)
+        if hasattr(order, '_unitrade_shipping_fee_product'):
+            shipping_fee_product = order._unitrade_shipping_fee_product()
+            if shipping_fee_product:
+                excluded_product_ids.add(shipping_fee_product.id)
         return order.order_line.filtered(
             lambda line: (
                 not line.display_type
@@ -1004,6 +1008,46 @@ class UnitradePaymentController(http.Controller):
             'price': self._format_money(line.price_subtotal, order.currency_id),
             'image_url': '/web/image/product.template/%s/image_512' % line.product_id.product_tmpl_id.id,
         } for line in product_lines]
+        review_items = []
+        if (
+            not request.env.user._is_public()
+            and 'unitrade.review' in request.env.registry
+            and order.partner_id.commercial_partner_id == request.env.user.partner_id.commercial_partner_id
+        ):
+            Review = request.env['unitrade.review'].sudo()
+            product_templates = product_lines.mapped('product_id.product_tmpl_id')
+            reviewed_product_ids = set(Review.search([
+                ('product_id', 'in', product_templates.ids),
+                ('user_id', '=', request.env.uid),
+                ('is_visible', '=', True),
+            ]).filtered(lambda review: Review._unitrade_order_is_reviewable(review.order_id)).mapped('product_id').ids)
+            if Review._unitrade_order_is_reviewable(order):
+                seen_review_product_ids = set()
+                for line in product_lines:
+                    product_template = line.product_id.product_tmpl_id
+                    if (
+                        not product_template
+                        or product_template.id in seen_review_product_ids
+                        or product_template.id in reviewed_product_ids
+                    ):
+                        continue
+                    seller = request.env['unitrade.seller'].sudo().browse()
+                    if 'x_seller_id' in product_template._fields and product_template.x_seller_id:
+                        seller = product_template.x_seller_id.sudo()
+                    elif (
+                        product_template.create_uid
+                        and 'x_seller_id' in product_template.create_uid._fields
+                        and product_template.create_uid.x_seller_id
+                    ):
+                        seller = product_template.create_uid.x_seller_id.sudo()
+                    review_items.append({
+                        'product_id': product_template.id,
+                        'product_name': product_template.display_name,
+                        'order_id': order.id,
+                        'seller_name': seller.name if seller else 'Penjual UniTrade',
+                        'image_url': '/web/image/product.template/%s/image_512' % product_template.id,
+                    })
+                    seen_review_product_ids.add(product_template.id)
         seller_records = request.env['unitrade.seller'].sudo().browse()
         if 'unitrade.seller' in request.env.registry:
             seller_records |= ledgers.mapped('seller_id').sudo()
@@ -1093,6 +1137,7 @@ class UnitradePaymentController(http.Controller):
             'order_status_ledgers': ledger_values,
             'order_status_sellers': seller_values,
             'order_status_lines': line_values,
+            'order_status_review_items': review_items,
             'order_status_amounts': amounts,
             'order_status_total': self._format_money(intent.amount if intent else amounts.get('total'), order.currency_id),
             'order_status_subtotal': self._format_money(amounts.get('item_subtotal'), order.currency_id),
@@ -1115,6 +1160,34 @@ class UnitradePaymentController(http.Controller):
             'order_status_cancel_blocker': cancel_blocker or '',
             'order_status_confirm_received_url': '/unitrade/order/%s/confirm-received' % order.id,
             'order_status_cancel_url': '/unitrade/order/%s/cancel' % order.id,
+            **self._order_status_shipping_values(order),
+        }
+
+    def _order_status_shipping_values(self, order):
+        """Nilai pengiriman untuk halaman status pesanan (metode + tracking GoSend)."""
+        order = order.sudo()
+        shipping_labels = {'pickup': 'Ambil Sendiri / COD', 'gosend': 'GoSend Instant'}
+        shipping_method = order.x_shipping_method if 'x_shipping_method' in order._fields else 'pickup'
+        shipping_cost = order.x_shipping_cost if 'x_shipping_cost' in order._fields else 0.0
+        delivery_value = False
+        if shipping_method == 'gosend' and 'unitrade.delivery' in request.env.registry:
+            delivery = request.env['unitrade.delivery'].sudo().search(
+                [('order_id', '=', order.id)], order='create_date desc', limit=1,
+            )
+            if delivery:
+                status_labels = dict(delivery._fields['status'].selection)
+                delivery_value = {
+                    'status': delivery.status,
+                    'status_label': status_labels.get(delivery.status, delivery.status),
+                    'tracking_number': delivery.tracking_number or '',
+                    'distance_km': delivery.distance_km or 0.0,
+                    'driver_name': delivery.driver_name or '',
+                }
+        return {
+            'order_status_shipping_method': shipping_method,
+            'order_status_shipping_method_label': shipping_labels.get(shipping_method, 'Ambil Sendiri / COD'),
+            'order_status_shipping_cost': self._format_money(shipping_cost, order.currency_id),
+            'order_status_delivery': delivery_value,
         }
 
     def _midtrans_event_key(self, payload, payload_hash):
@@ -1723,6 +1796,50 @@ class UnitradePaymentController(http.Controller):
             if return_url:
                 return request.redirect(self._append_query(return_url, seller_error=error.args[0] if error.args else str(error)))
             return request.redirect('/seller/dashboard?seller_error=%s#dashboard-orders' % quote(error.args[0] if error.args else str(error)))
+
+    @http.route('/seller/delivery/<int:delivery_id>/update', type='http', auth='user', website=True, methods=['POST'], csrf=True, sitemap=False)
+    def seller_delivery_update(self, delivery_id, **kwargs):
+        """Seller memperbarui nomor resi dan status pengiriman GoSend secara manual."""
+        if 'unitrade.seller' not in request.env.registry or 'unitrade.delivery' not in request.env.registry:
+            return request.not_found()
+        seller = request.env['unitrade.seller'].sudo().search([
+            ('user_id', '=', request.env.user.id),
+            ('status', '=', 'verified'),
+        ], limit=1)
+        delivery = request.env['unitrade.delivery'].sudo().browse(delivery_id).exists()
+        if not seller or not delivery:
+            return request.not_found()
+
+        # Validasi kepemilikan: seller harus pemilik produk pada order.
+        seller_line = request.env['sale.order.line'].sudo().search([
+            ('order_id', '=', delivery.order_id.id),
+            ('display_type', '=', False),
+            ('product_id', '!=', False),
+            ('product_id.product_tmpl_id.x_seller_id', '=', seller.id),
+        ], limit=1)
+        if not seller_line:
+            return request.not_found()
+
+        status_url = self._order_status_url(delivery.order_id)
+        valid_status = {'pending', 'picked_up', 'in_transit', 'delivered', 'failed'}
+        try:
+            self._check_marketplace_access(_('memperbarui pengiriman'))
+            write_values = {}
+            tracking_number = (kwargs.get('tracking_number') or '').strip()
+            if tracking_number:
+                if not (1 <= len(tracking_number) <= 50):
+                    raise UserError(_('Nomor resi harus 1 sampai 50 karakter.'))
+                write_values['tracking_number'] = tracking_number
+            new_status = (kwargs.get('status') or '').strip()
+            if new_status:
+                if new_status not in valid_status:
+                    raise UserError(_('Status pengiriman tidak valid.'))
+                write_values['status'] = new_status
+            if write_values:
+                delivery.sudo().write(write_values)
+            return request.redirect(self._append_query(status_url, delivery_updated=1))
+        except UserError as error:
+            return request.redirect(self._append_query(status_url, delivery_error=error.args[0] if error.args else str(error)))
 
     @http.route('/unitrade/payment/status/<string:reference>', type='http', auth='public', website=True, sitemap=False)
     def payment_status(self, reference, **kwargs):

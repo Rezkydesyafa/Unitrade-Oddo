@@ -7,6 +7,7 @@ class SaleOrderLineUniTrade(models.Model):
     # XML ids of internal "synthetic" products that must never be shown as
     # cart product rows (they are summarised separately in the order summary).
     _UNITRADE_HIDDEN_CART_PRODUCT_XMLIDS = (
+        'unitrade_delivery.product_unitrade_shipping_fee',
         'unitrade_payment.product_unitrade_voucher_discount',
         'unitrade_payment.product_unitrade_payment_fee',
         'unitrade_theme.product_unitrade_service_fee',

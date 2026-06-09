@@ -165,6 +165,9 @@ filestore/
 sessions/
 *.log
 
+# Kiro
+.kiro/
+
 # Project Specific
 PRD_UniTrade_v1.0.md
 API_KEYS_SETUP.md

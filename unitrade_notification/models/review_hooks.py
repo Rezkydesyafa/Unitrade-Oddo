@@ -123,13 +123,14 @@ class UnitradeReviewNotificationHook(models.Model):
             payload = {
                 'reference_model': 'unitrade.review',
                 'reference_id': review_su.id,
+                'recipient_scope': 'seller',
                 'title_override': 'Ulasan baru untuk %s' % product_name,
                 'message_override': '%s memberikan ulasan %d bintang.' % (
                     reviewer_name, review_su.rating or 0,
                 ),
             }
             if product:
-                payload['action_url'] = '/unitrade/product/%s?tab=reviews#tab-ulasan' % product.id
+                payload['action_url'] = '/unitrade/seller/products/%s' % product.id
 
             Notification = self.env['unitrade.notification'].sudo()
             Notification.emit(

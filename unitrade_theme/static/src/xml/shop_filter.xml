@@ -1,12 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="unitrade_theme.ShopFilter">
-        <div class="row o_wsale_products_main_row align-items-start flex-nowrap tw-w-full tw-max-w-[1200px] tw-mx-auto tw-m-0 tw-px-0 md:tw-px-4">
-            <aside id="products_grid_before" class="d-none d-lg-block col-3 px-3 clearfix">
+        <div class="row o_wsale_products_main_row ut-shop-layout-row align-items-start flex-nowrap tw-w-full tw-max-w-[1200px] tw-mx-auto tw-m-0 tw-px-0 md:tw-px-4">
+            <input id="ut-mobile-filter-toggle" type="checkbox" class="ut-shop-filter-toggle-input"/>
+            <div class="ut-shop-mobile-filter-row d-lg-none">
+                <label for="ut-mobile-filter-toggle" class="ut-shop-filter-toggle-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="tw-size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 6h16"></path>
+                        <path d="M7 12h10"></path>
+                        <path d="M10 18h4"></path>
+                    </svg>
+                    <span>Filter</span>
+                </label>
+            </div>
+
+            <aside id="products_grid_before" class="ut-shop-filter-panel d-none d-lg-block col-3 px-3 clearfix">
                 <div class="tw-bg-white tw-rounded-[14px] tw-p-[30px] tw-w-full tw-shadow-sm tw-border tw-border-solid tw-border-gray-200">
                     <div class="tw-flex tw-items-center tw-justify-between tw-mb-8">
                         <h5 class="tw-font-['Urbanist'] tw-font-bold tw-text-[20px] tw-text-[#1a1a1a] tw-m-0">Filter</h5>
-                        <button type="button" t-on-click="resetFilters" class="tw-border tw-border-gray-500 tw-bg-white tw-px-4 tw-py-1.5 tw-rounded-full tw-font-['Urbanist'] tw-text-[13px] tw-text-[#1f2937] hover:tw-bg-[#f3f4f6] hover:tw-text-black hover:tw-border-black tw-transition-colors tw-cursor-pointer">Reset filters</button>
+                        <div class="tw-flex tw-items-center tw-gap-2">
+                            <button type="button" t-on-click="resetFilters" class="tw-border tw-border-gray-500 tw-bg-white tw-px-4 tw-py-1.5 tw-rounded-full tw-font-['Urbanist'] tw-text-[13px] tw-text-[#1f2937] hover:tw-bg-[#f3f4f6] hover:tw-text-black hover:tw-border-black tw-transition-colors tw-cursor-pointer">Reset filters</button>
+                            <label for="ut-mobile-filter-toggle" class="ut-shop-filter-close d-lg-none" aria-label="Tutup filter">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="tw-size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18 6 6 18"></path>
+                                    <path d="m6 6 12 12"></path>
+                                </svg>
+                            </label>
+                        </div>
                     </div>
 
                     <div class="tw-mb-8">
@@ -62,7 +82,7 @@
                 </div>
             </aside>
 
-            <div id="products_grid" class="col-12 col-lg-9 tw-pl-4">
+            <div id="products_grid" class="ut-shop-products-grid col-12 col-lg-9 tw-pl-4">
                 <div id="ut-sort-bar" class="tw-bg-white tw-rounded-[14px] tw-h-[64px] tw-px-[24px] tw-flex tw-items-center tw-mb-6 tw-shadow-sm tw-border tw-border-solid tw-border-gray-200">
                     <div class="tw-flex tw-gap-[12px]">
                         <div data-sort="terkait" t-att-class="sortClass('terkait')" t-on-click="() => this.changeSort('terkait')">Terkait</div>

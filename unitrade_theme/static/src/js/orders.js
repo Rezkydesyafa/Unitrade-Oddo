@@ -492,7 +492,7 @@ publicWidget.registry.UnitradeOrderStatusUpload = publicWidget.Widget.extend({
 });
 
 publicWidget.registry.UnitradeOrderReviewModal = publicWidget.Widget.extend({
-    selector: ".ut-user-orders-main",
+    selector: ".ut-user-orders-main, .ut-order-status-page",
     events: {
         "click [data-review-open]": "_onOpen",
         "click [data-review-close]": "_onClose",
@@ -823,7 +823,11 @@ publicWidget.registry.UnitradeOrderReviewModal = publicWidget.Widget.extend({
         replacement.type = "button";
         replacement.disabled = true;
         replacement.setAttribute("aria-disabled", "true");
-        replacement.className = "ut-user-order-btn ut-user-order-btn-disabled";
+        if (button.classList.contains("ut-order-status-review-action")) {
+            replacement.className = "ut-order-status-secondary ut-order-status-review-action is-disabled";
+        } else {
+            replacement.className = "ut-user-order-btn ut-user-order-btn-disabled";
+        }
         replacement.textContent = text || "Sudah Ulasan";
         button.replaceWith(replacement);
     },

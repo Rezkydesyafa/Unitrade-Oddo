@@ -145,6 +145,7 @@ class SaleOrderNotificationHooks(models.Model):
                         'reference_model': 'sale.order',
                         'reference_id': order.id,
                         'action_url': '/unitrade/seller/orders/%d' % order.id,
+                        'recipient_scope': 'seller',
                     },
                     idempotency_discriminator=str(seller_uid),
                 )
@@ -159,6 +160,7 @@ class SaleOrderNotificationHooks(models.Model):
                         'reference_model': 'sale.order',
                         'reference_id': order.id,
                         'action_url': '/unitrade/order/status/%d' % order.id,
+                        'recipient_scope': 'user',
                     },
                 )
         return result
@@ -192,11 +194,12 @@ class SaleOrderNotificationHooks(models.Model):
             if buyer_id:
                 recipients.add(buyer_id)
             for uid in recipients:
+                recipient_scope = 'seller' if uid in seller_user_ids and uid != buyer_id else 'user'
                 _safe_emit(
                     self.env,
                     uid,
                     'order.cancelled',
-                    payload=payload,
+                    payload=dict(payload, recipient_scope=recipient_scope),
                     idempotency_discriminator=str(uid),
                 )
         return result
@@ -262,6 +265,7 @@ class UnitradeEscrowLedgerNotificationHooks(models.Model):
                 'reference_model': 'sale.order',
                 'reference_id': order.id,
                 'action_url': '/unitrade/order/status/%d' % order.id,
+                'recipient_scope': 'user',
             }
             resi = self._unitrade_resi_for_order(order)
             if resi:
@@ -307,19 +311,20 @@ class UnitradeEscrowLedgerNotificationHooks(models.Model):
             if buyer_id:
                 recipients.add(buyer_id)
 
-            payload = {
+            base_payload = {
                 'reference_model': 'sale.order',
                 'reference_id': order.id,
                 'action_url': '/unitrade/order/status/%d' % order.id,
             }
             for uid in recipients:
+                recipient_scope = 'seller' if uid in seller_user_ids and uid != buyer_id else 'user'
                 # Per-(ledger, recipient) discriminator so each party
                 # gets exactly one delivered notification per shipment.
                 _safe_emit(
                     self.env,
                     uid,
                     'order.delivered',
-                    payload=payload,
+                    payload=dict(base_payload, recipient_scope=recipient_scope),
                     idempotency_discriminator='%d:%d' % (ledger.id, uid),
                 )
         return result

@@ -115,6 +115,14 @@ class UnitradeChatMessageNotificationHook(models.Model):
         discriminator = '%s:%s' % (conversation.id, bucket)
 
         author_name = author.name or 'pengguna'
+        recipient_scope = (
+            'seller'
+            if (
+                getattr(conversation, 'seller_user_id', False)
+                and conversation.seller_user_id.id == recipient.id
+            )
+            else 'user'
+        )
 
         Notification = self.env['unitrade.notification'].sudo()
         Notification.emit(
@@ -124,6 +132,7 @@ class UnitradeChatMessageNotificationHook(models.Model):
                 'reference_model': 'unitrade.chat.conversation',
                 'reference_id': conversation.id,
                 'action_url': '/unitrade/chat?conversation_id=%s' % conversation.id,
+                'recipient_scope': recipient_scope,
                 'title_override': 'Pesan baru dari %s' % author_name,
             },
             idempotency_discriminator=discriminator,

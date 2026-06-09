@@ -7,6 +7,7 @@
     'depends': ['sale', 'mail', 'unitrade_payment'],
     'data': [
         'security/ir.model.access.csv',
+        'data/shipping_fee_product.xml',
         'views/delivery_views.xml',
         'views/delivery_templates.xml',
     ],
