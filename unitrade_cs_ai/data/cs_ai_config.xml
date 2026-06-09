@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!--
+        Konfigurasi default Customer Service AI.
+        CATATAN PRIVASI: free tier Gemini dapat memakai data untuk pelatihan model.
+        Untuk lingkungan produksi, aktifkan billing Google Cloud agar data tidak dipakai
+        pelatihan, dan hindari mengirim data sensitif ke AI.
+        API key WAJIB diisi admin di Settings > Technical > System Parameters
+        (key: unitrade.gemini.api_key).
+    -->
+    <record id="cs_ai_model_param" model="ir.config_parameter">
+        <field name="key">unitrade.gemini.model</field>
+        <field name="value">gemini-2.5-flash</field>
+    </record>
+    <record id="cs_ai_enabled_param" model="ir.config_parameter">
+        <field name="key">unitrade.cs.ai_enabled</field>
+        <field name="value">True</field>
+    </record>
+    <record id="cs_ai_office_hours_param" model="ir.config_parameter">
+        <field name="key">unitrade.cs.office_hours</field>
+        <field name="value">08:00-17:00</field>
+    </record>
+    <record id="cs_ai_rate_limit_param" model="ir.config_parameter">
+        <field name="key">unitrade.cs.ai_rate_limit</field>
+        <field name="value">10</field>
+    </record>
+</odoo>

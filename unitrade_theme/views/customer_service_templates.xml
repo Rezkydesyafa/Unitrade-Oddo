@@ -3,23 +3,192 @@
     <template id="customer_service_page" name="UniTrade Customer Service">
         <t t-call="website.layout">
             <t t-set="title" t-value="page_title"/>
-            <main class="ut-cs-page tw-min-h-screen tw-bg-[#f9fafb] tw-px-4 tw-pb-16 tw-pt-10 md:tw-px-8">
-                <section id="ut-customer-service-app" class="ut-cs-app tw-mx-auto tw-w-full tw-max-w-[1280px]">
-                    <div class="ut-cs-skeleton-shell" aria-hidden="true">
-                        <div class="ut-cs-skeleton-title"></div>
-                        <div class="ut-cs-skeleton-subtitle"></div>
-                        <div class="ut-cs-skeleton-categories">
-                            <div class="ut-cs-skeleton-card"></div>
-                            <div class="ut-cs-skeleton-card"></div>
-                            <div class="ut-cs-skeleton-card"></div>
+            <style type="text/css">
+                .ut-csh-page { background: #f9f9fb; font-family: 'Urbanist', Inter, sans-serif; min-height: 100vh; padding: 40px 24px 64px; }
+                .ut-csh-shell { max-width: 1080px; margin: 0 auto; width: 100%; }
+                .ut-csh-hero { text-align: center; margin-bottom: 48px; }
+                .ut-csh-title { margin: 0 0 24px; color: #212529; font-size: 32px; line-height: 38px; font-weight: 700; }
+                .ut-csh-search-wrap { position: relative; max-width: 640px; margin: 0 auto; }
+                .ut-csh-search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #6b7280; }
+                .ut-csh-search { width: 100%; border: 1px solid #f0f0f0; border-radius: 999px; padding: 16px 24px 16px 46px; font-size: 16px; font-family: inherit; outline: none; background: #fff; box-shadow: 0 4px 20px -4px rgba(0,0,0,.05); }
+                .ut-csh-search:focus { border-color: #212529; box-shadow: 0 0 0 1px #212529; }
+                .ut-csh-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-bottom: 56px; }
+                .ut-csh-card { display: flex; flex-direction: column; align-items: flex-start; text-align: left; background: #fff; border: 1px solid #f0f0f0; border-radius: 14px; padding: 24px; cursor: pointer; transition: box-shadow .25s ease, transform .15s ease, border-color .2s ease; font-family: inherit; }
+                .ut-csh-card:hover { box-shadow: 0 8px 24px -4px rgba(0,0,0,.08); transform: translateY(-2px); }
+                .ut-csh-card.is-primary { border-color: #212529; }
+                .ut-csh-card-icon { width: 48px; height: 48px; border-radius: 10px; background: #f3f3f5; color: #212529; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 16px; transition: background .2s ease, color .2s ease; }
+                .ut-csh-card:hover .ut-csh-card-icon, .ut-csh-card.is-primary .ut-csh-card-icon { background: #212529; color: #fff; }
+                .ut-csh-card-title { margin: 0 0 8px; color: #212529; font-size: 18px; line-height: 24px; font-weight: 600; }
+                .ut-csh-card-desc { margin: 0; color: #6b7280; font-size: 14px; line-height: 21px; }
+                .ut-csh-section { max-width: 760px; margin: 0 auto 56px; }
+                .ut-csh-section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+                .ut-csh-section-title { margin: 0; color: #212529; font-size: 20px; font-weight: 700; }
+                .ut-csh-link { display: inline-flex; align-items: center; gap: 4px; color: #0c1014; font-size: 14px; font-weight: 600; text-decoration: none; }
+                .ut-csh-link:hover { opacity: .7; color: #0c1014; text-decoration: none; }
+                .ut-csh-faq { background: #fff; border: 1px solid #f0f0f0; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 10px -2px rgba(0,0,0,.03); }
+                .ut-csh-faq-item { border-bottom: 1px solid #f0f0f0; }
+                .ut-csh-faq-item:last-child { border-bottom: 0; }
+                .ut-csh-faq-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 24px; background: #fff; border: 0; cursor: pointer; text-align: left; font-family: inherit; color: #212529; font-size: 16px; font-weight: 500; transition: background .15s ease; }
+                .ut-csh-faq-btn:hover { background: #f3f3f5; }
+                .ut-csh-faq-icon { color: #6b7280; transition: transform .3s ease; flex: 0 0 auto; }
+                .ut-csh-faq-btn[aria-expanded="true"] .ut-csh-faq-icon { transform: rotate(180deg); }
+                .ut-csh-faq-body { max-height: 0; opacity: 0; overflow: hidden; transition: max-height .3s ease-out, opacity .3s ease-out; padding: 0 24px; }
+                .ut-csh-faq-body.is-open { max-height: 320px; opacity: 1; }
+                .ut-csh-faq-body p { margin: 0; padding-bottom: 22px; color: #6b7280; font-size: 14px; line-height: 22px; }
+                .ut-csh-help { max-width: 760px; margin: 0 auto; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 24px; background: #fff; border: 1px solid #f0f0f0; border-radius: 14px; padding: 32px; box-shadow: 0 2px 10px -2px rgba(0,0,0,.03); }
+                .ut-csh-help h3 { margin: 0 0 8px; color: #212529; font-size: 20px; font-weight: 600; }
+                .ut-csh-help p { margin: 0; color: #6b7280; font-size: 14px; line-height: 21px; }
+                .ut-csh-btn { display: inline-flex; align-items: center; gap: 8px; background: #212529; color: #fff; border: 0; border-radius: 999px; padding: 13px 24px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: opacity .15s ease; }
+                .ut-csh-btn:hover { opacity: .9; color: #fff; }
+                @media (max-width: 900px) { .ut-csh-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+                @media (max-width: 640px) {
+                    .ut-csh-grid { grid-template-columns: 1fr; }
+                    .ut-csh-help { flex-direction: column; text-align: center; }
+                }
+            </style>
+            <main class="ut-csh-page">
+                <div class="ut-csh-shell">
+                    <section class="ut-csh-hero">
+                        <h1 class="ut-csh-title">Customer Service</h1>
+                        <div class="ut-csh-search-wrap">
+                            <span class="ut-csh-search-icon"><i class="fa fa-search"/></span>
+                            <input type="text" class="ut-csh-search" placeholder="Cari kendala atau pertanyaan kamu"/>
                         </div>
-                        <div class="ut-cs-skeleton-grid">
-                            <div class="ut-cs-skeleton-form"></div>
-                            <div class="ut-cs-skeleton-list"></div>
+                    </section>
+
+                    <section class="ut-csh-grid">
+                        <button type="button" class="ut-csh-card" data-cs-topic="Saya butuh bantuan terkait pesanan saya.">
+                            <span class="ut-csh-card-icon"><i class="fa fa-archive"/></span>
+                            <h3 class="ut-csh-card-title">Pesanan</h3>
+                            <p class="ut-csh-card-desc">Status pesanan, detail transaksi, &amp; histori.</p>
+                        </button>
+                        <button type="button" class="ut-csh-card" data-cs-topic="Saya ada pertanyaan tentang pembayaran.">
+                            <span class="ut-csh-card-icon"><i class="fa fa-credit-card"/></span>
+                            <h3 class="ut-csh-card-title">Pembayaran</h3>
+                            <p class="ut-csh-card-desc">Metode bayar, verifikasi, &amp; saldo Escrow.</p>
+                        </button>
+                        <button type="button" class="ut-csh-card" data-cs-topic="Saya ingin menanyakan proses pengiriman.">
+                            <span class="ut-csh-card-icon"><i class="fa fa-truck"/></span>
+                            <h3 class="ut-csh-card-title">Pengiriman</h3>
+                            <p class="ut-csh-card-desc">Proses handoff, lokasi COD, &amp; konfirmasi.</p>
+                        </button>
+                        <button type="button" class="ut-csh-card" data-cs-topic="Saya ingin mengajukan refund / komplain.">
+                            <span class="ut-csh-card-icon"><i class="fa fa-undo"/></span>
+                            <h3 class="ut-csh-card-title">Refund &amp; Komplain</h3>
+                            <p class="ut-csh-card-desc">Pengembalian dana, mediasi, &amp; lapor barang.</p>
+                        </button>
+                        <button type="button" class="ut-csh-card" data-cs-topic="Saya butuh bantuan akun dan keamanan.">
+                            <span class="ut-csh-card-icon"><i class="fa fa-shield"/></span>
+                            <h3 class="ut-csh-card-title">Akun &amp; Keamanan</h3>
+                            <p class="ut-csh-card-desc">Password, verifikasi data, &amp; proteksi privasi.</p>
+                        </button>
+                        <button type="button" class="ut-csh-card is-primary" data-cs-open="1">
+                            <span class="ut-csh-card-icon"><i class="fa fa-headphones"/></span>
+                            <h3 class="ut-csh-card-title">Chat Customer Service</h3>
+                            <p class="ut-csh-card-desc">Hubungi tim kami langsung untuk bantuan cepat.</p>
+                        </button>
+                    </section>
+
+                    <section class="ut-csh-section">
+                        <div class="ut-csh-section-head">
+                            <h2 class="ut-csh-section-title">Pertanyaan Populer</h2>
+                            <a href="/faq" class="ut-csh-link">Lihat Semua FAQ <i class="fa fa-chevron-right"/></a>
                         </div>
-                    </div>
-                </section>
+                        <div class="ut-csh-faq" data-cs-faq="1">
+                            <div class="ut-csh-faq-item">
+                                <button type="button" class="ut-csh-faq-btn" aria-expanded="false">
+                                    <span>Bagaimana cara kerja Escrow UniTrade?</span>
+                                    <i class="fa fa-chevron-down ut-csh-faq-icon"/>
+                                </button>
+                                <div class="ut-csh-faq-body"><p>Dana Anda ditahan dengan aman oleh sistem Escrow UniTrade sampai Anda menerima barang dan mengonfirmasi bahwa barang sesuai deskripsi. Setelah konfirmasi, dana baru diteruskan ke penjual.</p></div>
+                            </div>
+                            <div class="ut-csh-faq-item">
+                                <button type="button" class="ut-csh-faq-btn" aria-expanded="false">
+                                    <span>Kapan saya bisa bertemu seller?</span>
+                                    <i class="fa fa-chevron-down ut-csh-faq-icon"/>
+                                </button>
+                                <div class="ut-csh-faq-body"><p>Waktu dan lokasi pertemuan (handoff) disepakati bersama melalui fitur chat setelah pembayaran berhasil diverifikasi oleh sistem.</p></div>
+                            </div>
+                            <div class="ut-csh-faq-item">
+                                <button type="button" class="ut-csh-faq-btn" aria-expanded="false">
+                                    <span>Apa yang harus dilakukan jika barang tidak sesuai?</span>
+                                    <i class="fa fa-chevron-down ut-csh-faq-icon"/>
+                                </button>
+                                <div class="ut-csh-faq-body"><p>Jangan menekan tombol 'Pesanan Selesai'. Segera gunakan fitur Komplain di halaman detail pesanan untuk meminta mediasi dan proses refund.</p></div>
+                            </div>
+                            <div class="ut-csh-faq-item">
+                                <button type="button" class="ut-csh-faq-btn" aria-expanded="false">
+                                    <span>Berapa lama proses pencairan dana (refund)?</span>
+                                    <i class="fa fa-chevron-down ut-csh-faq-icon"/>
+                                </button>
+                                <div class="ut-csh-faq-body"><p>Proses refund memakan waktu 1-3 hari kerja tergantung pada metode pembayaran awal yang Anda gunakan.</p></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section>
+                        <div class="ut-csh-help">
+                            <div>
+                                <h3>Butuh bantuan lebih lanjut?</h3>
+                                <p>Tim Customer Service kami siap membantu Anda setiap hari pukul 08:00 - 22:00 WIB.</p>
+                            </div>
+                            <button type="button" class="ut-csh-btn" data-cs-open="1">
+                                <i class="fa fa-comment"/> Chat Customer Service
+                            </button>
+                        </div>
+                    </section>
+                </div>
             </main>
+
+            <script type="text/javascript">
+                <![CDATA[
+                (function () {
+                    function initCustomerServiceHelp() {
+                        var root = document.querySelector(".ut-csh-page");
+                        if (!root) { return; }
+
+                        // FAQ accordion
+                        var faqButtons = root.querySelectorAll(".ut-csh-faq-btn");
+                        faqButtons.forEach(function (button) {
+                            button.addEventListener("click", function () {
+                                var expanded = button.getAttribute("aria-expanded") === "true";
+                                faqButtons.forEach(function (other) {
+                                    other.setAttribute("aria-expanded", "false");
+                                    var body = other.nextElementSibling;
+                                    if (body) { body.classList.remove("is-open"); }
+                                });
+                                if (!expanded) {
+                                    button.setAttribute("aria-expanded", "true");
+                                    var body = button.nextElementSibling;
+                                    if (body) { body.classList.add("is-open"); }
+                                }
+                            });
+                        });
+
+                        // Buka chatbot AI (widget floating unitrade_cs_ai)
+                        function openChatbot(topic) {
+                            window.dispatchEvent(new CustomEvent("unitrade_cs:open", {
+                                detail: { topic: topic || "" }
+                            }));
+                        }
+                        root.querySelectorAll("[data-cs-open]").forEach(function (el) {
+                            el.addEventListener("click", function () { openChatbot(""); });
+                        });
+                        root.querySelectorAll("[data-cs-topic]").forEach(function (el) {
+                            el.addEventListener("click", function () {
+                                openChatbot(el.getAttribute("data-cs-topic"));
+                            });
+                        });
+                    }
+
+                    if (document.readyState === "loading") {
+                        document.addEventListener("DOMContentLoaded", initCustomerServiceHelp);
+                    } else {
+                        initCustomerServiceHelp();
+                    }
+                }());
+                ]]>
+            </script>
         </t>
     </template>
 
