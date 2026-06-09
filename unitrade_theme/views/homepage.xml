@@ -208,7 +208,7 @@
                         <div class="carousel-item tw-h-full tw-w-full">
                             <picture class="tw-absolute tw-inset-0 tw-block tw-h-full tw-w-full">
                                 <source type="image/webp" srcset="/unitrade_theme/static/src/img/hero/hero-banner-6-960.webp 960w, /unitrade_theme/static/src/img/hero/hero-banner-6-1920.webp 1920w" sizes="(max-width: 768px) 100vw, 1280px"/>
-                                <img src="/unitrade_theme/static/src/img/hero/hero-banner-6.png" alt="Belanja Cerdas UniTrade" fetchpriority="low" decoding="async" class="tw-h-full tw-w-full tw-object-cover tw-object-center"/>
+                                <img src="/unitrade_theme/static/src/img/hero/hero-banner-6.png" alt="Belanja Cerdas UniTrade" fetchpriority="low" decoding="async" class="tw-h-full tw-w-full tw-object-contain tw-object-center"/>
                             </picture>
                         </div>
                     </div>

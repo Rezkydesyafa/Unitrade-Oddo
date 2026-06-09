@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="unitrade_cs_ai.CsFloatingChat">
+        <div class="ut-csai-root">
+            <!-- Launcher -->
+            <button type="button"
+                    class="ut-csai-launcher"
+                    t-att-class="state.open ? 'is-open' : ''"
+                    t-on-click="toggle"
+                    aria-label="Customer Service UniTrade">
+                <i t-att-class="state.open ? 'fa fa-times' : 'fa fa-comments'"></i>
+                <span t-if="!state.open" class="ut-csai-launcher-badge">AI</span>
+            </button>
+
+            <!-- Panel -->
+            <div class="ut-csai-panel" t-att-class="state.open ? 'is-open' : ''" t-if="state.open" t-ref="panel">
+                <div class="ut-csai-resize" t-on-pointerdown="onResizeStart" title="Tarik untuk ubah ukuran">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M4 9V4h5"></path>
+                        <path d="M9 4 4 9"></path>
+                    </svg>
+                </div>
+                <header class="ut-csai-header">
+                    <span class="ut-csai-avatar">
+                        <img src="/unitrade_cs_ai/static/src/img/profile_cs.jpg" alt="Asisten UniTrade"/>
+                    </span>
+                    <div class="ut-csai-header-text">
+                        <span class="ut-csai-header-name">Asisten UniTrade</span>
+                        <span class="ut-csai-header-status">
+                            <span t-att-class="state.session.state === 'ai_active' ? 'ut-csai-dot is-online' : 'ut-csai-dot'"/>
+                            <t t-esc="statusLabel"/>
+                        </span>
+                    </div>
+                    <button type="button" class="ut-csai-icon-btn" t-on-click="toggle" aria-label="Tutup">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </header>
+
+                <div class="ut-csai-messages" t-ref="messages">
+                    <t t-if="state.loading">
+                        <div class="ut-csai-msg ut-csai-theirs">
+                            <div class="ut-csai-bubble ut-csai-skeleton">&#160;</div>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <t t-foreach="state.messages" t-as="message" t-key="message.id">
+                            <div t-att-class="messageClass(message)">
+                                <div class="ut-csai-bubble">
+                                    <span t-if="message.author_type !== 'user'"
+                                          t-att-class="badgeClass(message)">
+                                        <t t-if="message.author_type === 'ai'">
+                                            <svg class="ut-csai-badge-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                <path d="M12 2a1 1 0 0 1 1 1v1h1.5A3.5 3.5 0 0 1 18 7.5V8h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1.5A3.5 3.5 0 0 1 14.5 18h-5A3.5 3.5 0 0 1 6 14.5V13H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1h1v-.5A3.5 3.5 0 0 1 9.5 4H11V3a1 1 0 0 1 1-1Zm-2.5 8a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm5 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z"/>
+                                            </svg>
+                                            <span>AI</span>
+                                        </t>
+                                        <t t-else=""><t t-esc="badgeLabel(message)"/></t>
+                                    </span>
+                                    <p class="ut-csai-text" t-esc="message.body"/>
+                                    <span class="ut-csai-time" t-esc="message.time"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Quick reply chips -->
+                        <div t-if="showQuickReplies" class="ut-csai-quick">
+                            <p class="ut-csai-quick-title">Silakan pilih topik yang ingin kamu tanyakan:</p>
+                            <t t-foreach="state.quickReplies" t-as="qr" t-key="qr_index">
+                                <button type="button" class="ut-csai-quick-chip" t-on-click="() => this.sendText(qr)">
+                                    <t t-esc="qr"/>
+                                </button>
+                            </t>
+                        </div>
+
+                        <div t-if="state.aiTyping" class="ut-csai-msg ut-csai-theirs">
+                            <div class="ut-csai-bubble ut-csai-typing">
+                                <span class="ut-csai-tdot"></span>
+                                <span class="ut-csai-tdot"></span>
+                                <span class="ut-csai-tdot"></span>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+
+                <div t-if="state.session.state === 'ai_active'" class="ut-csai-escalate-row">
+                    <button type="button" class="ut-csai-escalate-btn" t-on-click="escalate">
+                        <i class="fa fa-user"></i> Chat dengan Admin
+                    </button>
+                </div>
+                <div t-if="state.session.state === 'waiting_admin'" class="ut-csai-waiting">
+                    <i class="fa fa-clock-o"></i> Menunggu admin bergabung...
+                </div>
+                <div t-if="state.session.state === 'closed'" class="ut-csai-closed">
+                    <i class="fa fa-check-circle"></i> Sesi telah ditutup. Terima kasih.
+                </div>
+
+                <footer class="ut-csai-composer">
+                    <textarea class="ut-csai-input"
+                              t-ref="input"
+                              rows="1"
+                              placeholder="Tulis pesan..."
+                              t-att-disabled="state.sending or state.session.state === 'closed'"
+                              t-on-keydown="onKeydown"/>
+                    <button type="button"
+                            class="ut-csai-send"
+                            t-att-disabled="state.sending or state.session.state === 'closed'"
+                            t-on-click="send">
+                        <i class="fa fa-paper-plane"></i>
+                    </button>
+                </footer>
+                <div t-if="state.error" class="ut-csai-error" t-esc="state.error"/>
+                <div class="ut-csai-foot">Dibuat AI. Jawaban dapat tidak selalu akurat.</div>
+            </div>
+        </div>
+    </t>
+</templates>

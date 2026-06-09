@@ -2456,13 +2456,15 @@ class UnitradeSellerController(http.Controller):
     def _seller_order_payload_from_line(self, seller, line, related_maps):
         order = line.order_id
         ledger = related_maps['ledgers'].get(order.id)
-        raw_status = self._order_status_payload(order, related_maps['deliveries'].get(order.id), ledger=ledger)
+        delivery = related_maps['deliveries'].get(order.id)
+        raw_status = self._order_status_payload(order, delivery, ledger=ledger)
         filter_key = self._seller_orders_filter_key(raw_status['key'])
         conversation = related_maps['conversations'].get(order.partner_id.id)
         refund_dispute = (
             related_maps['refunds_by_ledger'].get(ledger.id)
             if ledger else False
         ) or related_maps['refunds_by_order'].get(order.id)
+        shipping_method = _safe_get(order, 'x_shipping_method', '') or 'pickup'
         can_confirm_handoff = bool(
             ledger
             and order.x_payment_status == 'paid'
@@ -2492,6 +2494,8 @@ class UnitradeSellerController(http.Controller):
             'buyer_confirmed': bool(ledger and ledger.buyer_confirmed_at),
             'seller_confirmed': bool(ledger and ledger.seller_confirmed_at),
             'seller_evidence': bool(ledger and ledger.seller_handoff_image),
+            'shipping_method': shipping_method,
+            'tracking_number': delivery.tracking_number if delivery else '',
             'can_confirm_handoff': can_confirm_handoff,
             'confirm_handoff_url': '/seller/order/%s/confirm-handoff' % ledger.id if ledger else '',
             'refund_dispute_id': refund_dispute.id if refund_dispute else 0,
@@ -2522,9 +2526,11 @@ class UnitradeSellerController(http.Controller):
         for line in lines:
             order = line.order_id
             ledger = self._ledger_for_order_seller(order, seller)
-            status = self._order_status_payload(order, deliveries.get(order.id), ledger=ledger)
+            delivery = deliveries.get(order.id)
+            status = self._order_status_payload(order, delivery, ledger=ledger)
             conversation = conversations.get(order.partner_id.id)
             refund_dispute = self._seller_refund_dispute(order, ledger)
+            shipping_method = _safe_get(order, 'x_shipping_method', '') or 'pickup'
             can_confirm_handoff = bool(
                 ledger
                 and order.x_payment_status == 'paid'
@@ -2549,6 +2555,8 @@ class UnitradeSellerController(http.Controller):
                 'buyer_confirmed': bool(ledger and ledger.buyer_confirmed_at),
                 'seller_confirmed': bool(ledger and ledger.seller_confirmed_at),
                 'seller_evidence': bool(ledger and ledger.seller_handoff_image),
+                'shipping_method': shipping_method,
+                'tracking_number': delivery.tracking_number if delivery else '',
                 'can_confirm_handoff': can_confirm_handoff,
                 'confirm_handoff_url': '/seller/order/%s/confirm-handoff' % ledger.id if ledger else '',
                 'refund_dispute_id': refund_dispute.id if refund_dispute else 0,
@@ -2721,7 +2729,8 @@ class UnitradeSellerController(http.Controller):
         lines = self._seller_order_lines_for_order(seller, order)
         deliveries = self._delivery_by_order([order.id])
         ledger = self._ledger_for_order_seller(order, seller)
-        raw_status = self._order_status_payload(order, deliveries.get(order.id), ledger=ledger)
+        delivery = deliveries.get(order.id)
+        raw_status = self._order_status_payload(order, delivery, ledger=ledger)
         status_key = self._seller_orders_filter_key(raw_status.get('key'))
         refund_dispute = self._seller_refund_dispute(order, ledger)
         conversation = self._seller_order_conversation(seller, order)
@@ -2733,6 +2742,7 @@ class UnitradeSellerController(http.Controller):
         shipping_address = self._partner_address_payload(shipping_partner).get('line') if shipping_partner else ''
         payment_status = _safe_get(order, 'x_payment_status', '') or ''
         unitrade_state = _safe_get(order, 'x_unitrade_order_state', '') or ''
+        shipping_method = _safe_get(order, 'x_shipping_method', '') or 'pickup'
         seller_confirmed = bool(ledger and ledger.seller_confirmed_at)
         buyer_confirmed = bool(ledger and ledger.buyer_confirmed_at)
         payment_done = payment_status in ('paid', 'refunded') or unitrade_state == 'completed'
@@ -2837,6 +2847,8 @@ class UnitradeSellerController(http.Controller):
                 'seller_evidence_url': self._binary_image_uri(ledger.seller_handoff_image) if ledger else '',
                 'buyer_evidence_url': self._binary_image_uri(ledger.buyer_received_image) if ledger else '',
                 'seller_handoff_location': ledger.seller_handoff_location if ledger else '',
+                'shipping_method': shipping_method,
+                'tracking_number': delivery.tracking_number if delivery else '',
                 'seller_confirmed_at_label': self._format_datetime_detail_label(ledger.seller_confirmed_at) if ledger else '',
                 'buyer_confirmed_at_label': self._format_datetime_detail_label(ledger.buyer_confirmed_at) if ledger else '',
                 'can_confirm_handoff': can_confirm_handoff,

@@ -257,6 +257,10 @@
                                 <span>Lokasi penyerahan</span>
                                 <input type="text" name="seller_handoff_location" required="required" placeholder="Contoh: Lobby Kampus UNISA, pukul 13.00"/>
                             </label>
+                            <label t-if="state.handoffOrder.shipping_method === 'gosend'" class="ut-dash-handoff-field">
+                                <span>Nomor pesanan / resi Gojek</span>
+                                <input type="text" name="tracking_number" maxlength="50" t-att-value="state.handoffOrder.tracking_number || ''" placeholder="Contoh: GK-123456789"/>
+                            </label>
                             <div class="tw-mt-6 tw-flex tw-justify-end tw-gap-3">
                                 <button type="button" class="ut-dash-handoff-cancel" t-on-click="closeHandoff">Batal</button>
                                 <button type="submit" class="ut-dash-handoff-submit" t-att-disabled="!state.handoffFileName ? true : undefined">Simpan Bukti</button>

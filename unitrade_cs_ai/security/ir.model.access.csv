@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_cs_session_user,unitrade.cs.session.user,model_unitrade_cs_session,base.group_user,1,1,1,0
+access_cs_session_admin,unitrade.cs.session.admin,model_unitrade_cs_session,unitrade_seller.group_unitrade_admin,1,1,1,1
+access_cs_session_message_user,unitrade.cs.session.message.user,model_unitrade_cs_session_message,base.group_user,1,1,1,0
+access_cs_session_message_admin,unitrade.cs.session.message.admin,model_unitrade_cs_session_message,unitrade_seller.group_unitrade_admin,1,1,1,1
