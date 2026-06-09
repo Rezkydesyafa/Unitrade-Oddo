@@ -1374,6 +1374,10 @@
                                     <span>Voucher <t t-esc="order_status_voucher_code"/></span>
                                     <strong>-<t t-esc="order_status_voucher_discount"/></strong>
                                 </div>
+                                <div class="ut-order-status-row">
+                                    <span>Ongkir (<t t-esc="order_status_shipping_method_label"/>)</span>
+                                    <strong t-esc="order_status_shipping_cost"/>
+                                </div>
                                 <div class="ut-order-status-row is-total">
                                     <span>Total Pembayaran</span>
                                     <strong t-esc="order_status_total"/>
@@ -2493,10 +2497,39 @@
                                     <span>Voucher <t t-esc="order_status_voucher_code"/></span>
                                     <strong>-<t t-esc="order_status_voucher_discount"/></strong>
                                 </div>
+                                <div class="ut-order-status-row">
+                                    <span>Ongkir (<t t-esc="order_status_shipping_method_label"/>)</span>
+                                    <strong t-esc="order_status_shipping_cost"/>
+                                </div>
                                 <div class="ut-order-status-row is-total">
                                     <span>Total Pembayaran</span>
                                     <strong t-esc="order_status_total"/>
                                 </div>
+                            </section>
+
+                            <section class="ut-order-status-card" t-if="order_status_shipping_method == 'gosend'">
+                                <h2 class="ut-order-status-card-title">Pengiriman GoSend</h2>
+                                <div class="ut-order-status-row">
+                                    <span>Metode</span>
+                                    <strong t-esc="order_status_shipping_method_label"/>
+                                </div>
+                                <t t-if="order_status_delivery">
+                                    <div class="ut-order-status-row">
+                                        <span>Status Pengiriman</span>
+                                        <strong t-esc="order_status_delivery.get('status_label')"/>
+                                    </div>
+                                    <div class="ut-order-status-row" t-if="order_status_delivery.get('tracking_number')">
+                                        <span>Nomor Resi</span>
+                                        <strong t-esc="order_status_delivery.get('tracking_number')"/>
+                                    </div>
+                                    <div class="ut-order-status-row" t-if="order_status_delivery.get('distance_km')">
+                                        <span>Estimasi Jarak</span>
+                                        <strong><t t-esc="order_status_delivery.get('distance_km')"/> km</strong>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <p class="ut-order-status-meta">Penjual akan memproses pengiriman dan memperbarui status di sini.</p>
+                                </t>
                             </section>
 
                             <section class="ut-order-status-card ut-order-status-actions-card">

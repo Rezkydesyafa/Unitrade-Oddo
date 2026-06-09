@@ -853,6 +853,101 @@
                         grid-template-columns: 1fr;
                     }
                 }
+                .ut-shipping-options {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                }
+                .ut-shipping-option {
+                    display: flex;
+                    align-items: center;
+                    gap: 14px;
+                    border: 1px solid #e4e4e7;
+                    border-radius: 12px;
+                    background: #fff;
+                    padding: 16px 18px;
+                    cursor: pointer;
+                    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+                }
+                .ut-shipping-option:hover {
+                    border-color: #9ca3af;
+                    background: #fafafa;
+                }
+                .ut-shipping-option.is-active {
+                    border-color: #0c1014;
+                    box-shadow: 0 0 0 1px #0c1014 inset;
+                }
+                .ut-shipping-option input[type="radio"] {
+                    position: absolute;
+                    opacity: 0;
+                    pointer-events: none;
+                }
+                .ut-shipping-option-logo {
+                    width: 44px;
+                    height: 44px;
+                    flex: 0 0 44px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 10px;
+                    overflow: hidden;
+                }
+                .ut-shipping-option-logo img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                    display: block;
+                }
+                .ut-shipping-option-body {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 3px;
+                    flex: 1 1 auto;
+                    min-width: 0;
+                }
+                .ut-shipping-option-title {
+                    color: #0c1014;
+                    font-size: 16px;
+                    line-height: 22px;
+                    font-weight: 600;
+                }
+                .ut-shipping-option-desc {
+                    color: #5d6470;
+                    font-size: 13px;
+                    line-height: 18px;
+                    font-weight: 400;
+                }
+                .ut-shipping-option-radio {
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid #c5c6ca;
+                    border-radius: 999px;
+                    background: #fff;
+                    flex: 0 0 auto;
+                    transition: border-color .15s ease, box-shadow .15s ease;
+                }
+                .ut-shipping-option.is-active .ut-shipping-option-radio {
+                    border-color: #0c1014;
+                    border-width: 6px;
+                }
+                .ut-shipping-warning {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-top: 14px;
+                    border-radius: 12px;
+                    background: #fff0f0;
+                    color: #9b1c1c;
+                    padding: 11px 13px;
+                    font-size: 13px;
+                    line-height: 18px;
+                    font-weight: 600;
+                }
+                .ut-shipping-warning svg {
+                    width: 16px;
+                    height: 16px;
+                    flex: 0 0 auto;
+                }
             </style>
 
             <div class="ut-checkout-page ut-checkout-address-widget"
@@ -931,7 +1026,7 @@
                             <section class="ut-checkout-card">
                                 <h2 class="ut-checkout-section-title">Produk Dibeli</h2>
                                 <t t-foreach="order.order_line" t-as="line">
-                                    <div t-if="not line.display_type and line.product_id and line.product_id.id != unitrade_service_fee_product_id and line.product_id.id != unitrade_payment_fee_product_id and line.product_id.id != unitrade_voucher_discount_product_id">
+                                    <div t-if="not line.display_type and line.product_id and line.product_id.id != unitrade_service_fee_product_id and line.product_id.id != unitrade_payment_fee_product_id and line.product_id.id != unitrade_voucher_discount_product_id and line.product_id.id != unitrade_shipping_fee_product_id">
                                         <t t-set="ut_product_template" t-value="line.product_id.product_tmpl_id.sudo()"/>
                                         <t t-set="ut_seller" t-value="ut_product_template.x_seller_id if 'x_seller_id' in ut_product_template._fields else False"/>
                                         <t t-set="ut_seller_safe" t-value="ut_seller.sudo() if ut_seller else False"/>
@@ -974,6 +1069,40 @@
                                         </div>
                                     </div>
                                 </t>
+                            </section>
+
+                            <section class="ut-checkout-card ut-shipping-card">
+                                <div class="ut-checkout-card-head">
+                                    <h2 class="ut-checkout-section-title">Metode Pengiriman</h2>
+                                </div>
+                                <div class="ut-shipping-options" data-shipping-options="1">
+                                    <t t-foreach="unitrade_shipping_methods" t-as="ship_method">
+                                        <label t-att-class="'ut-shipping-option %s' % ('is-active' if ship_method.get('key') == unitrade_selected_shipping_method else '')"
+                                               t-att-data-shipping-option="ship_method.get('key')">
+                                            <input type="radio" name="unitrade_shipping_method"
+                                                   t-att-value="ship_method.get('key')"
+                                                   t-att-checked="'checked' if ship_method.get('key') == unitrade_selected_shipping_method else None"
+                                                   data-shipping-radio="1"/>
+                                            <span class="ut-shipping-option-logo">
+                                                <img t-if="ship_method.get('logo')" t-att-src="ship_method.get('logo')" t-att-alt="ship_method.get('label')"/>
+                                            </span>
+                                            <span class="ut-shipping-option-body">
+                                                <span class="ut-shipping-option-title" t-esc="ship_method.get('label')"/>
+                                                <span class="ut-shipping-option-desc" t-esc="ship_method.get('description')"/>
+                                            </span>
+                                            <span class="ut-shipping-option-radio" aria-hidden="true"/>
+                                        </label>
+                                    </t>
+                                </div>
+                                <div class="ut-shipping-warning" data-shipping-gps-warning="1" role="alert"
+                                     t-att-style="'' if unitrade_shipping_gps_warning else 'display:none;'">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 8v4"/>
+                                        <path d="M12 16h.01"/>
+                                    </svg>
+                                    <span data-shipping-gps-warning-text="1" t-esc="unitrade_shipping_gps_warning or ''"/>
+                                </div>
                             </section>
 
                             <section class="ut-checkout-card">
@@ -1020,6 +1149,14 @@
                                     <span>Biaya Payment</span>
                                     <span data-payment-fee-summary="1">
                                         <t t-set="ut_money_amount" t-value="unitrade_checkout_amounts.get('payment_fee')"/>
+                                        <t t-set="ut_money_currency" t-value="order.currency_id"/>
+                                        <t t-call="unitrade_theme.unitrade_money"/>
+                                    </span>
+                                </div>
+                                <div class="ut-summary-row" data-shipping-summary-row="1">
+                                    <span>Ongkir <span data-shipping-method-label="1" t-esc="unitrade_checkout_amounts.get('shipping_method') == 'gosend' and 'GoSend Instant' or 'Ambil Sendiri'"/></span>
+                                    <span data-shipping-cost-summary="1">
+                                        <t t-set="ut_money_amount" t-value="unitrade_checkout_amounts.get('shipping_cost')"/>
                                         <t t-set="ut_money_currency" t-value="order.currency_id"/>
                                         <t t-call="unitrade_theme.unitrade_money"/>
                                     </span>
@@ -1585,14 +1722,116 @@
                         }
                     }
 
+                    function initShipping() {
+                        var root = document.querySelector(".ut-checkout-page");
+                        if (!root) {
+                            return;
+                        }
+                        var radios = root.querySelectorAll("[data-shipping-radio]");
+                        if (!radios.length) {
+                            return;
+                        }
+                        var options = root.querySelectorAll("[data-shipping-option]");
+                        var costSummary = root.querySelector("[data-shipping-cost-summary]");
+                        var methodLabel = root.querySelector("[data-shipping-method-label]");
+                        var totalSummary = root.querySelector("[data-payment-total-summary]");
+                        var paymentFeeSummary = root.querySelector("[data-payment-fee-summary]");
+                        var warningBox = root.querySelector("[data-shipping-gps-warning]");
+                        var warningText = root.querySelector("[data-shipping-gps-warning-text]");
+                        var paymentInput = root.querySelector("[data-payment-method-input]");
+
+                        function rpc(url, params) {
+                            return fetch(url, {
+                                method: "POST",
+                                headers: {"Content-Type": "application/json"},
+                                body: JSON.stringify({
+                                    jsonrpc: "2.0",
+                                    method: "call",
+                                    params: params || {}
+                                })
+                            }).then(function (response) {
+                                return response.json();
+                            }).then(function (payload) {
+                                return payload.result || payload;
+                            });
+                        }
+
+                        function setActive(key) {
+                            options.forEach(function (opt) {
+                                opt.classList.toggle("is-active", opt.dataset.shippingOption === key);
+                            });
+                        }
+
+                        function showWarning(text) {
+                            if (!warningBox || !warningText) {
+                                return;
+                            }
+                            if (text) {
+                                warningText.textContent = text;
+                                warningBox.style.display = "flex";
+                            } else {
+                                warningText.textContent = "";
+                                warningBox.style.display = "none";
+                            }
+                        }
+
+                        function applyResult(data) {
+                            if (costSummary && data.shipping_cost_label) {
+                                costSummary.textContent = data.shipping_cost_label;
+                            }
+                            if (methodLabel) {
+                                methodLabel.textContent = data.shipping_method === "gosend" ? "GoSend Instant" : "Ambil Sendiri";
+                            }
+                            if (paymentFeeSummary && data.payment_fee_label) {
+                                paymentFeeSummary.textContent = data.payment_fee_label;
+                            }
+                            if (totalSummary && data.total_label) {
+                                totalSummary.textContent = data.total_label;
+                            }
+                            showWarning(data.gps_warning);
+                            var baseTotal = Math.max((parseInt(data.total || 0, 10) || 0) - (parseInt(data.payment_fee || 0, 10) || 0), 0);
+                            root.dataset.paymentBaseTotal = String(baseTotal);
+                            document.dispatchEvent(new CustomEvent("unitrade:voucher-updated", {
+                                detail: {baseTotal: baseTotal}
+                            }));
+                        }
+
+                        radios.forEach(function (radio) {
+                            radio.addEventListener("change", function () {
+                                if (!radio.checked) {
+                                    return;
+                                }
+                                var key = radio.value;
+                                setActive(key);
+                                radios.forEach(function (r) { r.disabled = true; });
+                                rpc("/unitrade/checkout/shipping/select", {
+                                    shipping_method: key,
+                                    payment_method: paymentInput ? paymentInput.value : "bca_va"
+                                }).then(function (data) {
+                                    if (data.success) {
+                                        applyResult(data);
+                                    } else {
+                                        showWarning(data.message || "Metode pengiriman tidak valid.");
+                                    }
+                                }).catch(function () {
+                                    showWarning("Metode pengiriman belum bisa diperbarui. Coba lagi.");
+                                }).finally(function () {
+                                    radios.forEach(function (r) { r.disabled = false; });
+                                });
+                            });
+                        });
+                    }
+
                     if (document.readyState === "loading") {
                         document.addEventListener("DOMContentLoaded", function () {
                             initPaymentModal();
                             initVoucher();
+                            initShipping();
                         });
                     } else {
                         initPaymentModal();
                         initVoucher();
+                        initShipping();
                     }
                 }());
                 ]]>

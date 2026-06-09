@@ -493,11 +493,19 @@ class SaleOrderUniTrade(models.Model):
         config = self.env['ir.config_parameter'].sudo()
         return self.currency_id.round(midtrans_method_fee(config, payment_method or 'bca_va', method, base_amount))
 
+    def _unitrade_shipping_fee_product_safe(self):
+        """Return shipping fee product if unitrade_delivery is installed, else empty."""
+        if hasattr(self, '_unitrade_shipping_fee_product'):
+            return self._unitrade_shipping_fee_product()
+        product = self.env.ref('unitrade_delivery.product_unitrade_shipping_fee', raise_if_not_found=False)
+        return product.sudo() if product else self.env['product.product']
+
     def _unitrade_product_lines_for_checkout(self):
         self.ensure_one()
         service_fee_product = self._unitrade_service_fee_product() if hasattr(self, '_unitrade_service_fee_product') else self.env['product.product']
         payment_fee_product = self._unitrade_payment_fee_product()
         voucher_product = self._unitrade_voucher_discount_product()
+        shipping_fee_product = self._unitrade_shipping_fee_product_safe()
         return self.order_line.filtered(
             lambda line: (
                 not line.display_type
@@ -505,6 +513,7 @@ class SaleOrderUniTrade(models.Model):
                 and line.product_id != service_fee_product
                 and line.product_id != payment_fee_product
                 and line.product_id != voucher_product
+                and (not shipping_fee_product or line.product_id != shipping_fee_product)
             )
         )
 
@@ -649,18 +658,28 @@ class SaleOrderUniTrade(models.Model):
         payment_base = self.currency_id.round(max(subtotal + service_fee - voucher_discount, 0.0))
         payment_fee = self._unitrade_payment_fee_amount(payment_method, payment_base) if payment_method else 0.0
 
+        shipping_cost = 0.0
+        shipping_method = 'pickup'
+        shipping_fee_product = self._unitrade_shipping_fee_product_safe()
+        if 'x_shipping_method' in self._fields:
+            shipping_method = self.x_shipping_method or 'pickup'
+            shipping_cost = self.currency_id.round(self.x_shipping_cost or 0.0)
+
         return {
             'service_fee_product_id': service_fee_product.id if service_fee_product else False,
             'payment_fee_product_id': payment_fee_product.id if payment_fee_product else False,
             'voucher_discount_product_id': voucher_product.id if voucher_product else False,
+            'shipping_fee_product_id': shipping_fee_product.id if shipping_fee_product else False,
             'item_subtotal': subtotal,
             'service_fee': service_fee,
             'payment_fee': payment_fee,
+            'shipping_cost': shipping_cost,
+            'shipping_method': shipping_method,
             'voucher_discount': voucher_discount,
             'voucher_code': self.x_unitrade_voucher_code or '',
             'voucher_name': self.x_unitrade_voucher_name or self.x_unitrade_voucher_code or '',
             'tax': 0.0,
-            'total': self.currency_id.round(max(subtotal + service_fee + payment_fee - voucher_discount, 0.0)),
+            'total': self.currency_id.round(max(subtotal + service_fee + payment_fee + shipping_cost - voucher_discount, 0.0)),
             'item_quantity': sum(product_lines.mapped('product_uom_qty')),
         }
 
@@ -714,6 +733,8 @@ class SaleOrderUniTrade(models.Model):
             if stock_issues:
                 raise ValidationError(' '.join(issue['message'] for issue in stock_issues))
 
+        if hasattr(self, '_unitrade_sync_shipping_state'):
+            self._unitrade_sync_shipping_state()
         amounts = self._unitrade_checkout_amounts(sync_fee=True, payment_method=payment_method)
         if float_compare(amounts.get('item_subtotal', 0.0), 0.0, precision_rounding=self.currency_id.rounding) <= 0:
             raise ValidationError(_('Total produk di keranjang tidak valid.'))
@@ -743,6 +764,8 @@ class SaleOrderUniTrade(models.Model):
             'currency_id': self.currency_id.id,
             'service_fee': int(round(amounts.get('service_fee', 0.0))),
             'payment_fee': int(round(amounts.get('payment_fee', 0.0))),
+            'shipping_method': amounts.get('shipping_method') or 'pickup',
+            'shipping_cost': int(round(amounts.get('shipping_cost', 0.0))),
             'voucher_code': amounts.get('voucher_code') or '',
             'voucher_discount': int(round(amounts.get('voucher_discount', 0.0))),
             'total': int(round(amounts.get('total', self.amount_total))),
@@ -821,6 +844,15 @@ class SaleOrderUniTrade(models.Model):
                 'price': int(round(amounts['payment_fee'])),
                 'quantity': 1,
                 'name': 'Biaya Payment',
+            })
+        if amounts.get('shipping_cost'):
+            shipping_labels = {'pickup': 'Ambil Sendiri / COD', 'gosend': 'GoSend Instant'}
+            shipping_label = shipping_labels.get(amounts.get('shipping_method') or 'pickup', 'Pengiriman')
+            items.append({
+                'id': 'unitrade-shipping-fee',
+                'price': int(round(amounts['shipping_cost'])),
+                'quantity': 1,
+                'name': ('Ongkir %s' % shipping_label)[:50],
             })
         if amounts.get('voucher_discount'):
             items.append({
@@ -1156,10 +1188,24 @@ class SaleOrderUniTrade(models.Model):
         ledgers = self.env['unitrade.escrow.ledger'].sudo()._create_for_order(self.sudo(), intent.sudo())
         if ledgers:
             self.sudo().write({'x_escrow_state': 'held'})
+        self._unitrade_create_shipping_delivery()
         intent.action_send_payment_success_email()
         return ledgers
 
-    def _xendit_payment_method(self, payment_method):
+    def _unitrade_create_shipping_delivery(self):
+        """Buat delivery record untuk order GoSend yang sudah dibayar (idempotent)."""
+        self.ensure_one()
+        if 'x_shipping_method' not in self._fields or self.x_shipping_method != 'gosend':
+            return
+        if 'unitrade.delivery' not in self.env.registry:
+            return
+        Delivery = self.env['unitrade.delivery'].sudo()
+        if not hasattr(Delivery, '_unitrade_create_for_order'):
+            return
+        try:
+            Delivery._unitrade_create_for_order(self.sudo())
+        except Exception:
+            _logger.exception('Failed to create UniTrade delivery record for order %s', self.name)
         method_key = payment_method if payment_method in XENDIT_PAYMENT_METHODS else 'bca_va'
         method = dict(XENDIT_PAYMENT_METHODS[method_key])
         config = self.env['ir.config_parameter'].sudo()
@@ -1596,6 +1642,7 @@ class SaleOrderUniTrade(models.Model):
         ledgers = self.env['unitrade.escrow.ledger'].sudo()._create_for_order(self.sudo(), intent.sudo())
         if ledgers:
             self.sudo().write({'x_escrow_state': 'held'})
+        self._unitrade_create_shipping_delivery()
         intent.action_send_payment_success_email()
         return ledgers
 

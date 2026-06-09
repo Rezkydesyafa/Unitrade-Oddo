@@ -838,7 +838,7 @@
     <template id="unitrade_cart_summary_title" inherit_id="website_sale.checkout_layout" name="UniTrade Cart Summary Title">
         <xpath expr="//span[@id='amount_total_summary']" position="replace">
             <span id="amount_total_summary" class="monetary_field ms-1">
-                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_checkout_amounts(sync_fee=False) if website_sale_order else {}"/>
+                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_cart_amounts(sync_fee=False) if website_sale_order else {}"/>
                 <t t-set="ut_money_amount" t-value="unitrade_cart_amounts.get('total') or website_sale_order.amount_untaxed"/>
                 <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
                 <t t-call="unitrade_theme.unitrade_money"/>
@@ -866,7 +866,7 @@
     <template id="unitrade_cart_total_indonesian" inherit_id="website_sale.total" name="UniTrade Cart Total Indonesian">
         <xpath expr="//tr[@id='order_total_untaxed']//span[hasclass('monetary_field')]" position="replace">
             <span class="monetary_field" style="white-space: nowrap;">
-                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_checkout_amounts(sync_fee=False) if website_sale_order else {}"/>
+                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_cart_amounts(sync_fee=False) if website_sale_order else {}"/>
                 <t t-set="ut_money_amount" t-value="unitrade_cart_amounts.get('item_subtotal') or website_sale_order.amount_untaxed"/>
                 <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
                 <t t-call="unitrade_theme.unitrade_money"/>
@@ -874,7 +874,7 @@
         </xpath>
         <xpath expr="//tr[@id='order_total_untaxed']" position="after">
             <tr t-if="website_sale_order" class="ut-cart-service-fee-row">
-                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_checkout_amounts(sync_fee=False)"/>
+                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_cart_amounts(sync_fee=False)"/>
                 <td colspan="3" class="ut-cart-service-fee-cell">
                     <div class="ut-cart-service-fee-line">
                         <span class="ut-cart-service-fee-label">Biaya Layanan</span>
@@ -887,7 +887,7 @@
                 </td>
             </tr>
             <tr t-if="website_sale_order and website_sale_order.x_unitrade_voucher_discount" class="ut-cart-voucher-row">
-                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_checkout_amounts(sync_fee=False)"/>
+                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_cart_amounts(sync_fee=False)"/>
                 <td colspan="3" class="ut-cart-voucher-cell">
                     <div class="ut-cart-voucher-line">
                         <span class="ut-cart-voucher-label">
@@ -912,7 +912,7 @@
         <xpath expr="//tr[@id='order_total_taxes']" position="replace"/>
         <xpath expr="//tr[@id='order_total']//strong[hasclass('monetary_field')]" position="replace">
             <strong class="monetary_field text-end p-0">
-                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_checkout_amounts(sync_fee=False) if website_sale_order else {}"/>
+                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_cart_amounts(sync_fee=False) if website_sale_order else {}"/>
                 <t t-set="ut_money_amount" t-value="unitrade_cart_amounts.get('total') or website_sale_order.amount_untaxed"/>
                 <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
                 <t t-call="unitrade_theme.unitrade_money"/>
