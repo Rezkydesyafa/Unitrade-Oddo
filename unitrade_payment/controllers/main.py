@@ -1004,6 +1004,46 @@ class UnitradePaymentController(http.Controller):
             'price': self._format_money(line.price_subtotal, order.currency_id),
             'image_url': '/web/image/product.template/%s/image_512' % line.product_id.product_tmpl_id.id,
         } for line in product_lines]
+        review_items = []
+        if (
+            not request.env.user._is_public()
+            and 'unitrade.review' in request.env.registry
+            and order.partner_id.commercial_partner_id == request.env.user.partner_id.commercial_partner_id
+        ):
+            Review = request.env['unitrade.review'].sudo()
+            product_templates = product_lines.mapped('product_id.product_tmpl_id')
+            reviewed_product_ids = set(Review.search([
+                ('product_id', 'in', product_templates.ids),
+                ('user_id', '=', request.env.uid),
+                ('is_visible', '=', True),
+            ]).filtered(lambda review: Review._unitrade_order_is_reviewable(review.order_id)).mapped('product_id').ids)
+            if Review._unitrade_order_is_reviewable(order):
+                seen_review_product_ids = set()
+                for line in product_lines:
+                    product_template = line.product_id.product_tmpl_id
+                    if (
+                        not product_template
+                        or product_template.id in seen_review_product_ids
+                        or product_template.id in reviewed_product_ids
+                    ):
+                        continue
+                    seller = request.env['unitrade.seller'].sudo().browse()
+                    if 'x_seller_id' in product_template._fields and product_template.x_seller_id:
+                        seller = product_template.x_seller_id.sudo()
+                    elif (
+                        product_template.create_uid
+                        and 'x_seller_id' in product_template.create_uid._fields
+                        and product_template.create_uid.x_seller_id
+                    ):
+                        seller = product_template.create_uid.x_seller_id.sudo()
+                    review_items.append({
+                        'product_id': product_template.id,
+                        'product_name': product_template.display_name,
+                        'order_id': order.id,
+                        'seller_name': seller.name if seller else 'Penjual UniTrade',
+                        'image_url': '/web/image/product.template/%s/image_512' % product_template.id,
+                    })
+                    seen_review_product_ids.add(product_template.id)
         seller_records = request.env['unitrade.seller'].sudo().browse()
         if 'unitrade.seller' in request.env.registry:
             seller_records |= ledgers.mapped('seller_id').sudo()
@@ -1093,6 +1133,7 @@ class UnitradePaymentController(http.Controller):
             'order_status_ledgers': ledger_values,
             'order_status_sellers': seller_values,
             'order_status_lines': line_values,
+            'order_status_review_items': review_items,
             'order_status_amounts': amounts,
             'order_status_total': self._format_money(intent.amount if intent else amounts.get('total'), order.currency_id),
             'order_status_subtotal': self._format_money(amounts.get('item_subtotal'), order.currency_id),
