@@ -170,6 +170,18 @@ class UnitradeNotification(models.Model):
         help="Separates buyer/user notifications from seller-dashboard "
              "notifications for the same res.users account.",
     )
+    recipient_scope_hint = fields.Selection(
+        [
+            ('user', 'User'),
+            ('seller', 'Seller'),
+        ],
+        string='Scope Hint',
+        copy=False,
+        index=True,
+        help="Optional explicit scope from the emitter. Use this when "
+             "the same event/reference model can notify both buyer and "
+             "seller users.",
+    )
     title = fields.Char(string='Judul', required=True)
     message = fields.Text(string='Pesan')
 
@@ -343,6 +355,7 @@ class UnitradeNotification(models.Model):
     # ------------------------------------------------------------------
     @api.depends(
         'audience',
+        'recipient_scope_hint',
         'user_id',
         'event_code',
         'reference_model',
@@ -354,9 +367,12 @@ class UnitradeNotification(models.Model):
     )
     def _compute_recipient_scope(self):
         for record in self:
-            record.recipient_scope = (
-                'seller' if record._is_seller_scoped_notification() else 'user'
-            )
+            if record.recipient_scope_hint in ('user', 'seller'):
+                record.recipient_scope = record.recipient_scope_hint
+            else:
+                record.recipient_scope = (
+                    'seller' if record._is_seller_scoped_notification() else 'user'
+                )
 
     @api.model
     def _notification_scope_domain(self, scope='user'):
@@ -661,6 +677,9 @@ class UnitradeNotification(models.Model):
         stronger project-specific target can be derived.
         """
         self.ensure_one()
+        if self._is_buyer_order_or_payment_notification():
+            return self._buyer_notification_order_url()
+
         if self._is_buyer_review_reminder():
             return self._review_orders_action_url()
 
@@ -731,9 +750,22 @@ class UnitradeNotification(models.Model):
         self.ensure_one()
         if not order:
             return False
-        if self._is_recipient_seller_for_order(order):
+        if self.recipient_scope == 'seller' or (
+            not self.recipient_scope_hint and self._is_recipient_seller_for_order(order)
+        ):
             return '/unitrade/seller/orders/%s' % order.id
-        return '/unitrade/order/status/%s' % order.id
+        return self._buyer_order_action_url(order.id)
+
+    def _buyer_order_action_url(self, order_id):
+        order_id = int(order_id or 0)
+        return '/my/orders/%s' % order_id if order_id else '/my/orders'
+
+    def _seller_order_action_url(self, order_id):
+        order_id = int(order_id or 0)
+        return (
+            '/unitrade/seller/orders/%s' % order_id
+            if order_id else '/unitrade/seller/orders'
+        )
 
     def _is_recipient_seller_for_order(self, order):
         self.ensure_one()
@@ -789,19 +821,52 @@ class UnitradeNotification(models.Model):
         url = (url or '').strip()
         if not url:
             return False
+        parsed = urlparse(url)
+        path = parsed.path or url
 
-        match = re.match(r'^/my/orders/(\d+)(?:[/?#].*)?$', url)
+        match = re.match(r'^/my/orders/(\d+)(?:[/?#].*)?$', path)
         if match:
             order = self.env['sale.order'].sudo().browse(int(match.group(1))).exists()
             if order:
                 return self._resolve_order_action_url(order)
-            return '/unitrade/order/status/%s' % match.group(1)
+            return self._buyer_order_action_url(match.group(1))
 
-        match = re.match(r'^/(?:my/)?seller/orders/(\d+)(?:[/?#].*)?$', url)
+        match = re.match(r'^/unitrade/order/status/(\d+)(?:[/?#].*)?$', path)
         if match:
-            return '/unitrade/seller/orders/%s' % match.group(1)
+            return (
+                self._seller_order_action_url(match.group(1))
+                if self.recipient_scope == 'seller'
+                else self._buyer_order_action_url(match.group(1))
+            )
 
-        match = re.match(r'^/(?:my/)?seller/refunds/(\d+)(?:[/?#].*)?$', url)
+        match = re.match(r'^/(?:my/)?seller/orders/(\d+)(?:[/?#].*)?$', path)
+        if match:
+            return (
+                self._seller_order_action_url(match.group(1))
+                if self.recipient_scope == 'seller'
+                else self._buyer_order_action_url(match.group(1))
+            )
+
+        match = re.match(r'^/unitrade/seller/orders/(\d+)(?:[/?#].*)?$', path)
+        if match:
+            return (
+                self._seller_order_action_url(match.group(1))
+                if self.recipient_scope == 'seller'
+                else self._buyer_order_action_url(match.group(1))
+            )
+
+        if path in (
+            '/unitrade/seller/orders',
+            '/seller/orders',
+            '/my/seller/orders',
+        ):
+            return (
+                self._seller_order_action_url(False)
+                if self.recipient_scope == 'seller'
+                else self._buyer_order_action_url(False)
+            )
+
+        match = re.match(r'^/(?:my/)?seller/refunds/(\d+)(?:[/?#].*)?$', path)
         if match:
             return '/unitrade/seller/refunds/%s' % match.group(1)
 
@@ -814,7 +879,10 @@ class UnitradeNotification(models.Model):
         if not url:
             return False
         parsed = urlparse(url)
-        return (parsed.path or url) == '/my/notifications'
+        return (parsed.path or url) in (
+            '/my/notifications',
+            '/unitrade/seller/notifications',
+        )
 
     def _normalize_review_product_action_url(self, url):
         """Map stored review product URLs to a clickable product detail."""
@@ -857,7 +925,11 @@ class UnitradeNotification(models.Model):
         if self.category == 'chat':
             return '/unitrade/chat'
         if self.category == 'review':
-            return self._review_orders_action_url()
+            return (
+                '/unitrade/seller/products'
+                if self._is_seller_review_notification()
+                else self._review_orders_action_url()
+            )
         return '/my/notifications'
 
     def _resolve_review_product_action_url(self):
@@ -917,6 +989,53 @@ class UnitradeNotification(models.Model):
             or self.recipient_scope == 'user'
         )
 
+    def _is_buyer_order_or_payment_notification(self):
+        self.ensure_one()
+        return (
+            self.recipient_scope == 'user'
+            and self.category in ('order', 'payment')
+        )
+
+    def _buyer_notification_order_url(self):
+        self.ensure_one()
+        order_id = self._extract_order_id_from_reference()
+        if not order_id:
+            order_id = self._extract_order_id_from_url(self.action_url)
+        return self._buyer_order_action_url(order_id)
+
+    def _extract_order_id_from_reference(self):
+        self.ensure_one()
+        reference_model = self.reference_model or self.target_model
+        reference_id = self.reference_id or self.target_id
+        if reference_model == 'sale.order' and reference_id:
+            return reference_id
+        return False
+
+    def _extract_order_id_from_url(self, url):
+        self.ensure_one()
+        parsed = urlparse((url or '').strip())
+        path = parsed.path or (url or '').strip()
+        for pattern in (
+            r'^/my/orders/(\d+)(?:[/?#].*)?$',
+            r'^/unitrade/order/status/(\d+)(?:[/?#].*)?$',
+            r'^/unitrade/seller/orders/(\d+)(?:[/?#].*)?$',
+            r'^/(?:my/)?seller/orders/(\d+)(?:[/?#].*)?$',
+        ):
+            match = re.match(pattern, path)
+            if match:
+                return int(match.group(1))
+        return False
+
+    def _is_seller_review_notification(self):
+        self.ensure_one()
+        return (
+            self.category == 'review'
+            and (
+                self.event_code == 'review.new_for_seller'
+                or self.recipient_scope == 'seller'
+            )
+        )
+
     def _review_orders_action_url(self):
         return '/my/orders?status=done&tab=reviews#tab-ulasan'
 
@@ -948,7 +1067,99 @@ class UnitradeNotification(models.Model):
     def _review_product_action_url(self, product):
         """Return product detail URL with review tab opened."""
         product.ensure_one()
+        if self._is_seller_review_notification():
+            return '/unitrade/seller/products/%s' % product.id
         return '/unitrade/product/%s?tab=reviews#tab-ulasan' % product.id
+
+    @api.model
+    def _unitrade_repair_recipient_scope_hints(self):
+        """Backfill explicit user/seller scope hints for existing rows."""
+        user_events = {
+            'account.welcome',
+            'account.password_reset',
+            'order.confirmed',
+            'order.shipped',
+            'payment.success',
+            'payment.pending',
+            'payment.failed',
+            'payment.expired',
+            'review.reminder',
+            'seller.application_received',
+            'seller.rejected',
+            'system.customer_ticket_reply',
+            'system.customer_ticket_status',
+        }
+        seller_events = {
+            'order.new_for_seller',
+            'review.new_for_seller',
+            'seller.approved',
+        }
+        mixed_order_events = {'order.delivered', 'order.cancelled'}
+
+        updated = 0
+        records = self.sudo().search([('recipient_scope_hint', '=', False)])
+        for notification in records:
+            hint = False
+            if notification.event_code in user_events:
+                hint = 'user'
+            elif notification.event_code in seller_events:
+                hint = 'seller'
+            elif notification.event_code in mixed_order_events:
+                hint = notification._resolve_scope_hint_from_order_reference()
+            elif notification.event_code == 'chat.new_message':
+                hint = notification._resolve_scope_hint_from_chat_reference()
+
+            if hint:
+                notification.write({'recipient_scope_hint': hint})
+                updated += 1
+
+        _logger.info(
+            "unitrade.notification repaired recipient scope hints: %s rows",
+            updated,
+        )
+        return updated
+
+    def _resolve_scope_hint_from_order_reference(self):
+        self.ensure_one()
+        reference_model = self.reference_model or self.target_model
+        reference_id = self.reference_id or self.target_id
+        if reference_model != 'sale.order' or not reference_id:
+            return False
+        order = self.env['sale.order'].sudo().browse(reference_id).exists()
+        if not order:
+            return False
+        try:
+            buyer_user_id = order._unitrade_buyer_user_id()
+            seller_user_ids = order._unitrade_seller_user_ids()
+        except Exception:
+            _logger.debug(
+                "Failed to repair notification scope from order reference %s",
+                self.id,
+                exc_info=True,
+            )
+            return False
+        if buyer_user_id and self.user_id.id == buyer_user_id:
+            return 'user'
+        if self.user_id.id in seller_user_ids:
+            return 'seller'
+        return False
+
+    def _resolve_scope_hint_from_chat_reference(self):
+        self.ensure_one()
+        reference_model = self.reference_model or self.target_model
+        reference_id = self.reference_id or self.target_id
+        if reference_model != 'unitrade.chat.conversation' or not reference_id:
+            return False
+        conversation = self.env['unitrade.chat.conversation'].sudo().browse(
+            reference_id
+        ).exists()
+        if not conversation:
+            return False
+        seller_user = (
+            conversation.seller_user_id
+            if hasattr(conversation, 'seller_user_id') else False
+        )
+        return 'seller' if seller_user and seller_user.id == self.user_id.id else 'user'
 
     @api.model
     def _render_title_and_message(self, event_code, payload):
@@ -1110,6 +1321,9 @@ class UnitradeNotification(models.Model):
         # 3. Scrub payload once so all downstream consumers see the safe copy.
         safe_payload = self._scrub_payload(payload) if payload else {}
         action_url = self._validate_action_url(safe_payload.get('action_url'))
+        scope_hint = safe_payload.get('recipient_scope')
+        if scope_hint not in ('user', 'seller'):
+            scope_hint = False
 
         # 4. Compute idempotency key --------------------------------------------
         idempotency_key = self._build_idempotency_key(
@@ -1130,8 +1344,13 @@ class UnitradeNotification(models.Model):
             limit=1,
         )
         if existing:
+            update_vals = {}
             if action_url and existing.action_url != action_url:
-                existing.write({'action_url': action_url})
+                update_vals['action_url'] = action_url
+            if scope_hint and existing.recipient_scope_hint != scope_hint:
+                update_vals['recipient_scope_hint'] = scope_hint
+            if update_vals:
+                existing.write(update_vals)
             _logger.info(
                 "unitrade.notification.emit user_id=%s event_code=%s "
                 "result=duplicate id=%s",
@@ -1190,6 +1409,7 @@ class UnitradeNotification(models.Model):
             'reference_model': safe_payload.get('reference_model') or False,
             'reference_id': safe_payload.get('reference_id') or 0,
             'action_url': action_url or False,
+            'recipient_scope_hint': scope_hint,
             'idempotency_key': idempotency_key,
             'email_state': email_state,
         }
@@ -1643,6 +1863,7 @@ class UnitradeNotification(models.Model):
                         'reference_model': 'sale.order',
                         'reference_id': order.id,
                         'action_url': Notification._review_orders_action_url(),
+                        'recipient_scope': 'user',
                     },
                 )
                 if result:

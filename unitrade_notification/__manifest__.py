@@ -20,6 +20,7 @@
         'data/ir_config_parameter.xml',
         'data/ir_cron.xml',
         'data/mail_template.xml',
+        'data/notification_scope_repair.xml',
         'views/notification_templates.xml',
         'views/notification_admin_views.xml',
         'views/announcement_views.xml',

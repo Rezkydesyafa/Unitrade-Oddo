@@ -143,6 +143,7 @@ class UnitradeCustomerTicket(models.Model):
                         'reference_model': ticket._name,
                         'reference_id': ticket.id,
                         'action_url': ticket._customer_ticket_url(),
+                        'recipient_scope': 'user',
                         'title_override': title,
                         'message_override': message,
                     },

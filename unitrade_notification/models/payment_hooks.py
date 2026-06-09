@@ -46,9 +46,10 @@ all Midtrans statuses (``settlement``/``capture`` → ``paid``,
 ``expired``) into the four ORM states above, so we only need to map
 those four here.
 
-For ``payment.success`` we additionally emit an ``in_app``
-notification to each seller represented in the order's lines, per
-Req 5.11.
+Seller-side order alerts are emitted by ``sale.order.action_confirm``
+as ``order.new_for_seller`` after successful checkout payment. Payment
+events in this hook are buyer/user notifications only, so they never
+pollute the seller dashboard inbox.
 
 Listing-fee intents (``intent_type == 'listing_fee'``) are out of
 scope — they have no ``sale_order_id`` and therefore no buyer/seller
@@ -142,8 +143,7 @@ class UnitradePaymentIntentNotificationHooks(models.Model):
     # Emission helpers
     # ------------------------------------------------------------------
     def _unitrade_emit_payment_notifications(self, event_code):
-        """Emit buyer (always) and seller (on ``payment.success``)
-        notifications for a single intent that just transitioned to a
+        """Emit a buyer notification for a single intent that just transitioned to a
         terminal Midtrans state.
 
         :param str event_code: One of ``payment.success`` /
@@ -188,35 +188,6 @@ class UnitradePaymentIntentNotificationHooks(models.Model):
                 self.id, event_code, order.id,
             )
 
-        # Seller is notified in_app only and only on success.
-        if event_code == 'payment.success':
-            seller_user_ids = self._unitrade_resolve_seller_user_ids(order)
-            for seller_user_id in seller_user_ids:
-                # Skip if buyer == seller (rare self-purchase) so the
-                # same record is not duplicated.
-                if seller_user_id == buyer_user_id:
-                    continue
-                try:
-                    Notification.emit(
-                        seller_user_id,
-                        event_code,
-                        payload=payload,
-                        # Seller path receives in-app only per Req 5.11.
-                        # Override registry channels (which include
-                        # email) for this emission only.
-                        channels=['in_app'],
-                        idempotency_discriminator='intent:%s:seller:%s' % (
-                            self.id, seller_user_id,
-                        ),
-                    )
-                except Exception:
-                    _logger.warning(
-                        "Seller notification emit failed: intent_id=%s "
-                        "event_code=%s order_id=%s seller_user_id=%s",
-                        self.id, event_code, order.id, seller_user_id,
-                        exc_info=True,
-                    )
-
     # ------------------------------------------------------------------
     # Resolution helpers
     # ------------------------------------------------------------------
@@ -235,6 +206,7 @@ class UnitradePaymentIntentNotificationHooks(models.Model):
             # ``_validate_action_url`` accepts it without consulting
             # the allow-list.
             'action_url': '/unitrade/order/status/%s' % order.id,
+            'recipient_scope': 'user',
         }
 
     def _unitrade_resolve_buyer_user_id(self, order):

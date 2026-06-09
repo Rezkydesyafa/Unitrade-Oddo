@@ -109,6 +109,7 @@ class UnitradeSellerNotificationHooks(models.Model):
                     'reference_model': self._name,
                     'reference_id': record.id,
                     'action_url': '/seller-onboarding',
+                    'recipient_scope': 'user',
                 },
                 discriminator='seller:%s' % record.id,
             )
@@ -174,6 +175,7 @@ class UnitradeSellerNotificationHooks(models.Model):
                 'reference_model': self._name,
                 'reference_id': record.id,
                 'action_url': '/unitrade/seller/dashboard',
+                'recipient_scope': 'seller',
             }
         elif new_status == 'rejected':
             event_code = 'seller.rejected'
@@ -181,6 +183,7 @@ class UnitradeSellerNotificationHooks(models.Model):
                 'reference_model': self._name,
                 'reference_id': record.id,
                 'action_url': '/seller-onboarding',
+                'recipient_scope': 'user',
             }
             reason = record.rejection_reason
             if reason:
@@ -273,6 +276,7 @@ class UnitradeSellerVerificationNotificationHooks(models.Model):
                 'reference_model': self._name,
                 'reference_id': record.id,
                 'action_url': '/seller-onboarding',
+                'recipient_scope': 'user',
             }
             reason = record.rejection_reason
             if reason:
@@ -296,6 +300,7 @@ class UnitradeSellerVerificationNotificationHooks(models.Model):
                 'reference_model': self._name,
                 'reference_id': record.id,
                 'action_url': '/seller-onboarding',
+                'recipient_scope': 'user',
             },
             # Anchor the discriminator on the record id only — multiple
             # state transitions on the same verification row (e.g.
