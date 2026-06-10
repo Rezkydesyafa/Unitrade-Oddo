@@ -127,6 +127,9 @@
         <field name="res_model">sale.order</field>
         <field name="view_mode">tree,form</field>
         <field name="view_id" ref="view_unitrade_transaction_monitor_tree"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_unitrade_transaction_monitor_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('sale.view_order_form')})]"/>
         <field name="search_view_id" ref="view_unitrade_transaction_monitor_search"/>
         <field name="domain">[('x_payment_status', '!=', False)]</field>
         <field name="context">{'search_default_processing': 1}</field>
@@ -224,6 +227,10 @@
         <field name="name">Notifikasi Admin</field>
         <field name="res_model">unitrade.notification</field>
         <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_unitrade_admin_notification_tree"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_unitrade_admin_notification_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_unitrade_admin_notification_form')})]"/>
         <field name="domain">[('audience','=','admin')]</field>
         <field name="context">{'search_default_admin_audience': 1, 'search_default_unread': 1}</field>
         <field name="search_view_id" ref="view_unitrade_admin_notification_search"/>
@@ -316,6 +323,10 @@
         <field name="name">Audit Log Admin</field>
         <field name="res_model">unitrade.admin.audit.log</field>
         <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_unitrade_audit_log_tree"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_unitrade_audit_log_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_unitrade_audit_log_form')})]"/>
         <field name="search_view_id" ref="view_unitrade_audit_log_search"/>
     </record>
 

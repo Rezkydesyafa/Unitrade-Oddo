@@ -4,12 +4,22 @@
         <field name="name">Daftar Penjual</field>
         <field name="res_model">unitrade.seller</field>
         <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="unitrade_seller_tree"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('unitrade_seller_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('unitrade_seller_form')})]"/>
+        <field name="search_view_id" ref="unitrade_seller_search"/>
     </record>
 
     <record id="action_unitrade_seller_pending" model="ir.actions.act_window">
         <field name="name">Menunggu Verifikasi</field>
         <field name="res_model">unitrade.seller</field>
         <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="unitrade_seller_tree"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('unitrade_seller_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('unitrade_seller_form')})]"/>
+        <field name="search_view_id" ref="unitrade_seller_search"/>
         <field name="domain">[('status', '=', 'pending')]</field>
     </record>
 
@@ -17,6 +27,11 @@
         <field name="name">Seller Dilaporkan</field>
         <field name="res_model">unitrade.seller</field>
         <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="unitrade_seller_tree"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('unitrade_seller_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('unitrade_seller_form')})]"/>
+        <field name="search_view_id" ref="unitrade_seller_search"/>
         <field name="domain">[('report_state', 'in', ('reported', 'under_review'))]</field>
         <field name="context">{'search_default_filter_reported': 1}</field>
     </record>
