@@ -2131,9 +2131,9 @@
                 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                     <a t-att-href="products['backend_list_url']"
                        class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm"
-                       target="_blank">
-                        <i class="fa fa-external-link" aria-hidden="true"></i>
-                        Buka Odoo
+                       target="_self">
+                        <i class="fa fa-list" aria-hidden="true"></i>
+                        Buka Dashboard Produk
                     </a>
                 </div>
             </div>
@@ -3848,9 +3848,9 @@
                                     data-refund-action="cancel">
                                 Batalkan Case
                             </button>
-                            <a t-att-href="refund['order']['backend_url']" target="_blank"
+                            <a t-att-href="refund['order']['backend_url']"
                                class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm">
-                                Buka di Backend Odoo
+                                Buka Transaksi
                             </a>
                         </div>
                     </div>

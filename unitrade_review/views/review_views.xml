@@ -79,6 +79,10 @@
         <field name="name">Ulasan Produk</field>
         <field name="res_model">unitrade.review</field>
         <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="unitrade_review_tree"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('unitrade_review_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('unitrade_review_form')})]"/>
         <field name="context">{'default_rating': 5, 'default_is_visible': True}</field>
     </record>
 

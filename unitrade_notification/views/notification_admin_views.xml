@@ -134,6 +134,10 @@
         <field name="name">Notifikasi: Email Gagal</field>
         <field name="res_model">unitrade.notification</field>
         <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_unitrade_notification_admin_tree"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_unitrade_notification_admin_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_unitrade_notification_admin_form')})]"/>
         <field name="search_view_id" ref="view_unitrade_notification_admin_search"/>
         <field name="domain">[('email_state', '=', 'failed')]</field>
         <field name="context">{'search_default_email_failed': 1}</field>

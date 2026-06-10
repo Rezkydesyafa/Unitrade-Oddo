@@ -153,6 +153,10 @@
         <field name="name">Manual Payout</field>
         <field name="res_model">unitrade.seller.payout</field>
         <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_unitrade_seller_payout_tree"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_unitrade_seller_payout_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_unitrade_seller_payout_form')})]"/>
         <field name="search_view_id" ref="view_unitrade_seller_payout_search"/>
         <field name="context">{'search_default_state_ready': 1, 'search_default_state_draft': 1}</field>
     </record>

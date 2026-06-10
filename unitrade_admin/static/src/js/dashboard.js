@@ -347,7 +347,7 @@
                     if (d.payment_expires_at) paymentHtml += detailRow("Expired Pembayaran", d.payment_expires_at);
                     if (d.payment_intent_url) {
                         paymentHtml += '<div style="display:flex;justify-content:flex-end;margin-top:10px">' +
-                            linkButton("Buka Payment Intent", d.payment_intent_url) + '</div>';
+                            linkButton("Buka Transaksi", d.payment_intent_url) + '</div>';
                     }
                     html += section("Pembayaran", paymentHtml);
 
@@ -373,7 +373,7 @@
                     }
                     if (escrow.url) {
                         escrowHtml += '<div style="display:flex;justify-content:flex-end;margin-top:10px">' +
-                            linkButton("Buka Escrow", escrow.url) + '</div>';
+                            linkButton("Buka Transaksi", escrow.url) + '</div>';
                     }
                     html += section("Escrow", escrowHtml);
 
@@ -472,7 +472,9 @@
                         html += '<button type="button" class="ut-admin-btn ut-admin-btn-danger ut-admin-btn-sm" data-action="flag-order" data-order-id="' +
                                 d.id + '">Tandai Bermasalah</button>';
                     }
-                    html += '<a href="/web#id=' + d.id + '&model=sale.order&view_type=form" target="_blank" class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm">Buka di Odoo</a>';
+                    html += '<a href="/unitrade/admin/transactions?q=' +
+                        encodeURIComponent(d.name || d.id || "") +
+                        '" class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm">Buka di Admin</a>';
                     html += '</div>';
 
                     body.innerHTML = html;

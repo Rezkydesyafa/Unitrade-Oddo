@@ -715,7 +715,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 'image_url': '/web/image/product.template/%s/image_128' % product.id,
                 'seller_name': seller.name if seller else (getattr(product, 'x_seller_name', '') or '-'),
                 'seller_initials': self._initials(seller.name if seller else getattr(product, 'x_seller_name', '')),
-                'seller_url': '/web#id=%s&model=unitrade.seller&view_type=form' % seller.id if seller else '',
+                'seller_url': self._admin_record_url('unitrade.seller', seller) if seller else '',
                 'condition_label': self._selection_label(product, 'x_condition') if 'x_condition' in product._fields else '-',
                 'price_display': 'Rp ' + self._format_idr(product.list_price),
                 'stock_label': stock_label,
@@ -730,7 +730,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 'create_date_label': product.create_date.strftime('%d %b %Y') if product.create_date else '-',
                 'expires_label': self._datetime_label(product.x_listing_expires_at)
                 if 'x_listing_expires_at' in product._fields else '-',
-                'backend_url': '/web#id=%s&model=product.template&view_type=form' % product.id,
+                'backend_url': self._admin_record_url('product.template', product),
             })
 
         return {
@@ -743,7 +743,7 @@ class UnitradeAdminStats(models.AbstractModel):
             'status': status or '',
             'fee_status': fee_status or '',
             'stats': stats,
-            'backend_list_url': '/web#action=unitrade_product_ext.action_unitrade_products',
+            'backend_list_url': '/unitrade/admin/products',
         }
 
     def _product_image_payloads(self, product):
@@ -803,7 +803,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 'expires_at': self._datetime_label(intent.expires_at),
                 'paid_at': self._datetime_label(intent.paid_at),
                 'error': self._short_text(intent.error_message or '', limit=120),
-                'url': '/web#id=%s&model=unitrade.payment.intent&view_type=form' % intent.id,
+                'url': self._admin_record_url('product.template', product),
             })
         return rows
 
@@ -879,7 +879,7 @@ class UnitradeAdminStats(models.AbstractModel):
             'images': self._product_image_payloads(product),
             'listing_fee_history': self._listing_fee_history(product),
             'public_url': '/unitrade/product/%s' % product.id if product.website_published else '',
-            'backend_url': '/web#id=%s&model=product.template&view_type=form' % product.id,
+            'backend_url': self._admin_record_url('product.template', product),
             'actions': {
                 'can_publish': can_publish,
                 'can_unpublish': bool(product.website_published),
@@ -2066,6 +2066,132 @@ class UnitradeAdminStats(models.AbstractModel):
             return '/web#action=%s&id=%s&view_type=form' % (xmlid, record_id)
         return '/web#action=%s' % xmlid
 
+    @staticmethod
+    def _admin_url_with_query(path, query=''):
+        query = (query or '').strip()
+        if query:
+            separator = '&' if '?' in path else '?'
+            return '%s%sq=%s' % (path, separator, quote_plus(query))
+        return path
+
+    def _admin_record_url(self, model_name='', record=False, query=''):
+        """Return the website-admin URL for a backend record when available."""
+        model_name = model_name or ''
+        if record:
+            try:
+                record = record.sudo().exists()
+            except Exception:  # noqa: BLE001
+                record = False
+
+        display_name = query or (record.display_name if record else '')
+
+        if model_name == 'sale.order':
+            return self._admin_url_with_query('/unitrade/admin/transactions', display_name)
+        if model_name == 'product.template':
+            return self._admin_url_with_query('/unitrade/admin/products', display_name)
+        if model_name in ('res.users', 'unitrade.seller'):
+            return self._admin_url_with_query('/unitrade/admin/users', display_name)
+        if model_name == 'unitrade.seller.verification':
+            return self._admin_url_with_query('/unitrade/admin/users?seller_status=pending', display_name)
+        if model_name == 'unitrade.delivery':
+            order = getattr(record, 'order_id', False) if record else False
+            return self._admin_url_with_query('/unitrade/admin/transactions', order.name if order else display_name)
+        if model_name == 'unitrade.review':
+            product = getattr(record, 'product_id', False) if record else False
+            return self._admin_url_with_query('/unitrade/admin/reviews', product.display_name if product else display_name)
+        if model_name == 'unitrade.seller.payout':
+            return self._admin_url_with_query('/unitrade/admin/payouts', display_name)
+        if model_name == 'unitrade.announcement':
+            return self._admin_url_with_query('/unitrade/admin/announcements', display_name)
+        if model_name == 'unitrade.notification':
+            return '/unitrade/admin/notifications'
+        if model_name == 'unitrade.dispute':
+            if record:
+                return '/unitrade/admin/refunds/%s' % record.id
+            return self._admin_url_with_query('/unitrade/admin/refunds', display_name)
+        if model_name == 'unitrade.escrow.ledger':
+            order = getattr(record, 'order_id', False) if record else False
+            return self._admin_url_with_query('/unitrade/admin/transactions', order.name if order else display_name)
+        if model_name == 'unitrade.payment.intent':
+            order = getattr(record, 'sale_order_id', False) if record else False
+            return self._admin_url_with_query('/unitrade/admin/transactions', order.name if order else display_name)
+        if model_name == 'unitrade.payment.event':
+            order = getattr(record, 'order_id', False) if record else False
+            return self._admin_url_with_query('/unitrade/admin/transactions', order.name if order else display_name)
+        if model_name == 'unitrade.voucher':
+            return self._admin_url_with_query('/unitrade/admin/vouchers', display_name)
+        if model_name == 'unitrade.customer.ticket':
+            return '/unitrade/admin/customer-service?queue=ticket'
+        if model_name == 'unitrade.chat.report':
+            return '/unitrade/admin/customer-service?queue=chat'
+        if model_name == 'unitrade.sponsorship.request':
+            return self._admin_url_with_query('/unitrade/admin/sponsorships', display_name)
+        return ''
+
+    def _admin_action_url(self, xmlid='', record_id=False):
+        action_targets = {
+            'unitrade_product_ext.action_unitrade_products': ('product.template', '/unitrade/admin/products'),
+            'unitrade_delivery.action_unitrade_delivery': ('unitrade.delivery', '/unitrade/admin/transactions'),
+            'unitrade_review.action_unitrade_review': ('unitrade.review', '/unitrade/admin/reviews'),
+            'unitrade_payment.action_unitrade_seller_payout': ('unitrade.seller.payout', '/unitrade/admin/payouts'),
+            'unitrade_payment.action_unitrade_escrow_ledger': ('unitrade.escrow.ledger', '/unitrade/admin/transactions'),
+            'unitrade_payment.action_unitrade_payment_intent': ('unitrade.payment.intent', '/unitrade/admin/transactions'),
+            'unitrade_payment.action_unitrade_payment_event': ('unitrade.payment.event', '/unitrade/admin/transactions'),
+            'unitrade_dispute.action_unitrade_dispute': ('unitrade.dispute', '/unitrade/admin/refunds'),
+            'unitrade_notification.action_unitrade_announcement': ('unitrade.announcement', '/unitrade/admin/announcements'),
+            'unitrade_admin.action_unitrade_audit_log': ('unitrade.admin.audit.log', '/unitrade/admin/audit-logs'),
+        }
+        model_name, fallback = action_targets.get(xmlid or '', ('', ''))
+        if model_name and record_id and self._has_model(model_name):
+            try:
+                record = self.env[model_name].sudo().browse(int(record_id)).exists()
+                return self._admin_record_url(model_name, record) or fallback
+            except (TypeError, ValueError):
+                return fallback
+        return fallback
+
+    def _admin_notification_target_url(self, notification, target_url=''):
+        if notification.target_model and notification.target_id and self._has_model(notification.target_model):
+            record = self.env[notification.target_model].sudo().browse(notification.target_id).exists()
+            admin_url = self._admin_record_url(notification.target_model, record)
+            if admin_url:
+                return admin_url
+
+        if notification.action_xmlid:
+            admin_url = self._admin_action_url(notification.action_xmlid)
+            if admin_url:
+                return admin_url
+
+        target_url = target_url or ''
+        if target_url.startswith('/unitrade/admin'):
+            return target_url
+        if target_url.startswith('/web#'):
+            fragment = target_url.split('#', 1)[1]
+            params = {}
+            for item in fragment.split('&'):
+                if '=' in item:
+                    key, value = item.split('=', 1)
+                    params[key] = value
+            if params.get('model') and params.get('id') and self._has_model(params['model']):
+                try:
+                    record = self.env[params['model']].sudo().browse(int(params['id'])).exists()
+                    admin_url = self._admin_record_url(params['model'], record)
+                    if admin_url:
+                        return admin_url
+                except (TypeError, ValueError):
+                    pass
+            if params.get('action'):
+                admin_url = self._admin_action_url(params['action'], params.get('id') or False)
+                if admin_url:
+                    return admin_url
+        if target_url.startswith('/odoo/action-'):
+            action_ref = target_url[len('/odoo/action-'):]
+            xmlid, _, record_id = action_ref.partition('/')
+            admin_url = self._admin_action_url(xmlid, record_id or False)
+            if admin_url:
+                return admin_url
+        return target_url if target_url and not target_url.startswith(('/web', '/odoo')) else '/unitrade/admin/notifications'
+
     def _selection_label(self, record, field_name):
         try:
             field = record._fields[field_name]
@@ -2187,8 +2313,11 @@ class UnitradeAdminStats(models.AbstractModel):
         for log in logs:
             severity_meta = self._audit_severity_meta(log.severity)
             target_url = ''
-            if log.res_model and log.res_id:
-                target_url = '/web#id=%s&model=%s&view_type=form' % (log.res_id, log.res_model)
+            if log.res_model and log.res_id and self._has_model(log.res_model):
+                target = self.env[log.res_model].sudo().browse(log.res_id).exists()
+                target_url = self._admin_record_url(log.res_model, target, query=log.res_name or '')
+            elif log.res_model:
+                target_url = self._admin_record_url(log.res_model, query=log.res_name or '')
             rows.append({
                 'id': log.id,
                 'date': self._datetime_label(log.create_date),
@@ -2234,34 +2363,13 @@ class UnitradeAdminStats(models.AbstractModel):
         }
 
     def _audit_admin_target_url(self, log):
-        model_name = log.res_model or ''
-        res_name = log.res_name or ''
-        query = quote_plus(res_name) if res_name else ''
-        if model_name == 'sale.order':
-            return '/unitrade/admin/transactions?q=%s' % query if query else '/unitrade/admin/transactions'
-        if model_name == 'res.users':
-            return '/unitrade/admin/users?q=%s' % query if query else '/unitrade/admin/users'
-        if model_name == 'unitrade.seller':
-            return '/unitrade/admin/users?seller_status=reported&q=%s' % query if query else '/unitrade/admin/users'
-        if model_name == 'product.template':
-            return '/unitrade/admin/products?q=%s' % query if query else '/unitrade/admin/products'
-        if model_name == 'unitrade.customer.ticket':
-            return '/unitrade/admin/customer-service?queue=ticket'
-        if model_name == 'unitrade.chat.report':
-            return '/unitrade/admin/customer-service?queue=chat'
-        if model_name == 'unitrade.dispute':
-            return '/unitrade/admin/customer-service?queue=refund'
-        if model_name == 'unitrade.sponsorship.request':
-            return '/unitrade/admin/sponsorships?q=%s' % query if query else '/unitrade/admin/sponsorships'
-        if model_name == 'unitrade.seller.payout':
-            return '/unitrade/admin/payouts?q=%s' % query if query else '/unitrade/admin/payouts'
-        if model_name == 'unitrade.voucher':
-            return '/unitrade/admin/vouchers?q=%s' % query if query else '/unitrade/admin/vouchers'
-        if model_name == 'unitrade.announcement':
-            return '/unitrade/admin/announcements?q=%s' % query if query else '/unitrade/admin/announcements'
-        if model_name == 'unitrade.notification':
-            return '/unitrade/admin/notifications'
-        return ''
+        target = False
+        if log.res_model and log.res_id and self._has_model(log.res_model):
+            try:
+                target = self.env[log.res_model].sudo().browse(log.res_id).exists()
+            except Exception:  # noqa: BLE001
+                target = False
+        return self._admin_record_url(log.res_model, target, query=log.res_name or '')
 
     @api.model
     def get_audit_log_detail(self, log_id):
@@ -2699,7 +2807,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 limit=1,
             )
             if dispute:
-                refund_url = self._record_action_url('unitrade_dispute.action_unitrade_dispute', dispute.id)
+                refund_url = self._admin_record_url('unitrade.dispute', dispute)
                 refund_label = _('Buka dispute refund %s') % dispute.name
                 notes.append({
                     'label': _('Refund terkait'),
@@ -3134,8 +3242,8 @@ class UnitradeAdminStats(models.AbstractModel):
                 'driver_phone': delivery.driver_phone or '',
                 'created': self._datetime_label(delivery.create_date),
                 'time_label': self._humanize_time(delivery.create_date),
-                'target_url': self._record_action_url('unitrade_delivery.action_unitrade_delivery', delivery.id),
-                'order_url': '/web#id=%s&model=sale.order&view_type=form' % order.id if order else '',
+                'target_url': self._admin_record_url('unitrade.delivery', delivery),
+                'order_url': self._admin_record_url('sale.order', order) if order else '',
             })
         return {
             'rows': rows,
@@ -3256,7 +3364,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 'badge_class': 'green' if review.is_visible else 'red',
                 'created': self._datetime_label(review.create_date),
                 'time_label': self._humanize_time(review.create_date),
-                'target_url': self._record_action_url('unitrade_review.action_unitrade_review', review.id),
+                'target_url': self._admin_record_url('unitrade.review', review),
             })
 
         return {
@@ -3372,8 +3480,8 @@ class UnitradeAdminStats(models.AbstractModel):
                 'payout_ready': bool(payout.payout_ready),
                 'paid_at': self._datetime_label(payout.paid_at) if payout.paid_at else '-',
                 'created': self._datetime_label(payout.create_date),
-                'target_url': self._record_action_url('unitrade_payment.action_unitrade_seller_payout', payout.id),
-                'seller_url': '/web#id=%s&model=unitrade.seller&view_type=form' % payout.seller_id.id if payout.seller_id else '',
+                'target_url': self._admin_record_url('unitrade.seller.payout', payout),
+                'seller_url': self._admin_record_url('unitrade.seller', payout.seller_id) if payout.seller_id else '',
             })
 
         return {
@@ -3578,7 +3686,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 'emitted_count': announcement.emitted_count,
                 'failed_batches': announcement.failed_batches,
                 'created': self._datetime_label(announcement.create_date),
-                'target_url': self._record_action_url('unitrade_notification.action_unitrade_announcement', announcement.id),
+                'target_url': self._admin_record_url('unitrade.announcement', announcement),
             })
 
         return {
@@ -3790,7 +3898,15 @@ class UnitradeAdminStats(models.AbstractModel):
             })
 
     def _notification_payloads(self, notifications):
-        return [notification._admin_payload() for notification in notifications]
+        payloads = []
+        for notification in notifications:
+            payload = notification._admin_payload()
+            payload['target_url'] = self._admin_notification_target_url(
+                notification,
+                payload.get('target_url') or '',
+            )
+            payloads.append(payload)
+        return payloads
 
     @api.model
     def get_notifications(self, limit=8):
@@ -4195,7 +4311,10 @@ class UnitradeAdminStats(models.AbstractModel):
             return 'Rp ' + self._format_idr(value)
 
         def _model_url(model_name, record_id):
-            return '/web#id=%s&model=%s&view_type=form' % (record_id, model_name) if record_id else ''
+            if not record_id or not self._has_model(model_name):
+                return ''
+            record = self.env[model_name].sudo().browse(record_id).exists()
+            return self._admin_record_url(model_name, record)
 
         def _field_value(record, field_name):
             if record and field_name in record._fields:
@@ -4320,7 +4439,7 @@ class UnitradeAdminStats(models.AbstractModel):
         escrow_url = (
             _model_url('unitrade.escrow.ledger', ledgers[:1].id)
             if ledgers and len(ledgers) == 1
-            else self._record_action_url('unitrade_payment.action_unitrade_escrow_ledger')
+            else self._admin_record_url('sale.order', order)
             if ledgers else ''
         )
 
@@ -4653,7 +4772,8 @@ class UnitradeAdminStats(models.AbstractModel):
                             'label': v.partner_id.name if v.partner_id else (v.name or '-'),
                             'subtitle': v.state,
                             'time_label': self._humanize_time(v.create_date),
-                            'href': '/web#id=%s&model=res.partner&view_type=form' % v.partner_id.id if v.partner_id else '',
+                            'href': self._admin_url_with_query('/unitrade/admin/users?seller_status=pending', v.partner_id.name)
+                            if v.partner_id else '',
                         }
                         for v in verifications[:10]
                     ],
@@ -4821,7 +4941,7 @@ class UnitradeAdminStats(models.AbstractModel):
                             'label': t.name or t.title or '-',
                             'subtitle': '%s · %s' % (t.status, t.partner_id.name or '-'),
                             'time_label': self._humanize_time(t.create_date),
-                            'href': '/web#id=%s&model=unitrade.customer.ticket&view_type=form' % t.id,
+                            'href': '/unitrade/admin/customer-service?queue=ticket',
                         }
                         for t in tickets[:10]
                     ],
@@ -4872,7 +4992,7 @@ class UnitradeAdminStats(models.AbstractModel):
                     'description': _('Escrow sudah releasable, payout belum dieksekusi.'),
                     'urgency': 'warning',
                     'count': len(payout_ready),
-                    'target_url': '/web#action=unitrade_payment.action_unitrade_escrow_ledger',
+                    'target_url': '/unitrade/admin/payouts',
                     'items': [
                         {
                             'id': l.id,
@@ -4903,7 +5023,7 @@ class UnitradeAdminStats(models.AbstractModel):
                     'description': _('Payout draft atau ready menunggu konfirmasi PAID admin.'),
                     'urgency': 'warning',
                     'count': len(pending_payouts),
-                    'target_url': '/web#action=unitrade_payment.action_unitrade_seller_payout',
+                    'target_url': '/unitrade/admin/payouts',
                     'items': [
                         {
                             'id': p.id,
@@ -4939,7 +5059,7 @@ class UnitradeAdminStats(models.AbstractModel):
                     'description': _('Seller belum upload bukti barang melewati batas wajar.'),
                     'urgency': 'warning',
                     'count': len(stuck),
-                    'target_url': '/web#action=unitrade_payment.action_unitrade_escrow_ledger',
+                    'target_url': '/unitrade/admin/transactions?state=processing',
                     'items': [
                         {
                             'id': l.id,
@@ -4967,7 +5087,7 @@ class UnitradeAdminStats(models.AbstractModel):
                     'description': _('Produk seller menunggu fee upload.'),
                     'urgency': 'warning',
                     'count': len(listing_pending),
-                    'target_url': '/web#action=unitrade_payment.action_unitrade_payment_intent',
+                    'target_url': '/unitrade/admin/products?fee_status=pending',
                     'items': [
                         {
                             'id': p.id,
@@ -5237,7 +5357,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 'id': dispute.order_id.id,
                 'name': dispute.order_id.name or '-',
                 'escrow_state': getattr(dispute.order_id, 'x_escrow_state', '') or '',
-                'backend_url': '/odoo/action-unitrade_dispute.action_unitrade_dispute/%s' % dispute.id,
+                'backend_url': self._admin_record_url('sale.order', dispute.order_id),
             },
             'buyer': {
                 'name': dispute.buyer_id.name or '-',
