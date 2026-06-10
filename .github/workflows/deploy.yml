@@ -75,8 +75,7 @@ jobs:
             ! grep -q 'body:has(.ut-seller-dashboard-page)' /mnt/extra-addons/unitrade_seller/static/src/css/seller_dashboard.css &&
             grep -q 'ut-has-seller-dashboard-page' /mnt/extra-addons/unitrade_seller/static/src/js/seller_dashboard.js
           "
-
-          docker compose up -d db
+          docker compose up -d
 
           docker compose stop web || true
           docker compose rm -f web || true
