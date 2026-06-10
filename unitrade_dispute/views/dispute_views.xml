@@ -143,6 +143,10 @@
         <field name="name">Refund &amp; Dispute</field>
         <field name="res_model">unitrade.dispute</field>
         <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_unitrade_dispute_tree"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_unitrade_dispute_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_unitrade_dispute_form')})]"/>
         <field name="search_view_id" ref="view_unitrade_dispute_search"/>
     </record>
 

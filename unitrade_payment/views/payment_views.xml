@@ -382,6 +382,10 @@
         <field name="name">Payment Intent</field>
         <field name="res_model">unitrade.payment.intent</field>
         <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_unitrade_payment_intent_tree"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_unitrade_payment_intent_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_unitrade_payment_intent_form')})]"/>
         <field name="search_view_id" ref="view_unitrade_payment_intent_search"/>
     </record>
 
@@ -389,6 +393,10 @@
         <field name="name">Escrow Ledger</field>
         <field name="res_model">unitrade.escrow.ledger</field>
         <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_unitrade_escrow_ledger_tree"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_unitrade_escrow_ledger_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_unitrade_escrow_ledger_form')})]"/>
         <field name="search_view_id" ref="view_unitrade_escrow_ledger_search"/>
     </record>
 
@@ -396,6 +404,10 @@
         <field name="name">Payment Event</field>
         <field name="res_model">unitrade.payment.event</field>
         <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_unitrade_payment_event_tree"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_unitrade_payment_event_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_unitrade_payment_event_form')})]"/>
     </record>
 
     <record id="action_unitrade_cleanup_draft_fee_lines" model="ir.actions.server">
