@@ -1769,6 +1769,7 @@ class UnitradeWebsite(Website):
 
         # Inject into qcontext so template can render them
         if hasattr(response, 'qcontext'):
+            response.qcontext['title'] = 'Marketplace Mahasiswa Yogyakarta'
             response.qcontext['products'] = best_products
             response.qcontext['unitrade_category_urls'] = self._unitrade_home_category_urls()
             
