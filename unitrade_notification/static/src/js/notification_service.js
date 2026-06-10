@@ -20,6 +20,9 @@
 const DEFAULT_POLL_INTERVAL_MS = 60000;
 
 let _pollHandle = null;
+let _pollInFlight = null;
+let _unreadCountInFlight = null;
+let _recentInFlight = null;
 
 /**
  * POST a JSON-RPC envelope to an Odoo `type='json'` controller.
@@ -65,13 +68,21 @@ export const notificationService = {
      * backend is briefly unreachable.
      */
     async fetchUnreadCount() {
-        try {
-            const res = await _jsonPost("/my/notifications/unread_count");
-            return res && typeof res.count === "number" ? res.count : 0;
-        } catch (err) {
-            console.warn("[unitrade_notification] fetchUnreadCount failed:", err);
-            return 0;
+        if (_unreadCountInFlight) {
+            return _unreadCountInFlight;
         }
+        _unreadCountInFlight = (async () => {
+            try {
+                const res = await _jsonPost("/my/notifications/unread_count");
+                return res && typeof res.count === "number" ? res.count : 0;
+            } catch (err) {
+                console.warn("[unitrade_notification] fetchUnreadCount failed:", err);
+                return 0;
+            } finally {
+                _unreadCountInFlight = null;
+            }
+        })();
+        return _unreadCountInFlight;
     },
 
     /**
@@ -79,13 +90,21 @@ export const notificationService = {
      * Always returns an array so the consumer can iterate without guards.
      */
     async fetchRecent() {
-        try {
-            const res = await _jsonPost("/my/notifications/recent");
-            return Array.isArray(res) ? res : [];
-        } catch (err) {
-            console.warn("[unitrade_notification] fetchRecent failed:", err);
-            return [];
+        if (_recentInFlight) {
+            return _recentInFlight;
         }
+        _recentInFlight = (async () => {
+            try {
+                const res = await _jsonPost("/my/notifications/recent");
+                return Array.isArray(res) ? res : [];
+            } catch (err) {
+                console.warn("[unitrade_notification] fetchRecent failed:", err);
+                return [];
+            } finally {
+                _recentInFlight = null;
+            }
+        })();
+        return _recentInFlight;
     },
 
     /**
@@ -124,7 +143,16 @@ export const notificationService = {
      */
     startPolling(callback, intervalMs = DEFAULT_POLL_INTERVAL_MS) {
         this.stopPolling();
-        _pollHandle = window.setInterval(callback, intervalMs);
+        _pollHandle = window.setInterval(() => {
+            if (_pollInFlight) {
+                return;
+            }
+            _pollInFlight = Promise.resolve(callback())
+                .catch((err) => console.warn("[unitrade_notification] poll failed:", err))
+                .finally(() => {
+                    _pollInFlight = null;
+                });
+        }, intervalMs);
         return _pollHandle;
     },
 
@@ -136,6 +164,7 @@ export const notificationService = {
             window.clearInterval(_pollHandle);
             _pollHandle = null;
         }
+        _pollInFlight = null;
     },
 };
 

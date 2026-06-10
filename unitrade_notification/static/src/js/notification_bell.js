@@ -44,11 +44,20 @@ export class NotificationBell extends Component {
         });
         this.root = useRef("root");
         this.closeTimer = null;
+        this.isAlive = false;
+        this.isDisabled = false;
+        this.countRefreshPromise = null;
+        this.recentLoadPromise = null;
         this.onDocumentClick = this.onDocumentClick.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
         this.onExternalCount = this.onExternalCount.bind(this);
 
         onMounted(async () => {
+            this.isAlive = true;
+            this.isDisabled = this.isSellerDashboardPage();
+            if (this.isDisabled) {
+                return;
+            }
             this.root.el?.closest(".ut-notification-host")?.classList.add("ut-is-mounted");
             await this.refreshCount();
             // `startPolling` clears any prior timer first, so this is safe
@@ -63,6 +72,12 @@ export class NotificationBell extends Component {
         });
 
         onWillUnmount(() => {
+            this.isAlive = false;
+            this.countRefreshPromise = null;
+            this.recentLoadPromise = null;
+            if (this.isDisabled) {
+                return;
+            }
             this.root.el?.closest(".ut-notification-host")?.classList.remove("ut-is-mounted");
             notificationService.stopPolling();
             this.clearCloseTimer();
@@ -72,12 +87,23 @@ export class NotificationBell extends Component {
         });
     }
 
+    isSellerDashboardPage() {
+        const path = window.location.pathname || "";
+        return path.startsWith("/unitrade/seller/") || Boolean(document.querySelector(".ut-seller-dashboard-page"));
+    }
+
     setCount(count) {
+        if (!this.isAlive || this.isDisabled) {
+            return;
+        }
         this.state.count = count;
         this.state.badgeText = NotificationBell.computeBadgeText(count);
     }
 
     onExternalCount(ev) {
+        if (this.isDisabled) {
+            return;
+        }
         const count = Number(ev.detail && ev.detail.count);
         if (Number.isFinite(count)) {
             this.setCount(Math.max(0, count));
@@ -112,8 +138,20 @@ export class NotificationBell extends Component {
      * which falls back to 0 to keep the navbar usable.
      */
     async refreshCount() {
-        const count = await notificationService.fetchUnreadCount();
-        this.setCount(count);
+        if (this.isDisabled) {
+            return 0;
+        }
+        if (this.countRefreshPromise) {
+            return this.countRefreshPromise;
+        }
+        this.countRefreshPromise = (async () => {
+            const count = await notificationService.fetchUnreadCount();
+            this.setCount(count);
+            return count;
+        })().finally(() => {
+            this.countRefreshPromise = null;
+        });
+        return this.countRefreshPromise;
     }
 
     /**
@@ -124,6 +162,9 @@ export class NotificationBell extends Component {
     async onButtonClick(ev) {
         ev.preventDefault();
         ev.stopPropagation();
+        if (this.isDisabled) {
+            return;
+        }
         this.clearCloseTimer();
         if (this.state.isOpen && this.state.openedByClick) {
             this.close();
@@ -134,6 +175,9 @@ export class NotificationBell extends Component {
     }
 
     async openFromHover() {
+        if (this.isDisabled) {
+            return;
+        }
         this.clearCloseTimer();
         if (this.state.isOpen) {
             return;
@@ -143,16 +187,25 @@ export class NotificationBell extends Component {
     }
 
     async open() {
+        if (this.isDisabled) {
+            return;
+        }
         this.state.isOpen = true;
         await this.loadRecent();
     }
 
     close() {
+        if (this.isDisabled) {
+            return;
+        }
         this.state.isOpen = false;
         this.state.openedByClick = false;
     }
 
     scheduleClose() {
+        if (this.isDisabled) {
+            return;
+        }
         if (this.state.openedByClick) {
             return;
         }
@@ -168,10 +221,28 @@ export class NotificationBell extends Component {
     }
 
     async loadRecent() {
+        if (this.isDisabled) {
+            return [];
+        }
+        if (this.recentLoadPromise) {
+            return this.recentLoadPromise;
+        }
         this.state.isLoading = true;
-        const records = await notificationService.fetchRecent();
-        this.state.recent = records.map((record) => this.prepareNotification(record));
-        this.state.isLoading = false;
+        this.recentLoadPromise = (async () => {
+            const records = await notificationService.fetchRecent();
+            if (!this.isAlive || this.isDisabled) {
+                return [];
+            }
+            this.state.recent = records.map((record) => this.prepareNotification(record));
+            this.state.isLoading = false;
+            return this.state.recent;
+        })().finally(() => {
+            this.recentLoadPromise = null;
+            if (this.isAlive && !this.isDisabled) {
+                this.state.isLoading = false;
+            }
+        });
+        return this.recentLoadPromise;
     }
 
     prepareNotification(record) {
@@ -330,6 +401,9 @@ export class NotificationBell extends Component {
      * reflects the new state without closing.
      */
     async onClickMarkAllRead() {
+        if (this.isDisabled) {
+            return;
+        }
         await notificationService.markAllRead();
         await this.refreshCount();
         await this.loadRecent();

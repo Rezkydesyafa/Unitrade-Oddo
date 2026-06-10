@@ -138,9 +138,34 @@ class UnitradeNotificationController(http.Controller):
             })
         return tabs
 
-    def _notification_item_payload(self, notif):
+    # Categories that, for the buyer/user notification center, must always
+    # link straight to the buyer orders list (Req: user redirect logic).
+    _USER_ORDER_REDIRECT_CATEGORIES = ('order', 'payment')
+
+    # Canonical buyer orders route. Kept relative so it works on every
+    # environment; in production this resolves to
+    # ``https://unitrade.web.id/my/orders``.
+    _USER_ORDERS_URL = '/my/orders'
+
+    def _notification_item_action_url(self, notif, scope='user'):
+        """Resolve the click target for a notification row.
+
+        The buyer notification center (``/my/notifications``, ``scope='user'``)
+        forces every ``order``/``payment`` notification to ``/my/orders`` so
+        users never land on a seller route or an unrelated page. Seller-scope
+        rows keep the model-derived target so their redirect logic stays
+        independent (Req: separate user/seller redirect logic).
+        """
+        if (
+            scope == 'user'
+            and (notif.category or 'system') in self._USER_ORDER_REDIRECT_CATEGORIES
+        ):
+            return self._USER_ORDERS_URL
+        return notif._get_effective_action_url()
+
+    def _notification_item_payload(self, notif, scope='user'):
         category = notif.category or 'system'
-        action_url = notif._get_effective_action_url()
+        action_url = self._notification_item_action_url(notif, scope=scope)
         return {
             'id': notif.id,
             'title': notif.title or 'Notifikasi UniTrade',
@@ -229,7 +254,7 @@ class UnitradeNotificationController(http.Controller):
         values = {
             'notifications': records,
             'notification_items': [
-                self._notification_item_payload(record) for record in records
+                self._notification_item_payload(record, scope=scope) for record in records
             ],
             'page': page,
             'category': category,

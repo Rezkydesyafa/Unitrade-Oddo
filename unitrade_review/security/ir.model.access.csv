@@ -1,3 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_unitrade_review_user,unitrade.review.user,model_unitrade_review,base.group_user,1,1,1,0
 access_unitrade_review_admin,unitrade.review.admin,model_unitrade_review,unitrade_seller.group_unitrade_admin,1,1,1,1
+access_unitrade_review_helpful_admin,unitrade.review.helpful.admin,model_unitrade_review_helpful,unitrade_seller.group_unitrade_admin,1,1,1,1
+access_unitrade_review_helpful_system,unitrade.review.helpful.system,model_unitrade_review_helpful,base.group_system,1,1,1,1
+access_unitrade_review_report_admin,unitrade.review.report.admin,model_unitrade_review_report,unitrade_seller.group_unitrade_admin,1,1,1,1
+access_unitrade_review_report_system,unitrade.review.report.system,model_unitrade_review_report,base.group_system,1,1,1,1

@@ -50,7 +50,49 @@
         </t>
     </template>
 
+    <template id="seller_notification_loop_guard" name="Seller Notification Loop Guard">
+        <script type="text/javascript">
+            (function () {
+                window.__unitradeSellerNotificationDropdownStarted = true;
+                if (window.__unitradeSellerUnreadCountFetchGuard || !window.fetch) {
+                    return;
+                }
+                window.__unitradeSellerUnreadCountFetchGuard = true;
+                var originalFetch = window.fetch.bind(window);
+                window.fetch = function (input, options) {
+                    var url = "";
+                    if (typeof input === "string") {
+                        url = input;
+                    } else if (input) {
+                        if (input.url) {
+                            url = input.url;
+                        }
+                    }
+                    if (url.indexOf("/unitrade/seller/notifications/unread_count") !== -1) {
+                        var wrap = document.getElementById("wrap");
+                        var count = 0;
+                        if (wrap) {
+                            if (wrap.dataset) {
+                                count = Number(wrap.dataset.notificationCount || 0);
+                            }
+                        }
+                        return Promise.resolve(new Response(JSON.stringify({
+                            jsonrpc: "2.0",
+                            id: null,
+                            result: { count: count || 0 }
+                        }), {
+                            status: 200,
+                            headers: { "Content-Type": "application/json" }
+                        }));
+                    }
+                    return originalFetch(input, options);
+                };
+            })();
+        </script>
+    </template>
+
     <template id="seller_owl_fallback" name="Seller OWL Loading Fallback">
+        <t t-call="unitrade_seller.seller_notification_loop_guard"/>
         <div data-ut-seller-fallback="1"
              class="ut-seller-owl-static-fallback"
              style="display:none; position:fixed; right:32px; bottom:32px; z-index:1300; width:min(390px, calc(100vw - 40px)); padding:18px; border:1px solid #e5e7eb; border-radius:16px; background:#ffffff; box-shadow:0 22px 60px rgba(15,23,42,.18); color:#111827; font-family:inherit;">
@@ -82,7 +124,8 @@
     </template>
 
     <template id="seller_dashboard_static_fallback" name="Seller Dashboard Static Fallback">
-        <div class="ut-seller-dashboard-page tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
+        <div data-ut-dashboard-static-fallback="1"
+             class="ut-seller-dashboard-page tw-fixed tw-inset-0 tw-z-[1100] tw-overflow-auto tw-bg-[#f5f5f7]">
             <div class="ut-dash-stage">
                 <div class="ut-dash-promo tw-flex tw-items-center tw-justify-between tw-bg-white tw-px-[57px] tw-text-[12px] tw-leading-6 tw-text-black">
                     <div class="tw-flex tw-items-center tw-gap-[18px]">
@@ -121,40 +164,89 @@
                     </div>
                 </header>
 
-                <aside class="ut-dash-sidebar">
+                <aside class="ut-dash-sidebar ut-seller-shared-sidebar" aria-label="Menu dashboard penjual">
                     <div class="ut-dash-sidebar-brand">
-                        <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="UniTrade"/>
+                        <span class="ut-dash-sidebar-brand-icon">
+                            <img src="/unitrade_seller/static/src/img/dashboard-icon-brand.svg" alt=""/>
+                        </span>
+                        <span class="ut-dash-sidebar-brand-label">Dashboard Penjual</span>
                     </div>
-                    <nav class="ut-dash-sidebar-nav">
-                        <a href="/unitrade/seller/dashboard" class="ut-dash-sidebar-item active">
-                            <i class="fa fa-dashboard"></i>
-                            <span>Dashboard</span>
-                        </a>
-                        <a href="/unitrade/seller/orders" class="ut-dash-sidebar-item">
-                            <i class="fa fa-shopping-cart"></i>
-                            <span>Order</span>
-                        </a>
-                        <a href="/unitrade/seller/refunds" class="ut-dash-sidebar-item">
-                            <i class="fa fa-undo"></i>
-                            <span>Refund</span>
-                        </a>
-                        <a href="/unitrade/seller/products" class="ut-dash-sidebar-item">
-                            <i class="fa fa-cube"></i>
-                            <span>Produk</span>
-                        </a>
-                        <a href="/unitrade/seller/payouts" class="ut-dash-sidebar-item">
-                            <i class="fa fa-money"></i>
-                            <span>Pencairan</span>
-                        </a>
+                    <nav class="ut-dash-sidebar-nav" aria-label="Navigasi toko">
+                        <section class="ut-dash-sidebar-section">
+                            <span class="ut-dash-sidebar-section-label">Store Management</span>
+                            <div class="ut-dash-sidebar-section-items">
+                                <a href="/unitrade/seller/dashboard" class="ut-dash-sidebar-item active" aria-label="Dashboard">
+                                    <span class="ut-dash-sidebar-icon">
+                                        <img src="/unitrade_seller/static/src/img/dashboard-icon-dashboard.svg" alt=""/>
+                                    </span>
+                                    <span class="ut-dash-sidebar-label">Dashboard</span>
+                                </a>
+                                <a href="/unitrade/seller/orders" class="ut-dash-sidebar-item" aria-label="Order">
+                                    <span class="ut-dash-sidebar-icon">
+                                        <img src="/unitrade_seller/static/src/img/dashboard-icon-cart.svg" alt=""/>
+                                    </span>
+                                    <span class="ut-dash-sidebar-label">Order</span>
+                                    <t t-if="dashboard_stats.get('incoming_orders')">
+                                        <span class="ut-dash-side-badge" t-esc="dashboard_stats.get('incoming_orders')"></span>
+                                    </t>
+                                </a>
+                                <a href="/unitrade/seller/refunds" class="ut-dash-sidebar-item" aria-label="Refund">
+                                    <span class="ut-dash-sidebar-icon">
+                                        <img src="/unitrade_seller/static/src/img/dashboard-icon-refund.svg" alt=""/>
+                                    </span>
+                                    <span class="ut-dash-sidebar-label">Refund</span>
+                                </a>
+                                <a href="/unitrade/seller/products" class="ut-dash-sidebar-item" aria-label="Produk">
+                                    <span class="ut-dash-sidebar-icon">
+                                        <img src="/unitrade_seller/static/src/img/dashboard-icon-box.svg" alt=""/>
+                                    </span>
+                                    <span class="ut-dash-sidebar-label">Produk</span>
+                                </a>
+                                <a href="/unitrade/seller/payouts" class="ut-dash-sidebar-item" aria-label="Pencairan">
+                                    <span class="ut-dash-sidebar-icon">
+                                        <img src="/unitrade_seller/static/src/img/dashboard-icon-wallet.svg" alt=""/>
+                                    </span>
+                                    <span class="ut-dash-sidebar-label">Pencairan</span>
+                                </a>
+                            </div>
+                        </section>
+                        <section class="ut-dash-sidebar-section ut-dash-sidebar-section-communication">
+                            <span class="ut-dash-sidebar-section-label">Communication</span>
+                            <div class="ut-dash-sidebar-section-items">
+                                <a href="/unitrade/seller/chat" class="ut-dash-sidebar-item" aria-label="Chat Pembeli">
+                                    <span class="ut-dash-sidebar-icon">
+                                        <img src="/unitrade_seller/static/src/img/dashboard-icon-chat.svg" alt=""/>
+                                    </span>
+                                    <span class="ut-dash-sidebar-label">Chat Pembeli</span>
+                                    <t t-if="dashboard_stats.get('unread_chat_count')">
+                                        <span class="ut-dash-side-badge" t-esc="dashboard_stats.get('unread_chat_count')"></span>
+                                    </t>
+                                </a>
+                            </div>
+                        </section>
                     </nav>
                     <div class="ut-dash-sidebar-footer">
-                        <a href="/" class="ut-dash-sidebar-item">
-                            <i class="fa fa-home"></i>
-                            <span>Beranda</span>
+                        <button type="button"
+                                class="ut-dash-sidebar-toggle"
+                                data-ut-static-sidebar-toggle="1"
+                                aria-expanded="false"
+                                aria-label="Buka sidebar">
+                            <i class="fa fa-angle-right"></i>
+                            <span class="ut-dash-sidebar-button-label">Buka</span>
+                        </button>
+                    </div>
+                    <div class="ut-dash-sidebar-settings">
+                        <a href="/" class="ut-dash-sidebar-item" aria-label="Kembali ke Beranda UniTrade">
+                            <span class="ut-dash-sidebar-icon">
+                                <img src="/unitrade_seller/static/src/img/dashboard-icon-home.svg" alt=""/>
+                            </span>
+                            <span class="ut-dash-sidebar-label">Beranda</span>
                         </a>
-                        <a href="/unitrade/seller/settings" class="ut-dash-sidebar-item">
-                            <i class="fa fa-cog"></i>
-                            <span>Settings</span>
+                        <a href="/unitrade/seller/settings" class="ut-dash-sidebar-item" aria-label="Pengaturan Toko">
+                            <span class="ut-dash-sidebar-icon">
+                                <img src="/unitrade_seller/static/src/img/dashboard-icon-settings.svg" alt=""/>
+                            </span>
+                            <span class="ut-dash-sidebar-label">Settings</span>
                         </a>
                     </div>
                 </aside>
@@ -206,13 +298,45 @@
 
                     <div class="ut-dash-grid tw-grid tw-grid-cols-[minmax(0,797px)_381px] tw-gap-7">
                         <section class="ut-dash-figma-card tw-h-[422px] tw-p-[24px]">
+                            <t t-set="sales_chart" t-value="dashboard_sales_chart or {}"/>
                             <div class="tw-flex tw-items-start tw-justify-between">
                                 <div>
                                     <h2 class="tw-m-0 tw-text-[18px] tw-font-semibold tw-leading-7 tw-text-[#0a0a0a]">Ringkasan Penjualan</h2>
-                                    <p class="tw-m-0 tw-text-[14px] tw-leading-5 tw-text-[#6a7282]">Data lengkap dimuat otomatis saat asset dashboard aktif.</p>
+                                    <p class="tw-m-0 tw-text-[14px] tw-leading-5 tw-text-[#6a7282]">Pendapatan transaksi selesai dan jumlah pesanan</p>
                                 </div>
                             </div>
-                            <div class="ut-dash-empty tw-mt-12">Dashboard tetap dapat digunakan. Gunakan menu samping untuk mengelola toko.</div>
+                            <div class="ut-dash-static-chart tw-mt-5" role="img" t-att-aria-label="sales_chart.get('aria_label') or 'Grafik penjualan'">
+                                <div class="ut-dash-static-chart-head">
+                                    <span>7 hari terakhir</span>
+                                    <strong t-esc="sales_chart.get('total_revenue_label') or dashboard_stats.get('revenue_label') or 'Rp 0'"></strong>
+                                </div>
+                                <svg class="ut-dash-static-chart-svg" t-att-viewBox="sales_chart.get('view_box') or '0 0 720 260'" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                                    <t t-foreach="sales_chart.get('grid_lines') or []" t-as="line">
+                                        <line class="ut-dash-static-chart-grid" t-att-x1="sales_chart.get('grid_x1')" t-att-x2="sales_chart.get('grid_x2')" t-att-y1="line.get('y')" t-att-y2="line.get('y')"/>
+                                        <text class="ut-dash-static-chart-axis" x="54" t-att-y="line.get('y')" text-anchor="end" dominant-baseline="middle" t-esc="line.get('label')"/>
+                                    </t>
+                                    <t t-foreach="sales_chart.get('bars') or []" t-as="bar">
+                                        <rect class="ut-dash-static-chart-bar" t-att-x="bar.get('x')" t-att-y="bar.get('y')" t-att-width="bar.get('width')" t-att-height="bar.get('height')" rx="6"/>
+                                    </t>
+                                    <polygon t-if="sales_chart.get('area_points')" class="ut-dash-static-chart-area" t-att-points="sales_chart.get('area_points')"/>
+                                    <polyline t-if="sales_chart.get('line_points')" class="ut-dash-static-chart-revenue-line" t-att-points="sales_chart.get('line_points')"/>
+                                    <polyline t-if="sales_chart.get('order_line_points')" class="ut-dash-static-chart-order-line" t-att-points="sales_chart.get('order_line_points')"/>
+                                    <t t-foreach="sales_chart.get('revenue_points') or []" t-as="point">
+                                        <circle class="ut-dash-static-chart-revenue-dot" t-att-cx="point.get('x')" t-att-cy="point.get('y')" r="4"/>
+                                    </t>
+                                    <t t-foreach="sales_chart.get('order_points') or []" t-as="point">
+                                        <circle class="ut-dash-static-chart-order-dot" t-att-cx="point.get('x')" t-att-cy="point.get('y')" r="3"/>
+                                    </t>
+                                    <t t-foreach="sales_chart.get('ticks') or []" t-as="tick">
+                                        <text class="ut-dash-static-chart-tick" t-att-x="tick.get('x')" y="246" text-anchor="middle" t-esc="tick.get('label')"/>
+                                    </t>
+                                </svg>
+                                <div class="ut-dash-static-chart-footer">
+                                    <span><i class="ut-dash-static-chart-legend is-revenue"></i> Pendapatan</span>
+                                    <span><i class="ut-dash-static-chart-legend is-orders"></i> Pesanan <t t-esc="sales_chart.get('total_orders') or 0"/></span>
+                                </div>
+                                <p t-if="not sales_chart.get('has_data')" class="ut-dash-static-chart-empty">Belum ada transaksi selesai pada periode ini.</p>
+                            </div>
                         </section>
 
                         <section class="ut-dash-figma-card tw-h-[422px] tw-p-[20px]">
@@ -315,8 +439,11 @@
     <template id="seller_dashboard_template" name="Seller Dashboard">
         <t t-call="website.layout">
             <t t-set="title" t-value="page_title"/>
+            <script type="text/javascript">
+                document.body.classList.add("ut-has-seller-dashboard-page");
+            </script>
             <div id="wrap"
-                class="ut-seller-dashboard-mount"
+                class="ut-seller-dashboard-static"
                 t-att-data-dashboard-payload="dashboard_chart_json"
                 t-att-data-seller-name="seller.name"
                 t-attf-data-seller-avatar-url="/web/image/res.users/#{seller.user_id.id}/avatar_128"
@@ -329,7 +456,7 @@
                 t-att-data-unread-chat-count="dashboard_stats.get('unread_chat_count')"
                 t-att-data-notification-count="dashboard_stats.get('notification_count')"
                 t-att-data-add-product-url="add_product_url">
-                <t t-call="unitrade_seller.seller_owl_fallback"/>
+                <t t-call="unitrade_seller.seller_notification_loop_guard"/>
                 <t t-call="unitrade_seller.seller_dashboard_static_fallback"/>
             </div>
         </t>
@@ -1172,10 +1299,10 @@
                         </aside>
 
                         <main class="tw-min-w-0">
-                            <div class="tw-mb-7 tw-flex tw-flex-col tw-gap-5 md:tw-flex-row md:tw-items-start md:tw-justify-between">
-                                <div class="tw-flex tw-items-center tw-gap-6">
-                                    <img t-att-src="image_data_uri(seller.x_avatar_128) if seller.x_avatar_128 else '/web/static/img/user_menu_avatar.png'" alt="Avatar penjual" class="tw-h-[114px] tw-w-[114px] tw-rounded-full tw-object-cover"/>
-                                    <div>
+                            <div class="ut-seller-profile-header tw-mb-7 tw-flex tw-flex-col tw-gap-5 md:tw-flex-row md:tw-items-start md:tw-justify-between">
+                                <div class="ut-seller-profile-identity tw-flex tw-items-center tw-gap-6">
+                                    <img t-att-src="image_data_uri(seller.x_avatar_128) if seller.x_avatar_128 else '/web/static/img/user_menu_avatar.png'" alt="Avatar penjual" class="ut-seller-profile-avatar tw-h-[114px] tw-w-[114px] tw-rounded-full tw-object-cover"/>
+                                    <div class="ut-seller-profile-meta">
                                         <h1 class="tw-m-0 tw-text-[20px] tw-font-medium tw-leading-6 tw-text-black">
                                             <t t-esc="seller.name"/>
                                         </h1>
@@ -1186,14 +1313,14 @@
                                         <p class="tw-m-0 tw-text-[12px] tw-leading-6 tw-text-[#525252]">
                                             Bergabung <t t-esc="seller_joined_date"/>
                                         </p>
-                                        <a t-attf-href="/seller-profile/#{seller_public_ref}/chat" class="tw-mt-3 tw-flex tw-h-[42px] tw-w-[178px] tw-items-center tw-justify-center tw-gap-3 tw-rounded-[21px] tw-border tw-border-[#212529] tw-bg-[#212529] tw-text-[14px] tw-text-[#f5f5f7] tw-no-underline">
+                                        <a t-attf-href="/seller-profile/#{seller_public_ref}/chat" class="ut-seller-profile-chat tw-mt-3 tw-flex tw-h-[42px] tw-w-[178px] tw-items-center tw-justify-center tw-gap-3 tw-rounded-[21px] tw-border tw-border-[#212529] tw-bg-[#212529] tw-text-[14px] tw-text-[#f5f5f7] tw-no-underline">
                                             <i class="fa fa-commenting"></i>
                                             Chat penjual
                                         </a>
                                     </div>
                                 </div>
 
-                                <div class="tw-flex tw-items-start tw-gap-2 md:tw-mt-[15px] md:tw-pr-5">
+                                <div class="ut-seller-profile-rating tw-flex tw-items-start tw-gap-2 md:tw-mt-[15px] md:tw-pr-5">
                                     <i class="fa fa-star tw-mt-1 tw-text-[#ffb000]"></i>
                                     <div>
                                         <p class="tw-m-0 tw-text-[14px] tw-font-semibold tw-leading-[17px] tw-text-[#212529]">

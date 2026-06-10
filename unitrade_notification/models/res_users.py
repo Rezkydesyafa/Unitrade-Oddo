@@ -92,6 +92,7 @@ class ResUsers(models.Model):
                     payload={
                         'reference_model': 'res.users',
                         'reference_id': user.id,
+                        'recipient_scope': 'user',
                     },
                     idempotency_discriminator=discriminator,
                 )
@@ -144,6 +145,7 @@ class ResUsers(models.Model):
                     payload={
                         'reference_model': 'res.users',
                         'reference_id': user.id,
+                        'recipient_scope': 'user',
                     },
                     idempotency_discriminator=discriminator,
                 )

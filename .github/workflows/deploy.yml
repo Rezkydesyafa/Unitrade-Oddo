@@ -62,15 +62,28 @@ jobs:
 
           cd /root/unitrade
 
+          if [ -d .git ]; then
+            git fetch origin main
+            git checkout main
+            git pull --ff-only origin main
+          fi
+
           docker compose pull
+
+          docker compose run --rm --no-deps web sh -lc "
+            grep -q 'body.ut-has-seller-dashboard-page' /mnt/extra-addons/unitrade_seller/static/src/css/seller_dashboard.css &&
+            ! grep -q 'body:has(.ut-seller-dashboard-page)' /mnt/extra-addons/unitrade_seller/static/src/css/seller_dashboard.css &&
+            grep -q 'ut-has-seller-dashboard-page' /mnt/extra-addons/unitrade_seller/static/src/js/seller_dashboard.js
+          "
 
           docker compose up -d db
 
           docker compose stop web || true
+          docker compose rm -f web || true
 
-          trap 'docker compose up -d --force-recreate web' EXIT
+          trap 'docker compose pull web && docker compose up -d --no-deps --force-recreate web' EXIT
 
-          docker compose run --rm web odoo -d unitrade_db -u unitrade_theme,unitrade_notification,unitrade_admin,unitrade_seller,unitrade_dispute,unitrade_payment,unitrade_review,unitrade_product_ext --stop-after-init
+          docker compose run --rm web odoo -d unitrade_db -u unitrade_theme,unitrade_notification,unitrade_admin,unitrade_seller,unitrade_dispute,unitrade_payment,unitrade_review,unitrade_cs_ai,unitrade_product_ext --stop-after-init
 
           docker compose run --rm web odoo shell -d unitrade_db --no-http <<'PY'
           attachments = env['ir.attachment'].sudo().search([('url', 'like', '/web/assets/')])
@@ -80,8 +93,26 @@ jobs:
           print('Cleared %s Odoo web asset attachment(s).' % count)
           PY
 
-          docker compose up -d --force-recreate web
+          docker compose pull web
+          docker compose up -d --no-deps --force-recreate web
+
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8069/web/login >/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+
+          curl -fsS "http://127.0.0.1:8069/unitrade_seller/static/src/css/seller_dashboard.css?sha=${{ github.sha }}" > /tmp/unitrade_seller_dashboard.css
+          grep -q 'body.ut-has-seller-dashboard-page' /tmp/unitrade_seller_dashboard.css
+          ! grep -q 'body:has(.ut-seller-dashboard-page)' /tmp/unitrade_seller_dashboard.css
 
           trap - EXIT
 
           docker compose ps
+
+    - name: Verify public production asset
+      run: |
+        curl -fsS "https://unitrade.web.id/unitrade_seller/static/src/css/seller_dashboard.css?sha=${GITHUB_SHA}" > /tmp/unitrade_public_seller_dashboard.css
+        grep -q 'body.ut-has-seller-dashboard-page' /tmp/unitrade_public_seller_dashboard.css
+        ! grep -q 'body:has(.ut-seller-dashboard-page)' /tmp/unitrade_public_seller_dashboard.css

@@ -98,6 +98,11 @@ class UnitradeCheckout(WebsiteSale):
             'unitrade_service_fee_product_id': amounts['service_fee_product_id'],
             'unitrade_payment_fee_product_id': amounts.get('payment_fee_product_id'),
             'unitrade_voucher_discount_product_id': amounts.get('voucher_discount_product_id'),
+            'unitrade_shipping_fee_product_id': amounts.get('shipping_fee_product_id'),
+            'unitrade_shipping_methods': order._unitrade_shipping_method_options() if hasattr(order, '_unitrade_shipping_method_options') else [],
+            'unitrade_selected_shipping_method': order.x_shipping_method if 'x_shipping_method' in order._fields else 'pickup',
+            'unitrade_shipping_cost': amounts.get('shipping_cost', 0.0),
+            'unitrade_shipping_gps_warning': order.x_shipping_gps_warning if 'x_shipping_gps_warning' in order._fields else '',
             'unitrade_selected_payment_method': selected_payment_method,
             'unitrade_selected_payment_method_data': selected_payment_method_data,
             'unitrade_payment_method_groups': payment_method_groups,
@@ -108,6 +113,46 @@ class UnitradeCheckout(WebsiteSale):
             'checkout_error_message': (post or {}).get('checkout_error_message'),
         })
         return values
+
+    def _unitrade_shipping_payload(self, order, amounts, message='', success=True):
+        currency = order.currency_id
+        return {
+            'success': success,
+            'message': message,
+            'shipping_method': amounts.get('shipping_method') or 'pickup',
+            'shipping_cost': amounts.get('shipping_cost') or 0.0,
+            'shipping_cost_label': self._unitrade_format_money(amounts.get('shipping_cost') or 0.0, currency),
+            'payment_fee': amounts.get('payment_fee') or 0.0,
+            'payment_fee_label': self._unitrade_format_money(amounts.get('payment_fee') or 0.0, currency),
+            'total': amounts.get('total') or 0.0,
+            'total_label': self._unitrade_format_money(amounts.get('total') or 0.0, currency),
+            'gps_warning': order.x_shipping_gps_warning if 'x_shipping_gps_warning' in order._fields else '',
+        }
+
+    @http.route('/unitrade/checkout/shipping/select', type='json', auth='public', website=True, methods=['POST'])
+    def unitrade_checkout_shipping_select(self, shipping_method=None, payment_method=None, **kwargs):
+        order = request.website.sale_get_order()
+        if not order or order.state != 'draft':
+            return {'success': False, 'message': _('Keranjang tidak tersedia.')}
+        if not request.env.user._is_public() and order.partner_id.commercial_partner_id != request.env.user.partner_id.commercial_partner_id:
+            return {'success': False, 'message': _('Anda tidak memiliki akses ke keranjang ini.')}
+        block_message = self._unitrade_marketplace_block_message(_('memilih metode pengiriman'))
+        if block_message:
+            return {'success': False, 'message': block_message}
+        if not hasattr(order, '_unitrade_set_shipping_method'):
+            return {'success': False, 'message': _('Modul pengiriman belum tersedia.')}
+        try:
+            order.sudo()._unitrade_set_shipping_method(shipping_method)
+            try:
+                amounts = order.sudo()._unitrade_checkout_amounts(sync_fee=False, payment_method=(payment_method or 'bca_va'))
+            except TypeError:
+                amounts = order.sudo()._unitrade_checkout_amounts(sync_fee=False)
+            return self._unitrade_shipping_payload(order, amounts, _('Metode pengiriman diperbarui.'))
+        except (UserError, ValidationError) as error:
+            return {'success': False, 'message': error.args[0] if error.args else str(error)}
+        except Exception:
+            _logger.exception('Failed selecting shipping method for order %s', order.name)
+            return {'success': False, 'message': _('Metode pengiriman belum bisa diperbarui. Coba lagi.')}
 
     @http.route('/unitrade/checkout/voucher/apply', type='json', auth='public', website=True, methods=['POST'])
     def unitrade_checkout_voucher_apply(self, code=None, payment_method=None, **kwargs):
@@ -264,6 +309,15 @@ class UnitradeCheckout(WebsiteSale):
                 'checkout_error_message': self._unitrade_checkout_address_message(),
             })
             return request.render("unitrade_theme.unitrade_checkout_page", values)
+
+        if hasattr(order, '_unitrade_shipping_blocker'):
+            shipping_blocker = order.sudo()._unitrade_shipping_blocker()
+            if shipping_blocker:
+                values = self._unitrade_checkout_values(order, {
+                    **post,
+                    'checkout_error_message': shipping_blocker,
+                })
+                return request.render("unitrade_theme.unitrade_checkout_page", values)
 
         try:
             payment_result = order.sudo().action_create_midtrans_payment(selected_payment_method)

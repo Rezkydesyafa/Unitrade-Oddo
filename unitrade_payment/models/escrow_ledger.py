@@ -423,8 +423,24 @@ class UnitradeEscrowLedger(models.Model):
                     values['seller_handoff_location'] = location
                 values['seller_confirmed_at'] = now
                 ledger.write(values)
+            pending._unitrade_mark_delivery_picked_up()
         ledgers._mark_releasable_if_fully_confirmed()
         return True
+
+    def _unitrade_mark_delivery_picked_up(self):
+        """Move GoSend delivery out of Pending after seller hands off goods."""
+        if 'unitrade.delivery' not in self.env.registry:
+            return
+        Delivery = self.env['unitrade.delivery'].sudo()
+        for order in self.mapped('order_id').sudo():
+            if 'x_shipping_method' not in order._fields or order.x_shipping_method != 'gosend':
+                continue
+            delivery = Delivery.search([('order_id', '=', order.id)], order='create_date desc', limit=1)
+            if not delivery and hasattr(order, '_unitrade_create_shipping_delivery'):
+                order._unitrade_create_shipping_delivery()
+                delivery = Delivery.search([('order_id', '=', order.id)], order='create_date desc', limit=1)
+            if delivery and delivery.status == 'pending':
+                delivery.write({'status': 'picked_up'})
 
     def action_mark_releasable(self):
         self._check_admin('mark_releasable')

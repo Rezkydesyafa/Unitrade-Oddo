@@ -120,10 +120,10 @@
                     </div>
 
                     <!-- Top Section: Image Left + Info Right -->
-                    <div class="tw-grid tw-grid-cols-1 lg:tw-grid-cols-2 tw-gap-10 tw-mb-10">
+                    <div class="ut-product-detail-main-grid tw-grid tw-grid-cols-1 lg:tw-grid-cols-2 tw-gap-10 tw-mb-10">
 
                         <!-- LEFT: Image gallery -->
-                        <div class="tw-bg-[var(--ut-color-bg-muted)] tw-rounded-[20px] tw-p-3">
+                        <div class="ut-product-detail-gallery tw-bg-[var(--ut-color-bg-muted)] tw-rounded-[20px] tw-p-3">
                             <!-- Main image container -->
                             <div class="tw-bg-bg-surface tw-rounded-[16px] tw-p-4 tw-mb-4">
                                 <button type="button"
@@ -161,7 +161,7 @@
                         </div>
 
                         <!-- RIGHT: Product info -->
-                        <div class="tw-flex tw-flex-col tw-gap-5 tw-p-2 lg:tw-p-4 tw-self-start tw-min-w-0">
+                        <div class="ut-product-detail-info tw-flex tw-flex-col tw-gap-5 tw-p-2 lg:tw-p-4 tw-self-start tw-min-w-0">
 
                             <!-- Product name -->
                             <h1 class="ut-product-detail-title tw-text-[30px] tw-leading-[36px] tw-font-semibold tw-text-heading tw-m-0"
@@ -326,7 +326,7 @@
                             </form>
 
                             <!-- Seller Info -->
-                            <div class="tw-flex tw-flex-col tw-gap-4 tw-mt-3">
+                            <div class="ut-product-seller-card tw-flex tw-flex-col tw-gap-4 tw-mt-3">
                                 <!-- Avatar + Name + Status -->
                                 <div class="tw-flex tw-items-center tw-gap-3">
                                     <t t-if="product.x_seller_id">
@@ -348,7 +348,7 @@
                                     </div>
                                 </div>
                                 <!-- Action buttons -->
-                                <div class="tw-flex tw-gap-4">
+                                <div class="ut-product-seller-actions tw-flex tw-gap-4">
                                     <t t-set="ut_product_seller_ref" t-value="product.x_seller_id and (product.x_seller_id.x_store_slug or product.x_seller_id.x_profile_uuid or product.x_seller_id.id)"/>
                                     <a t-if="product.x_seller_id"
                                         t-attf-href="/seller-profile/#{ut_product_seller_ref}"
@@ -381,9 +381,9 @@
 
                     <!-- Map Section -->
                     <div class="tw-mt-2">
-                        <div style="width:100%; height:229px; background:var(--ut-color-bg-muted); border-radius:16px; overflow:hidden; position:relative;">
+                        <div class="ut-product-map-card" style="width:100%; height:229px; background:var(--ut-color-bg-muted); border-radius:16px; overflow:hidden; position:relative;">
                             <t t-if="ut_map_lat and ut_map_lng">
-                                <iframe style="width:100%; height:465px; position:absolute; top:-118px; left:0; border:none;"
+                                <iframe class="ut-product-map-frame" style="width:100%; height:465px; position:absolute; top:-118px; left:0; border:none;"
                                     t-attf-src="https://maps.google.com/maps?q=#{ut_map_lat},#{ut_map_lng}&amp;z=14&amp;output=embed"
                                     allowfullscreen="" loading="lazy"></iframe>
                             </t>

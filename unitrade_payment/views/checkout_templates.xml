@@ -1374,6 +1374,10 @@
                                     <span>Voucher <t t-esc="order_status_voucher_code"/></span>
                                     <strong>-<t t-esc="order_status_voucher_discount"/></strong>
                                 </div>
+                                <div class="ut-order-status-row">
+                                    <span>Ongkir (<t t-esc="order_status_shipping_method_label"/>)</span>
+                                    <strong t-esc="order_status_shipping_cost"/>
+                                </div>
                                 <div class="ut-order-status-row is-total">
                                     <span>Total Pembayaran</span>
                                     <strong t-esc="order_status_total"/>
@@ -1855,13 +1859,21 @@
                     background: #f3f4f6;
                     object-fit: cover;
                 }
-                .ut-order-status-proof-download {
+                .ut-order-status-proof-download,
+                .ut-order-status-proof-trigger {
                     display: block;
                     width: 92px;
                     height: 72px;
+                    border: 0;
                     border-radius: 10px;
+                    background: transparent;
+                    padding: 0;
                     overflow: hidden;
-                    cursor: pointer;
+                    cursor: zoom-in;
+                }
+                .ut-order-status-proof-trigger:focus-visible {
+                    outline: 2px solid #111827;
+                    outline-offset: 3px;
                 }
                 .ut-order-status-proof-media strong {
                     display: block;
@@ -1876,6 +1888,91 @@
                     color: #6a7282;
                     font-size: 12px;
                     line-height: 17px;
+                }
+                body.ut-order-status-proof-preview-open {
+                    overflow: hidden;
+                }
+                .ut-order-status-proof-preview-modal {
+                    position: fixed;
+                    inset: 0;
+                    z-index: 1400;
+                    display: none;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 24px;
+                    font-family: Urbanist, Inter, sans-serif;
+                }
+                .ut-order-status-proof-preview-modal.is-open {
+                    display: flex;
+                }
+                .ut-order-status-proof-preview-backdrop {
+                    position: absolute;
+                    inset: 0;
+                    border: 0;
+                    background: rgba(3, 7, 18, .72);
+                    backdrop-filter: blur(6px);
+                }
+                .ut-order-status-proof-preview-dialog {
+                    position: relative;
+                    z-index: 1;
+                    width: min(760px, calc(100vw - 40px));
+                    max-height: calc(100vh - 48px);
+                    overflow: hidden;
+                    border-radius: 18px;
+                    background: #fff;
+                    box-shadow: 0 28px 90px rgba(0, 0, 0, .32);
+                }
+                .ut-order-status-proof-preview-header {
+                    display: flex;
+                    align-items: flex-start;
+                    justify-content: space-between;
+                    gap: 16px;
+                    padding: 16px 18px;
+                    border-bottom: 1px solid #eef0f3;
+                }
+                .ut-order-status-proof-preview-title {
+                    display: block;
+                    color: #0a0a0a;
+                    font-size: 15px;
+                    line-height: 20px;
+                    font-weight: 700;
+                }
+                .ut-order-status-proof-preview-caption {
+                    display: block;
+                    margin-top: 2px;
+                    color: #6a7282;
+                    font-size: 12px;
+                    line-height: 17px;
+                    word-break: break-word;
+                }
+                .ut-order-status-proof-preview-close {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 34px;
+                    height: 34px;
+                    flex: 0 0 34px;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 999px;
+                    background: #fff;
+                    color: #111827;
+                    cursor: pointer;
+                }
+                .ut-order-status-proof-preview-close:focus-visible {
+                    outline: 2px solid #111827;
+                    outline-offset: 2px;
+                }
+                .ut-order-status-proof-preview-body {
+                    padding: 16px;
+                    background: #f8fafc;
+                }
+                .ut-order-status-proof-preview-image {
+                    display: block;
+                    width: 100%;
+                    max-height: calc(100vh - 180px);
+                    border-radius: 14px;
+                    background: #111827;
+                    object-fit: contain;
                 }
                 .ut-order-status-receive-box {
                     margin-top: 18px;
@@ -2099,6 +2196,10 @@
                     background: #212529;
                     color: #fff !important;
                 }
+                .ut-order-status-review-action.is-disabled {
+                    opacity: .72;
+                    cursor: not-allowed;
+                }
                 .ut-order-status-home-action {
                     border-color: rgba(0, 0, 0, .16);
                     background: #fff;
@@ -2201,9 +2302,24 @@
                         grid-template-columns: 1fr;
                     }
                     .ut-order-status-proof-download,
+                    .ut-order-status-proof-trigger,
                     .ut-order-status-proof-media img {
                         width: 100%;
                         height: 160px;
+                    }
+                    .ut-order-status-proof-preview-modal {
+                        padding: 14px;
+                    }
+                    .ut-order-status-proof-preview-dialog {
+                        width: 100%;
+                        max-height: calc(100vh - 28px);
+                        border-radius: 16px;
+                    }
+                    .ut-order-status-proof-preview-body {
+                        padding: 12px;
+                    }
+                    .ut-order-status-proof-preview-image {
+                        max-height: calc(100vh - 168px);
                     }
                 }
             </style>
@@ -2318,9 +2434,9 @@
                                             <b t-esc="ledger.get('seller_filename') or ('Sudah upload bukti' if ledger.get('seller_evidence') else 'Menunggu bukti')"/>
                                         </div>
                                         <div t-if="ledger.get('seller_evidence_url')" class="ut-order-status-proof-media">
-                                            <a t-att-href="ledger.get('seller_evidence_url')" t-att-download="ledger.get('seller_filename') or 'bukti-barang-diserahkan.jpg'" class="ut-order-status-proof-download" title="Download bukti barang diserahkan">
+                                            <button type="button" class="ut-order-status-proof-download ut-order-status-proof-trigger" data-order-status-proof-preview="1" data-preview-title="Bukti barang diserahkan" t-att-data-preview-caption="ledger.get('seller_filename') or 'Bukti barang diserahkan'" title="Preview bukti barang diserahkan">
                                                 <img t-att-src="ledger.get('seller_evidence_url')" alt="Bukti barang diserahkan penjual"/>
-                                            </a>
+                                            </button>
                                             <div>
                                                 <strong>Bukti barang diserahkan</strong>
                                                 <span t-if="ledger.get('seller_filename')" t-esc="ledger.get('seller_filename')"/>
@@ -2333,7 +2449,9 @@
                                             <b t-esc="ledger.get('buyer_filename') or ('Sudah upload bukti' if ledger.get('buyer_evidence') else 'Belum dikonfirmasi')"/>
                                         </div>
                                         <div t-if="ledger.get('buyer_evidence_url')" class="ut-order-status-proof-media">
-                                            <img t-att-src="ledger.get('buyer_evidence_url')" alt="Bukti barang diterima pembeli"/>
+                                            <button type="button" class="ut-order-status-proof-download ut-order-status-proof-trigger" data-order-status-proof-preview="1" data-preview-title="Bukti barang diterima" t-att-data-preview-caption="ledger.get('buyer_filename') or 'Bukti barang diterima'" title="Preview bukti barang diterima">
+                                                <img t-att-src="ledger.get('buyer_evidence_url')" alt="Bukti barang diterima pembeli"/>
+                                            </button>
                                             <div>
                                                 <strong>Bukti barang diterima</strong>
                                                 <span t-if="ledger.get('buyer_filename')" t-esc="ledger.get('buyer_filename')"/>
@@ -2379,10 +2497,39 @@
                                     <span>Voucher <t t-esc="order_status_voucher_code"/></span>
                                     <strong>-<t t-esc="order_status_voucher_discount"/></strong>
                                 </div>
+                                <div class="ut-order-status-row">
+                                    <span>Ongkir (<t t-esc="order_status_shipping_method_label"/>)</span>
+                                    <strong t-esc="order_status_shipping_cost"/>
+                                </div>
                                 <div class="ut-order-status-row is-total">
                                     <span>Total Pembayaran</span>
                                     <strong t-esc="order_status_total"/>
                                 </div>
+                            </section>
+
+                            <section class="ut-order-status-card" t-if="order_status_shipping_method == 'gosend'">
+                                <h2 class="ut-order-status-card-title">Pengiriman GoSend</h2>
+                                <div class="ut-order-status-row">
+                                    <span>Metode</span>
+                                    <strong t-esc="order_status_shipping_method_label"/>
+                                </div>
+                                <t t-if="order_status_delivery">
+                                    <div class="ut-order-status-row">
+                                        <span>Status Pengiriman</span>
+                                        <strong t-esc="order_status_delivery.get('status_label')"/>
+                                    </div>
+                                    <div class="ut-order-status-row" t-if="order_status_delivery.get('tracking_number')">
+                                        <span>Nomor Resi</span>
+                                        <strong t-esc="order_status_delivery.get('tracking_number')"/>
+                                    </div>
+                                    <div class="ut-order-status-row" t-if="order_status_delivery.get('distance_km')">
+                                        <span>Estimasi Jarak</span>
+                                        <strong><t t-esc="order_status_delivery.get('distance_km')"/> km</strong>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <p class="ut-order-status-meta">Penjual akan memproses pengiriman dan memperbarui status di sini.</p>
+                                </t>
                             </section>
 
                             <section class="ut-order-status-card ut-order-status-actions-card">
@@ -2397,6 +2544,16 @@
                                         <a t-if="order_status_refund_detail_url" t-att-href="order_status_refund_detail_url" class="ut-order-status-secondary ut-order-status-refund-action" data-order-status-refund-action="1">Lihat Status Pengembalian</a>
                                         <a t-if="not order_status_refund_detail_url and order_status_can_refund" t-att-href="'/unitrade/order/%s/refund/new' % order.id" class="ut-order-status-danger ut-order-status-refund-action" data-order-status-refund-action="1">Ajukan Pengembalian</a>
                                     </div>
+                                    <button t-foreach="order_status_review_items" t-as="review_item" type="button"
+                                        class="ut-order-status-primary ut-order-status-review-action"
+                                        data-review-open="1"
+                                        t-att-data-review-product-id="review_item.get('product_id')"
+                                        t-att-data-review-order-id="review_item.get('order_id')"
+                                        t-att-data-review-product-name="review_item.get('product_name')"
+                                        t-att-data-review-seller-name="review_item.get('seller_name')"
+                                        t-att-data-review-image-url="review_item.get('image_url')">
+                                        Beri Ulasan
+                                    </button>
                                     <a href="/shop" class="ut-order-status-secondary ut-order-status-shop-action">Kembali Belanja</a>
                                     <a href="/" class="ut-order-status-secondary ut-order-status-home-action">Kembali ke Beranda</a>
                                 </div>
@@ -2408,6 +2565,80 @@
                                 <a href="/customer-service" class="ut-order-status-secondary">Hubungi CS</a>
                             </section>
                         </aside>
+                    </div>
+                    <div class="ut-order-status-proof-preview-modal" data-order-status-proof-preview-modal="1" aria-hidden="true">
+                        <button type="button" class="ut-order-status-proof-preview-backdrop" data-order-status-preview-close="1" aria-label="Tutup preview bukti"></button>
+                        <section class="ut-order-status-proof-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="ut_order_status_proof_preview_title">
+                            <header class="ut-order-status-proof-preview-header">
+                                <div>
+                                    <strong id="ut_order_status_proof_preview_title" class="ut-order-status-proof-preview-title" data-order-status-preview-title="1">Preview bukti</strong>
+                                    <span class="ut-order-status-proof-preview-caption" data-order-status-preview-caption="1"></span>
+                                </div>
+                                <button type="button" class="ut-order-status-proof-preview-close" data-order-status-preview-close="1" aria-label="Tutup preview bukti">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </header>
+                            <div class="ut-order-status-proof-preview-body">
+                                <img class="ut-order-status-proof-preview-image" data-order-status-proof-preview-image="1" alt="Preview bukti serah terima"/>
+                            </div>
+                        </section>
+                    </div>
+                    <div class="ut-order-review-modal" data-order-review-modal="1" aria-hidden="true">
+                        <div class="ut-order-review-backdrop" data-review-close="1"></div>
+                        <section class="ut-order-review-dialog" role="dialog" aria-modal="true" aria-labelledby="ut_order_status_review_title">
+                            <div class="ut-order-review-scroll">
+                                <h2 id="ut_order_status_review_title">Ulasan Produk</h2>
+
+                                <article class="ut-order-review-product">
+                                    <img src="/web/static/img/placeholder.png" alt="Produk" data-review-product-image="1"/>
+                                    <div>
+                                        <h3 data-review-product-name="1">Produk</h3>
+                                        <p data-review-seller-name="1">Nama toko</p>
+                                    </div>
+                                </article>
+
+                                <div class="ut-order-review-section">
+                                    <p class="ut-order-review-label">Rating</p>
+                                    <div class="ut-order-review-stars" role="radiogroup" aria-label="Rating produk">
+                                        <button type="button" data-review-star="1" aria-label="1 bintang"><i class="fa fa-star"></i></button>
+                                        <button type="button" data-review-star="2" aria-label="2 bintang"><i class="fa fa-star"></i></button>
+                                        <button type="button" data-review-star="3" aria-label="3 bintang"><i class="fa fa-star"></i></button>
+                                        <button type="button" data-review-star="4" aria-label="4 bintang"><i class="fa fa-star"></i></button>
+                                        <button type="button" data-review-star="5" aria-label="5 bintang"><i class="fa fa-star"></i></button>
+                                    </div>
+                                </div>
+
+                                <div class="ut-order-review-section">
+                                    <p class="ut-order-review-label">Pilih Tag Populer:</p>
+                                    <div class="ut-order-review-tags">
+                                        <button type="button" data-review-tag="Sesuai Gambar">Sesuai Gambar</button>
+                                        <button type="button" data-review-tag="Penjual Ramah">Penjual Ramah</button>
+                                    </div>
+                                </div>
+
+                                <div class="ut-order-review-section ut-order-review-comment-section">
+                                    <label class="ut-order-review-label" for="ut_order_status_review_comment">Koment</label>
+                                    <textarea id="ut_order_status_review_comment" data-review-comment="1" maxlength="1000" placeholder="Bagikan Penilaian mu tentang produk ini untuk membantu Pembeli lain."></textarea>
+                                </div>
+
+                                <div class="ut-order-review-media-row">
+                                    <label class="ut-order-review-media-button">
+                                        <i class="fa fa-camera"></i>
+                                        <span>Tambah media</span>
+                                        <input type="file" accept="image/jpeg,image/png,image/webp" multiple="multiple" data-review-media-input="1"/>
+                                    </label>
+                                    <small>Maksimal 3 gambar, masing-masing kurang dari 2 MB.</small>
+                                </div>
+                                <div class="ut-order-review-media-preview" data-review-media-preview="1"></div>
+
+                                <div class="ut-order-review-message" data-review-message="1" role="alert"></div>
+                            </div>
+
+                            <footer class="ut-order-review-footer">
+                                <button type="button" class="ut-order-review-submit" data-review-submit="1">Ok</button>
+                                <button type="button" class="ut-order-review-later" data-review-close="1">Nanti saja</button>
+                            </footer>
+                        </section>
                     </div>
                 </main>
             </div>

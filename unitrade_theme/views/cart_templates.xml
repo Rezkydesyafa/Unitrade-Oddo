@@ -49,7 +49,7 @@
                 .ut-cart-layout-row {
                     position: relative;
                     margin: 0 0 48px !important;
-                    padding: 44px clamp(24px, 3vw, 48px) 56px !important;
+                    padding: 0 !important;
                     row-gap: 0 !important;
                 }
                 .ut-cart-layout-row::before {
@@ -60,8 +60,8 @@
                     bottom: 0;
                     left: 0;
                     border-radius: 20px;
-                    background: #ffffff;
-                    box-shadow: 0 12px 38px rgba(33, 37, 41, 0.045);
+                    background: transparent;
+                    box-shadow: none;
                     content: "";
                 }
                 .ut-cart-layout-row > * {
@@ -146,7 +146,8 @@
                 .unitrade-cart-title {
                     font-family: 'Urbanist', sans-serif !important;
                     font-weight: 800;
-                    font-size: 24px;
+                    font-size: 32px;
+                    line-height: 1.2;
                     color: #212529;
                     margin: 0 0 16px;
                 }
@@ -376,6 +377,7 @@
                         position: sticky !important;
                         top: var(--ut-cart-header-offset, 184px) !important;
                         align-self: flex-start;
+                        margin-top: 116px !important;
                     }
                 }
                 #o_cart_summary .o_total_card,
@@ -528,34 +530,47 @@
 
                 /* ── Promo / coupon code form ───────────────────────── */
                 form[name="coupon_code"] .input-group {
-                    border-radius: 12px !important;
-                    overflow: hidden;
-                    border: 1px solid #e5e5e5 !important;
+                    display: flex !important;
+                    flex-wrap: nowrap !important;
+                    gap: 8px !important;
+                    border: none !important;
+                    border-radius: 0 !important;
+                    overflow: visible !important;
                 }
                 form[name="coupon_code"] input[name="promo"] {
-                    border: none !important;
+                    flex: 1 1 auto !important;
+                    margin: 0 !important;
+                    border: 1px solid #e5e7eb !important;
+                    border-radius: 999px !important;
                     box-shadow: none !important;
                     font-family: 'Urbanist', sans-serif !important;
                     font-size: 14px !important;
-                    padding: 10px 16px !important;
-                    border-radius: 0 !important;
-                    background: #fff !important;
+                    padding: 11px 18px !important;
+                    background: #f3f3f5 !important;
+                    color: #212529 !important;
                 }
-                form[name="coupon_code"] input[name="promo"]:focus { outline: none !important; }
+                form[name="coupon_code"] input[name="promo"]::placeholder { color: #9ca3af !important; }
+                form[name="coupon_code"] input[name="promo"]:focus {
+                    background: #ffffff !important;
+                    border-color: #212529 !important;
+                    outline: none !important;
+                }
                 form[name="coupon_code"] .btn-secondary,
                 form[name="coupon_code"] .a-submit {
-                    background: #212529 !important;
-                    color: #fff !important;
-                    border: none !important;
-                    border-radius: 0 !important;
+                    flex: 0 0 auto !important;
+                    margin: 0 !important;
+                    background: #eeeef0 !important;
+                    color: #212529 !important;
+                    border: 1px solid #e5e7eb !important;
+                    border-radius: 999px !important;
                     font-family: 'Urbanist', sans-serif !important;
                     font-weight: 600 !important;
                     font-size: 14px !important;
-                    padding: 10px 18px !important;
+                    padding: 11px 20px !important;
                     transition: background 0.15s !important;
                 }
                 form[name="coupon_code"] .btn-secondary:hover,
-                form[name="coupon_code"] .a-submit:hover { background: #212529 !important; }
+                form[name="coupon_code"] .a-submit:hover { background: #e2e2e4 !important; }
 
                 /* ── Empty cart state ───────────────────────────────── */
                 .js_cart_lines.alert.alert-info {
@@ -690,6 +705,64 @@
                         max-width: 100%;
                     }
                 }
+
+                /* ── Seller line under product title ────────────────── */
+                .ut-cart-line-seller {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin: 2px 0 6px !important;
+                    color: #6b7280 !important;
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-size: 13px !important;
+                    font-weight: 500 !important;
+                }
+                .ut-cart-line-seller-avatar {
+                    width: 20px;
+                    height: 20px;
+                    flex: 0 0 20px;
+                    border-radius: 999px;
+                    overflow: hidden;
+                    background: #e5e7eb;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #9ca3af;
+                }
+                .ut-cart-line-seller-avatar img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    display: block;
+                }
+                .ut-cart-line-seller-avatar svg {
+                    width: 13px;
+                    height: 13px;
+                }
+
+                /* ── Service fee info icon ──────────────────────────── */
+                .ut-cart-service-fee-info {
+                    display: inline-flex;
+                    align-items: center;
+                    margin-left: 4px;
+                    color: #9ca3af;
+                    cursor: help;
+                    vertical-align: middle;
+                }
+                .ut-cart-service-fee-info svg {
+                    width: 15px;
+                    height: 15px;
+                }
+
+                /* ── Voucher heading ────────────────────────────────── */
+                .ut-cart-voucher-heading {
+                    display: block;
+                    margin: 4px 0 10px;
+                    color: #212529;
+                    font-family: 'Urbanist', sans-serif !important;
+                    font-size: 14px;
+                    font-weight: 700;
+                }
             </style>
         </xpath>
 
@@ -812,6 +885,23 @@
         </xpath>
     </template>
 
+    <!-- Seller name + avatar under each cart product title (match marketplace design) -->
+    <template id="unitrade_cart_line_seller" inherit_id="website_sale.cart_lines" name="UniTrade Cart Line Seller">
+        <xpath expr="//div[@id='cart_products']//h6" position="after">
+            <t t-set="ut_cart_tmpl" t-value="line.product_id.product_tmpl_id"/>
+            <t t-set="ut_cart_seller" t-value="ut_cart_tmpl.sudo().x_seller_id if ut_cart_tmpl and 'x_seller_id' in ut_cart_tmpl._fields else False"/>
+            <t t-if="ut_cart_seller">
+                <t t-set="ut_cart_seller_avatar" t-value="'/unitrade/seller-avatar/%s' % ut_cart_seller.id"/>
+                <p class="ut-cart-line-seller">
+                    <span class="ut-cart-line-seller-avatar">
+                        <img t-att-src="ut_cart_seller_avatar" t-att-alt="ut_cart_seller.name"/>
+                    </span>
+                    <span t-esc="ut_cart_seller.name"/>
+                </p>
+            </t>
+        </xpath>
+    </template>
+
     <template id="unitrade_suggested_products_indonesian" inherit_id="website_sale.suggested_products_list" name="UniTrade Suggested Products Indonesian">
         <xpath expr="//h5" position="replace">
             <h5 t-attf-class="mt32 mb-3" t-if="suggested_products">Rekomendasi Tambahan</h5>
@@ -838,7 +928,7 @@
     <template id="unitrade_cart_summary_title" inherit_id="website_sale.checkout_layout" name="UniTrade Cart Summary Title">
         <xpath expr="//span[@id='amount_total_summary']" position="replace">
             <span id="amount_total_summary" class="monetary_field ms-1">
-                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_checkout_amounts(sync_fee=False) if website_sale_order else {}"/>
+                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_cart_amounts(sync_fee=False) if website_sale_order else {}"/>
                 <t t-set="ut_money_amount" t-value="unitrade_cart_amounts.get('total') or website_sale_order.amount_untaxed"/>
                 <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
                 <t t-call="unitrade_theme.unitrade_money"/>
@@ -866,7 +956,7 @@
     <template id="unitrade_cart_total_indonesian" inherit_id="website_sale.total" name="UniTrade Cart Total Indonesian">
         <xpath expr="//tr[@id='order_total_untaxed']//span[hasclass('monetary_field')]" position="replace">
             <span class="monetary_field" style="white-space: nowrap;">
-                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_checkout_amounts(sync_fee=False) if website_sale_order else {}"/>
+                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_cart_amounts(sync_fee=False) if website_sale_order else {}"/>
                 <t t-set="ut_money_amount" t-value="unitrade_cart_amounts.get('item_subtotal') or website_sale_order.amount_untaxed"/>
                 <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
                 <t t-call="unitrade_theme.unitrade_money"/>
@@ -874,10 +964,19 @@
         </xpath>
         <xpath expr="//tr[@id='order_total_untaxed']" position="after">
             <tr t-if="website_sale_order" class="ut-cart-service-fee-row">
-                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_checkout_amounts(sync_fee=False)"/>
+                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_cart_amounts(sync_fee=False)"/>
                 <td colspan="3" class="ut-cart-service-fee-cell">
                     <div class="ut-cart-service-fee-line">
-                        <span class="ut-cart-service-fee-label">Biaya Layanan</span>
+                        <span class="ut-cart-service-fee-label">
+                            Biaya Layanan
+                            <span class="ut-cart-service-fee-info" title="Biaya operasional platform UniTrade" aria-label="Biaya operasional platform UniTrade">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 16v-4"></path>
+                                    <path d="M12 8h.01"></path>
+                                </svg>
+                            </span>
+                        </span>
                         <span class="monetary_field">
                             <t t-set="ut_money_amount" t-value="unitrade_cart_amounts.get('service_fee')"/>
                             <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
@@ -887,7 +986,7 @@
                 </td>
             </tr>
             <tr t-if="website_sale_order and website_sale_order.x_unitrade_voucher_discount" class="ut-cart-voucher-row">
-                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_checkout_amounts(sync_fee=False)"/>
+                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_cart_amounts(sync_fee=False)"/>
                 <td colspan="3" class="ut-cart-voucher-cell">
                     <div class="ut-cart-voucher-line">
                         <span class="ut-cart-voucher-label">
@@ -912,7 +1011,7 @@
         <xpath expr="//tr[@id='order_total_taxes']" position="replace"/>
         <xpath expr="//tr[@id='order_total']//strong[hasclass('monetary_field')]" position="replace">
             <strong class="monetary_field text-end p-0">
-                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_checkout_amounts(sync_fee=False) if website_sale_order else {}"/>
+                <t t-set="unitrade_cart_amounts" t-value="website_sale_order._unitrade_cart_amounts(sync_fee=False) if website_sale_order else {}"/>
                 <t t-set="ut_money_amount" t-value="unitrade_cart_amounts.get('total') or website_sale_order.amount_untaxed"/>
                 <t t-set="ut_money_currency" t-value="website_sale_order.currency_id"/>
                 <t t-call="unitrade_theme.unitrade_money"/>
@@ -921,6 +1020,9 @@
     </template>
 
     <template id="unitrade_coupon_form_indonesian" inherit_id="website_sale.coupon_form" name="UniTrade Coupon Form Indonesian">
+        <xpath expr="//form[@name='coupon_code']" position="before">
+            <label class="ut-cart-voucher-heading">Makin hemat pakai promo</label>
+        </xpath>
         <xpath expr="//input[@name='promo']" position="attributes">
             <attribute name="placeholder">Kode voucher...</attribute>
         </xpath>

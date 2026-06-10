@@ -50,7 +50,8 @@
                    class="ut-notification-fallback">
                     <img src="/unitrade_theme/static/src/img/navbar-bell.svg" alt=""/>
                 </a>
-                <owl-component name="unitrade_notification.NotificationBell"/>
+                <owl-component t-if="not request.httprequest.path.startswith('/unitrade/seller/')"
+                               name="unitrade_notification.NotificationBell"/>
             </div>
         </xpath>
     </template>
@@ -59,7 +60,7 @@
               inherit_id="web.frontend_layout"
               name="UniTrade Notification Static Fallback CSS">
         <xpath expr="//t[@t-call-assets='web.assets_frontend']" position="after">
-            <link rel="stylesheet" href="/unitrade_notification/static/src/css/notification.css?v=20260604-2"/>
+            <link rel="stylesheet" href="/unitrade_notification/static/src/css/notification.css?v=20260609-2"/>
         </xpath>
     </template>
 

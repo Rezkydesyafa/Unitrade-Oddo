@@ -114,10 +114,19 @@
                             </div>
                             <p class="ut-review-comment" t-esc="review.comment || 'Tidak ada komentar.'"></p>
                             <div class="ut-review-actions">
-                                <button type="button" class="ut-review-report">Report</button>
-                                <button type="button" class="ut-review-helpful">
-                                    <i class="fa fa-thumbs-up" style="color:var(--ut-color-border); font-size:12px;"></i>
-                                    <span>Membantu</span>
+                                <button type="button"
+                                    t-att-class="review.report_active ? 'ut-review-report ut-review-report-active' : 'ut-review-report'"
+                                    t-att-disabled="review.report_active"
+                                    t-on-click="() => this.openReportModal(review)">
+                                    <t t-esc="review.report_active ? 'Dilaporkan' : 'Report'"/>
+                                </button>
+                                <button type="button"
+                                    t-att-class="helpfulButtonClass(review)"
+                                    t-att-disabled="review.helpful_loading"
+                                    t-att-aria-pressed="review.helpful_active ? 'true' : 'false'"
+                                    t-on-click="() => this.toggleHelpful(review)">
+                                    <i class="fa fa-thumbs-up" t-att-style="helpfulIconStyle(review)"></i>
+                                    <span t-esc="helpfulLabel(review)"></span>
                                 </button>
                             </div>
                         </div>
@@ -129,6 +138,53 @@
                 <button type="button" t-on-click="loadMore" t-att-disabled="state.loadingMore" class="ut-review-more">
                     <t t-esc="state.loadingMore ? 'Memuat...' : 'Lihat selengkapnya'"/>
                 </button>
+            </div>
+
+            <div t-if="state.reportModalOpen" class="ut-review-report-modal" role="dialog" aria-modal="true" aria-labelledby="ut-review-report-title">
+                <button type="button" class="ut-review-report-backdrop" t-on-click="closeReportModal" aria-label="Tutup laporan"></button>
+                <section class="ut-review-report-dialog">
+                    <button type="button" class="ut-review-report-close" t-on-click="closeReportModal" aria-label="Tutup laporan">
+                        <i class="fa fa-times"></i>
+                    </button>
+                    <div class="ut-review-report-icon" aria-hidden="true">
+                        <i class="fa fa-flag-o"></i>
+                    </div>
+                    <h3 id="ut-review-report-title">Laporkan Ulasan</h3>
+                    <p class="ut-review-report-copy">
+                        Bantu kami menjaga kualitas ulasan. Laporan akan ditinjau admin UniTrade.
+                    </p>
+                    <div class="ut-review-report-field">
+                        <label for="ut-review-report-reason">Alasan laporan</label>
+                        <select id="ut-review-report-reason" t-model="state.reportReason" class="ut-review-report-select">
+                            <option value="">Pilih alasan</option>
+                            <option value="spam">Spam atau promosi</option>
+                            <option value="abuse">Bahasa kasar atau pelecehan</option>
+                            <option value="irrelevant">Tidak relevan dengan produk</option>
+                            <option value="fake">Ulasan palsu atau menyesatkan</option>
+                            <option value="other">Lainnya</option>
+                        </select>
+                    </div>
+                    <div class="ut-review-report-field">
+                        <label for="ut-review-report-note">Catatan tambahan</label>
+                        <textarea id="ut-review-report-note"
+                            t-model="state.reportNote"
+                            maxlength="1000"
+                            class="ut-review-report-textarea"
+                            placeholder="Tambahkan detail singkat jika diperlukan."></textarea>
+                    </div>
+                    <p t-if="state.reportMessage"
+                        t-att-class="state.reportError ? 'ut-review-report-message ut-is-error' : 'ut-review-report-message'"
+                        t-esc="state.reportMessage"></p>
+                    <div class="ut-review-report-actions">
+                        <button type="button" class="ut-review-report-cancel" t-on-click="closeReportModal">Batal</button>
+                        <button type="button"
+                            class="ut-review-report-submit"
+                            t-att-disabled="!reportFormValid || state.reportSubmitting"
+                            t-on-click="submitReport">
+                            <t t-esc="state.reportSubmitting ? 'Mengirim...' : 'Kirim'"/>
+                        </button>
+                    </div>
+                </section>
             </div>
 
             <div t-if="state.previewImageUrl" class="ut-review-image-preview-modal" role="dialog" aria-modal="true" aria-label="Preview gambar ulasan">

@@ -35,7 +35,7 @@
                         <img src="/unitrade_theme/static/src/img/logo-unitrade.png" alt="UniTrade" class="tw-h-[37px] tw-w-[41px] tw-object-contain"/>
                         <span class="tw-text-[12px] tw-font-bold">UniTrade</span>
                     </a>
-                    <div class="tw-ml-[25px] tw-flex tw-h-12 tw-flex-1 tw-max-w-[658px] tw-items-center tw-rounded-[22.5px] tw-bg-[#f9f9f9] tw-pl-8 tw-pr-[5px]">
+                    <div class="ut-dash-search-shell tw-ml-[25px] tw-flex tw-h-12 tw-flex-1 tw-max-w-[658px] tw-items-center tw-rounded-[22.5px] tw-bg-[#f9f9f9] tw-pl-8 tw-pr-[5px]">
                         <input t-model="state.query" type="search" class="tw-min-w-0 tw-flex-1 tw-border-0 tw-bg-transparent tw-text-[12px] tw-text-[#212529] tw-outline-none placeholder:tw-text-[#939393]" placeholder="Cari produk di UniTrade"/>
                         <button type="button" class="tw-flex tw-size-[38px] tw-items-center tw-justify-center tw-rounded-full tw-border-0 tw-bg-[#212529] tw-text-white" t-on-click="openSearch" aria-label="Cari dashboard">
                             <i class="fa fa-search"></i>
@@ -387,6 +387,10 @@
                         <label class="ut-dash-handoff-field">
                             <span>Lokasi penyerahan</span>
                             <input type="text" name="seller_handoff_location" required="required" placeholder="Contoh: Lobby Kampus UNISA, pukul 13.00"/>
+                        </label>
+                        <label t-if="state.handoffOrder.shipping_method === 'gosend'" class="ut-dash-handoff-field">
+                            <span>Nomor pesanan / resi Gojek</span>
+                            <input type="text" name="tracking_number" maxlength="50" t-att-value="state.handoffOrder.tracking_number || ''" placeholder="Contoh: GK-123456789"/>
                         </label>
                         <div class="tw-mt-6 tw-flex tw-justify-end tw-gap-3">
                             <button type="button" class="ut-dash-handoff-cancel" t-on-click="closeHandoff">Batal</button>

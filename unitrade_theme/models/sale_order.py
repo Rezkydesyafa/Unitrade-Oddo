@@ -102,6 +102,18 @@ class SaleOrder(models.Model):
             'item_quantity': sum(product_lines.mapped('product_uom_qty')),
         }
 
+    def _unitrade_cart_amounts(self, sync_fee=False):
+        """Amounts for the cart page before shipping is chosen at checkout."""
+        self.ensure_one()
+        amounts = dict(self._unitrade_checkout_amounts(sync_fee=sync_fee))
+        shipping_cost = self.currency_id.round(amounts.get('shipping_cost') or 0.0)
+        if shipping_cost:
+            amounts['shipping_cost'] = 0.0
+            amounts['total'] = self.currency_id.round(
+                max((amounts.get('total') or 0.0) - shipping_cost, 0.0)
+            )
+        return amounts
+
     def _unitrade_product_lines_for_checkout(self):
         self.ensure_one()
         fee_product = self._unitrade_service_fee_product()

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Ambil Sendiri">
+  <circle cx="24" cy="24" r="22" fill="#0c1014"/>
+  <path fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"
+        d="M18.6 16.7 24 13.8l5.4 2.9v6L24 25.7l-5.4-3z"/>
+  <path fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"
+        d="M18.6 16.7 24 19.7l5.4-3M24 19.7v6"/>
+  <path fill="none" stroke="#FFFFFF" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"
+        d="M13.6 31h8.3l2.3-2.2a2 2 0 0 1 2.8 0 1.8 1.8 0 0 1 0 2.6l-4.3 4.1a3.4 3.4 0 0 1-2.4.9h-6.7"/>
+  <path fill="none" stroke="#FFFFFF" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"
+        d="M34.4 30.5h-4.2l-3.2-3.1"/>
+</svg>

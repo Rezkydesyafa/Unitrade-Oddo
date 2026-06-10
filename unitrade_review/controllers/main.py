@@ -10,12 +10,16 @@ _logger = logging.getLogger(__name__)
 _IMAGE_DATA_RE = re.compile(r'^data:(image/(?:jpeg|jpg|png|webp));base64,(.+)$')
 _MAX_REVIEW_IMAGE_BYTES = 2 * 1024 * 1024
 _MAX_REVIEW_IMAGES = 3
+_REPORT_REASONS = {'spam', 'abuse', 'irrelevant', 'fake', 'other'}
+_MAX_REPORT_NOTE_LENGTH = 1000
 
 
 class UnitradeReviewController(http.Controller):
 
     @staticmethod
-    def _review_payload(review):
+    def _review_payload(review, helpful_review_ids=None, reported_review_ids=None):
+        helpful_review_ids = helpful_review_ids or set()
+        reported_review_ids = reported_review_ids or set()
         images = []
         for field_name, mimetype_field in (
             ('review_image', 'review_image_mimetype'),
@@ -37,6 +41,9 @@ class UnitradeReviewController(http.Controller):
             'avatar_url': '/web/image/res.users/%s/avatar_128' % review.user_id.id,
             'image_url': images[0] if images else '',
             'image_urls': images,
+            'helpful_count': review.helpful_count,
+            'helpful_active': review.id in helpful_review_ids,
+            'report_active': review.id in reported_review_ids,
         }
 
     @staticmethod
@@ -206,15 +213,35 @@ class UnitradeReviewController(http.Controller):
         Review = request.env['unitrade.review'].sudo()
         total_filtered = Review.search_count(domain)
         reviews = Review.search(domain, order=order, limit=limit, offset=offset)
+        is_public = request.env.user._is_public()
+        helpful_review_ids = set()
+        reported_review_ids = set()
+
+        if reviews and not is_public:
+            helpful_review_ids = set(request.env['unitrade.review.helpful'].sudo().search([
+                ('review_id', 'in', reviews.ids),
+                ('user_id', '=', request.env.uid),
+            ]).mapped('review_id').ids)
+            reported_review_ids = set(request.env['unitrade.review.report'].sudo().search([
+                ('review_id', 'in', reviews.ids),
+                ('user_id', '=', request.env.uid),
+            ]).mapped('review_id').ids)
 
         return {
             'success': True,
-            'reviews': [self._review_payload(review) for review in reviews],
+            'reviews': [
+                self._review_payload(
+                    review,
+                    helpful_review_ids=helpful_review_ids,
+                    reported_review_ids=reported_review_ids,
+                )
+                for review in reviews
+            ],
             'total_filtered': total_filtered,
             'has_more': offset + limit < total_filtered,
             'summary': self._summary(product_id),
             'can_review': self._can_review(product_id),
-            'is_public': request.env.user._is_public(),
+            'is_public': is_public,
         }
 
     @http.route('/unitrade/reviews/status', type='json', auth='user', website=True, methods=['POST'])
@@ -323,4 +350,108 @@ class UnitradeReviewController(http.Controller):
             'review': self._review_payload(review),
             'summary': self._summary(product_id),
             'can_review': False,
+        }
+
+    @http.route('/unitrade/reviews/helpful/toggle', type='json', auth='user', website=True, methods=['POST'])
+    def toggle_helpful(self, **kwargs):
+        try:
+            review_id = int(kwargs.get('review_id') or 0)
+        except (TypeError, ValueError):
+            return {'success': False, 'message': 'Ulasan tidak valid'}
+
+        Review = request.env['unitrade.review'].sudo()
+        review = Review.browse(review_id).exists()
+        if not review or not review.is_visible:
+            return {'success': False, 'message': 'Ulasan tidak ditemukan'}
+
+        Helpful = request.env['unitrade.review.helpful'].sudo()
+        try:
+            with request.env.cr.savepoint():
+                vote = Helpful.search([
+                    ('review_id', '=', review.id),
+                    ('user_id', '=', request.env.uid),
+                ], limit=1)
+                if vote:
+                    vote.unlink()
+                    active = False
+                else:
+                    Helpful.create({
+                        'review_id': review.id,
+                        'user_id': request.env.uid,
+                    })
+                    active = True
+        except Exception:
+            _logger.exception('Failed to toggle UniTrade review helpful vote')
+            return {'success': False, 'message': 'Vote membantu gagal diperbarui'}
+
+        return {
+            'success': True,
+            'active': active,
+            'helpful_count': Helpful.search_count([('review_id', '=', review.id)]),
+        }
+
+    @http.route('/unitrade/reviews/report', type='json', auth='user', website=True, methods=['POST'])
+    def report_review(self, **kwargs):
+        try:
+            review_id = int(kwargs.get('review_id') or 0)
+        except (TypeError, ValueError):
+            return {'success': False, 'message': 'Ulasan tidak valid'}
+
+        reason = (kwargs.get('reason') or '').strip()
+        note = (kwargs.get('note') or '').strip()
+        if reason not in _REPORT_REASONS:
+            return {'success': False, 'message': 'Pilih alasan laporan yang valid'}
+        if len(note) > _MAX_REPORT_NOTE_LENGTH:
+            note = note[:_MAX_REPORT_NOTE_LENGTH]
+
+        Review = request.env['unitrade.review'].sudo()
+        review = Review.browse(review_id).exists()
+        if not review or not review.is_visible:
+            return {'success': False, 'message': 'Ulasan tidak ditemukan'}
+
+        Report = request.env['unitrade.review.report'].sudo()
+        existing_report = Report.search([
+            ('review_id', '=', review.id),
+            ('user_id', '=', request.env.uid),
+        ], limit=1)
+        if existing_report:
+            return {
+                'success': False,
+                'already_reported': True,
+                'message': 'Anda sudah melaporkan ulasan ini.',
+            }
+
+        try:
+            with request.env.cr.savepoint():
+                report = Report.create({
+                    'review_id': review.id,
+                    'user_id': request.env.uid,
+                    'reason': reason,
+                    'note': note,
+                })
+        except Exception:
+            existing_report = Report.search([
+                ('review_id', '=', review.id),
+                ('user_id', '=', request.env.uid),
+            ], limit=1)
+            if existing_report:
+                return {
+                    'success': False,
+                    'already_reported': True,
+                    'message': 'Anda sudah melaporkan ulasan ini.',
+                }
+            _logger.exception('Failed to submit UniTrade review report')
+            return {'success': False, 'message': 'Laporan ulasan gagal dikirim'}
+
+        _logger.info(
+            'UniTrade review report %s submitted by user %s for review %s',
+            report.id,
+            request.env.uid,
+            review.id,
+        )
+        return {
+            'success': True,
+            'report_id': report.id,
+            'report_active': True,
+            'message': 'Laporan ulasan berhasil dikirim.',
         }

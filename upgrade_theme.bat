@@ -51,7 +51,7 @@ echo Database : %DB_NAME%
 echo Config   : %ODOO_CONF%
 echo ========================================================
 
-"%ODOO_PY%" "%ODOO_BIN%" -c "%ODOO_CONF%" -d %DB_NAME% --without-demo=all -u unitrade_theme,unitrade_product_ext,unitrade_seller,unitrade_review,unitrade_chat,unitrade_delivery,unitrade_payment,unitrade_dispute,unitrade_notification,unitrade_wishlist,unitrade_admin --stop-after-init --no-http
+"%ODOO_PY%" "%ODOO_BIN%" -c "%ODOO_CONF%" -d %DB_NAME% --without-demo=all -u unitrade_theme,unitrade_product_ext,unitrade_seller,unitrade_review,unitrade_chat,unitrade_delivery,unitrade_payment,unitrade_dispute,unitrade_notification,unitrade_wishlist,unitrade_cs_ai,unitrade_admin --stop-after-init --no-http
 if errorlevel 1 (
     echo.
     echo [ERROR] Upgrade gagal. Cek logs/odoo.log baris terakhir.

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inject floating chatbot mount point only on selected support pages. -->
+    <template id="cs_floating_widget" inherit_id="website.layout"
+              name="UniTrade CS Floating Chatbot">
+        <xpath expr="//div[@id='wrapwrap']" position="inside">
+            <t t-set="ut_csai_path" t-value="request.httprequest.path or ''"/>
+            <t t-set="ut_csai_allowed" t-value="ut_csai_path.startswith('/customer-service') or ut_csai_path.startswith('/my/customer-service') or ut_csai_path.startswith('/unitrade/seller') or ut_csai_path.startswith('/my/seller') or ut_csai_path.startswith('/seller') or ut_csai_path in ('/faq', '/help', '/privacy-policy', '/kebijakan-privasi')"/>
+            <t t-if="ut_csai_allowed and not request.env.user._is_public()">
+                <div id="ut-csai-floating"></div>
+            </t>
+        </xpath>
+    </template>
+</odoo>

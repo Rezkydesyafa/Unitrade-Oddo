@@ -12,6 +12,8 @@
                 <field name="review_image" string="Gambar" widget="image" optional="show"/>
                 <field name="review_tags" optional="show"/>
                 <field name="comment"/>
+                <field name="helpful_count" optional="show"/>
+                <field name="report_count" optional="show"/>
                 <field name="is_visible"/>
                 <field name="create_date"/>
             </tree>
@@ -42,6 +44,8 @@
                             <field name="rating" required="1"/>
                             <field name="review_tags"/>
                             <field name="is_visible"/>
+                            <field name="helpful_count" readonly="1"/>
+                            <field name="report_count" readonly="1"/>
                         </group>
                     </group>
                     <group string="Gambar Ulasan">
@@ -75,6 +79,95 @@
         </field>
     </record>
 
+    <record id="unitrade_review_report_tree" model="ir.ui.view">
+        <field name="name">unitrade.review.report.tree</field>
+        <field name="model">unitrade.review.report</field>
+        <field name="arch" type="xml">
+            <tree string="Laporan Ulasan" default_order="create_date desc">
+                <field name="create_date"/>
+                <field name="review_id"/>
+                <field name="product_id"/>
+                <field name="user_id"/>
+                <field name="reason"/>
+                <field name="state" widget="badge"
+                    decoration-warning="state == 'submitted'"
+                    decoration-info="state == 'under_review'"
+                    decoration-success="state == 'resolved'"
+                    decoration-muted="state == 'rejected'"/>
+                <field name="reviewed_by_id" optional="hide"/>
+                <field name="reviewed_date" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="unitrade_review_report_form" model="ir.ui.view">
+        <field name="name">unitrade.review.report.form</field>
+        <field name="model">unitrade.review.report</field>
+        <field name="arch" type="xml">
+            <form string="Laporan Ulasan" create="0" edit="1">
+                <header>
+                    <button name="action_start_review"
+                        type="object"
+                        string="Mulai Review"
+                        class="oe_highlight"
+                        invisible="state != 'submitted'"/>
+                    <button name="action_mark_resolved"
+                        type="object"
+                        string="Selesai"
+                        invisible="state not in ('submitted', 'under_review')"/>
+                    <button name="action_reject"
+                        type="object"
+                        string="Tolak"
+                        invisible="state not in ('submitted', 'under_review')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="submitted,under_review,resolved,rejected"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="review_id" readonly="1"/>
+                            <field name="product_id" readonly="1"/>
+                            <field name="user_id" readonly="1"/>
+                            <field name="reason" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="reviewed_by_id" readonly="1"/>
+                            <field name="reviewed_date" readonly="1"/>
+                            <field name="create_date" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Catatan Pelapor">
+                        <field name="note" nolabel="1" readonly="1" colspan="4"
+                            placeholder="Tidak ada catatan tambahan."/>
+                    </group>
+                    <group string="Isi Ulasan">
+                        <field name="review_rating" readonly="1"/>
+                        <field name="review_comment" readonly="1" nolabel="1" colspan="4"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="unitrade_review_report_search" model="ir.ui.view">
+        <field name="name">unitrade.review.report.search</field>
+        <field name="model">unitrade.review.report</field>
+        <field name="arch" type="xml">
+            <search string="Cari Laporan Ulasan">
+                <field name="review_id"/>
+                <field name="product_id"/>
+                <field name="user_id"/>
+                <filter name="submitted" string="Terkirim" domain="[('state', '=', 'submitted')]"/>
+                <filter name="under_review" string="Ditinjau" domain="[('state', '=', 'under_review')]"/>
+                <filter name="resolved" string="Selesai" domain="[('state', '=', 'resolved')]"/>
+                <group expand="0" string="Kelompokkan">
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_reason" string="Alasan" context="{'group_by': 'reason'}"/>
+                    <filter name="group_product" string="Produk" context="{'group_by': 'product_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <record id="action_unitrade_review" model="ir.actions.act_window">
         <field name="name">Ulasan Produk</field>
         <field name="res_model">unitrade.review</field>
@@ -86,5 +179,14 @@
         <field name="context">{'default_rating': 5, 'default_is_visible': True}</field>
     </record>
 
+    <record id="action_unitrade_review_report" model="ir.actions.act_window">
+        <field name="name">Laporan Ulasan</field>
+        <field name="res_model">unitrade.review.report</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="unitrade_review_report_search"/>
+        <field name="context">{'search_default_submitted': 1}</field>
+    </record>
+
     <menuitem id="menu_unitrade_reviews" name="Ulasan" parent="unitrade_seller.menu_unitrade_root" action="action_unitrade_review" sequence="30"/>
+    <menuitem id="menu_unitrade_review_reports" name="Laporan Ulasan" parent="unitrade_seller.menu_unitrade_root" action="action_unitrade_review_report" sequence="31" groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
 </odoo>
