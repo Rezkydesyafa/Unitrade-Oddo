@@ -68,23 +68,67 @@ jobs:
             git pull --ff-only origin main
           fi
 
-          docker compose pull
+          cat > /tmp/unitrade-deploy-compose.yml <<'YAML'
+          services:
+            web:
+              image: baristasigma/unitrade-app:latest
+              command:
+                - odoo
+                - --proxy-mode
+              depends_on:
+                - db
+              ports:
+                - "8069:8069"
+              volumes:
+                - odoo-web-data:/var/lib/odoo
+              environment:
+                HOST: db
+                USER: odoo
+                PASSWORD: odoo
+              networks:
+                - unitrade-net
 
-          docker compose run --rm --no-deps web sh -lc "
+            db:
+              image: postgres:15
+              environment:
+                POSTGRES_DB: postgres
+                POSTGRES_PASSWORD: odoo
+                POSTGRES_USER: odoo
+              volumes:
+                - odoo-db-data:/var/lib/postgresql/data
+              networks:
+                - unitrade-net
+
+          networks:
+            unitrade-net:
+              driver: bridge
+
+          volumes:
+            odoo-web-data:
+            odoo-db-data:
+          YAML
+
+          COMPOSE="docker compose -p unitrade -f /tmp/unitrade-deploy-compose.yml"
+
+          $COMPOSE pull
+
+          $COMPOSE run --rm --no-deps web sh -lc "
+            test -f /mnt/extra-addons/unitrade_seller/static/src/css/seller_dashboard.css &&
             grep -q 'body.ut-has-seller-dashboard-page' /mnt/extra-addons/unitrade_seller/static/src/css/seller_dashboard.css &&
             ! grep -q 'body:has(.ut-seller-dashboard-page)' /mnt/extra-addons/unitrade_seller/static/src/css/seller_dashboard.css &&
+            test -f /mnt/extra-addons/unitrade_seller/static/src/js/seller_dashboard.js &&
             grep -q 'ut-has-seller-dashboard-page' /mnt/extra-addons/unitrade_seller/static/src/js/seller_dashboard.js
           "
-          docker compose up -d
+          $COMPOSE up -d
 
-          docker compose stop web || true
-          docker compose rm -f web || true
+          $COMPOSE stop web || true
+          $COMPOSE rm -f web || true
 
-          trap 'docker compose pull web && docker compose up -d --no-deps --force-recreate web' EXIT
+          trap "$COMPOSE pull web && $COMPOSE up -d --no-deps --force-recreate web" EXIT
 
-          docker compose run --rm web odoo -d unitrade_db -u unitrade_theme,unitrade_notification,unitrade_admin,unitrade_seller,unitrade_dispute,unitrade_payment,unitrade_review,unitrade_cs_ai,unitrade_product_ext --stop-after-init
+          $COMPOSE run --rm web odoo -d unitrade_db -u unitrade_theme,unitrade_notification,unitrade_admin,unitrade_seller,unitrade_dispute,unitrade_payment,unitrade_review,unitrade_cs_ai,unitrade_product_ext --stop-after-init
 
-          docker compose run --rm web odoo shell -d unitrade_db --no-http <<'PY'
+          $COMPOSE run --rm web odoo shell -d unitrade_db --no-http <<'PY'
           attachments = env['ir.attachment'].sudo().search([('url', 'like', '/web/assets/')])
           count = len(attachments)
           attachments.unlink()
@@ -92,8 +136,8 @@ jobs:
           print('Cleared %s Odoo web asset attachment(s).' % count)
           PY
 
-          docker compose pull web
-          docker compose up -d --no-deps --force-recreate web
+          $COMPOSE pull web
+          $COMPOSE up -d --no-deps --force-recreate web
 
           for i in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:8069/web/login >/dev/null; then
@@ -108,7 +152,7 @@ jobs:
 
           trap - EXIT
 
-          docker compose ps
+          $COMPOSE ps
 
     - name: Verify public production asset
       run: |
