@@ -30,6 +30,18 @@ services:
     volumes:
       - odoo-db-data:/var/lib/postgresql/data
 
+  # JALUR 2: Panel pgAdmin berbasis Web (Tinggal buka via browser VPS)
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: unitrade_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@unitrade.web.id   # Email untuk login ke web pgAdmin
+      PGADMIN_DEFAULT_PASSWORD: masbahlilganteng    # Password untuk login ke web pgAdmin
+    ports:
+      - "8050:80" # Akses pgAdmin via browser di port 8050
+    depends_on:
+      - db
+
   # Mesin pekerja sementara untuk merender Tailwind CSS
   frontend-builder:
     image: node:lts
