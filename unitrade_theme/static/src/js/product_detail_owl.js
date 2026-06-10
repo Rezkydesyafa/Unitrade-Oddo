@@ -78,6 +78,14 @@ export class ProductReviewPanel extends Component {
             previewImageAlt: "Preview gambar ulasan",
             message: "",
             error: false,
+            isPublic: false,
+            reportModalOpen: false,
+            reportReview: null,
+            reportReason: "",
+            reportNote: "",
+            reportSubmitting: false,
+            reportMessage: "",
+            reportError: false,
         });
 
         onMounted(() => this.loadReviews({ reset: true }));
@@ -99,6 +107,21 @@ export class ProductReviewPanel extends Component {
 
     reviewStarStyle(rating, star) {
         return `color:${star <= rating ? "var(--ut-color-danger)" : "var(--ut-color-border)"}; font-size:14px;`;
+    }
+
+    helpfulButtonClass(review) {
+        const base = "ut-review-helpful";
+        return review && review.helpful_active ? `${base} ut-review-helpful-active` : base;
+    }
+
+    helpfulIconStyle(review) {
+        const color = review && review.helpful_active ? "var(--ut-color-button-bg)" : "var(--ut-color-border)";
+        return `color:${color}; font-size:12px;`;
+    }
+
+    helpfulLabel(review) {
+        const count = review && Number.isFinite(Number(review.helpful_count)) ? Number(review.helpful_count) : 0;
+        return `Membantu (${count})`;
     }
 
     reviewImageAlt(review, index) {
@@ -138,6 +161,7 @@ export class ProductReviewPanel extends Component {
             this.state.summary = result.summary || { total: 0, average: 0, counts: {} };
             this.state.hasMore = Boolean(result.has_more);
             this.state.canReview = Boolean(result.can_review);
+            this.state.isPublic = Boolean(result.is_public);
             this.state.offset = this.state.reviews.length;
         } catch (error) {
             console.error("[UniTrade] Reviews:", error);
@@ -230,6 +254,119 @@ export class ProductReviewPanel extends Component {
 
     loadMore() {
         this.loadReviews({ reset: false });
+    }
+
+    redirectToLogin() {
+        window.location.href = `/web/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)}`;
+    }
+
+    async toggleHelpful(review) {
+        if (!review || review.helpful_loading) {
+            return;
+        }
+        if (this.state.isPublic) {
+            this.redirectToLogin();
+            return;
+        }
+
+        review.helpful_loading = true;
+        try {
+            const result = await jsonrpc("/unitrade/reviews/helpful/toggle", {
+                review_id: review.id,
+            });
+            if (!result.success) {
+                throw new Error(result.message || "Vote membantu gagal diperbarui.");
+            }
+            review.helpful_active = Boolean(result.active);
+            review.helpful_count = Number(result.helpful_count || 0);
+        } catch (error) {
+            if (error && (error.message || "").includes("Session expired")) {
+                this.redirectToLogin();
+                return;
+            }
+            console.error("[UniTrade] Review helpful:", error);
+        } finally {
+            review.helpful_loading = false;
+        }
+    }
+
+    openReportModal(review) {
+        if (!review) {
+            return;
+        }
+        if (this.state.isPublic) {
+            this.redirectToLogin();
+            return;
+        }
+        if (review.report_active) {
+            return;
+        }
+        this.state.reportReview = review;
+        this.state.reportReason = "";
+        this.state.reportNote = "";
+        this.state.reportMessage = "";
+        this.state.reportError = false;
+        this.state.reportModalOpen = true;
+    }
+
+    closeReportModal() {
+        if (this.state.reportSubmitting) {
+            return;
+        }
+        this.state.reportModalOpen = false;
+        this.state.reportReview = null;
+        this.state.reportReason = "";
+        this.state.reportNote = "";
+        this.state.reportMessage = "";
+        this.state.reportError = false;
+    }
+
+    get reportFormValid() {
+        return Boolean(this.state.reportReview && this.state.reportReason);
+    }
+
+    async submitReport() {
+        if (this.state.reportSubmitting || !this.reportFormValid) {
+            return;
+        }
+
+        this.state.reportSubmitting = true;
+        this.state.reportMessage = "";
+        this.state.reportError = false;
+        try {
+            const result = await jsonrpc("/unitrade/reviews/report", {
+                review_id: this.state.reportReview.id,
+                reason: this.state.reportReason,
+                note: this.state.reportNote,
+            });
+            if (!result.success) {
+                this.state.reportMessage = result.message || "Laporan ulasan gagal dikirim.";
+                this.state.reportError = true;
+                if (result.already_reported && this.state.reportReview) {
+                    this.state.reportReview.report_active = true;
+                }
+                return;
+            }
+            if (this.state.reportReview) {
+                this.state.reportReview.report_active = true;
+            }
+            this.state.reportMessage = result.message || "Laporan ulasan berhasil dikirim.";
+            window.setTimeout(() => {
+                if (!this.state.reportSubmitting) {
+                    this.closeReportModal();
+                }
+            }, 900);
+        } catch (error) {
+            if (error && (error.message || "").includes("Session expired")) {
+                this.redirectToLogin();
+                return;
+            }
+            console.error("[UniTrade] Review report:", error);
+            this.state.reportMessage = "Laporan ulasan gagal dikirim.";
+            this.state.reportError = true;
+        } finally {
+            this.state.reportSubmitting = false;
+        }
     }
 
     async submitReview() {
