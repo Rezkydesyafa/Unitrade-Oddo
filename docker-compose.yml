@@ -13,6 +13,13 @@ services:
       - HOST=db
       - USER=odoo
       - PASSWORD=odoo
+    
+  mailpit:
+    image: axllent/mailpit
+    container_name: unitrade_mail
+    ports:
+      - "8025:8025" # Port untuk melihat email di browser
+      - "1025:1025" # Port SMTP untuk komunikasi dengan Odoo
   
   db:
     image: postgres:15
