@@ -247,10 +247,16 @@ class UnitradeLegalController(http.Controller):
     def legal_page(self, **kwargs):
         path = request.httprequest.path
         active_anchor = "terms" if path in ("/terms", "/privacy-policy", "/syarat-ketentuan", "/kebijakan-privasi") else "faq"
+        if path in ("/privacy-policy", "/kebijakan-privasi"):
+            page_title = "Kebijakan Privasi | UniTrade"
+        elif path in ("/terms", "/syarat-ketentuan"):
+            page_title = "Syarat & Ketentuan | UniTrade"
+        else:
+            page_title = "FAQ | UniTrade"
         return request.render(
             "unitrade_theme.unitrade_faq_terms_page",
             {
-                "page_title": "Syarat & Kebijakan UniTrade",
+                "page_title": page_title,
                 "active_anchor": active_anchor,
                 "faq_items": FAQ_ITEMS,
                 "policy_sections": POLICY_SECTIONS,

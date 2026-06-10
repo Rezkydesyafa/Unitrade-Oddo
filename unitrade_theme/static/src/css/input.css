@@ -9638,6 +9638,16 @@ body:has(.ut-seller-profile-page) {
   color: var(--ut-color-button-text);
 }
 
+.ut-review-report:disabled {
+  cursor: default;
+  opacity: 0.68;
+}
+
+.ut-review-report-active {
+  background: var(--ut-color-bg-muted);
+  color: var(--ut-color-text-body);
+}
+
 .ut-review-helpful {
   min-width: 112px;
   border: 1px solid var(--ut-color-button-outline-border);
@@ -9647,6 +9657,182 @@ body:has(.ut-seller-profile-page) {
   align-items: center;
   justify-content: center;
   gap: 8px;
+}
+
+.ut-review-helpful-active {
+  border-color: var(--ut-color-button-bg);
+  background: color-mix(in srgb, var(--ut-color-button-bg) 8%, transparent);
+  color: var(--ut-color-button-bg);
+  font-weight: 600;
+}
+
+.ut-review-helpful:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.ut-review-report-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1170;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.ut-review-report-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(18, 18, 18, 0.48);
+  cursor: pointer;
+}
+
+.ut-review-report-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 480px);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding: 28px;
+  border: 1px solid var(--ut-color-border);
+  border-radius: 24px;
+  background: var(--ut-color-bg-surface);
+  color: var(--ut-color-text-body);
+  box-shadow: 0 24px 80px rgba(18, 18, 18, 0.22);
+}
+
+.ut-review-report-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--ut-color-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ut-color-text-body);
+  cursor: pointer;
+}
+
+.ut-review-report-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ut-color-button-bg) 10%, transparent);
+  color: var(--ut-color-button-bg);
+}
+
+.ut-review-report-dialog h3 {
+  margin: 0 44px 8px 0;
+  color: var(--ut-color-heading);
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 30px;
+}
+
+.ut-review-report-copy {
+  margin: 0 0 20px;
+  color: var(--ut-color-text-body);
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.ut-review-report-field {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ut-review-report-field label {
+  color: var(--ut-color-heading);
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ut-review-report-select,
+.ut-review-report-textarea {
+  width: 100%;
+  border: 1px solid var(--ut-color-border);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--ut-color-text-body);
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  line-height: 22px;
+  outline: none;
+}
+
+.ut-review-report-select {
+  min-height: 44px;
+  padding: 0 14px;
+}
+
+.ut-review-report-textarea {
+  min-height: 112px;
+  padding: 12px 14px;
+  resize: vertical;
+}
+
+.ut-review-report-select:focus,
+.ut-review-report-textarea:focus {
+  border-color: var(--ut-color-button-bg);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ut-color-button-bg) 14%, transparent);
+}
+
+.ut-review-report-message {
+  margin: 0 0 16px;
+  color: var(--ut-color-success);
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.ut-review-report-message.ut-is-error {
+  color: var(--ut-color-danger);
+}
+
+.ut-review-report-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.ut-review-report-cancel,
+.ut-review-report-submit {
+  min-width: 96px;
+  height: 40px;
+  border-radius: 20px;
+  font-family: Urbanist, Inter, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ut-review-report-cancel {
+  border: 1px solid var(--ut-color-border);
+  background: transparent;
+  color: var(--ut-color-text-body);
+}
+
+.ut-review-report-submit {
+  border: 0;
+  background: var(--ut-color-button-bg);
+  color: var(--ut-color-button-text);
+}
+
+.ut-review-report-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .ut-review-more-wrap {
@@ -9725,6 +9911,31 @@ body:has(.ut-seller-profile-page) {
 
   .ut-review-comment {
     text-align: left;
+  }
+
+  .ut-review-actions {
+    gap: 12px;
+  }
+
+  .ut-review-report,
+  .ut-review-helpful {
+    min-width: 0;
+    padding: 0 14px;
+  }
+
+  .ut-review-report-dialog {
+    width: 100%;
+    padding: 24px 18px 18px;
+    border-radius: 20px;
+  }
+
+  .ut-review-report-actions {
+    flex-direction: column-reverse;
+  }
+
+  .ut-review-report-cancel,
+  .ut-review-report-submit {
+    width: 100%;
   }
 }
 

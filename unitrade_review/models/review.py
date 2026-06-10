@@ -39,11 +39,59 @@ class UnitradeReview(models.Model):
     review_image_3_mimetype = fields.Char(string='Tipe Gambar 3', readonly=True)
     review_tags = fields.Char(string='Tag Ulasan')
     is_visible = fields.Boolean(string='Tampilkan', default=True)
+    helpful_vote_ids = fields.One2many(
+        'unitrade.review.helpful',
+        'review_id',
+        string='Vote Membantu',
+        readonly=True,
+    )
+    helpful_count = fields.Integer(
+        string='Jumlah Membantu',
+        compute='_compute_interaction_counts',
+    )
+    report_ids = fields.One2many(
+        'unitrade.review.report',
+        'review_id',
+        string='Laporan',
+        readonly=True,
+    )
+    report_count = fields.Integer(
+        string='Jumlah Laporan',
+        compute='_compute_interaction_counts',
+    )
 
     _sql_constraints = [
         ('order_unique', 'UNIQUE(order_id, product_id)', 'Anda sudah memberikan ulasan untuk produk ini pada pesanan ini!'),
         ('rating_range', 'CHECK(rating >= 1 AND rating <= 5)', 'Rating harus antara 1-5!'),
     ]
+
+    def _compute_interaction_counts(self):
+        helpful_counts = {review_id: 0 for review_id in self.ids}
+        report_counts = {review_id: 0 for review_id in self.ids}
+
+        if self.ids:
+            helpful_rows = self.env['unitrade.review.helpful'].sudo().read_group(
+                [('review_id', 'in', self.ids)],
+                ['review_id'],
+                ['review_id'],
+            )
+            report_rows = self.env['unitrade.review.report'].sudo().read_group(
+                [('review_id', 'in', self.ids)],
+                ['review_id'],
+                ['review_id'],
+            )
+            for row in helpful_rows:
+                review_value = row.get('review_id')
+                if review_value:
+                    helpful_counts[review_value[0]] = row.get('review_id_count', 0)
+            for row in report_rows:
+                review_value = row.get('review_id')
+                if review_value:
+                    report_counts[review_value[0]] = row.get('review_id_count', 0)
+
+        for review in self:
+            review.helpful_count = helpful_counts.get(review.id, 0)
+            review.report_count = report_counts.get(review.id, 0)
 
     @api.model
     def _unitrade_refresh_product_review_stats(self, products):
@@ -143,3 +191,133 @@ class UnitradeReview(models.Model):
                 'sticky': False,
             },
         }
+
+
+class UnitradeReviewHelpful(models.Model):
+    _name = 'unitrade.review.helpful'
+    _description = 'UniTrade Review Helpful Vote'
+    _order = 'create_date desc'
+    _rec_name = 'review_id'
+
+    review_id = fields.Many2one(
+        'unitrade.review',
+        string='Ulasan',
+        required=True,
+        ondelete='cascade',
+        index=True,
+    )
+    product_id = fields.Many2one(
+        'product.template',
+        string='Produk',
+        related='review_id.product_id',
+        store=True,
+        index=True,
+        readonly=True,
+    )
+    user_id = fields.Many2one(
+        'res.users',
+        string='User',
+        required=True,
+        default=lambda self: self.env.user,
+        ondelete='cascade',
+        index=True,
+    )
+
+    _sql_constraints = [
+        (
+            'review_user_unique',
+            'UNIQUE(review_id, user_id)',
+            'User hanya bisa memberi satu vote membantu untuk setiap ulasan.',
+        ),
+    ]
+
+
+class UnitradeReviewReport(models.Model):
+    _name = 'unitrade.review.report'
+    _description = 'UniTrade Review Report'
+    _order = 'create_date desc'
+    _rec_name = 'review_id'
+
+    review_id = fields.Many2one(
+        'unitrade.review',
+        string='Ulasan',
+        required=True,
+        ondelete='cascade',
+        index=True,
+    )
+    product_id = fields.Many2one(
+        'product.template',
+        string='Produk',
+        related='review_id.product_id',
+        store=True,
+        index=True,
+        readonly=True,
+    )
+    user_id = fields.Many2one(
+        'res.users',
+        string='Pelapor',
+        required=True,
+        default=lambda self: self.env.user,
+        ondelete='cascade',
+        index=True,
+    )
+    reason = fields.Selection(
+        [
+            ('spam', 'Spam atau promosi'),
+            ('abuse', 'Bahasa kasar atau pelecehan'),
+            ('irrelevant', 'Tidak relevan dengan produk'),
+            ('fake', 'Ulasan palsu atau menyesatkan'),
+            ('other', 'Lainnya'),
+        ],
+        string='Alasan',
+        required=True,
+    )
+    note = fields.Text(string='Catatan Tambahan')
+    review_rating = fields.Integer(string='Rating Ulasan', related='review_id.rating', readonly=True)
+    review_comment = fields.Text(string='Komentar Ulasan', related='review_id.comment', readonly=True)
+    state = fields.Selection(
+        [
+            ('submitted', 'Terkirim'),
+            ('under_review', 'Ditinjau'),
+            ('resolved', 'Selesai'),
+            ('rejected', 'Ditolak'),
+        ],
+        string='Status',
+        default='submitted',
+        required=True,
+        index=True,
+    )
+    reviewed_by_id = fields.Many2one('res.users', string='Direview Oleh', readonly=True)
+    reviewed_date = fields.Datetime(string='Tanggal Review', readonly=True)
+
+    _sql_constraints = [
+        (
+            'review_report_user_unique',
+            'UNIQUE(review_id, user_id)',
+            'Anda sudah melaporkan ulasan ini.',
+        ),
+    ]
+
+    def action_start_review(self):
+        for report in self:
+            report.write({
+                'state': 'under_review',
+                'reviewed_by_id': self.env.user.id,
+                'reviewed_date': fields.Datetime.now(),
+            })
+
+    def action_mark_resolved(self):
+        for report in self:
+            report.write({
+                'state': 'resolved',
+                'reviewed_by_id': self.env.user.id,
+                'reviewed_date': fields.Datetime.now(),
+            })
+
+    def action_reject(self):
+        for report in self:
+            report.write({
+                'state': 'rejected',
+                'reviewed_by_id': self.env.user.id,
+                'reviewed_date': fields.Datetime.now(),
+            })
