@@ -123,7 +123,7 @@
                                     <i class="fa fa-upload"></i>
                                 </div>
                                 <strong>Drag &amp; drop images here, or click to browse</strong>
-                                <span>PNG, JPG or WEBP (max. 5MB each)</span>
+                                <span>Minimal upload 2 gambar produk. PNG, JPG, atau WEBP (maks. 5MB per gambar)</span>
                                 <button type="button" t-on-click.stop="openFileDialog">Choose Files</button>
                             </div>
                             <div t-if="state.images.length" class="ut-product-create-preview-grid">
