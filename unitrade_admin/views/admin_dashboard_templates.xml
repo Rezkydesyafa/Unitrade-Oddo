@@ -90,6 +90,14 @@
                                           class="ut-admin-nav-badge"
                                           t-esc="dashboard['counts'].get('customer_service_open')"/>
                                 </a>
+                                <a href="/unitrade/admin/live-chat"
+                                   t-attf-class="ut-admin-nav-item #{'ut-admin-active' if active_page == 'live_chat' else ''}">
+                                    <span class="ut-admin-nav-icon"><i class="fa fa-comments-o" aria-hidden="true"></i></span>
+                                    Live Chat
+                                    <span t-if="dashboard['counts'].get('live_chat_waiting')"
+                                          class="ut-admin-nav-badge"
+                                          t-esc="dashboard['counts'].get('live_chat_waiting')"/>
+                                </a>
                                 <a href="/unitrade/admin/sponsorships"
                                    t-attf-class="ut-admin-nav-item #{'ut-admin-active' if active_page == 'sponsorships' else ''}">
                                     <span class="ut-admin-nav-icon"><i class="fa fa-handshake-o" aria-hidden="true"></i></span>
@@ -3873,6 +3881,108 @@
                         </div>
                     </div>
                 </aside>
+            </div>
+        </t>
+    </template>
+
+    <!-- =============================================================
+         PAGE: LIVE CHAT (admin <-> user, reuse unitrade.cs.session)
+         ============================================================= -->
+    <template id="admin_live_chat_page" name="UniTrade Admin Live Chat">
+        <t t-set="page_title" t-value="'Live Chat'"/>
+        <t t-set="active_page" t-value="'live_chat'"/>
+        <t t-call="unitrade_admin.admin_layout">
+            <t t-set="counts" t-value="live_chat['counts']"/>
+            <div class="ut-admin-page-header">
+                <div>
+                    <div class="ut-admin-headline">Live Chat</div>
+                    <div class="ut-admin-subtitle">
+                        Percakapan langsung admin dengan user yang meminta bantuan dari chatbot. Tiket tetap tersimpan untuk arsip.
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <a href="/unitrade/admin/live-chat"
+                       t-attf-class="ut-admin-task-chip #{'ut-admin-task-chip-active' if scope != 'all' else ''}">
+                        Aktif
+                    </a>
+                    <a href="/unitrade/admin/live-chat?scope=all"
+                       t-attf-class="ut-admin-task-chip #{'ut-admin-task-chip-active' if scope == 'all' else ''}">
+                        Semua
+                    </a>
+                </div>
+            </div>
+
+            <div class="ut-admin-livechat"
+                 t-att-data-initial-session="initial_session_id or ''"
+                 t-att-data-scope="scope">
+                <!-- Panel kiri: daftar sesi -->
+                <aside class="ut-admin-livechat-list">
+                    <div class="ut-admin-livechat-list-head">
+                        <span>Percakapan</span>
+                        <span class="ut-admin-livechat-count">
+                            <t t-esc="counts.get('waiting', 0)"/> menunggu
+                        </span>
+                    </div>
+                    <div class="ut-admin-livechat-sessions" id="utAdminLiveChatSessions">
+                        <t t-if="not live_chat['sessions']">
+                            <div class="ut-admin-livechat-empty">
+                                Belum ada percakapan live chat.
+                            </div>
+                        </t>
+                        <button t-foreach="live_chat['sessions']" t-as="s"
+                                type="button"
+                                class="ut-admin-livechat-session"
+                                t-att-data-session-id="s['id']">
+                            <span class="ut-admin-livechat-avatar" t-esc="s['user_initials']"/>
+                            <span class="ut-admin-livechat-session-body">
+                                <span class="ut-admin-livechat-session-top">
+                                    <span class="ut-admin-livechat-name" t-esc="s['user_name']"/>
+                                    <span class="ut-admin-livechat-time" t-esc="s['last_activity']"/>
+                                </span>
+                                <span class="ut-admin-livechat-preview" t-esc="s['preview']"/>
+                                <span t-attf-class="ut-admin-livechat-badge ut-admin-livechat-badge-#{s['state']}"
+                                      t-esc="s['state_label']"/>
+                            </span>
+                        </button>
+                    </div>
+                </aside>
+
+                <!-- Panel kanan: room chat -->
+                <section class="ut-admin-livechat-room" id="utAdminLiveChatRoom">
+                    <div class="ut-admin-livechat-room-empty" id="utAdminLiveChatRoomEmpty">
+                        <i class="fa fa-comments-o" aria-hidden="true"/>
+                        <p>Pilih percakapan di sebelah kiri untuk mulai membalas user.</p>
+                    </div>
+
+                    <div class="ut-admin-livechat-room-inner" id="utAdminLiveChatRoomInner" style="display:none">
+                        <header class="ut-admin-livechat-room-head">
+                            <div class="ut-admin-livechat-room-peer">
+                                <span class="ut-admin-livechat-avatar" id="utAdminLiveChatPeerAvatar">?</span>
+                                <div>
+                                    <div class="ut-admin-livechat-room-name" id="utAdminLiveChatPeerName">Customer</div>
+                                    <div class="ut-admin-livechat-room-status" id="utAdminLiveChatPeerStatus"></div>
+                                </div>
+                            </div>
+                            <button type="button"
+                                    class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs"
+                                    id="utAdminLiveChatClose">
+                                <i class="fa fa-check" aria-hidden="true"/> Tutup Sesi
+                            </button>
+                        </header>
+
+                        <div class="ut-admin-livechat-messages" id="utAdminLiveChatMessages"></div>
+
+                        <form class="ut-admin-livechat-composer" id="utAdminLiveChatComposer">
+                            <textarea id="utAdminLiveChatInput"
+                                      class="ut-admin-livechat-input"
+                                      rows="1"
+                                      placeholder="Tulis balasan untuk user..."></textarea>
+                            <button type="submit" class="ut-admin-btn ut-admin-btn-primary ut-admin-livechat-send">
+                                <i class="fa fa-paper-plane" aria-hidden="true"/> Kirim
+                            </button>
+                        </form>
+                    </div>
+                </section>
             </div>
         </t>
     </template>

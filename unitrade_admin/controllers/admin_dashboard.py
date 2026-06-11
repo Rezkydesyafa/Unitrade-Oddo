@@ -87,6 +87,44 @@ class UnitradeAdminController(http.Controller):
             },
         )
 
+    # ---- live chat admin <-> user ----------------------------------------
+
+    @http.route('/unitrade/admin/live-chat', type='http', auth='user', website=True)
+    def admin_live_chat(self, session_id=0, scope='active', **kwargs):
+        if not self._is_admin():
+            return self._forbidden('Akun Anda tidak memiliki akses admin UniTrade.')
+        Stats = self._stats()
+        scope = 'all' if scope == 'all' else 'active'
+        live_chat = Stats.get_live_chat_sessions(scope=scope)
+        dashboard = Stats.get_dashboard_data()
+        return request.render(
+            'unitrade_admin.admin_live_chat_page',
+            {
+                'dashboard': dashboard,
+                'live_chat': live_chat,
+                'initial_session_id': self._to_int(session_id, 0) if session_id else 0,
+                'scope': scope,
+            },
+        )
+
+    @http.route('/unitrade/admin/api/live-chat/sessions', type='json', auth='user')
+    def api_live_chat_sessions(self, scope='active', **kwargs):
+        if not self._is_admin():
+            return {'sessions': [], 'counts': {}}
+        return self._stats().get_live_chat_sessions(scope=scope)
+
+    @http.route('/unitrade/admin/api/live-chat/detail', type='json', auth='user')
+    def api_live_chat_detail(self, session_id=0, **kwargs):
+        if not self._is_admin():
+            return {'ok': False, 'error': 'forbidden'}
+        return self._stats().get_live_chat_detail(session_id)
+
+    @http.route('/unitrade/admin/api/live-chat/session-for-ticket', type='json', auth='user')
+    def api_live_chat_session_for_ticket(self, ticket_id=0, **kwargs):
+        if not self._is_admin():
+            return {'ok': False, 'session_id': False}
+        return self._stats().find_live_chat_session_for_ticket(ticket_id)
+
     @http.route('/unitrade/admin/sponsorships', type='http', auth='user', website=True)
     def admin_sponsorships(self, q='', status='', page=1, **kwargs):
         if not self._is_admin():

@@ -1497,6 +1497,23 @@
                             showToast("Gagal memproses produk.", "error");
                         });
                 } else if (action === "ticket-reply") {
+                    // Cek dulu apakah tiket ini punya sesi live chat aktif.
+                    // Jika ada -> arahkan admin ke halaman Live Chat (bukan balas tiket).
+                    var lcRedirected = false;
+                    try {
+                        var lcRes = await callJsonRpc("/unitrade/admin/api/live-chat/session-for-ticket", {
+                            ticket_id: ticketId,
+                        });
+                        var lcSessionId = lcRes && lcRes.result && lcRes.result.session_id;
+                        if (lcSessionId) {
+                            window.location.href = "/unitrade/admin/live-chat?session_id=" + encodeURIComponent(lcSessionId);
+                            lcRedirected = true;
+                        }
+                    } catch (err) {
+                        // Abaikan, fallback ke balas tiket biasa di bawah.
+                    }
+                    if (lcRedirected) return;
+
                     var replyBody = await promptAdmin("Balasan untuk user:", {
                         title: "Balas Tiket Bantuan",
                         multiline: true,
@@ -1927,5 +1944,225 @@
                 console.warn("GMV chart render failed", err);
             }
         }
+
+        // ================================================================
+        // LIVE CHAT (admin <-> user) — reuse endpoint /api/cs/* & /api/live-chat/*
+        // ================================================================
+        (function initLiveChat() {
+            var wrap = document.querySelector(".ut-admin-livechat");
+            if (!wrap) return;
+
+            var scope = wrap.dataset.scope || "active";
+            var sessionsEl = document.getElementById("utAdminLiveChatSessions");
+            var roomEmpty = document.getElementById("utAdminLiveChatRoomEmpty");
+            var roomInner = document.getElementById("utAdminLiveChatRoomInner");
+            var messagesEl = document.getElementById("utAdminLiveChatMessages");
+            var peerName = document.getElementById("utAdminLiveChatPeerName");
+            var peerStatus = document.getElementById("utAdminLiveChatPeerStatus");
+            var peerAvatar = document.getElementById("utAdminLiveChatPeerAvatar");
+            var composer = document.getElementById("utAdminLiveChatComposer");
+            var input = document.getElementById("utAdminLiveChatInput");
+            var closeBtn = document.getElementById("utAdminLiveChatClose");
+
+            var activeSessionId = 0;
+            var lastMessageId = 0;
+            var sending = false;
+
+            function fmtState(state) {
+                if (state === "waiting_admin") return "Menunggu Admin";
+                if (state === "admin_handling") return "Ditangani Admin";
+                if (state === "ai_active") return "AI Aktif";
+                if (state === "closed") return "Selesai";
+                return state || "";
+            }
+
+            function renderMessages(messages) {
+                messagesEl.innerHTML = "";
+                (messages || []).forEach(function (m) {
+                    var mine = m.author_type === "admin";
+                    var row = document.createElement("div");
+                    row.className = "ut-admin-livechat-msg " + (mine ? "ut-is-mine" : "ut-is-theirs") +
+                        (m.author_type === "ai" ? " ut-is-ai" : "");
+                    var meta = escapeHtml(m.author_name || "") + (m.time ? " · " + escapeHtml(m.time) : "");
+                    row.innerHTML =
+                        '<div class="ut-admin-livechat-bubble">' +
+                            '<div class="ut-admin-livechat-bubble-body">' + escapeHtml(m.body || "").replace(/\n/g, "<br/>") + '</div>' +
+                            '<div class="ut-admin-livechat-bubble-meta">' + meta + '</div>' +
+                        '</div>';
+                    messagesEl.appendChild(row);
+                    if (m.id && m.id > lastMessageId) lastMessageId = m.id;
+                });
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+            }
+
+            function appendMessages(messages) {
+                var added = false;
+                (messages || []).forEach(function (m) {
+                    if (!m.id || m.id <= lastMessageId) return;
+                    var mine = m.author_type === "admin";
+                    var row = document.createElement("div");
+                    row.className = "ut-admin-livechat-msg " + (mine ? "ut-is-mine" : "ut-is-theirs") +
+                        (m.author_type === "ai" ? " ut-is-ai" : "");
+                    var meta = escapeHtml(m.author_name || "") + (m.time ? " · " + escapeHtml(m.time) : "");
+                    row.innerHTML =
+                        '<div class="ut-admin-livechat-bubble">' +
+                            '<div class="ut-admin-livechat-bubble-body">' + escapeHtml(m.body || "").replace(/\n/g, "<br/>") + '</div>' +
+                            '<div class="ut-admin-livechat-bubble-meta">' + meta + '</div>' +
+                        '</div>';
+                    messagesEl.appendChild(row);
+                    lastMessageId = m.id;
+                    added = true;
+                });
+                if (added) messagesEl.scrollTop = messagesEl.scrollHeight;
+            }
+
+            function markActiveSession() {
+                sessionsEl.querySelectorAll(".ut-admin-livechat-session").forEach(function (el) {
+                    el.classList.toggle("ut-is-active", String(el.dataset.sessionId) === String(activeSessionId));
+                });
+            }
+
+            function openSession(sessionId) {
+                if (!sessionId) return;
+                activeSessionId = parseInt(sessionId, 10) || 0;
+                lastMessageId = 0;
+                markActiveSession();
+                roomEmpty.style.display = "none";
+                roomInner.style.display = "flex";
+                messagesEl.innerHTML = '<div class="ut-admin-livechat-loading">Memuat pesan...</div>';
+                callJsonRpc("/unitrade/admin/api/live-chat/detail", { session_id: activeSessionId })
+                    .then(function (res) {
+                        var data = res.result || {};
+                        if (!data.ok) {
+                            messagesEl.innerHTML = '<div class="ut-admin-livechat-loading">' +
+                                escapeHtml(data.error || "Gagal memuat sesi.") + '</div>';
+                            return;
+                        }
+                        var s = data.session || {};
+                        peerName.textContent = s.user_name || "Customer";
+                        peerStatus.textContent = fmtState(s.state) + (s.user_email ? " · " + s.user_email : "");
+                        peerAvatar.textContent = s.user_initials || "?";
+                        if (closeBtn) closeBtn.style.display = s.can_close ? "" : "none";
+                        if (input) {
+                            input.disabled = s.state === "closed";
+                            input.placeholder = s.state === "closed"
+                                ? "Sesi sudah ditutup."
+                                : "Tulis balasan untuk user...";
+                        }
+                        renderMessages(data.messages);
+                    });
+            }
+
+            function refreshSessionList() {
+                callJsonRpc("/unitrade/admin/api/live-chat/sessions", { scope: scope })
+                    .then(function (res) {
+                        var data = res.result || {};
+                        var rows = data.sessions || [];
+                        if (!rows.length) {
+                            sessionsEl.innerHTML = '<div class="ut-admin-livechat-empty">Belum ada percakapan live chat.</div>';
+                            return;
+                        }
+                        var html = "";
+                        rows.forEach(function (s) {
+                            html +=
+                                '<button type="button" class="ut-admin-livechat-session' +
+                                    (String(s.id) === String(activeSessionId) ? ' ut-is-active' : '') +
+                                    '" data-session-id="' + s.id + '">' +
+                                    '<span class="ut-admin-livechat-avatar">' + escapeHtml(s.user_initials || "?") + '</span>' +
+                                    '<span class="ut-admin-livechat-session-body">' +
+                                        '<span class="ut-admin-livechat-session-top">' +
+                                            '<span class="ut-admin-livechat-name">' + escapeHtml(s.user_name || "Customer") + '</span>' +
+                                            '<span class="ut-admin-livechat-time">' + escapeHtml(s.last_activity || "") + '</span>' +
+                                        '</span>' +
+                                        '<span class="ut-admin-livechat-preview">' + escapeHtml(s.preview || "") + '</span>' +
+                                        '<span class="ut-admin-livechat-badge ut-admin-livechat-badge-' + escapeHtml(s.state) + '">' +
+                                            escapeHtml(s.state_label || "") + '</span>' +
+                                    '</span>' +
+                                '</button>';
+                        });
+                        sessionsEl.innerHTML = html;
+                    });
+            }
+
+            // Click sesi -> buka room
+            sessionsEl.addEventListener("click", function (e) {
+                var item = e.target.closest(".ut-admin-livechat-session");
+                if (!item) return;
+                openSession(item.dataset.sessionId);
+            });
+
+            // Kirim balasan
+            if (composer) {
+                composer.addEventListener("submit", function (e) {
+                    e.preventDefault();
+                    if (!activeSessionId || sending) return;
+                    var body = (input.value || "").trim();
+                    if (!body) return;
+                    sending = true;
+                    input.disabled = true;
+                    callJsonRpc("/unitrade/admin/api/cs/reply", {
+                        session_id: activeSessionId,
+                        body: body,
+                    }).then(function (res) {
+                        sending = false;
+                        input.disabled = false;
+                        var r = res.result || {};
+                        if (r.success) {
+                            input.value = "";
+                            appendMessages([r.message]);
+                            input.focus();
+                        } else {
+                            showToast(r.message || "Gagal mengirim balasan.", "error");
+                        }
+                    }).catch(function () {
+                        sending = false;
+                        input.disabled = false;
+                        showToast("Gagal mengirim balasan.", "error");
+                    });
+                });
+                // Enter untuk kirim, Shift+Enter untuk baris baru
+                input.addEventListener("keydown", function (e) {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        composer.dispatchEvent(new Event("submit", { cancelable: true }));
+                    }
+                });
+            }
+
+            // Tutup sesi
+            if (closeBtn) {
+                closeBtn.addEventListener("click", async function () {
+                    if (!activeSessionId) return;
+                    if (!await confirmAdmin("Tutup sesi live chat ini?", { title: "Tutup Sesi" })) return;
+                    callJsonRpc("/unitrade/admin/api/cs/close", { session_id: activeSessionId })
+                        .then(function (res) {
+                            var r = res.result || {};
+                            if (r.success) {
+                                showToast("Sesi ditutup.", "success");
+                                openSession(activeSessionId);
+                                refreshSessionList();
+                            } else {
+                                showToast(r.message || "Gagal menutup sesi.", "error");
+                            }
+                        });
+                });
+            }
+
+            // Polling: pesan baru pada sesi aktif + refresh daftar
+            setInterval(function () {
+                if (activeSessionId) {
+                    callJsonRpc("/unitrade/admin/api/live-chat/detail", { session_id: activeSessionId })
+                        .then(function (res) {
+                            var data = res.result || {};
+                            if (data.ok) appendMessages(data.messages);
+                        });
+                }
+            }, 5000);
+            setInterval(refreshSessionList, 15000);
+
+            // Auto-buka sesi dari query (?session_id=) bila ada
+            var initial = parseInt(wrap.dataset.initialSession, 10) || 0;
+            if (initial) openSession(initial);
+        })();
     });
 })();
