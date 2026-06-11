@@ -120,6 +120,7 @@
                 <field name="nim_extracted"/>
                 <separator/>
                 <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_pending_review" string="Pending / Manual Review" domain="[('state', 'in', ('pending', 'manual_review'))]"/>
                 <filter name="filter_pending" string="Pending" domain="[('state', '=', 'pending')]"/>
                 <filter name="filter_manual_review" string="Manual Review" domain="[('state', '=', 'manual_review')]"/>
                 <filter name="filter_approved" string="Approved" domain="[('state', '=', 'approved')]"/>
@@ -150,7 +151,7 @@
             (0, 0, {'view_mode': 'tree', 'view_id': ref('view_seller_verification_tree')}),
             (0, 0, {'view_mode': 'form', 'view_id': ref('view_seller_verification_form')})]"/>
         <field name="search_view_id" ref="view_seller_verification_search"/>
-        <field name="context">{'search_default_filter_manual_review': 1}</field>
+        <field name="context">{'search_default_filter_pending_review': 1}</field>
     </record>
 
     <record id="action_seller_verification_dashboard" model="ir.actions.act_window">
@@ -163,7 +164,7 @@
             (0, 0, {'view_mode': 'form', 'view_id': ref('view_seller_verification_form')})]"/>
         <field name="domain">[('state', 'in', ('manual_review', 'pending'))]</field>
         <field name="search_view_id" ref="view_seller_verification_search"/>
-        <field name="context">{'search_default_filter_manual_review': 1}</field>
+        <field name="context">{'search_default_filter_pending_review': 1}</field>
     </record>
 
     <!-- ==============================
@@ -174,13 +175,13 @@
               parent="unitrade_seller.menu_unitrade_sellers"
               action="action_seller_verification"
               sequence="30"
-              groups="base.group_system"/>
+              groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
 
     <menuitem id="menu_seller_verification_dashboard"
               name="Dashboard Verifikasi"
               parent="unitrade_seller.menu_unitrade_sellers"
               action="action_seller_verification_dashboard"
               sequence="25"
-              groups="base.group_system"/>
+              groups="base.group_system,unitrade_seller.group_unitrade_admin"/>
 
 </odoo>
