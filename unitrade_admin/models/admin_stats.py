@@ -91,6 +91,56 @@ class UnitradeAdminStats(models.AbstractModel):
             return 'rejected'
         return 'unverified'
 
+    def _pending_ktm_stats(self):
+        """Return canonical KTM queue counts used by dashboard and pages."""
+        Users = self.env['res.users'].sudo()
+        Seller = self.env['unitrade.seller'].sudo() if self._has_model('unitrade.seller') else None
+        Verification = (
+            self.env['unitrade.seller.verification'].sudo()
+            if self._has_model('unitrade.seller.verification') else None
+        )
+
+        pending_sellers = Seller.search([('status', '=', 'pending')]) if Seller is not None else []
+        pending_verifications = (
+            Verification.search([('state', 'in', ('pending', 'manual_review'))]).filtered(
+                lambda verification: self._verification_status_for_admin(verification) == 'pending'
+            )
+            if Verification is not None else []
+        )
+
+        pending_user_ids = set()
+        unmapped_verifications = []
+        users_from_verifications = Users.browse()
+        if pending_verifications:
+            partner_ids = pending_verifications.mapped('partner_id').ids
+            users_from_verifications = Users.search([('partner_id', 'in', partner_ids)]) if partner_ids else Users.browse()
+            user_partner_ids = set(users_from_verifications.mapped('partner_id').ids)
+            pending_user_ids.update(users_from_verifications.ids)
+            unmapped_verifications = pending_verifications.filtered(
+                lambda verification: not verification.partner_id
+                or verification.partner_id.id not in user_partner_ids
+            )
+
+        if pending_sellers:
+            pending_user_ids.update(pending_sellers.mapped('user_id').ids)
+
+        verification_count = len(pending_verifications)
+        seller_count = len(pending_sellers)
+        submission_total = verification_count + seller_count
+        user_row_count = len(pending_user_ids)
+        mismatch_count = abs(submission_total - user_row_count)
+
+        return {
+            'pending_total': submission_total,
+            'pending_verifications': verification_count,
+            'pending_sellers': seller_count,
+            'pending_user_rows': user_row_count,
+            'unmapped_verifications': len(unmapped_verifications),
+            'mismatch_count': mismatch_count,
+            'has_mismatch': bool(mismatch_count or unmapped_verifications),
+            'mapped_verification_users': len(users_from_verifications),
+        }
+
     def _customer_service_counts(self):
         ChatReport = (
             self.env['unitrade.chat.report'].sudo()
@@ -236,15 +286,8 @@ class UnitradeAdminStats(models.AbstractModel):
         )
 
         verified_sellers = self._safe_count(Seller, [('status', '=', 'verified')]) if Seller is not None else 0
-        pending_ktm = self._safe_count(Seller, [('status', '=', 'pending')]) if Seller is not None else 0
-        if self._has_model('unitrade.seller.verification'):
-            pending_ktm += len(
-                self.env['unitrade.seller.verification'].sudo().search(
-                    [('state', 'in', ('pending', 'manual_review'))]
-                ).filtered(
-                    lambda verification: self._verification_status_for_admin(verification) == 'pending'
-                )
-            )
+        ktm_stats = self._pending_ktm_stats()
+        pending_ktm = ktm_stats['pending_total']
         rejected_sellers = self._safe_count(Seller, [('status', '=', 'rejected')]) if Seller is not None else 0
         reported_sellers = (
             self._safe_count(Seller, [('report_state', 'in', ('reported', 'under_review'))])
@@ -396,6 +439,17 @@ class UnitradeAdminStats(models.AbstractModel):
                 'badge_class': 'badge-red',
                 'action': 'pending_ktm',
             })
+        if ktm_stats['has_mismatch']:
+            tasks.append({
+                'urgency': 'warning',
+                'title': _('Data Antrian KTM Perlu Dicek'),
+                'description': _(
+                    'Jumlah pengajuan pending tidak sama dengan row pengguna yang bisa ditampilkan.'
+                ),
+                'badge': _('Audit'),
+                'badge_class': 'badge-yellow',
+                'action': 'pending_ktm_mismatch',
+            })
         if reported_sellers:
             tasks.append({
                 'urgency': 'warning',
@@ -438,6 +492,11 @@ class UnitradeAdminStats(models.AbstractModel):
                 'users_admin': admin_users,
                 'sellers_verified': verified_sellers,
                 'sellers_pending': pending_ktm,
+                'ktm_verifications_pending': ktm_stats['pending_verifications'],
+                'ktm_seller_records_pending': ktm_stats['pending_sellers'],
+                'ktm_pending_user_rows': ktm_stats['pending_user_rows'],
+                'ktm_unmapped_verifications': ktm_stats['unmapped_verifications'],
+                'ktm_pending_mismatch': ktm_stats['mismatch_count'],
                 'sellers_rejected': rejected_sellers,
                 'sellers_reported': reported_sellers,
                 'products_active': active_products,
@@ -1087,6 +1146,138 @@ class UnitradeAdminStats(models.AbstractModel):
             'total_pages': total_pages,
             'query': query or '',
             'status': status or '',
+            'stats': stats,
+        }
+
+    # ---- KTM verification queue ------------------------------------------
+
+    def _ktm_state_meta(self, state):
+        return {
+            'draft': {'label': _('Draft'), 'badge_class': 'gray'},
+            'pending': {'label': _('Pending'), 'badge_class': 'yellow'},
+            'manual_review': {'label': _('Manual Review'), 'badge_class': 'yellow'},
+            'approved': {'label': _('Approved'), 'badge_class': 'green'},
+            'rejected': {'label': _('Rejected'), 'badge_class': 'red'},
+        }.get(state or '', {'label': state or '-', 'badge_class': 'gray'})
+
+    @api.model
+    def get_ktm_verification_queue(self, query='', state='pending', page=1, page_size=20):
+        """Return direct KTM verification rows, independent from user list mapping."""
+        self._check_admin()
+        stats = self._pending_ktm_stats()
+        if not self._has_model('unitrade.seller.verification'):
+            return {
+                'rows': [],
+                'page': 1,
+                'page_size': int(page_size),
+                'total': 0,
+                'total_pages': 1,
+                'query': query or '',
+                'state': state or 'pending',
+                'stats': stats,
+            }
+
+        Verification = self.env['unitrade.seller.verification'].sudo()
+        Users = self.env['res.users'].sudo()
+        Seller = self.env['unitrade.seller'].sudo() if self._has_model('unitrade.seller') else None
+
+        state = state if state in ('all', 'pending', 'manual_review', 'approved', 'rejected') else 'pending'
+        domain = []
+        if state == 'pending':
+            domain.append(('state', 'in', ('pending', 'manual_review')))
+        elif state != 'all':
+            domain.append(('state', '=', state))
+
+        query = (query or '').strip()
+        if query:
+            domain += [
+                '|', '|', '|',
+                ('partner_id.name', 'ilike', query),
+                ('partner_id.email', 'ilike', query),
+                ('nim_extracted', 'ilike', query),
+                ('student_name', 'ilike', query),
+            ]
+
+        total = Verification.search_count(domain)
+        page = max(1, int(page or 1))
+        page_size = max(5, min(int(page_size or 20), 100))
+        total_pages = max(1, (total + page_size - 1) // page_size)
+        page = min(page, total_pages)
+        verifications = Verification.search(
+            domain,
+            limit=page_size,
+            offset=(page - 1) * page_size,
+            order='create_date asc, id asc',
+        )
+
+        users_by_partner = {}
+        partner_ids = verifications.mapped('partner_id').ids
+        if partner_ids:
+            users = Users.search([('partner_id', 'in', partner_ids)])
+            users_by_partner = {user.partner_id.id: user for user in users if user.partner_id}
+
+        sellers_by_user = {}
+        if Seller is not None:
+            user_ids = [user.id for user in users_by_partner.values()]
+            sellers = Seller.search([('user_id', 'in', user_ids)]) if user_ids else Seller.browse()
+            for seller in sellers:
+                sellers_by_user[seller.user_id.id] = seller
+
+        rows = []
+        for verification in verifications:
+            partner = verification.partner_id
+            user = users_by_partner.get(partner.id) if partner else False
+            seller = sellers_by_user.get(user.id) if user else False
+            state_meta = self._ktm_state_meta(verification.state)
+            is_pending = self._verification_status_for_admin(verification) == 'pending'
+            has_user = bool(user)
+            mapping_warning = ''
+            if not has_user:
+                mapping_warning = _('Partner pengajuan belum terhubung ke res.users.')
+            elif seller and seller.status == 'verified' and is_pending:
+                mapping_warning = _('User ini sudah seller verified, cek apakah ini pengajuan ulang.')
+
+            rows.append({
+                'id': verification.id,
+                'partner_id': partner.id if partner else False,
+                'partner_name': partner.name if partner else '-',
+                'partner_email': partner.email if partner else '',
+                'partner_phone': (partner.phone or partner.mobile or '') if partner else '',
+                'user_id': user.id if user else False,
+                'user_login': user.login if user else '',
+                'seller_id': seller.id if seller else False,
+                'seller_status': seller.status if seller else '',
+                'seller_status_label': self._selection_label(seller, 'status') if seller else '-',
+                'nim': verification.nim_extracted or '',
+                'student_name': verification.student_name or '',
+                'university': verification.university_id.name or verification.university_other or '-',
+                'state': verification.state,
+                'state_label': state_meta['label'],
+                'badge_class': state_meta['badge_class'],
+                'review_note': verification.review_note or '',
+                'rejection_reason': verification.rejection_reason or '',
+                'created_at': self._datetime_label(verification.create_date),
+                'created_human': self._humanize_time(verification.create_date),
+                'reviewed_at': self._datetime_label(verification.reviewed_date) if verification.reviewed_date else '-',
+                'reviewed_by': verification.reviewed_by.name if verification.reviewed_by else '-',
+                'has_image': bool(verification.ktm_image),
+                'image_url': '/unitrade/admin/ktm/verification/%s' % verification.id if verification.ktm_image else '',
+                'filename': verification.ktm_filename or '',
+                'confidence': round((verification.name_confidence or 0.0) * 100, 1),
+                'is_pending': is_pending,
+                'has_user': has_user,
+                'mapping_warning': mapping_warning,
+                'can_revoke': bool(seller and seller.status == 'verified'),
+            })
+
+        return {
+            'rows': rows,
+            'page': page,
+            'page_size': page_size,
+            'total': total,
+            'total_pages': total_pages,
+            'query': query,
+            'state': state,
             'stats': stats,
         }
 
@@ -2149,7 +2340,7 @@ class UnitradeAdminStats(models.AbstractModel):
         if model_name in ('res.users', 'unitrade.seller'):
             return self._admin_url_with_query('/unitrade/admin/users', display_name)
         if model_name == 'unitrade.seller.verification':
-            return self._admin_url_with_query('/unitrade/admin/users?seller_status=pending', display_name)
+            return self._admin_url_with_query('/unitrade/admin/ktm-verifications', display_name)
         if model_name == 'unitrade.delivery':
             order = getattr(record, 'order_id', False) if record else False
             return self._admin_url_with_query('/unitrade/admin/transactions', order.name if order else display_name)
@@ -4847,7 +5038,7 @@ class UnitradeAdminStats(models.AbstractModel):
     def open_pending_ktm(self):
         self._check_admin()
         action = self.env.ref(
-            'unitrade_seller.action_unitrade_seller_pending', raise_if_not_found=False
+            'unitrade_seller.action_seller_verification_dashboard', raise_if_not_found=False
         )
         return action.read()[0] if action else False
 
@@ -4927,14 +5118,14 @@ class UnitradeAdminStats(models.AbstractModel):
                     'description': _('KTM seller perlu dicek manual.'),
                     'urgency': 'urgent',
                     'count': len(verifications),
-                    'target_url': '/unitrade/admin/users?seller_status=pending',
+                    'target_url': '/unitrade/admin/ktm-verifications',
                     'items': [
                         {
                             'id': v.id,
                             'label': v.partner_id.name if v.partner_id else (v.name or '-'),
                             'subtitle': v.state,
                             'time_label': self._humanize_time(v.create_date),
-                            'href': self._admin_url_with_query('/unitrade/admin/users?seller_status=pending', v.partner_id.name)
+                            'href': self._admin_url_with_query('/unitrade/admin/ktm-verifications', v.partner_id.name)
                             if v.partner_id else '',
                         }
                         for v in verifications[:10]

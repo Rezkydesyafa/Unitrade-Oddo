@@ -69,6 +69,14 @@
                                           class="ut-admin-nav-badge"
                                           t-esc="dashboard['counts']['sellers_pending']"/>
                                 </a>
+                                <a href="/unitrade/admin/ktm-verifications"
+                                   t-attf-class="ut-admin-nav-item #{'ut-admin-active' if active_page == 'ktm_verifications' else ''}">
+                                    <span class="ut-admin-nav-icon"><i class="fa fa-id-card-o" aria-hidden="true"></i></span>
+                                    KTM Verification
+                                    <span t-if="dashboard['counts'].get('ktm_verifications_pending')"
+                                          class="ut-admin-nav-badge"
+                                          t-esc="dashboard['counts'].get('ktm_verifications_pending')"/>
+                                </a>
                                 <a href="/unitrade/admin/products"
                                    t-attf-class="ut-admin-nav-item #{'ut-admin-active' if active_page == 'products' else ''}">
                                     <span class="ut-admin-nav-icon"><i class="fa fa-archive" aria-hidden="true"></i></span>
@@ -290,6 +298,19 @@
                         <t t-esc="dashboard['today']"/>.
                     </div>
                 </div>
+            </div>
+
+            <div t-if="dashboard['counts'].get('ktm_pending_mismatch')"
+                 style="background:var(--utad-red-light);border:1px solid #fecaca;border-radius:var(--utad-radius);padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+                <div style="flex:1;min-width:240px;font-size:13px;color:var(--utad-red);font-weight:600">
+                    Mismatch antrian KTM terdeteksi:
+                    <t t-esc="dashboard['counts'].get('ktm_verifications_pending', 0)"/> pengajuan verification,
+                    <t t-esc="dashboard['counts'].get('ktm_seller_records_pending', 0)"/> seller pending,
+                    tetapi hanya <t t-esc="dashboard['counts'].get('ktm_pending_user_rows', 0)"/> row user yang termapping.
+                </div>
+                <a href="/unitrade/admin/ktm-verifications"
+                   class="ut-admin-btn ut-admin-btn-sm"
+                   style="background:var(--utad-red);color:white">Buka Queue KTM</a>
             </div>
 
             <!-- Stat Cards -->
@@ -532,9 +553,22 @@
                 <div style="flex:1;font-size:13px;color:var(--utad-yellow);font-weight:600">
                     <t t-esc="dashboard['counts']['sellers_pending']"/> pengajuan verifikasi KTM menunggu review.
                 </div>
-                <a href="/unitrade/admin/users?seller_status=pending"
+                <a href="/unitrade/admin/ktm-verifications"
                    class="ut-admin-btn ut-admin-btn-sm"
                    style="background:var(--utad-yellow);color:white">Lihat Pending</a>
+            </div>
+
+            <div t-if="dashboard['counts'].get('ktm_pending_mismatch')"
+                 style="background:var(--utad-red-light);border:1px solid #fecaca;border-radius:var(--utad-radius);padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+                <div style="flex:1;min-width:240px;font-size:13px;color:var(--utad-red);font-weight:600">
+                    Ada pengajuan KTM pending yang tidak termapping ke row pengguna.
+                    Pending verification: <t t-esc="dashboard['counts'].get('ktm_verifications_pending', 0)"/>,
+                    row user: <t t-esc="dashboard['counts'].get('ktm_pending_user_rows', 0)"/>,
+                    unmapped: <t t-esc="dashboard['counts'].get('ktm_unmapped_verifications', 0)"/>.
+                </div>
+                <a href="/unitrade/admin/ktm-verifications"
+                   class="ut-admin-btn ut-admin-btn-sm"
+                   style="background:var(--utad-red);color:white">Audit Queue KTM</a>
             </div>
 
             <!-- Filters -->
@@ -755,6 +789,242 @@
             </div>
 
             <!-- Modal: User Detail -->
+            <div class="ut-admin-modal-overlay" id="utAdminUserModal">
+                <div class="ut-admin-modal">
+                    <div class="ut-admin-modal-header">
+                        <span>Detail Pengguna</span>
+                        <button type="button" class="ut-admin-modal-close" data-modal-close="utAdminUserModal">×</button>
+                    </div>
+                    <div class="ut-admin-modal-body" id="utAdminUserModalBody">
+                        <div style="text-align:center;color:var(--utad-muted);padding:40px">Memuat...</div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- =============================================================
+         PAGE: KTM VERIFICATION QUEUE
+         ============================================================= -->
+    <template id="admin_ktm_verification_queue_page" name="UniTrade Admin KTM Verification Queue">
+        <t t-set="page_title" t-value="'KTM Verification Queue'"/>
+        <t t-set="active_page" t-value="'ktm_verifications'"/>
+        <t t-call="unitrade_admin.admin_layout">
+            <t t-set="stats" t-value="ktm_queue['stats']"/>
+            <div class="ut-admin-page-header">
+                <div>
+                    <div class="ut-admin-headline">KTM Verification Queue</div>
+                    <div class="ut-admin-subtitle">
+                        Antrian langsung dari data <strong>unitrade.seller.verification</strong>, termasuk record yang belum termapping ke row pengguna.
+                    </div>
+                </div>
+                <a href="/unitrade/admin/users?seller_status=pending"
+                   class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm">
+                    Lihat di Manajemen Pengguna
+                </a>
+            </div>
+
+            <div class="ut-admin-stats-grid" style="margin-bottom:16px">
+                <div class="ut-admin-stat-card">
+                    <div class="ut-admin-stat-header">
+                        <span class="ut-admin-stat-label">Pending Verification</span>
+                        <div class="ut-admin-stat-icon ut-admin-icon-yellow"><i class="fa fa-id-card-o" aria-hidden="true"></i></div>
+                    </div>
+                    <div class="ut-admin-stat-value" t-esc="stats['pending_verifications']"/>
+                    <div class="ut-admin-stat-meta">Record langsung dari verifikasi KTM</div>
+                </div>
+                <div class="ut-admin-stat-card">
+                    <div class="ut-admin-stat-header">
+                        <span class="ut-admin-stat-label">Seller Pending</span>
+                        <div class="ut-admin-stat-icon ut-admin-icon-blue"><i class="fa fa-user-circle-o" aria-hidden="true"></i></div>
+                    </div>
+                    <div class="ut-admin-stat-value" t-esc="stats['pending_sellers']"/>
+                    <div class="ut-admin-stat-meta">Legacy seller record pending</div>
+                </div>
+                <div class="ut-admin-stat-card">
+                    <div class="ut-admin-stat-header">
+                        <span class="ut-admin-stat-label">Row User Pending</span>
+                        <div class="ut-admin-stat-icon ut-admin-icon-green"><i class="fa fa-users" aria-hidden="true"></i></div>
+                    </div>
+                    <div class="ut-admin-stat-value" t-esc="stats['pending_user_rows']"/>
+                    <div class="ut-admin-stat-meta">Yang muncul di Manajemen Pengguna</div>
+                </div>
+                <div class="ut-admin-stat-card">
+                    <div class="ut-admin-stat-header">
+                        <span class="ut-admin-stat-label">Mismatch</span>
+                        <div t-attf-class="ut-admin-stat-icon #{'ut-admin-icon-red' if stats['has_mismatch'] else 'ut-admin-icon-green'}">
+                            <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    <div class="ut-admin-stat-value" t-esc="stats['mismatch_count']"/>
+                    <div class="ut-admin-stat-meta">
+                        <t t-if="stats['has_mismatch']">
+                            <t t-esc="stats['unmapped_verifications']"/> verification tidak termapping
+                        </t>
+                        <t t-else="">Mapping data aman</t>
+                    </div>
+                </div>
+            </div>
+
+            <div t-if="stats['has_mismatch']"
+                 style="background:var(--utad-red-light);border:1px solid #fecaca;border-radius:var(--utad-radius);padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+                <div style="flex:1;min-width:240px;font-size:13px;color:var(--utad-red);font-weight:600">
+                    Jumlah pengajuan pending tidak sama dengan row pengguna yang tampil.
+                    Periksa row bertanda warning di kolom Mapping.
+                </div>
+            </div>
+
+            <div class="ut-admin-card" style="padding:14px 16px;margin-bottom:16px">
+                <form method="get" action="/unitrade/admin/ktm-verifications" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+                    <input type="text" name="q" t-att-value="ktm_queue['query']"
+                           placeholder="Cari nama, email, NIM, nama mahasiswa..."
+                           class="ut-admin-input" style="min-width:260px;flex:1"/>
+                    <select name="state" class="ut-admin-input">
+                        <option value="pending" t-att-selected="'selected' if ktm_queue['state'] == 'pending' else None">Pending + Manual Review</option>
+                        <option value="manual_review" t-att-selected="'selected' if ktm_queue['state'] == 'manual_review' else None">Manual Review</option>
+                        <option value="approved" t-att-selected="'selected' if ktm_queue['state'] == 'approved' else None">Approved</option>
+                        <option value="rejected" t-att-selected="'selected' if ktm_queue['state'] == 'rejected' else None">Rejected</option>
+                        <option value="all" t-att-selected="'selected' if ktm_queue['state'] == 'all' else None">Semua Status</option>
+                    </select>
+                    <button type="submit" class="ut-admin-btn ut-admin-btn-primary ut-admin-btn-sm">Cari</button>
+                    <a href="/unitrade/admin/ktm-verifications" class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm">Reset</a>
+                </form>
+            </div>
+
+            <div class="ut-admin-table-wrapper">
+                <table class="ut-admin-table">
+                    <thead>
+                        <tr>
+                            <th>Pengajuan</th>
+                            <th>Data OCR</th>
+                            <th>Status</th>
+                            <th>Mapping</th>
+                            <th>Waktu</th>
+                            <th style="text-align:right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-if="not ktm_queue['rows']">
+                            <td colspan="6" style="text-align:center;padding:32px;color:var(--utad-muted)">
+                                Tidak ada data verifikasi KTM sesuai filter.
+                            </td>
+                        </tr>
+                        <tr t-foreach="ktm_queue['rows']" t-as="row" t-att-data-verification-id="row['id']">
+                            <td>
+                                <div style="display:flex;align-items:center;gap:10px;min-width:230px">
+                                    <a t-if="row['has_image']"
+                                       t-att-href="row['image_url']"
+                                       target="_blank"
+                                       rel="noopener"
+                                       style="width:42px;height:42px;border-radius:10px;border:1px solid var(--utad-border);background:var(--utad-surface-2);display:flex;align-items:center;justify-content:center;color:var(--utad-text);text-decoration:none;flex-shrink:0">
+                                        <i class="fa fa-id-card-o" aria-hidden="true"></i>
+                                    </a>
+                                    <div t-else=""
+                                         style="width:42px;height:42px;border-radius:10px;border:1px dashed var(--utad-border-2);background:var(--utad-surface-2);display:flex;align-items:center;justify-content:center;color:var(--utad-muted);flex-shrink:0">
+                                        <i class="fa fa-id-card-o" aria-hidden="true"></i>
+                                    </div>
+                                    <div style="min-width:0">
+                                        <div style="font-weight:700;font-size:13px" t-esc="row['partner_name']"/>
+                                        <div style="font-size:11px;color:var(--utad-muted)" t-esc="row['partner_email'] or row['partner_phone'] or '-'"/>
+                                        <div style="font-size:11px;color:var(--utad-muted)" t-esc="row['university']"/>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div style="font-family:monospace;font-weight:700;font-size:13px" t-esc="row['nim'] or '-'"/>
+                                <div style="font-size:12px;color:var(--utad-text-2)" t-esc="row['student_name'] or '-'"/>
+                                <div style="font-size:11px;color:var(--utad-muted)">
+                                    Confidence <t t-esc="row['confidence']"/>%
+                                </div>
+                            </td>
+                            <td>
+                                <span t-attf-class="ut-admin-badge ut-admin-badge-#{row['badge_class']}">
+                                    <span class="ut-admin-badge-dot"/>
+                                    <t t-esc="row['state_label']"/>
+                                </span>
+                                <div t-if="row['review_note']"
+                                     style="font-size:11px;color:var(--utad-muted);max-width:260px;margin-top:6px"
+                                     t-esc="row['review_note']"/>
+                                <div t-if="row['rejection_reason']"
+                                     style="font-size:11px;color:var(--utad-red);max-width:260px;margin-top:6px"
+                                     t-esc="row['rejection_reason']"/>
+                            </td>
+                            <td>
+                                <t t-if="row['has_user']">
+                                    <div style="font-size:12px;font-weight:600" t-esc="row['user_login']"/>
+                                </t>
+                                <t t-else="">
+                                    <span class="ut-admin-badge ut-admin-badge-red">
+                                        <span class="ut-admin-badge-dot"/>Tidak ada user
+                                    </span>
+                                </t>
+                                <div style="font-size:11px;color:var(--utad-muted);margin-top:4px">
+                                    Seller: <t t-esc="row['seller_status_label']"/>
+                                </div>
+                                <div t-if="row['mapping_warning']"
+                                     style="font-size:11px;color:var(--utad-red);max-width:240px;margin-top:4px"
+                                     t-esc="row['mapping_warning']"/>
+                            </td>
+                            <td>
+                                <div style="font-size:12px;color:var(--utad-text)" t-esc="row['created_at']"/>
+                                <div style="font-size:11px;color:var(--utad-muted)" t-esc="row['created_human']"/>
+                                <div t-if="row['reviewed_by'] != '-'"
+                                     style="font-size:11px;color:var(--utad-muted);margin-top:4px">
+                                    Review: <t t-esc="row['reviewed_by']"/>
+                                </div>
+                            </td>
+                            <td style="text-align:right">
+                                <div style="display:inline-flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
+                                    <button t-if="row['user_id']"
+                                            type="button"
+                                            class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs"
+                                            t-att-data-user-id="row['user_id']"
+                                            data-action="user-detail">
+                                        Detail User
+                                    </button>
+                                    <button t-if="row['is_pending']"
+                                            type="button"
+                                            class="ut-admin-btn ut-admin-btn-success ut-admin-btn-xs"
+                                            t-att-data-verification-id="row['id']"
+                                            data-action="approve-seller">
+                                        Approve KTM
+                                    </button>
+                                    <button t-if="row['is_pending']"
+                                            type="button"
+                                            class="ut-admin-btn ut-admin-btn-danger ut-admin-btn-xs"
+                                            t-att-data-verification-id="row['id']"
+                                            data-action="reject-seller">
+                                        Tolak KTM
+                                    </button>
+                                    <button t-if="row['can_revoke']"
+                                            type="button"
+                                            class="ut-admin-btn ut-admin-btn-danger ut-admin-btn-xs"
+                                            t-att-data-seller-id="row['seller_id']"
+                                            data-action="revoke-seller">
+                                        Lepas Status
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="ut-admin-pagination" t-if="ktm_queue['total_pages'] > 1">
+                <span style="color:var(--utad-muted);font-size:12px">
+                    Halaman <t t-esc="ktm_queue['page']"/> dari <t t-esc="ktm_queue['total_pages']"/>
+                    (<t t-esc="ktm_queue['total']"/> pengajuan)
+                </span>
+                <div style="display:flex;gap:6px">
+                    <a t-if="ktm_queue['page'] > 1"
+                       t-attf-href="/unitrade/admin/ktm-verifications?q=#{ktm_queue['query']}&amp;state=#{ktm_queue['state']}&amp;page=#{ktm_queue['page'] - 1}"
+                       class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs">‹ Prev</a>
+                    <a t-if="ktm_queue['page'] &lt; ktm_queue['total_pages']"
+                       t-attf-href="/unitrade/admin/ktm-verifications?q=#{ktm_queue['query']}&amp;state=#{ktm_queue['state']}&amp;page=#{ktm_queue['page'] + 1}"
+                       class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs">Next ›</a>
+                </div>
+            </div>
+
             <div class="ut-admin-modal-overlay" id="utAdminUserModal">
                 <div class="ut-admin-modal">
                     <div class="ut-admin-modal-header">

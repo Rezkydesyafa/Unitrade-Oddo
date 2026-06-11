@@ -380,6 +380,15 @@ class SellerVerificationController(http.Controller):
                 })
                 verification = Verification.create(vals)
 
+            _logger.info(
+                '[CONTROLLER] KTM verification persisted: verification_id=%s partner_id=%s user_id=%s state=%s nim=%s',
+                verification.id,
+                partner.id,
+                request.env.user.id,
+                verification.state,
+                verification.nim_extracted or '',
+            )
+
             # --- Step 6: Return JSON with debug info ---
             if verification_status == 'approved':
                 # Mark user as verified seller

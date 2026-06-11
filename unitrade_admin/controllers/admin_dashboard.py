@@ -68,6 +68,26 @@ class UnitradeAdminController(http.Controller):
             },
         )
 
+    @http.route('/unitrade/admin/ktm-verifications', type='http', auth='user', website=True)
+    def admin_ktm_verifications(self, q='', state='pending', page=1, **kwargs):
+        if not self._is_admin():
+            return self._forbidden('Akun Anda tidak memiliki akses admin UniTrade.')
+        Stats = self._stats()
+        ktm_queue = Stats.get_ktm_verification_queue(
+            query=q or '',
+            state=state or 'pending',
+            page=self._to_int(page, 1),
+            page_size=20,
+        )
+        dashboard = Stats.get_dashboard_data()
+        return request.render(
+            'unitrade_admin.admin_ktm_verification_queue_page',
+            {
+                'dashboard': dashboard,
+                'ktm_queue': ktm_queue,
+            },
+        )
+
     @http.route('/unitrade/admin/customer-service', type='http', auth='user', website=True)
     def admin_customer_service(self, queue='', page=1, **kwargs):
         if not self._is_admin():
