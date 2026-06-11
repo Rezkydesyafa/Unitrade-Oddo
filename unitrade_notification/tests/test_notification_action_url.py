@@ -1,5 +1,9 @@
 from odoo.tests.common import TransactionCase, tagged
 
+from odoo.addons.unitrade_notification.controllers.main import (
+    UnitradeNotificationController,
+)
+
 
 @tagged('post_install', '-at_install')
 class TestNotificationActionUrl(TransactionCase):
@@ -157,6 +161,50 @@ class TestNotificationActionUrl(TransactionCase):
         self.assertEqual(
             notification._get_effective_action_url(),
             '/my/orders/%s' % order.id,
+        )
+
+    def test_user_order_shipped_opens_order_status_page(self):
+        order = self.env['sale.order'].create({
+            'partner_id': self.user.partner_id.id,
+        })
+        notification = self._notification(
+            category='order',
+            event_code='order.shipped',
+            reference_model='sale.order',
+            reference_id=order.id,
+            recipient_scope_hint='user',
+            action_url='/my/orders/%s' % order.id,
+        )
+
+        self.assertEqual(notification.recipient_scope, 'user')
+        self.assertEqual(
+            notification._get_effective_action_url(),
+            '/unitrade/order/status/%s' % order.id,
+        )
+        self.assertEqual(
+            UnitradeNotificationController()._notification_item_action_url(
+                notification, scope='user',
+            ),
+            '/unitrade/order/status/%s' % order.id,
+        )
+
+    def test_user_order_confirmed_still_opens_orders_list_in_center(self):
+        order = self.env['sale.order'].create({
+            'partner_id': self.user.partner_id.id,
+        })
+        notification = self._notification(
+            category='order',
+            event_code='order.confirmed',
+            reference_model='sale.order',
+            reference_id=order.id,
+            recipient_scope_hint='user',
+        )
+
+        self.assertEqual(
+            UnitradeNotificationController()._notification_item_action_url(
+                notification, scope='user',
+            ),
+            '/my/orders',
         )
 
     def test_explicit_seller_scope_routes_order_to_seller_dashboard(self):

@@ -221,6 +221,17 @@ owl-component[name="unitrade_notification.NotificationBell"] {
     color: #111827;
 }
 
+.ut-notification-tab,
+.ut-notification-tab:hover,
+.ut-notification-tab:focus-visible,
+.ut-notification-tab:active,
+.ut-notification-read-all,
+.ut-notification-read-all:hover,
+.ut-notification-read-all:focus-visible,
+.ut-notification-read-all:active {
+    text-decoration: none !important;
+}
+
 .ut-notification-tab.ut-is-active::after {
     content: "";
     position: absolute;
@@ -263,6 +274,7 @@ owl-component[name="unitrade_notification.NotificationBell"] {
 
 .ut-notification-read-all:hover {
     color: #000000;
+    text-decoration: none;
 }
 
 .ut-notification-list {
@@ -290,11 +302,22 @@ owl-component[name="unitrade_notification.NotificationBell"] {
     padding: 9px 14px;
     color: #111827;
     text-align: left;
+    text-decoration: none;
     cursor: pointer;
 }
 
 .ut-notification-item:hover {
     background: #f9fafb;
+    text-decoration: none;
+}
+
+.ut-notification-item:hover .ut-notification-item-title,
+.ut-notification-item:hover .ut-notification-item-message,
+.ut-notification-item:hover .ut-notification-item-time,
+.ut-notification-item:focus-visible .ut-notification-item-title,
+.ut-notification-item:focus-visible .ut-notification-item-message,
+.ut-notification-item:focus-visible .ut-notification-item-time {
+    text-decoration: none !important;
 }
 
 .ut-notification-item.ut-is-unread {
@@ -575,6 +598,23 @@ owl-component[name="unitrade_notification.NotificationBell"] {
     border-bottom: 0;
 }
 
+.ut-notification-center-row:hover,
+.ut-notification-center-row:focus-visible,
+.ut-notification-center-row:active {
+    text-decoration: none !important;
+}
+
+.ut-notification-center-row:hover .ut-notification-center-titleline h3,
+.ut-notification-center-row:hover .ut-notification-center-titleline h3 a,
+.ut-notification-center-row:hover .ut-notification-center-body p,
+.ut-notification-center-row:hover .ut-notification-center-titleline time,
+.ut-notification-center-row:focus-visible .ut-notification-center-titleline h3,
+.ut-notification-center-row:focus-visible .ut-notification-center-titleline h3 a,
+.ut-notification-center-row:focus-visible .ut-notification-center-body p,
+.ut-notification-center-row:focus-visible .ut-notification-center-titleline time {
+    text-decoration: none !important;
+}
+
 .ut-notification-center-row.ut-is-unread {
     background: #fbfdff;
 }
@@ -636,7 +676,7 @@ owl-component[name="unitrade_notification.NotificationBell"] {
 
 .ut-notification-center-titleline h3 a:hover {
     color: #000000;
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .ut-notification-center-titleline time {
@@ -919,6 +959,31 @@ owl-component[name="unitrade_notification.NotificationBell"] {
     margin: 0 auto;
 }
 
+body.ut-has-seller-notification-page > #wrapwrap > header,
+body.ut-has-seller-notification-page > #wrapwrap > footer {
+    display: none !important;
+}
+
+body.ut-has-seller-notification-page {
+    background: #f5f5f7;
+}
+
+.ut-seller-notification-nav-shell {
+    position: relative;
+    z-index: 20;
+    background: #f5f5f7;
+    padding-top: 1px;
+}
+
+.ut-seller-notifications-page {
+    min-height: calc(100vh - 95px);
+    padding-top: 74px;
+}
+
+.ut-seller-notifications-page .ut-notifications-shell {
+    max-width: 980px;
+}
+
 .ut-notifications-header {
     display: block;
     margin: 0 0 32px;
@@ -1017,6 +1082,17 @@ owl-component[name="unitrade_notification.NotificationBell"] {
     text-decoration: none;
 }
 
+.ut-notifications-tab,
+.ut-notifications-tab:hover,
+.ut-notifications-tab:focus-visible,
+.ut-notifications-tab:active,
+.ut-notifications-primary-action,
+.ut-notifications-primary-action:hover,
+.ut-notifications-primary-action:focus-visible,
+.ut-notifications-primary-action:active {
+    text-decoration: none !important;
+}
+
 .ut-notifications-tab.ut-is-active {
     background: #212529;
     color: #ffffff;
@@ -1047,7 +1123,7 @@ owl-component[name="unitrade_notification.NotificationBell"] {
 .ut-notifications-primary-action:hover {
     background: transparent;
     color: #2563eb;
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .ut-notifications-primary-action:disabled {
@@ -1122,6 +1198,16 @@ owl-component[name="unitrade_notification.NotificationBell"] {
 .ut-notification-center-row:focus-visible {
     background: #f9fafb;
     outline: none;
+    text-decoration: none !important;
+}
+
+.ut-notification-center-row:hover .ut-notification-center-titleline h3,
+.ut-notification-center-row:hover .ut-notification-center-body p,
+.ut-notification-center-row:hover .ut-notification-center-body time,
+.ut-notification-center-row:focus-visible .ut-notification-center-titleline h3,
+.ut-notification-center-row:focus-visible .ut-notification-center-body p,
+.ut-notification-center-row:focus-visible .ut-notification-center-body time {
+    text-decoration: none !important;
 }
 
 .ut-notification-center-row:focus-visible {
@@ -1242,6 +1328,10 @@ owl-component[name="unitrade_notification.NotificationBell"] {
         padding: 36px 0 80px;
     }
 
+    .ut-seller-notifications-page {
+        padding-top: 28px;
+    }
+
     .ut-notifications-shell {
         width: calc(100% - 28px);
         max-width: 900px;
@@ -1266,6 +1356,10 @@ owl-component[name="unitrade_notification.NotificationBell"] {
 @media (max-width: 640px) {
     .ut-notifications-page {
         padding: 28px 0 64px;
+    }
+
+    .ut-seller-notifications-page {
+        padding-top: 22px;
     }
 
     .ut-notifications-shell {

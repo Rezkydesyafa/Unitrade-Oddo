@@ -138,8 +138,9 @@ class UnitradeNotificationController(http.Controller):
             })
         return tabs
 
-    # Categories that, for the buyer/user notification center, must always
-    # link straight to the buyer orders list (Req: user redirect logic).
+    # Categories that, for the buyer/user notification center, usually link
+    # straight to the buyer orders list. Event-specific routes such as
+    # ``order.shipped`` are resolved by the notification model first.
     _USER_ORDER_REDIRECT_CATEGORIES = ('order', 'payment')
 
     # Canonical buyer orders route. Kept relative so it works on every
@@ -160,6 +161,8 @@ class UnitradeNotificationController(http.Controller):
             scope == 'user'
             and (notif.category or 'system') in self._USER_ORDER_REDIRECT_CATEGORIES
         ):
+            if notif._is_buyer_shipped_order_notification():
+                return notif._get_effective_action_url()
             return self._USER_ORDERS_URL
         return notif._get_effective_action_url()
 
@@ -192,6 +195,30 @@ class UnitradeNotificationController(http.Controller):
             domain.append(('x_store_active', '=', True))
         return Seller.search(domain, limit=1)
 
+    def _seller_notification_shell_values(self, seller, notification_count=0):
+        unread_chat_count = 0
+        if seller and 'unitrade.chat.conversation' in request.env.registry:
+            conversations = request.env['unitrade.chat.conversation'].sudo().search([
+                ('seller_id', '=', seller.id),
+                ('seller_user_id', '=', request.env.uid),
+                ('active', '=', True),
+            ])
+            unread_chat_count = sum(conversations.mapped('seller_unread_count'))
+
+        avatar_user = seller.user_id if seller and seller.user_id else request.env.user
+        return {
+            'seller': seller,
+            'seller_avatar_url': '/web/image/res.users/%s/avatar_128?unique=%s' % (
+                avatar_user.id,
+                avatar_user.write_date or '',
+            ),
+            'seller_dashboard_stats': {
+                'notification_count': notification_count or 0,
+                'unread_chat_count': unread_chat_count,
+                'incoming_orders': 0,
+            },
+        }
+
     def _render_notification_center(
         self,
         page=1,
@@ -201,6 +228,7 @@ class UnitradeNotificationController(http.Controller):
         read_all_url='/my/notifications/read_all',
         title='Notifikasi',
         empty_message='Aktivitas pesanan, pembayaran, review, chat, dan sistem akan muncul di sini.',
+        seller=False,
     ):
         user = request.env.user
 
@@ -268,6 +296,8 @@ class UnitradeNotificationController(http.Controller):
             'notification_page_title': title,
             'notification_empty_message': empty_message,
         }
+        if scope == 'seller':
+            values.update(self._seller_notification_shell_values(seller, unread_count))
         return request.render(
             'unitrade_notification.notification_center_page', values,
         )
@@ -306,7 +336,8 @@ class UnitradeNotificationController(http.Controller):
             return request.redirect(
                 '/web/login?redirect=/unitrade/seller/notifications'
             )
-        if not self._current_seller():
+        seller = self._current_seller()
+        if not seller:
             return request.redirect('/seller-onboarding')
 
         return self._render_notification_center(
@@ -317,6 +348,7 @@ class UnitradeNotificationController(http.Controller):
             read_all_url='/unitrade/seller/notifications/read_all',
             title='Notifikasi Penjual',
             empty_message='Aktivitas pesanan, ulasan, pembayaran, refund, dan chat penjual akan muncul di sini.',
+            seller=seller,
         )
 
     # ------------------------------------------------------------------
@@ -387,7 +419,7 @@ class UnitradeNotificationController(http.Controller):
                 'id': r.id,
                 'title': r.title or '',
                 'message': r.message or '',
-                'action_url': r._get_effective_action_url(),
+                'action_url': self._notification_item_action_url(r, scope=scope),
                 'is_read': bool(r.is_read),
                 'create_date': (
                     fields.Datetime.to_string(r.create_date)

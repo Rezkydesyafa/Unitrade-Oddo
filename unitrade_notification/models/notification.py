@@ -677,6 +677,9 @@ class UnitradeNotification(models.Model):
         stronger project-specific target can be derived.
         """
         self.ensure_one()
+        if self._is_buyer_shipped_order_notification():
+            return self._buyer_notification_order_status_url()
+
         if self._is_buyer_order_or_payment_notification():
             return self._buyer_notification_order_url()
 
@@ -1003,6 +1006,21 @@ class UnitradeNotification(models.Model):
             order_id = self._extract_order_id_from_url(self.action_url)
         return self._buyer_order_action_url(order_id)
 
+    def _is_buyer_shipped_order_notification(self):
+        self.ensure_one()
+        return (
+            self.recipient_scope == 'user'
+            and self.category == 'order'
+            and self.event_code == 'order.shipped'
+        )
+
+    def _buyer_notification_order_status_url(self):
+        self.ensure_one()
+        order_id = self._extract_order_id_from_reference()
+        if not order_id:
+            order_id = self._extract_order_id_from_url(self.action_url)
+        return self._buyer_order_status_action_url(order_id)
+
     def _extract_order_id_from_reference(self):
         self.ensure_one()
         reference_model = self.reference_model or self.target_model
@@ -1038,6 +1056,13 @@ class UnitradeNotification(models.Model):
 
     def _review_orders_action_url(self):
         return '/my/orders?status=done&tab=reviews#tab-ulasan'
+
+    def _buyer_order_status_action_url(self, order_id):
+        order_id = int(order_id or 0)
+        return (
+            '/unitrade/order/status/%s' % order_id
+            if order_id else self._buyer_order_action_url(False)
+        )
 
     def _review_public_product(self, product):
         """Return a clickable marketplace product for review notifications."""
