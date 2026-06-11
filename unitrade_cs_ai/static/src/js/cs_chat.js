@@ -155,9 +155,23 @@ export class CsFloatingChat extends Component {
             this.scrollToBottom();
         }
         if (payload.state) {
+            const wasClosed = this.state.session.state === "closed";
             this.state.session.state = payload.state;
             this.state.session.can_escalate = payload.state === "ai_active";
+            // Saat CS mengakhiri chat, user otomatis kembali terhubung
+            // dengan AI Assistant (sesi AI baru) tanpa perlu refresh.
+            if (payload.state === "closed" && !wasClosed) {
+                window.setTimeout(() => this.reconnectAi(), 1600);
+            }
         }
+    }
+
+    async reconnectAi() {
+        // Lepas channel sesi lama, lalu buat sesi AI baru.
+        this.unsubscribeChannels();
+        this.bootstrapped = false;
+        this.state.session = { id: 0, state: "ai_active", can_escalate: true };
+        await this.bootstrap();
     }
 
     onKeydown(ev) {

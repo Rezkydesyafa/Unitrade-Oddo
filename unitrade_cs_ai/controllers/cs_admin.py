@@ -75,6 +75,20 @@ class UnitradeCsAdmin(http.Controller):
         except (AccessError, UserError, ValidationError) as error:
             return self._json_error(str(error))
 
+    @http.route('/unitrade/admin/api/cs/start', type='json', auth='user', website=True, methods=['POST'])
+    def start_handling(self, session_id=None, **kwargs):
+        if not self._is_admin():
+            return self._json_error('Akses ditolak.', code='forbidden')
+        try:
+            session = self._session(session_id)
+            session.admin_start_handling(admin=request.env.user)
+            return {
+                'success': True,
+                'session': session._session_payload(request.env.user),
+            }
+        except (AccessError, UserError, ValidationError) as error:
+            return self._json_error(str(error))
+
     @http.route('/unitrade/admin/api/cs/close', type='json', auth='user', website=True, methods=['POST'])
     def close(self, session_id=None, **kwargs):
         if not self._is_admin():
