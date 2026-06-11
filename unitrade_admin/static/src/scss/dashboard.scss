@@ -1828,3 +1828,260 @@
         }
     }
 }
+
+/* ==== Live Chat page (admin <-> user) ==== */
+.ut-admin-root {
+    .ut-admin-livechat {
+        display: grid;
+        grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+        gap: 16px;
+        height: calc(100vh - var(--utad-topbar-h) - 150px);
+        min-height: 480px;
+    }
+
+    .ut-admin-livechat-list {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        background: var(--utad-surface);
+        border: 1px solid var(--utad-border);
+        border-radius: var(--utad-radius);
+        box-shadow: var(--utad-shadow);
+        overflow: hidden;
+    }
+    .ut-admin-livechat-list-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--utad-border);
+        font-weight: 700;
+        font-size: 14px;
+        color: var(--utad-text);
+    }
+    .ut-admin-livechat-count {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--utad-muted);
+    }
+    .ut-admin-livechat-sessions {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 8px;
+    }
+    .ut-admin-livechat-empty,
+    .ut-admin-livechat-loading {
+        padding: 32px 16px;
+        text-align: center;
+        color: var(--utad-muted);
+        font-size: 13px;
+    }
+    .ut-admin-livechat-session {
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr);
+        gap: 12px;
+        align-items: center;
+        width: 100%;
+        padding: 10px 12px;
+        border: 0;
+        border-radius: var(--utad-radius-sm);
+        background: transparent;
+        cursor: pointer;
+        text-align: left;
+        transition: background-color 0.15s ease;
+    }
+    .ut-admin-livechat-session:hover { background: var(--utad-bg); }
+    .ut-admin-livechat-session.ut-is-active { background: var(--utad-accent-light); }
+
+    .ut-admin-livechat-avatar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: var(--utad-accent);
+        color: #fff;
+        font-weight: 700;
+        font-size: 15px;
+        flex-shrink: 0;
+    }
+    .ut-admin-livechat-session-body { min-width: 0; }
+    .ut-admin-livechat-session-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+    .ut-admin-livechat-name {
+        font-weight: 600;
+        font-size: 13.5px;
+        color: var(--utad-text);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .ut-admin-livechat-time {
+        flex-shrink: 0;
+        font-size: 11px;
+        color: var(--utad-muted);
+    }
+    .ut-admin-livechat-preview {
+        display: block;
+        margin-top: 2px;
+        font-size: 12px;
+        color: var(--utad-text-2);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .ut-admin-livechat-badge {
+        display: inline-block;
+        margin-top: 6px;
+        padding: 2px 8px;
+        border-radius: 99px;
+        font-size: 10px;
+        font-weight: 700;
+    }
+    .ut-admin-livechat-badge-waiting_admin { background: var(--utad-yellow-light); color: var(--utad-yellow); }
+    .ut-admin-livechat-badge-admin_handling { background: var(--utad-green-light); color: var(--utad-green); }
+    .ut-admin-livechat-badge-ai_active { background: var(--utad-blue-light); color: var(--utad-blue); }
+    .ut-admin-livechat-badge-closed { background: var(--utad-accent-light); color: var(--utad-muted); }
+
+    .ut-admin-livechat-room {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        background: var(--utad-surface);
+        border: 1px solid var(--utad-border);
+        border-radius: var(--utad-radius);
+        box-shadow: var(--utad-shadow);
+        overflow: hidden;
+    }
+    .ut-admin-livechat-room-empty {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        color: var(--utad-muted);
+        text-align: center;
+        padding: 24px;
+    }
+    .ut-admin-livechat-room-empty .fa { font-size: 38px; opacity: 0.5; }
+    .ut-admin-livechat-room-empty p { margin: 0; font-size: 14px; max-width: 280px; }
+
+    .ut-admin-livechat-room-inner {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        flex: 1;
+    }
+    .ut-admin-livechat-room-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--utad-border);
+        flex-shrink: 0;
+    }
+    .ut-admin-livechat-room-peer {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+    .ut-admin-livechat-room-name {
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--utad-text);
+    }
+    .ut-admin-livechat-room-status {
+        font-size: 12px;
+        color: var(--utad-muted);
+    }
+
+    .ut-admin-livechat-messages {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 18px;
+        background: var(--utad-bg);
+    }
+    .ut-admin-livechat-msg {
+        display: flex;
+        width: 100%;
+    }
+    .ut-admin-livechat-msg.ut-is-mine { justify-content: flex-end; }
+    .ut-admin-livechat-msg.ut-is-theirs { justify-content: flex-start; }
+    .ut-admin-livechat-bubble {
+        max-width: 72%;
+        padding: 10px 14px;
+        border-radius: 16px;
+        background: var(--utad-surface);
+        border: 1px solid var(--utad-border);
+        box-shadow: var(--utad-shadow);
+    }
+    .ut-admin-livechat-msg.ut-is-mine .ut-admin-livechat-bubble {
+        background: var(--utad-accent);
+        border-color: var(--utad-accent);
+    }
+    .ut-admin-livechat-msg.ut-is-mine .ut-admin-livechat-bubble-body { color: #fff; }
+    .ut-admin-livechat-msg.ut-is-mine .ut-admin-livechat-bubble-meta { color: rgba(255,255,255,0.7); }
+    .ut-admin-livechat-msg.ut-is-ai .ut-admin-livechat-bubble {
+        background: var(--utad-blue-light);
+        border-color: var(--utad-blue-light);
+    }
+    .ut-admin-livechat-bubble-body {
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--utad-text);
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+    .ut-admin-livechat-bubble-meta {
+        margin-top: 5px;
+        font-size: 11px;
+        color: var(--utad-muted);
+    }
+
+    .ut-admin-livechat-composer {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        padding: 14px 18px;
+        border-top: 1px solid var(--utad-border);
+        flex-shrink: 0;
+    }
+    .ut-admin-livechat-input {
+        flex: 1;
+        min-height: 42px;
+        max-height: 120px;
+        padding: 10px 14px;
+        border: 1px solid var(--utad-border-2);
+        border-radius: var(--utad-radius-sm);
+        font-family: inherit;
+        font-size: 14px;
+        color: var(--utad-text);
+        resize: none;
+        outline: 0;
+    }
+    .ut-admin-livechat-input:focus { border-color: var(--utad-accent); }
+    .ut-admin-livechat-input:disabled { background: var(--utad-bg); cursor: not-allowed; }
+    .ut-admin-livechat-send { flex-shrink: 0; }
+
+    @media (max-width: 900px) {
+        .ut-admin-livechat {
+            grid-template-columns: 1fr;
+            height: auto;
+        }
+        .ut-admin-livechat-list { max-height: 320px; }
+        .ut-admin-livechat-room { min-height: 480px; }
+    }
+}
