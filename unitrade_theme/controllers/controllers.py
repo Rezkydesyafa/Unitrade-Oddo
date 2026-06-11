@@ -1213,7 +1213,7 @@ class UnitradePortalProfile(CustomerPortal):
 
     def _unitrade_validate_address_values(self, post):
         values = {
-            'label': (post.get('label') or 'home').strip(),
+            'label': self._unitrade_normalize_address_label(post.get('label')),
             'province': (post.get('province') or '').strip(),
             'city': (post.get('city') or '').strip(),
             'district': (post.get('district') or '').strip(),
@@ -1224,9 +1224,6 @@ class UnitradePortalProfile(CustomerPortal):
             'place_id': (post.get('place_id') or '').strip(),
         }
         errors = {}
-
-        if values['label'] not in self._ADDRESS_LABELS:
-            errors['label'] = 'invalid'
 
         for field_name in ('province', 'city', 'district', 'village', 'street'):
             if not values[field_name]:
@@ -1291,9 +1288,13 @@ class UnitradePortalProfile(CustomerPortal):
             messages.append(_('Field terlalu panjang: %s.') % ', '.join(too_long))
         return messages
 
+    def _unitrade_normalize_address_label(self, label):
+        label = (label or '').strip()
+        return label if label in self._ADDRESS_LABELS else 'home'
+
     def _unitrade_partner_address_payload(self, partner):
         return {
-            'label': partner.x_unitrade_address_label or 'home',
+            'label': self._unitrade_normalize_address_label(partner.x_unitrade_address_label),
             'province': partner.x_unitrade_province or '',
             'city': partner.x_unitrade_city or partner.city or '',
             'district': partner.x_unitrade_district or '',
@@ -1326,14 +1327,13 @@ class UnitradePortalProfile(CustomerPortal):
             if has_address and address['latitude'] and address['longitude'] else '',
         }
 
-    @staticmethod
-    def _unitrade_address_label_text(label):
+    def _unitrade_address_label_text(self, label):
         return {
             'home': _('Rumah'),
             'office': _('Kantor'),
             'school': _('Sekolah'),
             'other': _('Lainnya'),
-        }.get(label or 'home', _('Rumah'))
+        }.get(self._unitrade_normalize_address_label(label), _('Rumah'))
 
     def _unitrade_mapbox_feature_payload(self, feature):
         context = self._unitrade_mapbox_context(feature)

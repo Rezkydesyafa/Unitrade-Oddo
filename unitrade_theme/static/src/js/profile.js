@@ -6,8 +6,15 @@ import { jsonrpc } from "@web/core/network/rpc_service";
 const JOGJA_CENTER = [-7.7956, 110.3695];
 const MAPBOX_GL_CSS_URL = "https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.css";
 const MAPBOX_GL_JS_URL = "https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.js";
+const ADDRESS_LABELS = new Set(["home", "office", "school", "other"]);
 let mapboxLoadPromise = null;
 let mapboxConfigPromise = null;
+
+function normalizeAddressLabel(value, fallback = "home") {
+    const safeFallback = ADDRESS_LABELS.has(fallback) ? fallback : "home";
+    const label = String(value || "").trim();
+    return ADDRESS_LABELS.has(label) ? label : safeFallback;
+}
 
 function loadMapboxGL() {
     if (window.mapboxgl) {
@@ -127,7 +134,7 @@ publicWidget.registry.UnitradeAddressModal = publicWidget.Widget.extend({
     start() {
         this.modal = this.el.querySelector("[data-unitrade-address-modal]");
         this.addressState = this._readInitialState();
-        this.selectedLabel = this.addressState.label || "home";
+        this.selectedLabel = normalizeAddressLabel(this.addressState.label);
         this.suggestions = [];
         this.searchTimer = null;
         this.map = null;
@@ -203,7 +210,9 @@ publicWidget.registry.UnitradeAddressModal = publicWidget.Widget.extend({
 
     _onSelectLabel(ev) {
         ev.preventDefault();
-        this.selectedLabel = ev.currentTarget.dataset.addressLabel || "home";
+        this.selectedLabel = normalizeAddressLabel(ev.currentTarget.dataset.addressLabel, this.selectedLabel);
+        this.addressState.label = this.selectedLabel;
+        this._clearError();
         this._syncLabelButtons();
     },
 
@@ -269,9 +278,11 @@ publicWidget.registry.UnitradeAddressModal = publicWidget.Widget.extend({
         this.addressState = {
             ...this.addressState,
             ...feature,
+            label: normalizeAddressLabel(this.selectedLabel, this.addressState.label),
             place_id: feature.id || "",
             street: feature.street || this._firstAddressLine(feature.label),
         };
+        this.selectedLabel = this.addressState.label;
         this._fillFields(this.addressState);
         this._setMapLocation(this.addressState.latitude, this.addressState.longitude, 16);
         this._clearSuggestions();
@@ -302,9 +313,11 @@ publicWidget.registry.UnitradeAddressModal = publicWidget.Widget.extend({
                         this.addressState = {
                             ...this.addressState,
                             ...feature,
+                            label: normalizeAddressLabel(this.selectedLabel, this.addressState.label),
                             place_id: feature.id || "",
                             street: feature.street || this.addressState.street || this._firstAddressLine(feature.label),
                         };
+                        this.selectedLabel = this.addressState.label;
                         this._fillFields(this.addressState);
                     }
                 } catch (error) {
@@ -344,7 +357,8 @@ publicWidget.registry.UnitradeAddressModal = publicWidget.Widget.extend({
                 return;
             }
             this.addressState = result.address || payload;
-            this.selectedLabel = this.addressState.label || this.selectedLabel;
+            this.selectedLabel = normalizeAddressLabel(this.addressState.label, this.selectedLabel);
+            this.addressState.label = this.selectedLabel;
             this._updateSummary(result.summary || {});
             this._onClose();
         } catch (error) {
@@ -361,10 +375,14 @@ publicWidget.registry.UnitradeAddressModal = publicWidget.Widget.extend({
             return {};
         }
         try {
-            return JSON.parse(this.modal.dataset.addressInitial || "{}");
+            const state = JSON.parse(this.modal.dataset.addressInitial || "{}");
+            return {
+                ...state,
+                label: normalizeAddressLabel(state.label),
+            };
         } catch (error) {
             console.error("[UniTrade] Address initial state:", error);
-            return {};
+            return { label: "home" };
         }
     },
 
@@ -384,12 +402,16 @@ publicWidget.registry.UnitradeAddressModal = publicWidget.Widget.extend({
                 input.value = values[field] || "";
             }
         });
-        this.selectedLabel = values.label || this.selectedLabel || "home";
+        this.selectedLabel = normalizeAddressLabel(values.label, this.selectedLabel);
+        this.addressState.label = this.selectedLabel;
     },
 
     _collectPayload() {
+        const label = normalizeAddressLabel(this.selectedLabel, this.addressState.label);
+        this.selectedLabel = label;
+        this.addressState.label = label;
         const payload = {
-            label: this.selectedLabel || "home",
+            label,
             place_id: this.addressState.place_id || "",
         };
         this.modal.querySelectorAll("[data-address-field]").forEach((input) => {
@@ -461,6 +483,7 @@ publicWidget.registry.UnitradeAddressModal = publicWidget.Widget.extend({
         if (!this.modal) {
             return;
         }
+        this.selectedLabel = normalizeAddressLabel(this.selectedLabel, this.addressState.label);
         this.modal.querySelectorAll("[data-address-label]").forEach((button) => {
             const active = button.dataset.addressLabel === this.selectedLabel;
             button.classList.toggle("is-active", active);
@@ -632,7 +655,7 @@ publicWidget.registry.UnitradeAddressModal = publicWidget.Widget.extend({
             office: "Kantor",
             school: "Sekolah",
             other: "Lainnya",
-        }[label || "home"] || "Rumah";
+        }[normalizeAddressLabel(label)] || "Rumah";
     },
 });
 
