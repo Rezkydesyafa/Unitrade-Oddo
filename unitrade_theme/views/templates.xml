@@ -177,8 +177,10 @@
     <template id="unitrade_browser_branding" inherit_id="website.layout" name="UniTrade Browser Branding">
         <xpath expr="//head/title" position="before">
             <t t-set="ut_title_path" t-value="request.httprequest.path or '/'"/>
-            <t t-set="title" t-value="website._unitrade_browser_title(ut_title_path, title, default_title)"/>
             <t t-if="default_title and 'My Website' in default_title" t-set="default_title" t-value="default_title.replace('My Website', 'UniTrade')"/>
+            <t t-set="title" t-value="title or default_title or 'UniTrade'"/>
+            <t t-if="title and 'My Website' in title" t-set="title" t-value="title.replace('My Website', 'UniTrade')"/>
+            <t t-if="not title or title == 'Odoo'" t-set="title" t-value="'UniTrade'"/>
             <t t-set="x_icon" t-value="'/unitrade_theme/static/src/img/logo-unitrade.png'"/>
         </xpath>
         <xpath expr="//head" position="inside">
