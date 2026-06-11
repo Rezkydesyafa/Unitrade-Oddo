@@ -4243,7 +4243,7 @@
                             <button type="button"
                                     class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs"
                                     id="utAdminLiveChatClose">
-                                <i class="fa fa-check" aria-hidden="true"/> Tutup Sesi
+                                <i class="fa fa-check" aria-hidden="true"/> Akhiri Chat
                             </button>
                         </header>
 

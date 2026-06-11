@@ -226,6 +226,43 @@ class UnitradeCsSession(models.Model):
         })
         return ticket
 
+    def admin_start_handling(self, admin=None):
+        """Admin/CS mengambil alih sesi (tombol 'Di Proses').
+
+        - state -> admin_handling
+        - assign admin penangan
+        - kirim notifikasi otomatis ke user bahwa CS sudah terhubung
+        Idemponten: jika sudah admin_handling oleh admin yang sama, tidak
+        mengirim notifikasi ganda.
+        """
+        self.ensure_one()
+        admin = admin or self.env.user
+        if not self._is_admin(admin):
+            raise AccessError(_('Hanya admin yang dapat menangani sesi ini.'))
+        if self.state == 'closed':
+            raise UserError(_('Sesi sudah ditutup.'))
+
+        already_handling = self.state == 'admin_handling' and self.assigned_admin_id.id == admin.id
+        values = {'state': 'admin_handling'}
+        if not self.assigned_admin_id:
+            values['assigned_admin_id'] = admin.id
+        # pastikan tiket terhubung agar arsip tetap konsisten
+        if not self.ticket_id:
+            ticket = self._ensure_ticket()
+            values['ticket_id'] = ticket.id
+            if not self.escalated_at:
+                values['escalated_at'] = fields.Datetime.now()
+        self.sudo().write(values)
+        if self.ticket_id and self.ticket_id.status == 'pending':
+            self.ticket_id.sudo().write({'status': 'in_progress'})
+
+        if not already_handling:
+            admin_name = admin.name or _('CS UniTrade')
+            self._create_message('admin', _(
+                'Anda sudah terhubung dengan CS, %s. Silakan lanjutkan percakapan Anda.'
+            ) % admin_name, author_user=admin)
+        return self
+
     def admin_reply(self, body, admin=None):
         self.ensure_one()
         admin = admin or self.env.user

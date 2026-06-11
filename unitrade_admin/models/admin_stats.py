@@ -3026,8 +3026,8 @@ class UnitradeAdminStats(models.AbstractModel):
         if not ticket:
             return {'ok': False, 'session_id': False}
         session = ticket.cs_session_id if 'cs_session_id' in ticket._fields else False
-        if not session:
-            # fallback: cari sesi user yang masih aktif
+        # Abaikan sesi yang sudah ditutup; cari sesi user yang masih aktif.
+        if not session or session.state == 'closed':
             session = self.env['unitrade.cs.session'].sudo().search([
                 ('user_id', '=', ticket.user_id.id),
                 ('state', 'in', ('waiting_admin', 'admin_handling')),

@@ -1616,6 +1616,36 @@
                     });
                 } else if (action === "ticket-status") {
                     var ticketStatus = btn.dataset.status;
+                    // "Di Proses" -> jika tiket punya sesi live chat, ambil alih
+                    // sesi (admin_handling + notif user) lalu arahkan ke live chat.
+                    if (ticketStatus === "in_progress") {
+                        var startSessionId = 0;
+                        try {
+                            var sres = await callJsonRpc("/unitrade/admin/api/live-chat/session-for-ticket", {
+                                ticket_id: ticketId,
+                            });
+                            startSessionId = (sres && sres.result && sres.result.session_id) || 0;
+                        } catch (err) {
+                            startSessionId = 0;
+                        }
+                        if (startSessionId) {
+                            var startRes = await callJsonRpc("/unitrade/admin/api/cs/start", {
+                                session_id: startSessionId,
+                            });
+                            if (startRes && startRes.result && startRes.result.success) {
+                                window.location.href = "/unitrade/admin/live-chat?session_id=" +
+                                    encodeURIComponent(startSessionId);
+                                return;
+                            }
+                            showToast(
+                                (startRes && startRes.result && startRes.result.message) ||
+                                "Gagal membuka live chat.",
+                                "error"
+                            );
+                            return;
+                        }
+                        // tidak ada sesi live chat -> lanjut update status tiket biasa
+                    }
                     var ticketNote = "";
                     if (ticketStatus === "done") {
                         ticketNote = await promptAdmin("Catatan penyelesaian untuk user:", {
@@ -2133,6 +2163,22 @@
                                 : "Tulis balasan untuk user...";
                         }
                         renderMessages(data.messages);
+                        // Sesi masih menunggu -> ambil alih otomatis (notif user + admin_handling).
+                        if (s.state === "waiting_admin") {
+                            callJsonRpc("/unitrade/admin/api/cs/start", { session_id: activeSessionId })
+                                .then(function (sr) {
+                                    if (sr && sr.result && sr.result.success) {
+                                        peerStatus.textContent = "Ditangani Admin" +
+                                            (s.user_email ? " · " + s.user_email : "");
+                                        // muat ulang pesan agar notif sambutan tampil
+                                        callJsonRpc("/unitrade/admin/api/live-chat/detail", { session_id: activeSessionId })
+                                            .then(function (d2) {
+                                                if (d2 && d2.result && d2.result.ok) appendMessages(d2.result.messages);
+                                            });
+                                        refreshSessionList();
+                                    }
+                                });
+                        }
                     });
             }
 
@@ -2216,7 +2262,7 @@
             if (closeBtn) {
                 closeBtn.addEventListener("click", async function () {
                     if (!activeSessionId) return;
-                    if (!await confirmAdmin("Tutup sesi live chat ini?", { title: "Tutup Sesi" })) return;
+                    if (!await confirmAdmin("Akhiri sesi live chat ini? User akan kembali terhubung dengan AI Assistant.", { title: "Akhiri Chat" })) return;
                     callJsonRpc("/unitrade/admin/api/cs/close", { session_id: activeSessionId })
                         .then(function (res) {
                             var r = res.result || {};
