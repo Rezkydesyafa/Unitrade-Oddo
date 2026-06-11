@@ -84,11 +84,11 @@
 
                 <div t-if="state.session.state === 'ai_active'" class="ut-csai-escalate-row">
                     <button type="button" class="ut-csai-escalate-btn" t-on-click="escalate">
-                        <i class="fa fa-user"></i> Chat dengan Admin
+                        <i class="fa fa-user"></i> Chat dengan Customer Service
                     </button>
                 </div>
                 <div t-if="state.session.state === 'waiting_admin'" class="ut-csai-waiting">
-                    <i class="fa fa-clock-o"></i> Menunggu admin bergabung...
+                    <i class="fa fa-clock-o"></i> Menunggu Customer Service bergabung...
                 </div>
                 <div t-if="state.session.state === 'closed'" class="ut-csai-closed">
                     <i class="fa fa-check-circle"></i> Sesi telah ditutup. Terima kasih.

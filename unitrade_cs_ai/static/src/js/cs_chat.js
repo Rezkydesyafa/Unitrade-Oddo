@@ -63,8 +63,8 @@ export class CsFloatingChat extends Component {
     get statusLabel() {
         const map = {
             ai_active: "Asisten AI aktif",
-            waiting_admin: "Menunggu admin",
-            admin_handling: "Terhubung dengan admin",
+            waiting_admin: "Menunggu CS",
+            admin_handling: "Terhubung dengan CS",
             closed: "Sesi selesai",
         };
         return map[this.state.session.state] || "Customer Service";
@@ -89,7 +89,7 @@ export class CsFloatingChat extends Component {
     }
 
     badgeLabel(message) {
-        return message.author_type === "ai" ? "AI" : "Admin";
+        return message.author_type === "ai" ? "AI" : "CS";
     }
 
     async toggle() {
