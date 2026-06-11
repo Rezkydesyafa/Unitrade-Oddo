@@ -1077,6 +1077,41 @@
         opacity: 0;
         transform: translateY(6px);
     }
+    .ut-admin-btn-loading {
+        cursor: wait;
+        opacity: .72;
+    }
+    &.ut-admin-refreshing .ut-admin-main {
+        pointer-events: none;
+        animation: utAdminRefreshFade .9s ease both;
+    }
+    &.ut-admin-refreshing::after {
+        content: "Memuat ulang data...";
+        position: fixed;
+        left: 50%;
+        bottom: 24px;
+        transform: translateX(-50%);
+        z-index: 650;
+        padding: 10px 14px;
+        border: 1px solid var(--utad-border);
+        border-radius: 999px;
+        background: var(--utad-surface);
+        color: var(--utad-text);
+        box-shadow: 0 18px 40px rgba(15, 23, 42, .16);
+        font-size: 12px;
+        font-weight: 700;
+        animation: utAdminRefreshPill .9s ease both;
+    }
+
+    @keyframes utAdminRefreshFade {
+        0% { opacity: 1; transform: translateY(0); }
+        100% { opacity: .62; transform: translateY(3px); }
+    }
+    @keyframes utAdminRefreshPill {
+        0% { opacity: 0; transform: translate(-50%, 8px); }
+        18%, 82% { opacity: 1; transform: translate(-50%, 0); }
+        100% { opacity: 0; transform: translate(-50%, 8px); }
+    }
 
     @media (max-width: 460px) {
         .ut-admin-toast-stack {

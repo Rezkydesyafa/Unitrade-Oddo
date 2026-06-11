@@ -1153,6 +1153,25 @@
 
         // ---- Action buttons on users table -------------------------------
         function refresh() { window.location.reload(); }
+        function refreshWithFeedback(message, tone) {
+            showToast(message || "Aksi berhasil. Memuat ulang data...", tone || "success");
+            root.classList.add("ut-admin-refreshing");
+            window.setTimeout(refresh, 900);
+        }
+        function setButtonLoading(button, label) {
+            if (!button) return function () {};
+            var originalHtml = button.innerHTML;
+            button.disabled = true;
+            button.setAttribute("aria-busy", "true");
+            button.classList.add("ut-admin-btn-loading");
+            button.textContent = label || "Memproses...";
+            return function () {
+                button.disabled = false;
+                button.removeAttribute("aria-busy");
+                button.classList.remove("ut-admin-btn-loading");
+                button.innerHTML = originalHtml;
+            };
+        }
 
         function collectNamedValues(form) {
             var values = {};
@@ -1321,25 +1340,42 @@
                     var approvePayload = verificationId
                         ? { verification_id: verificationId }
                         : { seller_id: sellerId };
+                    var resetApproveButton = setButtonLoading(btn, "Approve...");
                     callJsonRpc(approveUrl, approvePayload)
                         .then(async function (res) {
-                            if (res.result && res.result.ok) refresh();
+                            if (res.result && res.result.ok) {
+                                refreshWithFeedback("KTM berhasil di-approve. Data admin sedang diperbarui...", "success");
+                            }
                             else if (res.result && res.result.error_code === "nim_required" && verificationId) {
+                                resetApproveButton();
                                 var manualNim = await promptAdmin(res.result.error, {
                                     title: "Lengkapi NIM",
                                     placeholder: "Contoh: 2411501058",
                                 });
                                 if (!manualNim || !manualNim.trim()) return;
+                                resetApproveButton = setButtonLoading(btn, "Approve...");
                                 callJsonRpc(approveUrl, {
                                     verification_id: verificationId,
                                     nim: manualNim.trim()
                                 }).then(function (retryRes) {
-                                    if (retryRes.result && retryRes.result.ok) refresh();
-                                    else showToast((retryRes.result && retryRes.result.error) || "Gagal approve seller.", "error");
+                                    if (retryRes.result && retryRes.result.ok) {
+                                        refreshWithFeedback("KTM berhasil di-approve. Data admin sedang diperbarui...", "success");
+                                    } else {
+                                        resetApproveButton();
+                                        showToast((retryRes.result && retryRes.result.error) || "Gagal approve seller.", "error");
+                                    }
+                                }).catch(function () {
+                                    resetApproveButton();
+                                    showToast("Gagal approve seller. Coba ulangi beberapa saat lagi.", "error");
                                 });
                             } else {
+                                resetApproveButton();
                                 showToast((res.result && res.result.error) || "Gagal approve seller.", "error");
                             }
+                        })
+                        .catch(function () {
+                            resetApproveButton();
+                            showToast("Gagal approve seller. Coba ulangi beberapa saat lagi.", "error");
                         });
                 } else if (action === "reject-seller") {
                     var rreason = await promptAdmin("Alasan penolakan KTM?", {
@@ -1354,10 +1390,19 @@
                     var rejectPayload = verificationId
                         ? { verification_id: verificationId, reason: rreason }
                         : { seller_id: sellerId, reason: rreason };
+                    var resetRejectButton = setButtonLoading(btn, "Menolak...");
                     callJsonRpc(rejectUrl, rejectPayload)
                         .then(function (res) {
-                            if (res.result && res.result.ok) refresh();
-                            else showToast((res.result && res.result.error) || "Gagal menolak seller.", "error");
+                            if (res.result && res.result.ok) {
+                                refreshWithFeedback("KTM berhasil ditolak. Data admin sedang diperbarui...", "success");
+                            } else {
+                                resetRejectButton();
+                                showToast((res.result && res.result.error) || "Gagal menolak seller.", "error");
+                            }
+                        })
+                        .catch(function () {
+                            resetRejectButton();
+                            showToast("Gagal menolak seller. Coba ulangi beberapa saat lagi.", "error");
                         });
                 } else if (action === "reset-seller") {
                     if (!await confirmAdmin("Reset verifikasi seller ke draft?", { title: "Reset Seller" })) return;
@@ -1373,14 +1418,19 @@
                         placeholder: "Contoh: Terbukti menyalahgunakan KTM orang lain.",
                     });
                     if (!revokeReason || !revokeReason.trim()) return;
+                    var resetRevokeButton = setButtonLoading(btn, "Melepas...");
                     callJsonRpc("/unitrade/admin/api/sellers/revoke", { seller_id: sellerId, reason: revokeReason })
                         .then(function (res) {
                             if (res.result && res.result.ok) {
-                                showToast("Status seller dilepas. User harus mendaftar ulang.", "success");
-                                refresh();
+                                refreshWithFeedback("Status seller berhasil dilepas. Data admin sedang diperbarui...", "success");
                             } else {
+                                resetRevokeButton();
                                 showToast((res.result && res.result.error) || "Gagal melepas status seller.", "error");
                             }
+                        })
+                        .catch(function () {
+                            resetRevokeButton();
+                            showToast("Gagal melepas status seller. Coba ulangi beberapa saat lagi.", "error");
                         });
                 } else if (action === "user-detail") {
                     openUserDetail(userId);
