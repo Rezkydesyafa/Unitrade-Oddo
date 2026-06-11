@@ -7,6 +7,7 @@ import { jsonrpc } from "@web/core/network/rpc_service";
 
 const MAX_PRICE_K = 10000;
 const MIN_GAP_K = 10;
+const PRICE_STEP_K = 5;
 const AUTO_APPLY_DELAY_MS = 500;
 const DEFAULT_LAT = -7.7956;
 const DEFAULT_LON = 110.3695;
@@ -240,11 +241,14 @@ export class UnitradeShopFilter extends Component {
     }
 
     formatK(valueK) {
-        if (valueK >= 1000) {
-            const jt = valueK / 1000;
-            return `${jt % 1 === 0 ? jt.toFixed(0) : jt.toFixed(1)} Jt`;
+        const safeValue = clampK(valueK, 0);
+        if (safeValue >= 1000 && safeValue % 1000 === 0) {
+            return `${safeValue / 1000} Jt`;
         }
-        return `${valueK} K`;
+        if (safeValue >= 1000 && safeValue % 100 === 0) {
+            return `${(safeValue / 1000).toLocaleString("id-ID", { maximumFractionDigits: 1 })} Jt`;
+        }
+        return `${safeValue.toLocaleString("id-ID")} K`;
     }
 
     pillClass(group, value) {
@@ -319,6 +323,39 @@ export class UnitradeShopFilter extends Component {
         this.state.draft.maxK = value;
         ev.target.value = value;
         this._scheduleAutoApply();
+    }
+
+    isPriceStepDisabled(boundary, direction) {
+        const minK = this.state.draft.minK;
+        const maxK = this.state.draft.maxK;
+        if (boundary === "min") {
+            if (direction < 0) {
+                return minK <= 0;
+            }
+            return minK + PRICE_STEP_K > maxK - MIN_GAP_K;
+        }
+        if (boundary === "max") {
+            if (direction < 0) {
+                return maxK - PRICE_STEP_K < minK + MIN_GAP_K;
+            }
+            return maxK >= MAX_PRICE_K;
+        }
+        return true;
+    }
+
+    adjustPrice(boundary, direction) {
+        const delta = direction < 0 ? -PRICE_STEP_K : PRICE_STEP_K;
+        if (boundary === "min") {
+            const maxAllowed = Math.max(0, this.state.draft.maxK - MIN_GAP_K);
+            this.state.draft.minK = Math.min(Math.max(this.state.draft.minK + delta, 0), maxAllowed);
+            this._scheduleAutoApply();
+            return;
+        }
+        if (boundary === "max") {
+            const minAllowed = Math.min(MAX_PRICE_K, this.state.draft.minK + MIN_GAP_K);
+            this.state.draft.maxK = Math.max(Math.min(this.state.draft.maxK + delta, MAX_PRICE_K), minAllowed);
+            this._scheduleAutoApply();
+        }
     }
 
     async changeSort(sortKey) {
