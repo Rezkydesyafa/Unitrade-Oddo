@@ -12,10 +12,20 @@ const PRESENCE_INTERVAL = 30000;
 const REPORT_IMAGE_MAX_FILES = 3;
 const REPORT_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
 const REPORT_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const CHAT_TIME_ZONE = "Asia/Jakarta";
 
 function intOrDefault(value, fallback = 0) {
     const parsed = parseInt(value, 10);
     return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function formatWibTime(date = new Date()) {
+    return `${new Intl.DateTimeFormat("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: CHAT_TIME_ZONE,
+    }).format(date)} WIB`;
 }
 
 function upsertById(items, incoming) {
@@ -138,7 +148,7 @@ export class UnitradeChatApp extends Component {
     }
 
     get todayLabel() {
-        return new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+        return new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric", timeZone: CHAT_TIME_ZONE });
     }
 
     get sidebarTitle() {
@@ -926,7 +936,7 @@ export class UnitradeChatApp extends Component {
 
     addPendingMessage(payload, preview = {}) {
         const id = `pending-${Date.now()}-${++this.pendingSeq}`;
-        const time = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+        const time = formatWibTime();
         this.state.messages.push({
             id,
             conversation_id: this.state.activeConversationId,

@@ -1,7 +1,9 @@
 import base64
 import logging
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
+
+import pytz
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
@@ -19,6 +21,57 @@ UNITRADE_CHAT_SEND_LIMIT = 20
 UNITRADE_CHAT_REPORT_LIMIT = 3
 UNITRADE_CHAT_RATE_WINDOW_SECONDS = 60
 UNITRADE_CHAT_RETENTION_DAYS = 180
+UNITRADE_CHAT_WIB = pytz.timezone('Asia/Jakarta')
+UNITRADE_CHAT_MONTHS_ID = {
+    1: 'Januari',
+    2: 'Februari',
+    3: 'Maret',
+    4: 'April',
+    5: 'Mei',
+    6: 'Juni',
+    7: 'Juli',
+    8: 'Agustus',
+    9: 'September',
+    10: 'Oktober',
+    11: 'November',
+    12: 'Desember',
+}
+
+
+def _unitrade_chat_to_wib(value):
+    if not value:
+        return None
+    dt_value = value if isinstance(value, datetime) else fields.Datetime.to_datetime(value)
+    if not dt_value:
+        return None
+    if dt_value.tzinfo:
+        return dt_value.astimezone(UNITRADE_CHAT_WIB)
+    return pytz.UTC.localize(dt_value).astimezone(UNITRADE_CHAT_WIB)
+
+
+def _unitrade_chat_format_wib_time(value):
+    local_dt = _unitrade_chat_to_wib(value)
+    return local_dt.strftime('%H:%M WIB') if local_dt else ''
+
+
+def _unitrade_chat_format_wib_date(value, include_year=True):
+    local_dt = _unitrade_chat_to_wib(value)
+    if not local_dt:
+        return ''
+    month = UNITRADE_CHAT_MONTHS_ID.get(local_dt.month, local_dt.strftime('%B'))
+    if include_year:
+        return '%s %s %s' % (local_dt.day, month, local_dt.year)
+    return '%s %s' % (local_dt.day, month)
+
+
+def _unitrade_chat_last_message_label(value):
+    local_dt = _unitrade_chat_to_wib(value)
+    if not local_dt:
+        return ''
+    now_wib = _unitrade_chat_to_wib(fields.Datetime.now())
+    if now_wib and local_dt.date() == now_wib.date():
+        return _unitrade_chat_format_wib_time(local_dt)
+    return _unitrade_chat_format_wib_date(local_dt, include_year=now_wib and local_dt.year != now_wib.year)
 
 
 class UnitradeChatConversation(models.Model):
@@ -302,7 +355,7 @@ class UnitradeChatConversation(models.Model):
             'last_seen_label': 'Online' if self._is_other_online(user) else 'Offline',
             'last_message': self.last_message_body or '',
             'last_message_date': fields.Datetime.to_string(last_message_date) if last_message_date else '',
-            'last_message_label': last_message_date.strftime('%d %B') if last_message_date else '',
+            'last_message_label': _unitrade_chat_last_message_label(last_message_date),
             'unread_count': self.buyer_unread_count if is_buyer else self.seller_unread_count,
             'product': self._product_payload(self.product_id),
             'is_seller_view': not is_buyer,
@@ -472,8 +525,8 @@ class UnitradeChatMessage(models.Model):
             'is_mine': is_mine,
             'type': self.message_type,
             'body': self.body or '',
-            'time': self.create_date.strftime('%H:%M') if self.create_date else '',
-            'date': self.create_date.strftime('%d %B %Y') if self.create_date else '',
+            'time': _unitrade_chat_format_wib_time(self.create_date),
+            'date': _unitrade_chat_format_wib_date(self.create_date),
             'delivered': bool(self.delivered_at),
             'delivered_at': fields.Datetime.to_string(self.delivered_at) if self.delivered_at else '',
             'read': bool(self.read_at),
