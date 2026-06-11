@@ -938,6 +938,174 @@
             });
         }
 
+        function openReportDetail(reportType, reportId) {
+            var body = document.getElementById("utAdminReportModalBody");
+            if (!body) return;
+
+            function badge(text, tone) {
+                return '<span class="ut-admin-badge ut-admin-badge-' + escapeHtml(tone || "gray") + '">' +
+                    '<span class="ut-admin-badge-dot"></span>' + escapeHtml(text || "-") + '</span>';
+            }
+            function row(label, value) {
+                return '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">' +
+                    escapeHtml(label || "-") + '</span><span class="ut-admin-detail-value">' +
+                    escapeHtml(value == null || value === "" ? "-" : value) + '</span></div>';
+            }
+            function section(title, content) {
+                if (!content) return "";
+                return '<div class="ut-admin-modal-section"><div class="ut-admin-modal-section-title">' +
+                    escapeHtml(title || "-") + '</div>' + content + '</div>';
+            }
+            function mediaGrid(items) {
+                items = items || [];
+                if (!items.length) {
+                    return '<div class="ut-admin-empty-inline">Belum ada bukti gambar atau lampiran.</div>';
+                }
+                var html = '<div class="ut-admin-cs-media-grid">';
+                items.forEach(function (item) {
+                    var caption = escapeHtml(item.name || item.label || "Bukti");
+                    var meta = [item.mimetype, item.size_label].filter(Boolean).join(" · ");
+                    html += '<div class="ut-admin-cs-media-item">';
+                    if (item.is_image) {
+                        html += '<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener" class="ut-admin-cs-media-preview">';
+                        html += '<img src="' + escapeHtml(item.url) + '" alt="' + caption + '"/></a>';
+                    } else if (item.is_video) {
+                        html += '<video class="ut-admin-cs-media-preview" src="' + escapeHtml(item.url) + '" controls></video>';
+                    } else {
+                        html += '<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener" class="ut-admin-cs-file-preview">';
+                        html += '<i class="fa fa-paperclip" aria-hidden="true"></i><span>Lihat lampiran</span></a>';
+                    }
+                    html += '<div class="ut-admin-cs-media-caption">' + caption + '</div>';
+                    if (meta) html += '<div class="ut-admin-cs-media-meta">' + escapeHtml(meta) + '</div>';
+                    if (item.note) html += '<div class="ut-admin-cs-media-note">' + escapeHtml(item.note) + '</div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+                return html;
+            }
+
+            function renderDetail(d) {
+                var html = '';
+                html += '<div class="ut-admin-cs-detail-head">';
+                html += '<div><div class="ut-admin-product-detail-title">' + escapeHtml(d.title || "-") + '</div>';
+                html += '<div class="ut-admin-product-detail-meta">' + escapeHtml(d.type_label || "Laporan") + '</div></div>';
+                html += '<div class="ut-admin-product-detail-badges">' +
+                    badge(d.status || "-", d.urgency === "urgent" ? "red" : "yellow") + '</div>';
+                html += '</div>';
+
+                var infoHtml = "";
+                (d.rows || []).forEach(function (item) { infoHtml += row(item.label, item.value); });
+                html += section("Informasi Laporan", infoHtml);
+
+                if (d.description) {
+                    html += section("Isi Laporan",
+                        '<p class="ut-admin-product-detail-description">' + escapeHtml(d.description) + '</p>');
+                }
+
+                html += section("Bukti / Media", mediaGrid(d.evidence || []));
+
+                if (d.messages && d.messages.length) {
+                    var messageHtml = '<div class="ut-admin-cs-message-list">';
+                    d.messages.forEach(function (message) {
+                        messageHtml += '<div class="ut-admin-cs-message">';
+                        messageHtml += '<div class="ut-admin-cs-message-meta">' +
+                            escapeHtml(message.author || "-") + ' · ' + escapeHtml(message.time || "-") + '</div>';
+                        if (message.body) {
+                            messageHtml += '<div class="ut-admin-cs-message-body">' + escapeHtml(message.body) + '</div>';
+                        }
+                        if (message.media) { messageHtml += mediaGrid([message.media]); }
+                        messageHtml += '</div>';
+                    });
+                    messageHtml += '</div>';
+                    html += section("Cuplikan", messageHtml);
+                }
+
+                if (d.notes && d.notes.length) {
+                    var notesHtml = '<div class="ut-admin-log-list">';
+                    d.notes.forEach(function (note) {
+                        notesHtml += '<div class="ut-admin-log-item"><div class="ut-admin-log-meta">' +
+                            escapeHtml(note.label || "Catatan") + '</div><div>' + escapeHtml(note.value || "-") + '</div></div>';
+                    });
+                    notesHtml += '</div>';
+                    html += section("Catatan", notesHtml);
+                }
+
+                if (d.timeline && d.timeline.length) {
+                    var timelineHtml = '<div class="ut-admin-log-list">';
+                    d.timeline.forEach(function (item) {
+                        timelineHtml += '<div class="ut-admin-log-item">';
+                        timelineHtml += '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">';
+                        timelineHtml += '<strong>' + escapeHtml(item.title || "-") + '</strong>';
+                        if (item.status) timelineHtml += badge(item.status, "blue");
+                        timelineHtml += '</div>';
+                        timelineHtml += '<div class="ut-admin-log-meta">' + escapeHtml(item.time || item.date || "-") + '</div>';
+                        if (item.note) timelineHtml += '<div>' + escapeHtml(item.note) + '</div>';
+                        timelineHtml += '</div>';
+                    });
+                    timelineHtml += '</div>';
+                    html += section("Timeline", timelineHtml);
+                }
+
+                var a = d.actions || {};
+                var actionHtml = '';
+                // Aksi tiket (reuse alur lama) untuk tipe ticket
+                if (a.can_reply) {
+                    actionHtml += '<button type="button" class="ut-admin-btn ut-admin-btn-primary ut-admin-btn-sm" ' +
+                        'data-action="ticket-reply" data-ticket-id="' + escapeHtml(a.ticket_id) + '">Balas User</button>';
+                }
+                if (a.can_start) {
+                    actionHtml += '<button type="button" class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm" ' +
+                        'data-action="ticket-status" data-ticket-id="' + escapeHtml(a.ticket_id) + '" data-status="in_progress">Proses Tiket</button>';
+                }
+                if (a.can_done) {
+                    actionHtml += '<button type="button" class="ut-admin-btn ut-admin-btn-primary ut-admin-btn-sm" ' +
+                        'data-action="ticket-status" data-ticket-id="' + escapeHtml(a.ticket_id) + '" data-status="done">Selesaikan Tiket</button>';
+                }
+                if (a.refund_url) {
+                    actionHtml += '<a class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm" href="' +
+                        escapeHtml(a.refund_url) + '" target="_blank" rel="noopener">' +
+                        escapeHtml(a.refund_label || "Buka Refund") + '</a>';
+                }
+                // Aksi status laporan generik (chat/review/seller)
+                if (a.report_status) {
+                    actionHtml += '<button type="button" class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm" ' +
+                        'data-action="report-set-status" data-report-type="' + escapeHtml(a.report_type) + '" ' +
+                        'data-report-id="' + escapeHtml(a.report_id) + '" data-status="in_progress">Proses</button>';
+                    actionHtml += '<button type="button" class="ut-admin-btn ut-admin-btn-primary ut-admin-btn-sm" ' +
+                        'data-action="report-set-status" data-report-type="' + escapeHtml(a.report_type) + '" ' +
+                        'data-report-id="' + escapeHtml(a.report_id) + '" data-status="done">Selesaikan</button>';
+                    if (a.can_reject) {
+                        actionHtml += '<button type="button" class="ut-admin-btn ut-admin-btn-danger ut-admin-btn-sm" ' +
+                            'data-action="report-set-status" data-report-type="' + escapeHtml(a.report_type) + '" ' +
+                            'data-report-id="' + escapeHtml(a.report_id) + '" data-status="rejected">Tolak</button>';
+                    }
+                }
+                if (actionHtml) {
+                    html += section("Aksi Admin", '<div class="ut-admin-product-detail-actions">' + actionHtml + '</div>');
+                }
+
+                body.innerHTML = html;
+            }
+
+            body.innerHTML = '<div style="text-align:center;color:var(--utad-muted);padding:40px">Memuat...</div>';
+            openModal("utAdminReportModal");
+            callJsonRpc("/unitrade/admin/api/report-list/detail", {
+                report_type: reportType,
+                report_id: reportId,
+            }).then(function (res) {
+                var d = res.result || {};
+                if (d.ok) {
+                    renderDetail(d);
+                } else {
+                    body.innerHTML = '<div style="text-align:center;color:var(--utad-red);padding:40px">' +
+                        escapeHtml(d.error || "Laporan tidak ditemukan.") + '</div>';
+                }
+            }).catch(function () {
+                body.innerHTML = '<div style="text-align:center;color:var(--utad-red);padding:40px">' +
+                    'Gagal memuat detail laporan.</div>';
+            });
+        }
+
         function openAuditLogDetail(logId) {
             var body = document.getElementById("utAdminAuditLogModalBody");
             if (!body) return;
@@ -1282,6 +1450,8 @@
                 var caseType = btn.dataset.caseType;
                 var caseId = btn.dataset.caseId;
                 var logId = btn.dataset.logId;
+                var reportType = btn.dataset.reportType;
+                var reportId = btn.dataset.reportId;
 
                 if (action === "block-user") {
                     var reason = await promptAdmin("Alasan blokir user ini?", {
@@ -1528,6 +1698,37 @@
                     openProductDetail(productId);
                 } else if (action === "cs-detail") {
                     openCustomerServiceDetail(caseType, caseId);
+                } else if (action === "report-detail") {
+                    openReportDetail(reportType, reportId);
+                } else if (action === "report-set-status") {
+                    var rStatus = btn.dataset.status;
+                    var rType = reportType;
+                    var rId = reportId;
+                    var rNote = "";
+                    if (rStatus === "rejected" || rStatus === "done") {
+                        rNote = await promptAdmin(
+                            rStatus === "rejected" ? "Alasan menolak laporan ini?" : "Catatan penyelesaian (opsional):",
+                            {
+                                title: rStatus === "rejected" ? "Tolak Laporan" : "Selesaikan Laporan",
+                                multiline: true,
+                            }
+                        );
+                        if (rStatus === "rejected" && (!rNote || !rNote.trim())) return;
+                        rNote = (rNote || "").trim();
+                    }
+                    callJsonRpc("/unitrade/admin/api/report-list/set-status", {
+                        report_type: rType,
+                        report_id: rId,
+                        status: rStatus,
+                        note: rNote,
+                    }).then(function (res) {
+                        if (res.result && res.result.ok) {
+                            showToast("Status laporan diperbarui.", "success");
+                            openReportDetail(rType, rId);
+                        } else {
+                            showToast((res.result && res.result.error) || "Gagal memperbarui laporan.", "error");
+                        }
+                    });
                 } else if (action === "audit-log-detail") {
                     openAuditLogDetail(logId);
                 } else if (action === "product-action") {

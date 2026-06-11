@@ -147,6 +147,9 @@
                                    href="/unitrade/admin/reports">
                                     <span class="ut-admin-nav-icon"><i class="fa fa-file-text-o" aria-hidden="true"></i></span>
                                     Laporan
+                                    <span t-if="dashboard['counts'].get('user_reports_pending')"
+                                          class="ut-admin-nav-badge"
+                                          t-esc="dashboard['counts'].get('user_reports_pending')"/>
                                 </a>
                                 <div class="ut-admin-nav-section-label">Sistem</div>
                                 <a t-attf-class="ut-admin-nav-item #{'ut-admin-active' if active_page == 'announcements' else ''}"
@@ -3052,45 +3055,24 @@
             </div>
 
             <div class="ut-admin-grid-2 ut-admin-mt">
-                <!-- Laporan Listing Fee -->
+                <!-- Laporan dari Pengguna (per kategori, klik untuk filter daftar di bawah) -->
                 <div class="ut-admin-card ut-admin-card-lg">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-                        <div style="font-size:15px;font-weight:700">Laporan Listing Fee</div>
-                        <span class="ut-admin-badge ut-admin-badge-blue">Fee upload produk</span>
+                        <div style="font-size:15px;font-weight:700">Laporan dari Pengguna</div>
+                        <span class="ut-admin-muted" style="font-size:12px">
+                            Total <t t-esc="report['user_reports']['total']"/> laporan
+                        </span>
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                        <div class="ut-admin-stat-card" style="padding:14px">
-                            <div class="ut-admin-stat-label">Total Intent</div>
-                            <div class="ut-admin-stat-value" style="font-size:22px;color:var(--utad-accent)" t-esc="report['listing_fee']['total']"/>
-                        </div>
-                        <div class="ut-admin-stat-card" style="padding:14px">
-                            <div class="ut-admin-stat-label">Paid</div>
-                            <div class="ut-admin-stat-value" style="font-size:22px;color:var(--utad-green)" t-esc="report['listing_fee']['paid']"/>
-                        </div>
-                        <div class="ut-admin-stat-card" style="padding:14px">
-                            <div class="ut-admin-stat-label">Pending</div>
-                            <div class="ut-admin-stat-value" style="font-size:22px;color:var(--utad-yellow)" t-esc="report['listing_fee']['pending']"/>
-                        </div>
-                        <div class="ut-admin-stat-card" style="padding:14px">
-                            <div class="ut-admin-stat-label">Expired / Failed</div>
-                            <div class="ut-admin-stat-value" style="font-size:22px;color:var(--utad-red)">
-                                <t t-esc="report['listing_fee']['expired'] + report['listing_fee']['failed']"/>
+                        <a t-foreach="report['user_reports']['categories']" t-as="cat"
+                           t-attf-href="/unitrade/admin/reports?category=#{cat['key']}#daftar-laporan"
+                           class="ut-admin-stat-card ut-admin-report-cat-card" style="padding:14px;text-decoration:none;cursor:pointer">
+                            <div class="ut-admin-stat-label" t-esc="cat['label']"/>
+                            <div t-attf-class="ut-admin-stat-value ut-admin-report-color-#{cat['color']}" style="font-size:22px" t-esc="cat['total']"/>
+                            <div class="ut-admin-stat-meta" t-if="cat['pending']">
+                                <t t-esc="cat['pending']"/> menunggu
                             </div>
-                        </div>
-                        <div class="ut-admin-stat-card" style="padding:14px">
-                            <div class="ut-admin-stat-label">Produk Diwaiver</div>
-                            <div class="ut-admin-stat-value" style="font-size:22px;color:var(--utad-purple)" t-esc="report['listing_fee']['waived_products']"/>
-                        </div>
-                        <div class="ut-admin-stat-card" style="padding:14px">
-                            <div class="ut-admin-stat-label">Produk Tidak Wajib Fee</div>
-                            <div class="ut-admin-stat-value" style="font-size:22px;color:var(--utad-accent)" t-esc="report['listing_fee']['not_required_products']"/>
-                        </div>
-                        <div class="ut-admin-stat-card" style="padding:14px">
-                            <div class="ut-admin-stat-label">Revenue Paid</div>
-                            <div class="ut-admin-stat-value" style="font-size:18px;color:var(--utad-green)">
-                                Rp <t t-esc="report['listing_fee']['revenue_display']"/>
-                            </div>
-                        </div>
+                        </a>
                     </div>
                 </div>
 
@@ -3098,15 +3080,130 @@
                 <div class="ut-admin-card ut-admin-card-lg">
                     <div style="font-size:15px;font-weight:700;margin-bottom:8px">Catatan</div>
                     <p style="font-size:13px;color:var(--utad-text-2);line-height:1.6">
-                        Laporan ini dihitung langsung dari data live sesuai kebutuhan F-38:
-                        transaksi, pengguna, produk aktif vs pending, dan refund per status.
-                        Ringkasan listing fee ditambahkan dari kebutuhan F-32 karena biaya upload
-                        produk berpengaruh ke aktivasi listing.
+                        Bagian atas menampilkan ringkasan angka: transaksi, pengguna, produk aktif vs pending,
+                        dan refund per status. Bagian <strong>Daftar Laporan</strong> di bawah menampilkan
+                        semua laporan yang masuk dari pengguna. Klik kartu kategori untuk memfilter daftar.
                     </p>
                     <p style="font-size:13px;color:var(--utad-text-2);line-height:1.6;margin-top:10px">
-                        Gunakan <strong>Export Ringkasan CSV</strong> untuk rekap dosen,
+                        Gunakan <strong>Export Ringkasan CSV</strong> untuk rekap,
                         atau <strong>Export Transaksi CSV</strong> untuk detail order mentah.
                     </p>
+                </div>
+            </div>
+
+            <!-- ===== Daftar Laporan (gabung di halaman yang sama) ===== -->
+            <div id="daftar-laporan" class="ut-admin-mt">
+                <div class="ut-admin-page-header" style="margin-bottom:12px">
+                    <div>
+                        <div class="ut-admin-headline" style="font-size:18px">Daftar Laporan</div>
+                        <div class="ut-admin-subtitle">
+                            Semua laporan yang masuk dari pengguna lintas kategori. Klik "Detail" untuk melihat isi lengkap dan mengambil tindakan.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter kategori + status -->
+                <div class="ut-admin-card" style="padding:14px 16px;margin-bottom:14px">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                        <span class="ut-admin-muted" style="font-size:12px">Kategori:</span>
+                        <a t-attf-href="/unitrade/admin/reports#{('?status=' + report_list['status']) if report_list['status'] else ''}#daftar-laporan"
+                           t-attf-class="ut-admin-task-chip #{'ut-admin-task-chip-active' if not report_list['category'] else ''}">
+                            Semua (<t t-esc="report_list['counts']['total']"/>)
+                        </a>
+                        <a t-foreach="report_list['categories']" t-as="cat"
+                           t-attf-href="/unitrade/admin/reports?category=#{cat['key']}#{('&amp;status=' + report_list['status']) if report_list['status'] else ''}#daftar-laporan"
+                           t-attf-class="ut-admin-task-chip #{'ut-admin-task-chip-active' if report_list['category'] == cat['key'] else ''}">
+                            <t t-esc="cat['label']"/> (<t t-esc="cat['total']"/>)
+                        </a>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px">
+                        <span class="ut-admin-muted" style="font-size:12px">Status:</span>
+                        <a t-attf-href="/unitrade/admin/reports#{('?category=' + report_list['category']) if report_list['category'] else ''}#daftar-laporan"
+                           t-attf-class="ut-admin-task-chip #{'ut-admin-task-chip-active' if not report_list['status'] else ''}">
+                            Semua
+                        </a>
+                        <a t-foreach="report_list['status_options']" t-as="opt"
+                           t-attf-href="/unitrade/admin/reports?status=#{opt['key']}#{('&amp;category=' + report_list['category']) if report_list['category'] else ''}#daftar-laporan"
+                           t-attf-class="ut-admin-task-chip #{'ut-admin-task-chip-active' if report_list['status'] == opt['key'] else ''}">
+                            <t t-esc="opt['label']"/>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Tabel laporan -->
+                <div class="ut-admin-table-wrapper">
+                    <table class="ut-admin-table">
+                        <thead>
+                            <tr>
+                                <th>Pelapor</th>
+                                <th>Kategori</th>
+                                <th>Objek Dilaporkan</th>
+                                <th>Ringkasan</th>
+                                <th>Tanggal</th>
+                                <th>Status</th>
+                                <th style="text-align:right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-if="not report_list['rows']">
+                                <td colspan="7" style="text-align:center;padding:32px;color:var(--utad-muted)">
+                                    Tidak ada laporan sesuai filter.
+                                </td>
+                            </tr>
+                            <tr t-foreach="report_list['rows']" t-as="row">
+                                <td t-esc="row['reporter']"/>
+                                <td>
+                                    <span class="ut-admin-badge ut-admin-badge-blue" t-esc="row['type_label']"/>
+                                </td>
+                                <td t-esc="row['target']"/>
+                                <td>
+                                    <div style="font-size:12px;color:var(--utad-text-2);max-width:360px" t-esc="row['summary']"/>
+                                </td>
+                                <td t-esc="row['date_label']"/>
+                                <td>
+                                    <span t-attf-class="ut-admin-badge ut-admin-badge-#{row['status_badge']}" t-esc="row['status_label']"/>
+                                </td>
+                                <td style="text-align:right">
+                                    <button type="button"
+                                            class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs"
+                                            data-action="report-detail"
+                                            t-att-data-report-type="row['type']"
+                                            t-att-data-report-id="row['report_id']">
+                                        Detail
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="ut-admin-pagination" t-if="report_list['pager']['total_pages'] > 1">
+                    <span style="color:var(--utad-muted);font-size:12px">
+                        Halaman <t t-esc="report_list['pager']['page']"/> dari
+                        <t t-esc="report_list['pager']['total_pages']"/>
+                        (<t t-esc="report_list['pager']['total']"/> item)
+                    </span>
+                    <div style="display:flex;gap:6px">
+                        <a t-if="report_list['pager']['has_prev']"
+                           t-attf-href="/unitrade/admin/reports?category=#{report_list['category']}&amp;status=#{report_list['status']}&amp;rpage=#{report_list['pager']['prev_page']}#daftar-laporan"
+                           class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs">‹ Prev</a>
+                        <a t-if="report_list['pager']['has_next']"
+                           t-attf-href="/unitrade/admin/reports?category=#{report_list['category']}&amp;status=#{report_list['status']}&amp;rpage=#{report_list['pager']['next_page']}#daftar-laporan"
+                           class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs">Next ›</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal detail laporan -->
+            <div class="ut-admin-modal-overlay" id="utAdminReportModal">
+                <div class="ut-admin-modal">
+                    <div class="ut-admin-modal-header">
+                        <span>Detail Laporan</span>
+                        <button type="button" class="ut-admin-modal-close" data-modal-close="utAdminReportModal">×</button>
+                    </div>
+                    <div class="ut-admin-modal-body" id="utAdminReportModalBody">
+                        <div style="text-align:center;color:var(--utad-muted);padding:40px">Memuat...</div>
+                    </div>
                 </div>
             </div>
         </t>

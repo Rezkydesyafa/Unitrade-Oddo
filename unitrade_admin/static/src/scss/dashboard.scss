@@ -2120,3 +2120,20 @@
         .ut-admin-livechat-room { min-height: 480px; }
     }
 }
+
+/* ==== Daftar Laporan (report list) ==== */
+.ut-admin-root {
+    .ut-admin-report-cat-card {
+        transition: box-shadow 0.15s ease, transform 0.15s ease;
+    }
+    .ut-admin-report-cat-card:hover {
+        box-shadow: var(--utad-shadow-md);
+        transform: translateY(-2px);
+    }
+    .ut-admin-report-color-purple { color: var(--utad-purple); }
+    .ut-admin-report-color-red    { color: var(--utad-red); }
+    .ut-admin-report-color-blue   { color: var(--utad-blue); }
+    .ut-admin-report-color-yellow { color: var(--utad-yellow); }
+    .ut-admin-report-color-green  { color: var(--utad-green); }
+    .ut-admin-report-color-gray   { color: var(--utad-text-2); }
+}
