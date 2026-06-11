@@ -39,7 +39,17 @@
                 <span t-att-class="'tw-text-[20px] %s' % ('tw-text-black' if active_account_page == 'settings' else '')">Pengaturan</span>
             </a>
             <div class="tw-flex-1"></div>
-            <a href="/web/session/logout?redirect=/" class="ut-user-profile-logout tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-red-600 tw-no-underline">
+            <a href="/" class="ut-user-profile-menu tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-[#525252] tw-no-underline" title="Kembali ke Beranda" aria-label="Kembali ke Beranda">
+                <span class="ut-user-profile-menu-icon tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-[#f5f5f7]">
+                    <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m3 11 9-8 9 8"/>
+                        <path d="M5 10v10h14V10"/>
+                        <path d="M9 20v-6h6v6"/>
+                    </svg>
+                </span>
+                <span class="tw-text-[18px]">Ke Beranda</span>
+            </a>
+            <a href="/web/session/logout?redirect=/" class="ut-user-profile-logout tw-mt-5 tw-flex tw-h-[47px] tw-items-center tw-gap-5 tw-text-red-600 tw-no-underline">
                 <span class="tw-flex tw-h-[47px] tw-w-[47px] tw-items-center tw-justify-center tw-rounded-full tw-bg-red-600 tw-text-white">
                     <svg class="tw-h-5 tw-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -299,10 +309,10 @@
                                         <div class="ut-address-label-group">
                                             <p>Tandai Sebagai</p>
                                             <div class="ut-address-label-row" role="radiogroup" aria-label="Label alamat">
-                                                <button type="button" class="ut-address-label is-active" data-address-label="home">Rumah</button>
-                                                <button type="button" class="ut-address-label" data-address-label="office">Kantor</button>
-                                                <button type="button" class="ut-address-label" data-address-label="school">Sekolah</button>
-                                                <button type="button" class="ut-address-label" data-address-label="other">Lainnya</button>
+                                                <button type="button" class="ut-address-label" data-address-label="home" role="radio" aria-checked="false">Rumah</button>
+                                                <button type="button" class="ut-address-label" data-address-label="office" role="radio" aria-checked="false">Kantor</button>
+                                                <button type="button" class="ut-address-label" data-address-label="school" role="radio" aria-checked="false">Sekolah</button>
+                                                <button type="button" class="ut-address-label" data-address-label="other" role="radio" aria-checked="false">Lainnya</button>
                                             </div>
                                         </div>
 

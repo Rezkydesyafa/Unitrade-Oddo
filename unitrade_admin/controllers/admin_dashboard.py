@@ -723,6 +723,12 @@ class UnitradeAdminController(http.Controller):
             return {'ok': False, 'error': 'forbidden'}
         return self._stats().admin_reset_seller_to_draft(seller_id)
 
+    @http.route('/unitrade/admin/api/sellers/revoke', type='json', auth='user')
+    def api_revoke_seller(self, seller_id, reason='', **kwargs):
+        if not self._is_admin():
+            return {'ok': False, 'error': 'forbidden'}
+        return self._stats().admin_revoke_seller(seller_id, reason)
+
     @http.route('/unitrade/admin/api/users/note', type='json', auth='user')
     def api_save_user_note(self, user_id, note='', **kwargs):
         if not self._is_admin():

@@ -413,13 +413,13 @@ class KTMOCRService:
 
         return {
             'matched': best_score >= 0.86,
-            'reviewable': best_score >= 0.72,
-            'token': best_token if best_score >= 0.72 else '',
+            'reviewable': best_score >= 0.40,
+            'token': best_token if best_score >= 0.40 else '',
             'score': best_score,
         }
 
     @classmethod
-    def process_ktm(cls, env, image_bytes):
+    def process_ktm(cls, env, image_bytes, account_name=''):
         """
         Full KTM verification pipeline using subprocess for OCR.
         1. Run OCR via subprocess (ocr_runner.py)
@@ -427,6 +427,7 @@ class KTMOCRService:
         3. Detect name
         4. Extract NIM
         5. Check NIM in database
+        6. Check account ownership (nama akun login harus muncul di KTM)
         """
         result = {
             'ocr_text': '',
@@ -438,6 +439,8 @@ class KTMOCRService:
             'student_name': None,
             'name_match_token': '',
             'name_match_score': 0.0,
+            'account_name_match_token': '',
+            'account_name_match_score': 0.0,
             'db_method': 'none',
             'verification_status': 'rejected',
             'reason': '',
@@ -460,9 +463,9 @@ class KTMOCRService:
             result['ocr_text'] = raw_text
 
             if not raw_text.strip():
-                result['verification_status'] = 'invalid_image'
+                result['verification_status'] = 'rejected'
                 result['reason'] = 'ocr_empty'
-                _logger.info('[PIPELINE] ❌ OCR returned empty text.')
+                _logger.info('[PIPELINE] ❌ OCR kosong, gambar bukan KTM / tidak terbaca.')
                 return result
 
             # Step 2: Validate KTM keywords
@@ -470,9 +473,9 @@ class KTMOCRService:
             result['is_ktm'] = is_ktm
 
             if not is_ktm:
-                result['verification_status'] = 'invalid_image'
+                result['verification_status'] = 'rejected'
                 result['reason'] = 'no_ktm_keywords'
-                _logger.info('[PIPELINE] ❌ No KTM keywords found.')
+                _logger.info('[PIPELINE] ❌ Gambar bukan KTM (tidak ada keyword KTM).')
                 return result
 
             # Step 3: Detect name for diagnostics. Approval still requires NIM + DB student token.
@@ -491,9 +494,11 @@ class KTMOCRService:
             result['nim'] = nim
 
             if not nim:
-                result['verification_status'] = 'rejected'
+                # KTM keyword sudah valid, kemungkinan NIM ke-crop / blur sebagian.
+                # Serahkan ke admin untuk review manual, jangan langsung tolak.
+                result['verification_status'] = 'manual_review'
                 result['reason'] = 'nim_not_extracted'
-                _logger.info('[PIPELINE] NIM not found. Seller verification requires NIM + name token.')
+                _logger.info('[PIPELINE] MANUAL REVIEW: NIM tidak terbaca tapi KTM valid, perlu cek admin.')
                 return result
 
             # Step 5: Check NIM in database
@@ -529,13 +534,38 @@ class KTMOCRService:
                 result['verification_status'] = 'approved'
                 result['reason'] = 'nim_and_name_token_matched'
                 _logger.info(
-                    '[PIPELINE] APPROVED: NIM=%s, Student=%s, Method=%s',
+                    '[PIPELINE] NIM+nama student cocok: NIM=%s, Student=%s, Method=%s',
                     nim, db_result['student'].name, db_result['method'],
                 )
+
+                # Step 6: Cek kepemilikan — minimal satu token nama akun login
+                # harus muncul di KTM. Kalau tidak, jangan auto-approve.
+                if account_name:
+                    account_match = cls.match_student_name_token(account_name, raw_text)
+                    result['account_name_match_token'] = account_match['token']
+                    result['account_name_match_score'] = account_match['score']
+                    if not account_match['matched']:
+                        result['verification_status'] = 'manual_review'
+                        result['reason'] = 'account_name_mismatch'
+                        _logger.info(
+                            '[PIPELINE] MANUAL REVIEW: nama akun "%s" tidak cocok dengan KTM (score %.2f). '
+                            'Perlu cek admin apakah KTM milik akun ini.',
+                            account_name,
+                            account_match['score'],
+                        )
+                        return result
+                    _logger.info(
+                        '[PIPELINE] APPROVED: kepemilikan terbukti, token akun "%s" ada di KTM.',
+                        account_match['token'],
+                    )
+                else:
+                    _logger.info('[PIPELINE] APPROVED tanpa cek kepemilikan (nama akun kosong).')
             else:
-                result['verification_status'] = 'rejected'
+                # NIM valid tapi belum ada di DB bisa karena data mahasiswa belum lengkap
+                # atau mahasiswa baru. Serahkan ke admin, jangan langsung tolak.
+                result['verification_status'] = 'manual_review'
                 result['reason'] = 'nim_not_in_db'
-                _logger.info('[PIPELINE] REJECTED: NIM=%s not found in unisa.student.', nim)
+                _logger.info('[PIPELINE] MANUAL REVIEW: NIM=%s belum ada di unisa.student, perlu cek admin.', nim)
 
             _logger.info('=' * 60)
             _logger.info('[PIPELINE] Final: %s', {

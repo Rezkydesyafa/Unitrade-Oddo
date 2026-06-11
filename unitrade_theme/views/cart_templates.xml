@@ -573,15 +573,47 @@
                 form[name="coupon_code"] .a-submit:hover { background: #e2e2e4 !important; }
 
                 /* ── Empty cart state ───────────────────────────────── */
-                .js_cart_lines.alert.alert-info {
-                    border-radius: 16px !important;
+                .ut-cart-empty-state {
+                    width: 100%;
+                    max-width: 760px;
+                    min-height: clamp(260px, 34vh, 380px);
+                    display: flex !important;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 18px;
+                    border-radius: 18px !important;
                     border: 1px solid #f0f0f0 !important;
-                    background: #fff !important;
-                    color: #555 !important;
+                    background: #ffffff !important;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+                    color: #212529 !important;
                     font-family: 'Urbanist', sans-serif !important;
-                    padding: 32px !important;
+                    padding: 48px 28px !important;
                     text-align: center !important;
-                    font-size: 16px !important;
+                }
+                .ut-cart-empty-icon {
+                    width: 76px;
+                    height: 76px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex: 0 0 76px;
+                    border-radius: 999px;
+                    background: #f5f5f7;
+                    color: #212529;
+                }
+                .ut-cart-empty-icon svg {
+                    width: 38px;
+                    height: 38px;
+                    display: block;
+                }
+                .ut-cart-empty-title {
+                    max-width: 420px;
+                    margin: 0;
+                    color: #212529;
+                    font-size: 18px;
+                    font-weight: 700;
+                    line-height: 1.45;
                 }
                 .ut-cart-stock-alert {
                     border-radius: 16px;
@@ -703,6 +735,25 @@
                         order: 3;
                         width: 100%;
                         max-width: 100%;
+                    }
+                    .ut-cart-empty-state {
+                        max-width: 100%;
+                        min-height: 260px;
+                        gap: 16px;
+                        border-radius: 16px !important;
+                        padding: 40px 18px !important;
+                    }
+                    .ut-cart-empty-icon {
+                        width: 68px;
+                        height: 68px;
+                        flex-basis: 68px;
+                    }
+                    .ut-cart-empty-icon svg {
+                        width: 34px;
+                        height: 34px;
+                    }
+                    .ut-cart-empty-title {
+                        font-size: 16px;
                     }
                 }
 
@@ -876,8 +927,25 @@
     ================================================================ -->
     <template id="unitrade_cart_lines_indonesian" inherit_id="website_sale.cart_lines" name="UniTrade Cart Lines Indonesian">
         <xpath expr="//div[hasclass('js_cart_lines') and hasclass('alert-info')]" position="replace">
-            <div t-if="not website_sale_order or not website_sale_order.website_order_line" class="js_cart_lines alert alert-info">
-                Keranjang Anda kosong.
+            <div t-if="not website_sale_order or not website_sale_order.website_order_line"
+                 class="js_cart_lines alert alert-info ut-cart-empty-state"
+                 role="status"
+                 aria-live="polite">
+                <span class="ut-cart-empty-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.8"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+                        <circle cx="9" cy="20" r="1.5"/>
+                        <circle cx="18" cy="20" r="1.5"/>
+                        <path d="M3 4h2l2.4 11.4a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 8H7"/>
+                        <path d="M10 11h6"/>
+                    </svg>
+                </span>
+                <p class="ut-cart-empty-title">Yahh keranjangmu masih kosong, ayo belajar !</p>
             </div>
         </xpath>
         <xpath expr="//div[hasclass('alert-warning')]/strong" position="replace">

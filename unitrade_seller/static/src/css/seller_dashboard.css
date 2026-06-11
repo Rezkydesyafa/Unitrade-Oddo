@@ -223,6 +223,7 @@ body.ut-has-seller-dashboard-page {
 .ut-seller-notification-tabs button.is-active {
     background: #212529;
     color: #ffffff;
+    text-decoration: none;
 }
 
 .ut-seller-notification-tabs button[data-action="read-all"] {
@@ -233,6 +234,7 @@ body.ut-has-seller-dashboard-page {
 .ut-seller-notification-tabs button[data-action="read-all"]:hover {
     background: #eff6ff;
     color: #1d4ed8;
+    text-decoration: none;
 }
 
 .ut-seller-notification-list {
@@ -264,10 +266,29 @@ body.ut-has-seller-dashboard-page {
     font-family: Urbanist, Inter, sans-serif;
     padding: 12px 18px;
     text-align: left;
+    text-decoration: none;
 }
 
 .ut-seller-notification-item:hover {
     background: #f8fafc;
+    text-decoration: none;
+}
+
+.ut-seller-notification-tabs button,
+.ut-seller-notification-tabs button:hover,
+.ut-seller-notification-tabs button:focus-visible,
+.ut-seller-notification-tabs button:active,
+.ut-seller-notification-item,
+.ut-seller-notification-item:hover,
+.ut-seller-notification-item:focus-visible,
+.ut-seller-notification-item:active,
+.ut-seller-notification-item:hover .ut-seller-notification-body strong,
+.ut-seller-notification-item:hover .ut-seller-notification-body span,
+.ut-seller-notification-item:hover .ut-seller-notification-body small,
+.ut-seller-notification-item:focus-visible .ut-seller-notification-body strong,
+.ut-seller-notification-item:focus-visible .ut-seller-notification-body span,
+.ut-seller-notification-item:focus-visible .ut-seller-notification-body small {
+    text-decoration: none !important;
 }
 
 .ut-seller-notification-item.is-unread {

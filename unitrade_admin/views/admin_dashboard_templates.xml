@@ -660,6 +660,13 @@
                                             data-action="reset-seller">
                                         Reset Draft
                                     </button>
+                                    <button t-if="row['seller_status'] == 'verified' and row['seller_id']"
+                                            type="button"
+                                            class="ut-admin-btn ut-admin-btn-danger ut-admin-btn-xs"
+                                            t-att-data-seller-id="row['seller_id']"
+                                            data-action="revoke-seller">
+                                        Lepas Status
+                                    </button>
                                     <button t-if="not row['is_blocked']"
                                             type="button"
                                             class="ut-admin-btn ut-admin-btn-danger ut-admin-btn-xs"

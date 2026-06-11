@@ -104,15 +104,26 @@
                                 </div>
                             </t>
                             <t t-if="verification and verification.state == 'manual_review'">
-                                <div class="tw-bg-amber-50 tw-border tw-border-amber-200 tw-rounded-[12px] tw-px-4 tw-py-3 tw-mb-4 tw-flex tw-items-center tw-gap-3">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <line x1="12" y1="8" x2="12" y2="12"></line>
-                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                                    </svg>
-                                    <span class="tw-font-['Urbanist'] tw-font-medium tw-text-[13px] tw-text-amber-700">
-                                        Pengajuan Anda sedang direview manual admin.
-                                    </span>
+                                <div class="tw-bg-amber-50 tw-border tw-border-amber-300 tw-rounded-[16px] tw-px-5 tw-py-4 tw-mb-4">
+                                    <div class="tw-flex tw-items-start tw-gap-3">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tw-shrink-0 tw-mt-0.5">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                        </svg>
+                                        <div class="tw-flex-1">
+                                            <p class="tw-font-['Urbanist'] tw-font-bold tw-text-[15px] tw-text-amber-800 tw-m-0">
+                                                Pengajuan sedang direview admin
+                                            </p>
+                                            <p class="tw-font-['Urbanist'] tw-text-[13px] tw-text-amber-700 tw-mt-1 tw-mb-0 tw-leading-relaxed">
+                                                KTM Anda sudah kami terima dan sedang diverifikasi manual.
+                                                <t t-if="verification.nim_extracted">
+                                                    NIM terbaca: <b t-esc="verification.nim_extracted"/>.
+                                                </t>
+                                                Estimasi review <b>1-2 hari kerja</b>. Anda <b>tidak perlu upload ulang</b> — hasil akan dikirim ke email Anda.
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
                             </t>
 
@@ -186,7 +197,7 @@
                                 </div>
                                 
                                 <!-- Dropzone -->
-                                <div class="tw-relative tw-w-full tw-h-[180px] md:tw-h-[220px] tw-bg-[rgba(0,0,0,0.02)] tw-border-2 tw-border-dashed tw-border-[rgba(0,0,0,0.53)] tw-rounded-[16px] tw-flex tw-flex-col tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-[rgba(0,0,0,0.04)] tw-transition-colors tw-group tw-overflow-hidden" onclick="document.getElementById('ktm_file').click()">
+                                <div t-attf-class="tw-relative tw-w-full tw-h-[180px] md:tw-h-[220px] tw-bg-[rgba(0,0,0,0.02)] tw-border-2 tw-border-dashed tw-border-[rgba(0,0,0,0.53)] tw-rounded-[16px] tw-flex tw-flex-col tw-items-center tw-justify-center #{'tw-cursor-not-allowed tw-opacity-60' if verification and verification.state == 'manual_review' else 'tw-cursor-pointer hover:tw-bg-[rgba(0,0,0,0.04)]'} tw-transition-colors tw-group tw-overflow-hidden" t-att-onclick="None if (verification and verification.state == 'manual_review') else &quot;document.getElementById('ktm_file').click()&quot;">
                                     
                                     <input type="file" id="ktm_file" name="ktm_file" accept="image/jpeg,image/png" class="tw-hidden" required="required" onchange="previewImage(this)"/>
                                     
@@ -227,9 +238,10 @@
                                 </p>
 
                                 <!-- Submit Button -->
-                                <button type="submit" id="btn_submit" class="tw-w-full tw-h-[44px] md:tw-h-[48px] tw-bg-[#1a1a1a] tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mt-6 hover:tw-bg-black tw-transition-colors tw-cursor-pointer tw-border-none">
+                                <button type="submit" id="btn_submit" t-att-disabled="'disabled' if (verification and verification.state == 'manual_review') else None" t-attf-class="tw-w-full tw-h-[44px] md:tw-h-[48px] tw-rounded-[24px] tw-flex tw-justify-center tw-items-center tw-mt-6 tw-transition-colors tw-border-none #{'tw-bg-gray-300 tw-cursor-not-allowed' if verification and verification.state == 'manual_review' else 'tw-bg-[#1a1a1a] hover:tw-bg-black tw-cursor-pointer'}">
                                     <span id="btn_text" class="tw-font-['Urbanist'] tw-font-normal tw-text-[13px] md:tw-text-[14px] tw-text-white tw-uppercase tw-font-bold tw-tracking-widest">
-                                        UPLOAD KTM
+                                        <t t-if="verification and verification.state == 'manual_review'">SEDANG DIREVIEW</t>
+                                        <t t-else="">UPLOAD KTM</t>
                                     </span>
                                     <!-- Spinner (hidden by default) -->
                                     <svg id="btn_spinner" class="tw-hidden tw-animate-spin tw-h-5 tw-w-5 tw-text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -237,6 +249,22 @@
                                         <path class="tw-opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
                                 </button>
+
+                                <!-- OCR Progress Steps -->
+                                <div id="ocr_progress" class="tw-hidden tw-mt-4 tw-rounded-[16px] tw-bg-[#f8fafc] tw-border tw-border-[#e5e7eb] tw-px-4 tw-py-4">
+                                    <div class="tw-flex tw-items-center tw-gap-3 tw-mb-3" data-ocr-step="1">
+                                        <span class="ocr-step-dot tw-flex tw-size-6 tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#e5e7eb] tw-text-[11px] tw-font-bold tw-text-[#6b7280]">1</span>
+                                        <span class="ocr-step-label tw-font-['Urbanist'] tw-text-[13px] tw-text-[#6b7280]">Membaca teks KTM...</span>
+                                    </div>
+                                    <div class="tw-flex tw-items-center tw-gap-3 tw-mb-3" data-ocr-step="2">
+                                        <span class="ocr-step-dot tw-flex tw-size-6 tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#e5e7eb] tw-text-[11px] tw-font-bold tw-text-[#6b7280]">2</span>
+                                        <span class="ocr-step-label tw-font-['Urbanist'] tw-text-[13px] tw-text-[#6b7280]">Memverifikasi NIM...</span>
+                                    </div>
+                                    <div class="tw-flex tw-items-center tw-gap-3" data-ocr-step="3">
+                                        <span class="ocr-step-dot tw-flex tw-size-6 tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#e5e7eb] tw-text-[11px] tw-font-bold tw-text-[#6b7280]">3</span>
+                                        <span class="ocr-step-label tw-font-['Urbanist'] tw-text-[13px] tw-text-[#6b7280]">Menyiapkan hasil...</span>
+                                    </div>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -249,9 +277,15 @@
                             <div id="popup_icon" class="ut-verification-result-icon" aria-hidden="true"></div>
                             <h3 id="popup_title" class="ut-verification-result-title"></h3>
                             <p id="popup_message" class="ut-verification-result-message"></p>
-                            <button type="button" onclick="closePopup()" class="ut-verification-result-button tw-bg-[#1a1a1a] hover:tw-bg-black tw-text-white tw-border-none tw-cursor-pointer">
-                                OK
-                            </button>
+                            <div id="popup_extra" class="tw-hidden tw-w-full tw-px-6"></div>
+                            <div class="tw-flex tw-flex-col tw-gap-2 tw-w-full tw-px-6 tw-items-center">
+                                <a id="popup_status_btn" href="/seller-verification" class="tw-hidden tw-w-full tw-max-w-[260px] tw-h-[44px] tw-flex tw-items-center tw-justify-center tw-rounded-[24px] tw-bg-[#5155fa] hover:tw-bg-[#3f43d6] tw-text-white tw-no-underline tw-font-semibold tw-text-[14px] tw-transition-colors">
+                                    Lihat Status
+                                </a>
+                                <button type="button" onclick="closePopup()" class="ut-verification-result-button tw-bg-[#1a1a1a] hover:tw-bg-black tw-text-white tw-border-none tw-cursor-pointer">
+                                    OK
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -337,6 +371,7 @@
                                 btnSpinner.classList.remove('tw-hidden');
                                 btnSubmit.disabled = true;
                                 btnSubmit.classList.add('tw-opacity-70');
+                                startOcrProgress();
 
                                 var formData = new FormData(form);
 
@@ -347,21 +382,26 @@
                                 .then(function(response) { return response.json(); })
                                 .then(function(data) {
                                     // Reset button
+                                    stopOcrProgress();
                                     btnText.textContent = 'UPLOAD KTM';
                                     btnSpinner.classList.add('tw-hidden');
                                     btnSubmit.disabled = false;
                                     btnSubmit.classList.remove('tw-opacity-70');
 
                                     if (data.status === 'approved') {
-                                        showPopup('success', 'Verifikasi Berhasil ✅', data.message || 'Pengajuan verifikasi berhasil.');
+                                        showPopup('success', 'Verifikasi Berhasil', data.message || 'Pengajuan verifikasi berhasil.');
                                     } else if (data.status === 'manual_review') {
-                                        showPopup('manual_review', 'Masuk Review Manual', data.message || 'Pengajuan Anda sedang direview admin.');
+                                        showPopup('manual_review', 'Masuk Review Manual', data.message || 'Pengajuan Anda sedang direview admin.', { nim: data.nim, showStatus: true });
                                     } else if (data.status === 'otp_required') {
                                         window.location.href = data.redirect_url || '/seller-onboarding';
                                     } else if (data.status === 'rate_limited') {
                                         showPopup('warning', 'Terlalu Banyak Percobaan', data.message || 'Coba lagi beberapa menit lagi.');
                                     } else if (data.status === 'rejected') {
-                                        showPopup('rejected', 'Pengajuan Ditolak ❌', data.message || 'Pastikan Anda mahasiswa UNISA.');
+                                        if (data.reason === 'no_ktm_keywords' || data.reason === 'ocr_empty') {
+                                            showPopup('rejected', 'Gambar Bukan KTM', data.message || 'Gambar yang Anda input bukan KTM.');
+                                        } else {
+                                            showPopup('rejected', 'Pengajuan Ditolak', data.message || 'Pastikan Anda mahasiswa UNISA.');
+                                        }
                                     } else if (data.status === 'invalid_image') {
                                         showPopup('warning', 'Gambar Tidak Sesuai', data.message || 'Coba lagi dengan foto KTM yang benar.');
                                     } else if (data.status === 'no_name') {
@@ -371,6 +411,7 @@
                                     }
                                 })
                                 .catch(function(err) {
+                                    stopOcrProgress();
                                     btnText.textContent = 'UPLOAD KTM';
                                     btnSpinner.classList.add('tw-hidden');
                                     btnSubmit.disabled = false;
@@ -480,12 +521,53 @@
                             });
                         }
 
+                        /* ===== OCR Progress Steps ===== */
+                        var _ocrProgressTimers = [];
+                        function _setOcrStep(step, status) {
+                            var row = document.querySelector('[data-ocr-step="' + step + '"]');
+                            if (!row) return;
+                            var dot = row.querySelector('.ocr-step-dot');
+                            var label = row.querySelector('.ocr-step-label');
+                            if (status === 'active') {
+                                dot.className = 'ocr-step-dot tw-flex tw-size-6 tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#5155fa] tw-text-[11px] tw-font-bold tw-text-white tw-animate-pulse';
+                                label.className = 'ocr-step-label tw-font-[\'Urbanist\'] tw-text-[13px] tw-font-semibold tw-text-[#212529]';
+                            } else if (status === 'done') {
+                                dot.className = 'ocr-step-dot tw-flex tw-size-6 tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#20c74f] tw-text-[11px] tw-font-bold tw-text-white';
+                                dot.textContent = '✓';
+                                label.className = 'ocr-step-label tw-font-[\'Urbanist\'] tw-text-[13px] tw-text-[#16a34a]';
+                            }
+                        }
+                        function startOcrProgress() {
+                            var box = document.getElementById('ocr_progress');
+                            if (!box) return;
+                            box.classList.remove('tw-hidden');
+                            [1, 2, 3].forEach(function(s) {
+                                var row = document.querySelector('[data-ocr-step="' + s + '"]');
+                                if (!row) return;
+                                var dot = row.querySelector('.ocr-step-dot');
+                                dot.className = 'ocr-step-dot tw-flex tw-size-6 tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#e5e7eb] tw-text-[11px] tw-font-bold tw-text-[#6b7280]';
+                                dot.textContent = String(s);
+                                row.querySelector('.ocr-step-label').className = 'ocr-step-label tw-font-[\'Urbanist\'] tw-text-[13px] tw-text-[#6b7280]';
+                            });
+                            _setOcrStep(1, 'active');
+                            _ocrProgressTimers.push(setTimeout(function() { _setOcrStep(1, 'done'); _setOcrStep(2, 'active'); }, 1500));
+                            _ocrProgressTimers.push(setTimeout(function() { _setOcrStep(2, 'done'); _setOcrStep(3, 'active'); }, 3200));
+                        }
+                        function stopOcrProgress() {
+                            _ocrProgressTimers.forEach(function(t) { clearTimeout(t); });
+                            _ocrProgressTimers = [];
+                            var box = document.getElementById('ocr_progress');
+                            if (box) box.classList.add('tw-hidden');
+                        }
+
                         /* ===== Popup Functions ===== */
-                        function showPopup(type, title, message) {
+                        function showPopup(type, title, message, extra) {
                             var popup = document.getElementById('result_popup');
                             var iconEl = document.getElementById('popup_icon');
                             var titleEl = document.getElementById('popup_title');
                             var msgEl = document.getElementById('popup_message');
+                            var extraEl = document.getElementById('popup_extra');
+                            var statusBtn = document.getElementById('popup_status_btn');
                             var popupType = type || 'error';
                             var popupConfig = {
                                 success: {
@@ -517,10 +599,26 @@
 
                             popup.classList.remove('ut-verification-result-success', 'ut-verification-result-warning', 'ut-verification-result-manual_review', 'ut-verification-result-rejected', 'ut-verification-result-error');
                             popup.classList.add('ut-verification-result-' + popupType);
-                            titleEl.textContent = popupConfig.title || title || 'Terjadi Kesalahan';
-                            msgEl.textContent = popupConfig.message || message || 'Silakan coba lagi.';
+                            titleEl.textContent = title || popupConfig.title || 'Terjadi Kesalahan';
+                            msgEl.textContent = message || popupConfig.message || 'Silakan coba lagi.';
                             iconEl.className = 'ut-verification-result-icon';
                             iconEl.innerHTML = popupConfig.icon || '';
+
+                            // Extra info (NIM + tombol Lihat Status) untuk manual_review
+                            extra = extra || {};
+                            if (extraEl) {
+                                if (extra.nim) {
+                                    extraEl.innerHTML = '<div class="tw-mt-3 tw-rounded-[14px] tw-bg-[#f8fafc] tw-border tw-border-[#e5e7eb] tw-px-4 tw-py-3 tw-text-left"><p class="tw-m-0 tw-text-[12px] tw-text-[#6b7280]">NIM terbaca</p><p class="tw-m-0 tw-text-[16px] tw-font-bold tw-text-[#212529]">' + extra.nim + '</p><p class="tw-mt-2 tw-mb-0 tw-text-[12px] tw-text-[#6b7280] tw-leading-relaxed">Kamu tidak perlu upload ulang. Kami akan kirim email setelah review selesai (estimasi 1-2 hari kerja).</p></div>';
+                                    extraEl.classList.remove('tw-hidden');
+                                } else {
+                                    extraEl.innerHTML = '';
+                                    extraEl.classList.add('tw-hidden');
+                                }
+                            }
+                            if (statusBtn) {
+                                statusBtn.classList.toggle('tw-hidden', !extra.showStatus);
+                            }
+
                             popup.setAttribute('aria-hidden', 'false');
                             popup.classList.remove('tw-hidden');
                             return;

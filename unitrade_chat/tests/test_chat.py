@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime
 from unittest.mock import patch
 
 from odoo.exceptions import AccessError, UserError, ValidationError
@@ -97,6 +98,26 @@ class TestUnitradeChat(TransactionCase):
         self.assertFalse(buyer_message._message_payload(self.seller_user)['is_mine'])
         self.assertTrue(seller_message._message_payload(self.seller_user)['is_mine'])
         self.assertFalse(seller_message._message_payload(self.buyer)['is_mine'])
+
+    def test_message_payload_time_uses_wib(self):
+        conversation = self.env['unitrade.chat.conversation'].with_user(self.buyer).open_for_seller(
+            seller_id=self.seller.id,
+        )
+        message = self.env['unitrade.chat.message'].with_user(self.buyer).create_from_controller(
+            conversation,
+            {'message_type': 'text', 'body': 'Cek waktu WIB'},
+        )
+        fixed_utc = datetime(2026, 6, 11, 9, 23, 0)
+        self.env.cr.execute(
+            'UPDATE unitrade_chat_message SET create_date = %s WHERE id = %s',
+            [fixed_utc, message.id],
+        )
+        message.invalidate_recordset(['create_date'])
+
+        payload = message._message_payload(self.buyer)
+
+        self.assertEqual(payload['time'], '16:23 WIB')
+        self.assertEqual(payload['date'], '11 Juni 2026')
 
     def test_message_is_not_read_until_receiver_marks_visible_message(self):
         conversation = self.env['unitrade.chat.conversation'].sudo().create({

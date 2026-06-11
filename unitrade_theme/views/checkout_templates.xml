@@ -1292,10 +1292,10 @@
                                 <div class="ut-address-label-group">
                                     <p>Tandai Sebagai</p>
                                     <div class="ut-address-label-row" role="radiogroup" aria-label="Label alamat">
-                                        <button type="button" class="ut-address-label is-active" data-address-label="home">Rumah</button>
-                                        <button type="button" class="ut-address-label" data-address-label="office">Kantor</button>
-                                        <button type="button" class="ut-address-label" data-address-label="school">Sekolah</button>
-                                        <button type="button" class="ut-address-label" data-address-label="other">Lainnya</button>
+                                        <button type="button" class="ut-address-label" data-address-label="home" role="radio" aria-checked="false">Rumah</button>
+                                        <button type="button" class="ut-address-label" data-address-label="office" role="radio" aria-checked="false">Kantor</button>
+                                        <button type="button" class="ut-address-label" data-address-label="school" role="radio" aria-checked="false">Sekolah</button>
+                                        <button type="button" class="ut-address-label" data-address-label="other" role="radio" aria-checked="false">Lainnya</button>
                                     </div>
                                 </div>
 

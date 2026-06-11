@@ -52,16 +52,42 @@
                             <div id="max-tooltip" class="tw-bg-black tw-text-white tw-px-3 tw-py-1 tw-rounded-full tw-font-['Urbanist'] tw-font-bold tw-text-[11px]" t-att-style="maxTooltipStyle">
                                 <t t-esc="formatK(state.draft.maxK)"/>
                             </div>
-                            <input type="range" id="min-price" min="0" max="10000" t-att-value="state.draft.minK" step="10" class="custom-range-slider" style="position:absolute; top:50%; transform:translateY(-50%); width:100%; height:10px; -webkit-appearance:none; appearance:none; background:transparent; pointer-events:none; z-index:10; margin:0; outline:none;" t-on-input="onMinInput"/>
-                            <input type="range" id="max-price" min="0" max="10000" t-att-value="state.draft.maxK" step="10" class="custom-range-slider" style="position:absolute; top:50%; transform:translateY(-50%); width:100%; height:10px; -webkit-appearance:none; appearance:none; background:transparent; pointer-events:none; z-index:11; margin:0; outline:none;" t-on-input="onMaxInput"/>
+                            <input type="range" id="min-price" min="0" max="10000" t-att-value="state.draft.minK" step="5" class="custom-range-slider" style="position:absolute; top:50%; transform:translateY(-50%); width:100%; height:10px; -webkit-appearance:none; appearance:none; background:transparent; pointer-events:none; z-index:10; margin:0; outline:none;" t-on-input="onMinInput"/>
+                            <input type="range" id="max-price" min="0" max="10000" t-att-value="state.draft.maxK" step="5" class="custom-range-slider" style="position:absolute; top:50%; transform:translateY(-50%); width:100%; height:10px; -webkit-appearance:none; appearance:none; background:transparent; pointer-events:none; z-index:11; margin:0; outline:none;" t-on-input="onMaxInput"/>
                             <input type="hidden" name="min_price" id="odoo-min-price" t-att-value="state.draft.minK * 1000"/>
                             <input type="hidden" name="max_price" id="odoo-max-price" t-att-value="state.draft.maxK * 1000"/>
+                        </div>
+                        <div class="ut-price-stepper-list" aria-label="Atur filter harga">
+                            <div class="ut-price-stepper-row">
+                                <span class="ut-price-stepper-label">Min</span>
+                                <div class="ut-price-stepper-controls">
+                                    <button type="button" class="ut-price-step-button" aria-label="Kurangi harga minimum Rp 5.000" t-att-disabled="isPriceStepDisabled('min', -1)" t-on-click="() => this.adjustPrice('min', -1)">-</button>
+                                    <strong class="ut-price-step-value"><t t-esc="formatK(state.draft.minK)"/></strong>
+                                    <button type="button" class="ut-price-step-button" aria-label="Tambah harga minimum Rp 5.000" t-att-disabled="isPriceStepDisabled('min', 1)" t-on-click="() => this.adjustPrice('min', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="ut-price-stepper-row">
+                                <span class="ut-price-stepper-label">Max</span>
+                                <div class="ut-price-stepper-controls">
+                                    <button type="button" class="ut-price-step-button" aria-label="Kurangi harga maksimum Rp 5.000" t-att-disabled="isPriceStepDisabled('max', -1)" t-on-click="() => this.adjustPrice('max', -1)">-</button>
+                                    <strong class="ut-price-step-value"><t t-esc="formatK(state.draft.maxK)"/></strong>
+                                    <button type="button" class="ut-price-step-button" aria-label="Tambah harga maksimum Rp 5.000" t-att-disabled="isPriceStepDisabled('max', 1)" t-on-click="() => this.adjustPrice('max', 1)">+</button>
+                                </div>
+                            </div>
                         </div>
                         <style>
                             .custom-range-slider::-webkit-slider-runnable-track { background:transparent; height:10px; }
                             .custom-range-slider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; pointer-events:auto; width:18px; height:18px; background:#000; border-radius:50%; cursor:pointer; border:none; position:relative; z-index:50; margin-top:-4px; }
                             .custom-range-slider::-moz-range-track { background:transparent; height:10px; border:none; }
                             .custom-range-slider::-moz-range-thumb { pointer-events:auto; width:18px; height:18px; background:#000; border-radius:50%; cursor:pointer; border:none; }
+                            .ut-price-stepper-list { display:flex; flex-direction:column; gap:8px; margin-top:4px; }
+                            .ut-price-stepper-row { display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; padding:7px 8px; border:1px solid #eeeeee; border-radius:18px; background:#fafafa; }
+                            .ut-price-stepper-label { flex:0 0 auto; font-family:'Urbanist',sans-serif; font-size:12px; font-weight:700; color:#4a4a4a; line-height:1; }
+                            .ut-price-stepper-controls { display:grid; grid-template-columns:28px minmax(48px,1fr) 28px; align-items:center; gap:6px; min-width:126px; }
+                            .ut-price-step-button { width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center; border:1px solid #d1d5db; border-radius:999px; background:#fff; color:#1f2937; font-family:'Urbanist',sans-serif; font-size:16px; font-weight:800; line-height:1; cursor:pointer; transition:all 0.2s ease; }
+                            .ut-price-step-button:hover:not(:disabled) { background:#1a1a1a; border-color:#1a1a1a; color:#fff; }
+                            .ut-price-step-button:disabled { opacity:0.35; cursor:not-allowed; }
+                            .ut-price-step-value { min-width:0; color:#1a1a1a; font-family:'Urbanist',sans-serif; font-size:12px; font-weight:800; line-height:1; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
                             .ut-pill { flex:1 1 0; min-width:0; min-height:38px; height:auto; display:flex; align-items:center; justify-content:center; text-align:center; padding:0 10px; border-radius:999px; font-family:'Urbanist',sans-serif; font-size:13px; line-height:1; white-space:nowrap; overflow:hidden; cursor:pointer; transition:all 0.2s ease; user-select:none; }
                             #ut-lokasi-group .ut-pill { width:100%; flex:none; }
                             #ut-kondisi-group .ut-pill { font-size:13px; line-height:1; white-space:nowrap; }
