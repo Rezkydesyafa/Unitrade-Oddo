@@ -371,6 +371,17 @@ class UnitradeAdminStats(models.AbstractModel):
 
         # --- task queue ------------------------------------------------------
         tasks = []
+        vision_key = (self.env['ir.config_parameter'].sudo()
+                      .get_param('unitrade.google_vision.api_key') or '').strip()
+        if not vision_key:
+            tasks.append({
+                'urgency': 'urgent',
+                'title': _('Google Vision API Key Belum Dikonfigurasi'),
+                'description': _('OCR KTM otomatis nonaktif. Semua pengajuan seller akan masuk review manual sampai API key diisi di Pengaturan.'),
+                'badge': _('Sistem'),
+                'badge_class': 'badge-red',
+                'action': 'settings',
+            })
         if pending_ktm:
             tasks.append({
                 'urgency': 'urgent',
@@ -442,6 +453,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 'refunds_need_admin': refunds_need_admin,
                 'announcements_draft': announcements_draft,
                 'audit_critical': audit_critical,
+                'vision_api_configured': bool(vision_key),
             },
             'gmv': {
                 'total_idr': gmv_total,
@@ -1156,9 +1168,16 @@ class UnitradeAdminStats(models.AbstractModel):
         for user in users:
             seller = seller_by_user.get(user.id)
             verification = verification_by_partner.get(user.partner_id.id) if user.partner_id else False
+            # Precedence: seller verified > verifikasi aktif (pending/manual_review) >
+            # status seller lama (draft/rejected/revoked) > mapping verifikasi > unverified.
+            # Ini memastikan pengajuan ulang setelah reject/revoke tetap actionable di antrian.
             seller_status_val = 'unverified'
-            if seller:
-                seller_status_val = seller.status  # draft/pending/verified/rejected/revoked
+            if seller and seller.status == 'verified':
+                seller_status_val = 'verified'
+            elif verification and self._verification_status_for_admin(verification) == 'pending':
+                seller_status_val = 'pending'
+            elif seller:
+                seller_status_val = seller.status  # draft/pending/rejected/revoked
             elif verification:
                 seller_status_val = self._verification_status_for_admin(verification)
 
@@ -1529,6 +1548,38 @@ class UnitradeAdminStats(models.AbstractModel):
         if not seller.exists():
             return {'ok': False, 'error': 'seller not found'}
         seller.action_reset_to_draft()
+        return {'ok': True}
+
+    @api.model
+    def admin_revoke_seller(self, seller_id, reason=''):
+        """Lepas status seller: user kembali jadi user biasa & harus daftar ulang."""
+        self._check_admin()
+        if not self._has_model('unitrade.seller'):
+            return {'ok': False, 'error': 'no seller model'}
+        seller = self.env['unitrade.seller'].sudo().browse(int(seller_id))
+        if not seller.exists():
+            return {'ok': False, 'error': 'seller not found'}
+        if seller.status != 'verified':
+            return {'ok': False, 'error': _('Hanya seller terverifikasi yang bisa dilepas statusnya.')}
+        seller.write({
+            'revoke_reason': reason or _('Status seller dilepas oleh admin via dashboard.'),
+        })
+        try:
+            seller.action_revoke_seller_verification()
+        except Exception as error:  # noqa: BLE001 - tampilkan error ke UI admin
+            _logger.exception('Admin revoke seller %s failed', seller.id)
+            return {'ok': False, 'error': str(error)}
+
+        # Reset verifikasi KTM lama agar user wajib mendaftar & upload ulang.
+        if self._has_model('unitrade.seller.verification') and seller.user_id:
+            verification = self.env['unitrade.seller.verification'].sudo().search([
+                ('partner_id', '=', seller.user_id.partner_id.id),
+            ], limit=1, order='create_date desc')
+            if verification and verification.state == 'approved':
+                verification.write({
+                    'state': 'rejected',
+                    'rejection_reason': reason or _('Status seller dilepas admin. Silakan daftar ulang.'),
+                })
         return {'ok': True}
 
     @api.model
@@ -4215,6 +4266,13 @@ class UnitradeAdminStats(models.AbstractModel):
                 verification.rejection_reason if verification and verification.rejection_reason
                 else seller.rejection_reason if seller else ''
             ),
+            'verification_id': verification.id if verification else False,
+            'seller_id': seller.id if seller else False,
+            'is_pending': bool(
+                (verification and admin_status == 'pending')
+                or (not verification and seller and seller.status == 'pending')
+            ),
+            'is_verified': bool(seller and seller.status == 'verified'),
         }
 
     @api.model
