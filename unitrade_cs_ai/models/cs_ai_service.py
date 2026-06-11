@@ -54,7 +54,7 @@ class UnitradeCsAiService(models.AbstractModel):
             "pengiriman (Ambil Sendiri / GoSend), status escrow, dan kebijakan umum. "
             "Jika pertanyaan menyangkut data pribadi, pembatalan kompleks, refund, sengketa, "
             "atau hal yang tidak kamu ketahui, sarankan customer menekan tombol "
-            "'Chat dengan Admin'. Jangan mengarang kebijakan yang tidak pasti."
+            "'Chat dengan Customer Service'. Jangan mengarang kebijakan yang tidak pasti."
         )
 
     def _build_contents(self, session, user_message):

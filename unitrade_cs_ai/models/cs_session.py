@@ -107,7 +107,7 @@ class UnitradeCsSession(models.Model):
         self.ensure_one()
         greeting = _(
             'Halo %s, saya asisten Customer Service UniTrade. Ada yang bisa saya bantu? '
-            'Kamu juga bisa memilih "Chat dengan Admin" kapan saja.'
+            'Kamu juga bisa memilih "Chat dengan Customer Service" kapan saja.'
         ) % (self.user_id.name or _('Customer'))
         self.env['unitrade.cs.session.message'].sudo().create({
             'session_id': self.id,
@@ -170,7 +170,7 @@ class UnitradeCsSession(models.Model):
             )
         except UserError as error:
             return self._create_message('ai', error.args[0] if error.args else _(
-                'Terlalu banyak permintaan. Coba lagi sebentar, atau pilih "Chat dengan Admin".'
+                'Terlalu banyak permintaan. Coba lagi sebentar, atau pilih "Chat dengan Customer Service".'
             ))
         try:
             reply_text = service.generate_reply(self, user_message_body)
@@ -181,7 +181,7 @@ class UnitradeCsSession(models.Model):
             _logger.exception('CS AI reply failed for session %s', self.id)
             return self._create_message('ai', _(
                 'Maaf, asisten AI sedang tidak tersedia saat ini. '
-                'Silakan pilih "Chat dengan Admin" agar tim kami membantu kamu.'
+                'Silakan pilih "Chat dengan Customer Service" agar tim kami membantu kamu.'
             ))
 
     def escalate_to_admin(self):
@@ -198,7 +198,7 @@ class UnitradeCsSession(models.Model):
             'escalated_at': fields.Datetime.now(),
         })
         self._create_message('ai', _(
-            'Kamu sedang dihubungkan dengan admin UniTrade. Mohon tunggu sebentar ya.'
+            'Kamu sedang dihubungkan dengan Customer Service UniTrade. Mohon tunggu sebentar ya.'
         ))
         self._notify_admin_queue()
         return self
@@ -298,17 +298,21 @@ class UnitradeCsSessionMessage(models.Model):
 
     def _message_payload(self):
         self.ensure_one()
+        body = self.body or ''
+        if self.author_type in ('ai', 'admin'):
+            body = body.replace('Chat dengan Admin', 'Chat dengan Customer Service')
+            body = body.replace('admin UniTrade', 'Customer Service UniTrade')
         author_label = {
             'user': self.author_user_id.name or _('Customer'),
             'ai': _('Asisten AI'),
-            'admin': self.author_user_id.name or _('Admin UniTrade'),
+            'admin': self.author_user_id.name or _('Customer Service UniTrade'),
         }.get(self.author_type, _('UniTrade'))
         return {
             'id': self.id,
             'session_id': self.session_id.id,
             'author_type': self.author_type,
             'author_name': author_label,
-            'body': self.body or '',
+            'body': body,
             'is_ai': self.is_ai,
             'time': self.create_date.strftime('%H:%M') if self.create_date else '',
             'date': self.create_date.strftime('%d %B %Y') if self.create_date else '',
