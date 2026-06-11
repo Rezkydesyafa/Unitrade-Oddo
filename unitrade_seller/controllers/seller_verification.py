@@ -16,7 +16,7 @@ ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png'}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 MIN_IMAGE_WIDTH = 600
 MIN_IMAGE_HEIGHT = 350
-UPLOAD_RATE_LIMIT = 5
+UPLOAD_RATE_LIMIT = 10
 UPLOAD_RATE_WINDOW_MINUTES = 15
 
 
@@ -52,19 +52,25 @@ class SellerVerificationController(http.Controller):
     @staticmethod
     def _rejection_message(reason):
         messages = {
-            'nim_not_extracted': 'NIM tidak terbaca. Pastikan nomor NIM pada KTM terlihat jelas dan tidak terpotong.',
+            'nim_not_extracted': 'NIM belum terbaca otomatis. Pengajuan masuk review manual admin, Anda tidak perlu upload ulang.',
             'name_token_not_matched': 'Nama tidak cocok. Pastikan KTM yang diupload adalah milik Anda dan nama pada KTM terlihat jelas.',
-            'name_token_low_confidence': 'Nama pada KTM kurang jelas. Pengajuan masuk ke review manual admin.',
-            'nim_not_in_db': 'NIM tidak ditemukan di database mahasiswa UNISA. Pastikan NIM pada KTM terbaca jelas.',
+            'name_token_low_confidence': 'Nama pada KTM kurang jelas. Pengajuan masuk ke review manual admin, Anda tidak perlu upload ulang.',
+            'account_name_mismatch': 'Nama akun Anda belum cocok dengan nama pada KTM. Pengajuan masuk review manual admin untuk memastikan KTM ini milik Anda.',
+            'nim_not_in_db': 'NIM belum cocok otomatis dengan database mahasiswa. Pengajuan masuk review manual admin, Anda tidak perlu upload ulang.',
             'nim_already_used': 'NIM sudah digunakan oleh akun penjual lain.',
-            'ocr_empty': 'KTM buram atau tidak terbaca. Upload ulang foto KTM dengan pencahayaan lebih baik.',
-            'no_ktm_keywords': 'Gambar tidak terlihat seperti KTM. Pastikan seluruh kartu KTM masuk dalam frame.',
+            'ocr_empty': 'Gambar yang Anda input bukan KTM atau tidak terbaca. Upload foto Kartu Tanda Mahasiswa asli yang jelas.',
+            'no_ktm_keywords': 'Gambar yang Anda input bukan KTM. Pastikan upload foto Kartu Tanda Mahasiswa yang benar.',
             'image_too_small': 'Resolusi foto terlalu kecil. Upload foto KTM yang lebih jelas.',
-            'vision_api_failed': 'Sistem OCR sedang bermasalah. Coba lagi beberapa saat lagi.',
+            'vision_api_failed': 'Sistem OCR sedang bermasalah. Pengajuan Anda kami simpan dan akan direview manual oleh admin.',
         }
         if reason and reason.startswith('vision_api_failed'):
             return messages['vision_api_failed']
         return messages.get(reason, 'Pengajuan ditolak. Pastikan NIM dan nama pada KTM sesuai data mahasiswa UNISA.')
+
+    REVIEW_REASONS_KEEP_OPEN = {
+        'nim_not_extracted', 'nim_not_in_db', 'name_token_low_confidence',
+        'account_name_mismatch',
+    }
 
     @staticmethod
     def _check_upload_rate_limit(verification):
@@ -232,10 +238,16 @@ class SellerVerificationController(http.Controller):
                 })
 
             if not self._check_upload_rate_limit(existing):
+                retry_minutes = UPLOAD_RATE_WINDOW_MINUTES
+                if existing and existing.upload_window_start:
+                    elapsed = fields.Datetime.now() - existing.upload_window_start
+                    remaining = timedelta(minutes=UPLOAD_RATE_WINDOW_MINUTES) - elapsed
+                    retry_minutes = max(1, int(remaining.total_seconds() // 60) + 1)
                 return self._json_response({
                     'status': 'rate_limited',
-                    'message': 'Terlalu banyak percobaan upload KTM. Coba lagi dalam 15 menit.',
+                    'message': f'Terlalu banyak percobaan upload KTM. Coba lagi dalam {retry_minutes} menit.',
                     'reason': 'upload_rate_limited',
+                    'retry_minutes': retry_minutes,
                 })
 
             # --- File Validation ---
@@ -285,6 +297,7 @@ class SellerVerificationController(http.Controller):
             ocr_result = KTMOCRService.process_ktm(
                 env=request.env,
                 image_bytes=file_bytes,
+                account_name=partner.name or '',
             )
 
             verification_status = ocr_result.get('verification_status', 'rejected')
@@ -317,13 +330,21 @@ class SellerVerificationController(http.Controller):
 
             reason = ocr_result.get('reason', '')
             rejected_message = self._rejection_message(reason)
-            if reason and str(reason).startswith('vision_api_failed'):
+            is_system_error = bool(reason and str(reason).startswith('vision_api_failed'))
+            if is_system_error:
                 verification_status = 'manual_review'
                 ocr_result['verification_status'] = 'manual_review'
             record_state = {
                 'approved': 'approved',
                 'manual_review': 'manual_review',
             }.get(verification_status, 'rejected')
+
+            review_note_value = False
+            if record_state == 'manual_review':
+                if is_system_error:
+                    review_note_value = f'[SYSTEM ERROR - Vision API] {ocr_result.get("ocr_text", "")[:200]}'
+                else:
+                    review_note_value = f'[Perlu cek admin: {reason or "manual_review"}] {rejected_message}'
 
             vals = {
                 'partner_id': partner.id,
@@ -345,7 +366,7 @@ class SellerVerificationController(http.Controller):
                 'image_width': image_width or 0,
                 'image_height': image_height or 0,
                 'rejection_reason': rejected_message if record_state == 'rejected' else False,
-                'review_note': rejected_message if record_state == 'manual_review' else False,
+                'review_note': review_note_value,
                 'state': record_state,
             }
 
@@ -425,9 +446,18 @@ class SellerVerificationController(http.Controller):
 
             if verification_status == 'manual_review':
                 verification._send_verification_template('unitrade_seller.mail_template_seller_verification_manual_review')
+                review_messages = {
+                    'name_token_low_confidence': 'KTM berhasil dikirim. Nama pada KTM kurang jelas sehingga perlu dicek admin.',
+                    'account_name_mismatch': 'KTM berhasil dikirim. Nama akun Anda belum cocok dengan KTM, admin akan memastikan KTM ini milik Anda.',
+                    'nim_not_in_db': 'KTM berhasil dikirim. NIM belum cocok otomatis dengan database, admin akan memverifikasi manual.',
+                    'nim_not_extracted': 'KTM berhasil dikirim. NIM belum terbaca otomatis, admin akan memverifikasi manual.',
+                }
+                manual_message = review_messages.get(reason, 'KTM berhasil dikirim dan masuk review manual admin.')
+                if is_system_error:
+                    manual_message = 'KTM berhasil dikirim. Sistem OCR sedang sibuk, admin akan memverifikasi manual.'
                 return self._json_response({
                     'status': 'manual_review',
-                    'message': 'KTM berhasil dikirim dan masuk review manual admin karena nama kurang jelas.',
+                    'message': manual_message,
                     'ocr_text': ocr_result.get('ocr_text', '')[:300],
                     'nim': ocr_result.get('nim', ''),
                     'name': ocr_result.get('name_detected', ''),
