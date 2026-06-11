@@ -243,6 +243,23 @@
                         }
                         html += '</div>';
                         html += '</div>';
+                        if (ktm.is_pending && (ktm.verification_id || ktm.seller_id)) {
+                            html += '<div style="display:flex;gap:8px;margin-top:12px">';
+                            html += '<button type="button" class="ut-admin-btn ut-admin-btn-success ut-admin-btn-sm" data-action="approve-seller"' +
+                                    (ktm.seller_id ? ' data-seller-id="' + escapeHtml(ktm.seller_id) + '"' : '') +
+                                    (ktm.verification_id ? ' data-verification-id="' + escapeHtml(ktm.verification_id) + '"' : '') +
+                                    '>Approve KTM</button>';
+                            html += '<button type="button" class="ut-admin-btn ut-admin-btn-danger ut-admin-btn-sm" data-action="reject-seller"' +
+                                    (ktm.seller_id ? ' data-seller-id="' + escapeHtml(ktm.seller_id) + '"' : '') +
+                                    (ktm.verification_id ? ' data-verification-id="' + escapeHtml(ktm.verification_id) + '"' : '') +
+                                    '>Tolak KTM</button>';
+                            html += '</div>';
+                        } else if (ktm.is_verified && ktm.seller_id) {
+                            html += '<div style="margin-top:12px">';
+                            html += '<button type="button" class="ut-admin-btn ut-admin-btn-danger ut-admin-btn-sm" data-action="revoke-seller" data-seller-id="' +
+                                    escapeHtml(ktm.seller_id) + '">Lepas Status Seller</button>';
+                            html += '</div>';
+                        }
                         html += '</div>';
                     }
 
@@ -1348,6 +1365,22 @@
                         .then(function (res) {
                             if (res.result && res.result.ok) refresh();
                             else showToast("Gagal reset seller.", "error");
+                        });
+                } else if (action === "revoke-seller") {
+                    var revokeReason = await promptAdmin("Alasan melepas status seller? Seller akan kembali jadi user biasa dan harus mendaftar ulang.", {
+                        title: "Lepas Status Seller",
+                        multiline: true,
+                        placeholder: "Contoh: Terbukti menyalahgunakan KTM orang lain.",
+                    });
+                    if (!revokeReason || !revokeReason.trim()) return;
+                    callJsonRpc("/unitrade/admin/api/sellers/revoke", { seller_id: sellerId, reason: revokeReason })
+                        .then(function (res) {
+                            if (res.result && res.result.ok) {
+                                showToast("Status seller dilepas. User harus mendaftar ulang.", "success");
+                                refresh();
+                            } else {
+                                showToast((res.result && res.result.error) || "Gagal melepas status seller.", "error");
+                            }
                         });
                 } else if (action === "user-detail") {
                     openUserDetail(userId);
