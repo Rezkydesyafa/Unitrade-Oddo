@@ -93,7 +93,7 @@
                                     </svg>
                                 </button>
                                 <div class="tw-invisible tw-absolute tw-right-0 tw-top-full tw-z-[999] tw-w-[232px] tw-pt-3 tw-opacity-0 tw-transition-all tw-duration-200 group-hover:tw-visible group-hover:tw-opacity-100">
-                                    <div class="tw-rounded-[24px] tw-border tw-p-2" style="background: rgba(255, 255, 255, 0.52); -webkit-backdrop-filter: blur(24px) saturate(175%); backdrop-filter: blur(24px) saturate(175%); border-color: rgba(255, 255, 255, 0.50); box-shadow: 0 14px 34px rgba(15, 23, 42, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.50);">
+                                    <div class="tw-rounded-[24px] tw-border tw-p-2" style="background: #ffffff; background-color: #ffffff; -webkit-backdrop-filter: none; backdrop-filter: none; border-color: #f0f0f0; box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);">
                                         <a href="/my/account" class="tw-flex tw-items-center tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-medium tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Profil Saya</a>
                                         <a href="/my/orders" class="tw-flex tw-items-center tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-medium tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Pesanan Saya</a>
                                         <a href="/my/wishlist" class="tw-flex tw-items-center tw-rounded-[16px] tw-px-4 tw-py-3 tw-text-[14px] tw-font-medium tw-text-[#212529] tw-no-underline hover:tw-bg-[#f5f5f7]">Wishlist</a>
