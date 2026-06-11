@@ -317,6 +317,11 @@ class UnitradeAdminStats(models.AbstractModel):
             AuditLog = self.env['unitrade.admin.audit.log'].sudo()
             audit_critical = self._safe_count(AuditLog, [('severity', '=', 'critical')])
 
+        live_chat_waiting = 0
+        if self._has_cs_session():
+            CsSession = self.env['unitrade.cs.session'].sudo()
+            live_chat_waiting = self._safe_count(CsSession, [('state', '=', 'waiting_admin')])
+
         # --- GMV --------------------------------------------------------------
         gmv_total = 0.0
         gmv_series = []
@@ -442,6 +447,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 'refunds_need_admin': refunds_need_admin,
                 'announcements_draft': announcements_draft,
                 'audit_critical': audit_critical,
+                'live_chat_waiting': live_chat_waiting,
             },
             'gmv': {
                 'total_idr': gmv_total,
@@ -2690,6 +2696,104 @@ class UnitradeAdminStats(models.AbstractModel):
                 severity='info',
             )
         return {'ok': True, 'id': ticket.id}
+
+    # ------------------------------------------------------------------
+    # Live chat admin <-> user (reuse model unitrade.cs.session)
+    # ------------------------------------------------------------------
+    def _has_cs_session(self):
+        return self._has_model('unitrade.cs.session')
+
+    @api.model
+    def get_live_chat_sessions(self, scope='active'):
+        """Return list of CS live-chat sessions for the admin live chat page.
+
+        scope:
+        - 'active' -> waiting_admin + admin_handling (default, butuh balasan)
+        - 'all'    -> termasuk yang sudah closed (riwayat)
+        """
+        self._check_admin()
+        if not self._has_cs_session():
+            return {'sessions': [], 'counts': {'waiting': 0, 'handling': 0, 'closed': 0}}
+        Session = self.env['unitrade.cs.session'].sudo()
+
+        if scope == 'all':
+            domain = []
+        else:
+            domain = [('state', 'in', ('waiting_admin', 'admin_handling'))]
+        sessions = Session.search(domain, order='last_activity desc, id desc', limit=100)
+
+        rows = []
+        for session in sessions:
+            last_msg = session.message_ids.sorted('id')[-1:] if session.message_ids else session.message_ids
+            preview = ''
+            if last_msg:
+                preview = (last_msg.body or '')[:80]
+            rows.append({
+                'id': session.id,
+                'user_name': session.user_id.name or _('Customer'),
+                'user_initials': self._initials(session.user_id.name),
+                'state': session.state,
+                'state_label': dict(session._fields['state'].selection).get(session.state, session.state),
+                'preview': preview,
+                'last_activity': self._humanize_time(session.last_activity),
+                'assigned_admin': session.assigned_admin_id.name if session.assigned_admin_id else '',
+                'unread': session.state == 'waiting_admin',
+                'ticket_id': session.ticket_id.id if session.ticket_id else False,
+            })
+
+        counts = {
+            'waiting': Session.search_count([('state', '=', 'waiting_admin')]),
+            'handling': Session.search_count([('state', '=', 'admin_handling')]),
+            'closed': Session.search_count([('state', '=', 'closed')]),
+        }
+        return {'sessions': rows, 'counts': counts}
+
+    @api.model
+    def get_live_chat_detail(self, session_id):
+        """Detail + messages of one live chat session (admin view)."""
+        self._check_admin()
+        if not self._has_cs_session():
+            return {'ok': False, 'error': _('Modul live chat belum tersedia.')}
+        session = self.env['unitrade.cs.session'].sudo().browse(int(session_id or 0)).exists()
+        if not session:
+            return {'ok': False, 'error': _('Sesi tidak ditemukan.')}
+        return {
+            'ok': True,
+            'session': {
+                'id': session.id,
+                'user_name': session.user_id.name or _('Customer'),
+                'user_initials': self._initials(session.user_id.name),
+                'user_email': session.user_id.email or session.user_id.login or '',
+                'state': session.state,
+                'state_label': dict(session._fields['state'].selection).get(session.state, session.state),
+                'assigned_admin': session.assigned_admin_id.name if session.assigned_admin_id else '',
+                'bus_channel': session._bus_target(),
+                'can_close': session.state != 'closed',
+                'ticket_id': session.ticket_id.id if session.ticket_id else False,
+            },
+            'messages': [m._message_payload() for m in session.message_ids.sorted('id')],
+        }
+
+    @api.model
+    def find_live_chat_session_for_ticket(self, ticket_id):
+        """Return cs.session id linked to a ticket, if any (for the Balas button)."""
+        self._check_admin()
+        if not self._has_cs_session() or not self._has_model('unitrade.customer.ticket'):
+            return {'ok': False, 'session_id': False}
+        ticket = self.env['unitrade.customer.ticket'].sudo().browse(int(ticket_id or 0)).exists()
+        if not ticket:
+            return {'ok': False, 'session_id': False}
+        session = ticket.cs_session_id if 'cs_session_id' in ticket._fields else False
+        if not session:
+            # fallback: cari sesi user yang masih aktif
+            session = self.env['unitrade.cs.session'].sudo().search([
+                ('user_id', '=', ticket.user_id.id),
+                ('state', 'in', ('waiting_admin', 'admin_handling')),
+            ], order='last_activity desc', limit=1)
+        return {
+            'ok': True,
+            'session_id': session.id if session else False,
+        }
 
     def _admin_media_size_label(self, size):
         size = int(size or 0)
