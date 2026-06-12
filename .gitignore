@@ -176,3 +176,9 @@ odoo.conf.backup
 odoo.conf.fixed
 odoo.conf.new
 odoo.conf.nobom
+
+# AI Agent Skills
+.agents/skills/
+
+# Playwright
+.playwright-cli/
