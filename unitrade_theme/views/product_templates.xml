@@ -327,6 +327,8 @@
 
                             <!-- Seller Info -->
                             <div class="ut-product-seller-card tw-flex tw-flex-col tw-gap-4 tw-mt-3">
+                                <t t-set="ut_seller_user" t-value="product.x_seller_id and product.x_seller_id.sudo().user_id.sudo()"/>
+                                <t t-set="ut_seller_online" t-value="ut_seller_user and ut_seller_user._unitrade_chat_is_online()"/>
                                 <!-- Avatar + Name + Status -->
                                 <div class="tw-flex tw-items-center tw-gap-3">
                                     <t t-if="product.x_seller_id">
@@ -342,8 +344,8 @@
                                             <t t-esc="product.x_seller_id.sudo().name if product.x_seller_id else 'Dero sala'"/>
                                         </p>
                                         <p style="font-size:16px; color:var(--ut-color-text-body); margin:0; line-height:24px; display:flex; align-items:center; gap:4px;">
-                                            Aktif
-                                            <span style="width:7px; height:7px; background:var(--ut-color-success); border-radius:50%; display:inline-block;"></span>
+                                            <t t-esc="'Aktif' if ut_seller_online else 'Offline'"/>
+                                            <span t-att-style="'width:7px; height:7px; background:var(--ut-color-success); border-radius:50%; display:inline-block;' if ut_seller_online else 'width:7px; height:7px; background:var(--ut-color-text-subtle); border-radius:50%; display:inline-block;'"></span>
                                         </p>
                                     </div>
                                 </div>
