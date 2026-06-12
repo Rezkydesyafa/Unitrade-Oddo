@@ -10,7 +10,7 @@ services:
     depends_on:
       - db
     ports:
-      - "8069:8069"
+      - '8069:8069'
     volumes:
       - odoo-web-data:/var/lib/odoo
       - ./:/mnt/extra-addons
@@ -20,16 +20,16 @@ services:
       - PASSWORD=odoo
     networks:
       - unitrade-net
-    
+
   mailpit:
     image: axllent/mailpit
     container_name: unitrade_mail
     ports:
-      - "8025:8025" # Port untuk melihat email di browser
-      - "1025:1025" # Port SMTP untuk komunikasi dengan Odoo
+      - '8025:8025' # Port untuk melihat email di browser
+      - '1025:1025' # Port SMTP untuk komunikasi dengan Odoo
     networks:
       - unitrade-net
-  
+
   db:
     image: postgres:15
     environment:
@@ -46,10 +46,10 @@ services:
     image: dpage/pgadmin4
     container_name: unitrade_pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@unitrade.web.id   # Email untuk login ke web pgAdmin
-      PGADMIN_DEFAULT_PASSWORD: masbahlilganteng    # Password untuk login ke web pgAdmin
+      PGADMIN_DEFAULT_EMAIL: admin@unitrade.web.id # Email untuk login ke web pgAdmin
+      PGADMIN_DEFAULT_PASSWORD: masbahlilganteng # Password untuk login ke web pgAdmin
     ports:
-      - "8050:80" # Akses pgAdmin via browser di port 8050
+      - '8050:80' # Akses pgAdmin via browser di port 8050
     depends_on:
       - db
     networks:
