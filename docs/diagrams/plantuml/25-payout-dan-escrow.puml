@@ -1,0 +1,69 @@
+@startuml
+title Payout dan Escrow
+|Buyer|
+start
+:Menyelesaikan pembayaran order;
+|System|
+:Set payment paid;
+:Confirm sale order;
+:Buat escrow ledger per seller;
+:Set escrow held;
+|Seller|
+:Konfirmasi handoff;
+:Upload bukti handoff;
+|System|
+:Set seller_confirmed_at;
+:Update delivery bila ada;
+|Buyer|
+if (Buyer konfirmasi manual?) then (Ya)
+  :Konfirmasi barang diterima;
+  |System|
+  :Validasi seller sudah handoff;
+  :Set buyer_confirmed_at;
+else (Timeout)
+  |System|
+  :Cron auto confirm receipt;
+  :Set buyer_confirmed_at otomatis;
+endif
+if (Seller dan buyer confirmed?) then (Ya)
+  :Set ledger releasable;
+  :Set order completed bila semua ledger selesai;
+else (Tidak)
+  :Ledger tetap held;
+endif
+|Admin|
+:Buka halaman payout;
+:Create payout seller;
+|System|
+:Ambil ledger releasable milik seller;
+:Validasi payment paid, tidak dispute, belum payout;
+if (Ledger valid?) then (Ya)
+  :Buat payout draft;
+  |Admin|
+  :Recompute ledger;
+  :Mark ready;
+  |System|
+  :Validasi tujuan payout seller;
+  :Reserve ledger payout pending;
+  |Admin|
+  :Transfer manual;
+  :Isi reference atau bukti transfer;
+  :Mark paid;
+  |System|
+  :Set payout paid;
+  :Set ledger released;
+  :Set payout_status succeeded;
+  :Sync escrow order;
+else (Tidak)
+  :Tampilkan error payout;
+endif
+|Admin|
+if (Cancel sebelum paid?) then (Ya)
+  |System|
+  :Release reservasi ledger;
+  :Set payout cancelled;
+endif
+|System|
+:Payout gateway otomatis perlu konfirmasi;
+stop
+@enduml

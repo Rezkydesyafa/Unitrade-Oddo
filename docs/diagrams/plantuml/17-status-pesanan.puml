@@ -1,0 +1,51 @@
+@startuml
+title Status Pesanan
+|Buyer|
+start
+:Buka status pesanan;
+|System|
+:Cek hak akses order;
+if (Akses valid?) then (Ya)
+  if (User adalah seller order?) then (Ya)
+    |Seller|
+    :Dialihkan ke detail order seller;
+  else (Buyer)
+    :Bangun status payload;
+    :Ambil escrow, refund, delivery, dan progress;
+    |Buyer|
+    :Melihat status pesanan;
+    if (Cancel langsung?) then (Ya)
+      |System|
+      :Cek blocker cancel 30 menit;
+      if (Cancel boleh?) then (Ya)
+        :Cancel order, intent, dan ledger;
+      else (Tidak)
+        :Tampilkan alasan tidak bisa cancel;
+      endif
+    else (Tidak)
+      if (Konfirmasi terima?) then (Ya)
+        |System|
+        :Validasi seller sudah handoff;
+        :Simpan bukti buyer;
+        :Set buyer confirmed;
+        :Cek escrow releasable;
+      else (Refund)
+        :Cek blocker refund;
+        |Buyer|
+        :Masuk alur refund bila tersedia;
+      endif
+    endif
+  endif
+else (Tidak)
+  :Redirect login atau not found;
+endif
+|Seller|
+if (Seller handoff?) then (Ya)
+  :Upload bukti dan resi;
+  |System|
+  :Set seller confirmed;
+  :Update delivery picked_up;
+  :Cek escrow releasable;
+endif
+stop
+@enduml

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="530" height="982" viewBox="0 0 530 982" role="img" aria-label="Katalog Produk">
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4b5563"/></marker>
+<style><![CDATA[text{font-family:Arial,Helvetica,sans-serif;fill:#111827}.lane-title{font-size:15px;font-weight:700}.node-text{font-size:12px}.title{font-size:18px;font-weight:700}.line{stroke:#4b5563;stroke-width:1.55;fill:none;marker-end:url(#arrow)}]]></style>
+</defs>
+<rect x="0" y="0" width="100%" height="100%" fill="#ffffff"/>
+<text class="title" x="265.0" y="25" text-anchor="middle">Katalog Produk</text>
+<rect x="30" y="36" width="235" height="934" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="30" y="36" width="235" height="54" fill="#eef2ff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="147.5" y="68" text-anchor="middle">Buyer</text>
+<rect x="265" y="36" width="235" height="934" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="265" y="36" width="235" height="54" fill="#ecfeff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="382.5" y="68" text-anchor="middle">System</text>
+<path class="line" d="M147.5,178.0 L147.5,207.0"/>
+<path class="line" d="M147.5,264.0 L147.5,278.5 L382.5,278.5 L382.5,293.0"/>
+<path class="line" d="M382.5,350.0 L382.5,379.0"/>
+<path class="line" d="M382.5,436.0 L382.5,465.0"/>
+<path class="line" d="M382.5,522.0 L382.5,551.0"/>
+<path class="line" d="M382.5,608.0 L382.5,637.0"/>
+<path class="line" d="M382.5,694.0 L382.5,708.5 L147.5,708.5 L147.5,723.0"/>
+<path class="line" d="M147.5,780.0 L147.5,809.0"/>
+<circle cx="147.5" cy="140.0" r="12" fill="#111827"/>
+<rect x="60.5" y="212.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="238.0" text-anchor="middle" dominant-baseline="middle">Buka katalog produk</text>
+<rect x="295.5" y="298.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="324.0" text-anchor="middle" dominant-baseline="middle">Refresh listing state</text>
+<rect x="295.5" y="384.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="403.0" text-anchor="middle" dominant-baseline="middle">Ambil produk marketplace</text>
+<text class="node-text" x="382.5" y="417.0" text-anchor="middle" dominant-baseline="middle">aktif</text>
+<rect x="295.5" y="470.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="489.0" text-anchor="middle" dominant-baseline="middle">Apply filter awal dari</text>
+<text class="node-text" x="382.5" y="503.0" text-anchor="middle" dominant-baseline="middle">URL</text>
+<rect x="295.5" y="556.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="575.0" text-anchor="middle" dominant-baseline="middle">Hitung kategori, banner,</text>
+<text class="node-text" x="382.5" y="589.0" text-anchor="middle" dominant-baseline="middle">dan pagination</text>
+<rect x="295.5" y="642.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="668.0" text-anchor="middle" dominant-baseline="middle">Tampilkan katalog publik</text>
+<rect x="60.5" y="728.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="754.0" text-anchor="middle" dominant-baseline="middle">Menelusuri daftar produk</text>
+<circle cx="147.5" cy="828.0" r="13" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="147.5" cy="828.0" r="8" fill="#111827"/>
+</svg>

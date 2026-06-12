@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="530" height="2358" viewBox="0 0 530 2358" role="img" aria-label="Register">
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4b5563"/></marker>
+<style><![CDATA[text{font-family:Arial,Helvetica,sans-serif;fill:#111827}.lane-title{font-size:15px;font-weight:700}.node-text{font-size:12px}.title{font-size:18px;font-weight:700}.line{stroke:#4b5563;stroke-width:1.55;fill:none;marker-end:url(#arrow)}]]></style>
+</defs>
+<rect x="0" y="0" width="100%" height="100%" fill="#ffffff"/>
+<text class="title" x="265.0" y="25" text-anchor="middle">Register</text>
+<rect x="30" y="36" width="235" height="2310" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="30" y="36" width="235" height="54" fill="#eef2ff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="147.5" y="68" text-anchor="middle">User</text>
+<rect x="265" y="36" width="235" height="2310" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="265" y="36" width="235" height="54" fill="#ecfeff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="382.5" y="68" text-anchor="middle">System</text>
+<path class="line" d="M147.5,178.0 L147.5,207.0"/>
+<path class="line" d="M147.5,264.0 L147.5,278.5 L382.5,278.5 L382.5,293.0"/>
+<path class="line" d="M382.5,350.0 L382.5,364.5 L147.5,364.5 L147.5,379.0"/>
+<path class="line" d="M147.5,436.0 L147.5,465.0"/>
+<path class="line" d="M147.5,522.0 L147.5,536.5 L382.5,536.5 L382.5,551.0"/>
+<path class="line" d="M382.5,608.0 L382.5,637.0"/>
+<path class="line" d="M382.5,694.0 L382.5,723.0"/>
+<path class="line" d="M382.5,804.0 L382.5,809.0"/>
+<path class="line" d="M382.5,866.0 L382.5,895.0"/>
+<path class="line" d="M382.5,976.0 L382.5,981.0"/>
+<path class="line" d="M382.5,1062.0 L382.5,1067.0"/>
+<path class="line" d="M382.5,1124.0 L382.5,1153.0"/>
+<path class="line" d="M382.5,1234.0 L382.5,1239.0"/>
+<path class="line" d="M382.5,1296.0 L382.5,1325.0"/>
+<path class="line" d="M382.5,1382.0 L382.5,1411.0"/>
+<path class="line" d="M382.5,1468.0 L382.5,1497.0"/>
+<path class="line" d="M382.5,1554.0 L382.5,1583.0"/>
+<path class="line" d="M382.5,1640.0 L382.5,1669.0"/>
+<path class="line" d="M382.5,1726.0 L382.5,1755.0"/>
+<path class="line" d="M382.5,1812.0 L382.5,1826.5 L147.5,1826.5 L147.5,1841.0"/>
+<path class="line" d="M147.5,1898.0 L147.5,1927.0"/>
+<path class="line" d="M147.5,1984.0 L147.5,2013.0"/>
+<path class="line" d="M147.5,2070.0 L147.5,2099.0"/>
+<path class="line" d="M147.5,2156.0 L147.5,2185.0"/>
+<circle cx="147.5" cy="140.0" r="12" fill="#111827"/>
+<rect x="60.5" y="212.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="238.0" text-anchor="middle" dominant-baseline="middle">Buka halaman signup</text>
+<rect x="295.5" y="298.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="324.0" text-anchor="middle" dominant-baseline="middle">Tampilkan form signup</text>
+<rect x="60.5" y="384.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="410.0" text-anchor="middle" dominant-baseline="middle">Isi data akun</text>
+<rect x="60.5" y="470.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="496.0" text-anchor="middle" dominant-baseline="middle">Setujui syarat layanan</text>
+<rect x="295.5" y="556.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="582.0" text-anchor="middle" dominant-baseline="middle">Normalisasi email</text>
+<rect x="295.5" y="642.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="661.0" text-anchor="middle" dominant-baseline="middle">Cek signup enabled atau</text>
+<text class="node-text" x="382.5" y="675.0" text-anchor="middle" dominant-baseline="middle">token</text>
+<polygon points="382.5,728.0 471.5,766.0 382.5,804.0 293.5,766.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="766.0" text-anchor="middle" dominant-baseline="middle">Signup boleh?</text>
+<rect x="295.5" y="814.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="833.0" text-anchor="middle" dominant-baseline="middle">Validasi email, terms,</text>
+<text class="node-text" x="382.5" y="847.0" text-anchor="middle" dominant-baseline="middle">dan recaptcha</text>
+<polygon points="382.5,900.0 471.5,938.0 382.5,976.0 293.5,938.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="938.0" text-anchor="middle" dominant-baseline="middle">Data valid?</text>
+<polygon points="382.5,986.0 471.5,1024.0 382.5,1062.0 293.5,1024.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="1024.0" text-anchor="middle" dominant-baseline="middle">Akun sudah ada?</text>
+<rect x="295.5" y="1072.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1091.0" text-anchor="middle" dominant-baseline="middle">Validasi password akun</text>
+<text class="node-text" x="382.5" y="1105.0" text-anchor="middle" dominant-baseline="middle">lama</text>
+<polygon points="382.5,1158.0 471.5,1196.0 382.5,1234.0 293.5,1196.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="1196.0" text-anchor="middle" dominant-baseline="middle">Password benar?</text>
+<rect x="295.5" y="1244.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1270.0" text-anchor="middle" dominant-baseline="middle">Generate OTP akun</text>
+<rect x="295.5" y="1330.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1356.0" text-anchor="middle" dominant-baseline="middle">Tampilkan error signup</text>
+<rect x="295.5" y="1416.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1442.0" text-anchor="middle" dominant-baseline="middle">Buat akun Odoo</text>
+<rect x="295.5" y="1502.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1528.0" text-anchor="middle" dominant-baseline="middle">Catat register dan terms</text>
+<rect x="295.5" y="1588.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1614.0" text-anchor="middle" dominant-baseline="middle">Generate OTP akun</text>
+<rect x="295.5" y="1674.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1700.0" text-anchor="middle" dominant-baseline="middle">Kirim email OTP</text>
+<rect x="295.5" y="1760.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1786.0" text-anchor="middle" dominant-baseline="middle">Simpan sesi OTP</text>
+<rect x="60.5" y="1846.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1865.0" text-anchor="middle" dominant-baseline="middle">Masuk halaman verifikasi</text>
+<text class="node-text" x="147.5" y="1879.0" text-anchor="middle" dominant-baseline="middle">OTP</text>
+<rect x="60.5" y="1932.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1958.0" text-anchor="middle" dominant-baseline="middle">Tampilkan error signup</text>
+<rect x="60.5" y="2018.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="2044.0" text-anchor="middle" dominant-baseline="middle">Perbaiki data</text>
+<rect x="60.5" y="2104.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="2130.0" text-anchor="middle" dominant-baseline="middle">Tampilkan error signup</text>
+<circle cx="147.5" cy="2204.0" r="13" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="147.5" cy="2204.0" r="8" fill="#111827"/>
+</svg>

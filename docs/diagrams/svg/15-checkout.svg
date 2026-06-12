@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="765" height="2100" viewBox="0 0 765 2100" role="img" aria-label="Checkout">
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4b5563"/></marker>
+<style><![CDATA[text{font-family:Arial,Helvetica,sans-serif;fill:#111827}.lane-title{font-size:15px;font-weight:700}.node-text{font-size:12px}.title{font-size:18px;font-weight:700}.line{stroke:#4b5563;stroke-width:1.55;fill:none;marker-end:url(#arrow)}]]></style>
+</defs>
+<rect x="0" y="0" width="100%" height="100%" fill="#ffffff"/>
+<text class="title" x="382.5" y="25" text-anchor="middle">Checkout</text>
+<rect x="30" y="36" width="235" height="2052" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="30" y="36" width="235" height="54" fill="#eef2ff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="147.5" y="68" text-anchor="middle">Buyer</text>
+<rect x="265" y="36" width="235" height="2052" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="265" y="36" width="235" height="54" fill="#ecfeff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="382.5" y="68" text-anchor="middle">System</text>
+<rect x="500" y="36" width="235" height="2052" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="500" y="36" width="235" height="54" fill="#f0fdf4" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="617.5" y="68" text-anchor="middle">Midtrans</text>
+<path class="line" d="M147.5,178.0 L147.5,207.0"/>
+<path class="line" d="M147.5,264.0 L147.5,278.5 L382.5,278.5 L382.5,293.0"/>
+<path class="line" d="M382.5,350.0 L382.5,379.0"/>
+<path class="line" d="M382.5,436.0 L382.5,465.0"/>
+<path class="line" d="M382.5,522.0 L382.5,551.0"/>
+<path class="line" d="M382.5,632.0 L382.5,637.0"/>
+<path class="line" d="M382.5,694.0 L382.5,708.5 L147.5,708.5 L147.5,723.0"/>
+<path class="line" d="M147.5,780.0 L147.5,794.5 L382.5,794.5 L382.5,809.0"/>
+<path class="line" d="M382.5,866.0 L382.5,895.0"/>
+<path class="line" d="M382.5,952.0 L382.5,981.0"/>
+<path class="line" d="M382.5,1038.0 L382.5,1067.0"/>
+<path class="line" d="M382.5,1148.0 L382.5,1153.0"/>
+<path class="line" d="M382.5,1210.0 L382.5,1224.5 L147.5,1224.5 L147.5,1239.0"/>
+<path class="line" d="M147.5,1296.0 L147.5,1310.5 L382.5,1310.5 L382.5,1325.0"/>
+<path class="line" d="M382.5,1382.0 L382.5,1411.0"/>
+<path class="line" d="M382.5,1468.0 L382.5,1497.0"/>
+<path class="line" d="M382.5,1578.0 L382.5,1580.5 L617.5,1580.5 L617.5,1583.0"/>
+<path class="line" d="M617.5,1640.0 L617.5,1654.5 L382.5,1654.5 L382.5,1669.0"/>
+<path class="line" d="M382.5,1726.0 L382.5,1755.0"/>
+<path class="line" d="M382.5,1812.0 L382.5,1841.0"/>
+<path class="line" d="M382.5,1898.0 L382.5,1927.0"/>
+<circle cx="147.5" cy="140.0" r="12" fill="#111827"/>
+<rect x="60.5" y="212.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="238.0" text-anchor="middle" dominant-baseline="middle">Buka checkout</text>
+<rect x="295.5" y="298.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="317.0" text-anchor="middle" dominant-baseline="middle">Ambil draft order</text>
+<text class="node-text" x="382.5" y="331.0" text-anchor="middle" dominant-baseline="middle">session</text>
+<rect x="295.5" y="384.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="410.0" text-anchor="middle" dominant-baseline="middle">Cek marketplace block</text>
+<rect x="295.5" y="470.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="489.0" text-anchor="middle" dominant-baseline="middle">Cek stok dan harga</text>
+<text class="node-text" x="382.5" y="503.0" text-anchor="middle" dominant-baseline="middle">server</text>
+<polygon points="382.5,556.0 471.5,594.0 382.5,632.0 293.5,594.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="594.0" text-anchor="middle" dominant-baseline="middle">Order valid?</text>
+<rect x="295.5" y="642.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="668.0" text-anchor="middle" dominant-baseline="middle">Render checkout page</text>
+<rect x="60.5" y="728.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="747.0" text-anchor="middle" dominant-baseline="middle">Pilih alamat, shipping,</text>
+<text class="node-text" x="147.5" y="761.0" text-anchor="middle" dominant-baseline="middle">voucher, payment method</text>
+<rect x="295.5" y="814.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="840.0" text-anchor="middle" dominant-baseline="middle">Validasi alamat checkout</text>
+<rect x="295.5" y="900.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="926.0" text-anchor="middle" dominant-baseline="middle">Set shipping method</text>
+<rect x="295.5" y="986.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1005.0" text-anchor="middle" dominant-baseline="middle">Hitung ongkir, fee,</text>
+<text class="node-text" x="382.5" y="1019.0" text-anchor="middle" dominant-baseline="middle">voucher, total</text>
+<polygon points="382.5,1072.0 471.5,1110.0 382.5,1148.0 293.5,1110.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="1110.0" text-anchor="middle" dominant-baseline="middle">Shipping blocker?</text>
+<rect x="295.5" y="1158.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1177.0" text-anchor="middle" dominant-baseline="middle">Tampilkan error ongkir</text>
+<text class="node-text" x="382.5" y="1191.0" text-anchor="middle" dominant-baseline="middle">atau GPS</text>
+<rect x="60.5" y="1244.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1270.0" text-anchor="middle" dominant-baseline="middle">Klik bayar</text>
+<rect x="295.5" y="1330.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1349.0" text-anchor="middle" dominant-baseline="middle">Prepare checkout server</text>
+<text class="node-text" x="382.5" y="1363.0" text-anchor="middle" dominant-baseline="middle">state</text>
+<rect x="295.5" y="1416.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1435.0" text-anchor="middle" dominant-baseline="middle">Buat Midtrans payment</text>
+<text class="node-text" x="382.5" y="1449.0" text-anchor="middle" dominant-baseline="middle">intent</text>
+<polygon points="382.5,1502.0 471.5,1540.0 382.5,1578.0 293.5,1540.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="1540.0" text-anchor="middle" dominant-baseline="middle">Payment URL tersedia?</text>
+<rect x="530.5" y="1588.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="1614.0" text-anchor="middle" dominant-baseline="middle">Terima transaksi charge</text>
+<rect x="295.5" y="1674.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1693.0" text-anchor="middle" dominant-baseline="middle">Redirect instruksi</text>
+<text class="node-text" x="382.5" y="1707.0" text-anchor="middle" dominant-baseline="middle">pembayaran</text>
+<rect x="295.5" y="1760.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1786.0" text-anchor="middle" dominant-baseline="middle">Render error pembayaran</text>
+<rect x="295.5" y="1846.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1872.0" text-anchor="middle" dominant-baseline="middle">Redirect cart atau shop</text>
+<circle cx="382.5" cy="1946.0" r="13" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="382.5" cy="1946.0" r="8" fill="#111827"/>
+</svg>

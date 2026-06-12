@@ -1,0 +1,34 @@
+@startuml
+title Dashboard Admin
+|Admin|
+start
+:Buka dashboard admin;
+|System|
+:Cek grup admin UniTrade;
+if (Admin valid?) then (Ya)
+  :Ambil dashboard stats;
+  :Hitung tasks dan warning operasional;
+  |Admin|
+  :Pilih menu operasional;
+  |System|
+  if (Kelola data?) then (Ya)
+    :Tampilkan users, seller, KTM, produk, transaksi, voucher;
+  else (Tidak)
+    if (Kelola layanan?) then (Ya)
+      :Tampilkan CS, live chat, refund, review, report;
+    else (Laporan)
+      :Tampilkan payout, announcement, audit, settings, export;
+    endif
+  endif
+  |Admin|
+  :Kirim action API admin;
+  |System|
+  :Validasi hak admin;
+  :Jalankan action model terkait;
+  :Catat audit log;
+  :Kembalikan hasil ke dashboard;
+else (Tidak)
+  :Tampilkan forbidden;
+endif
+stop
+@enduml

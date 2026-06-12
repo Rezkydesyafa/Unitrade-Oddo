@@ -1,0 +1,39 @@
+@startuml
+title Cart
+|Buyer|
+start
+:Tambah atau ubah cart;
+|System|
+if (Request remove qty?) then (Ya)
+  :Lewati validasi stok tambahan;
+else (Tidak)
+  :Cek marketplace block;
+  :Validasi produk aktif dan stok;
+endif
+if (Cart boleh diubah?) then (Ya)
+  :Panggil update cart Odoo;
+  :Sinkronkan harga diskon;
+  :Bersihkan fee line lama;
+  :Cek issue stok terkini;
+  if (Ada issue stok?) then (Ya)
+    :Simpan warning cart;
+    |Buyer|
+    :Melihat peringatan stok;
+  else (Tidak)
+    |Buyer|
+    :Melihat cart terbaru;
+  endif
+else (Tidak)
+  :Tampilkan error block atau stok;
+endif
+|Buyer|
+:Pilih checkout atau hapus voucher;
+|System|
+:Cek cart ready saat checkout;
+if (Cart ready?) then (Ya)
+  :Lanjut ke checkout;
+else (Tidak)
+  :Redirect cart dengan warning;
+endif
+stop
+@enduml

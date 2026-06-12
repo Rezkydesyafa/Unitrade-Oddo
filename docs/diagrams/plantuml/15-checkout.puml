@@ -1,0 +1,39 @@
+@startuml
+title Checkout
+|Buyer|
+start
+:Buka checkout;
+|System|
+:Ambil draft order session;
+:Cek marketplace block;
+:Cek stok dan harga server;
+if (Order valid?) then (Ya)
+  :Render checkout page;
+  |Buyer|
+  :Pilih alamat, shipping, voucher, payment method;
+  |System|
+  :Validasi alamat checkout;
+  :Set shipping method;
+  :Hitung ongkir, fee, voucher, total;
+  if (Shipping blocker?) then (Ya)
+    :Tampilkan error ongkir atau GPS;
+  else (Tidak)
+    |Buyer|
+    :Klik bayar;
+    |System|
+    :Prepare checkout server state;
+    :Buat Midtrans payment intent;
+    if (Payment URL tersedia?) then (Ya)
+      |Midtrans|
+      :Terima transaksi charge;
+      |System|
+      :Redirect instruksi pembayaran;
+    else (Tidak)
+      :Render error pembayaran;
+    endif
+  endif
+else (Tidak)
+  :Redirect cart atau shop;
+endif
+stop
+@enduml

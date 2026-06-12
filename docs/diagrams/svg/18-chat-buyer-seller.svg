@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="765" height="2530" viewBox="0 0 765 2530" role="img" aria-label="Chat Buyer-Seller">
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4b5563"/></marker>
+<style><![CDATA[text{font-family:Arial,Helvetica,sans-serif;fill:#111827}.lane-title{font-size:15px;font-weight:700}.node-text{font-size:12px}.title{font-size:18px;font-weight:700}.line{stroke:#4b5563;stroke-width:1.55;fill:none;marker-end:url(#arrow)}]]></style>
+</defs>
+<rect x="0" y="0" width="100%" height="100%" fill="#ffffff"/>
+<text class="title" x="382.5" y="25" text-anchor="middle">Chat Buyer-Seller</text>
+<rect x="30" y="36" width="235" height="2482" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="30" y="36" width="235" height="54" fill="#eef2ff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="147.5" y="68" text-anchor="middle">Buyer</text>
+<rect x="265" y="36" width="235" height="2482" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="265" y="36" width="235" height="54" fill="#ecfeff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="382.5" y="68" text-anchor="middle">System</text>
+<rect x="500" y="36" width="235" height="2482" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="500" y="36" width="235" height="54" fill="#f0fdf4" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="617.5" y="68" text-anchor="middle">Seller</text>
+<path class="line" d="M147.5,178.0 L147.5,207.0"/>
+<path class="line" d="M147.5,264.0 L147.5,278.5 L382.5,278.5 L382.5,293.0"/>
+<path class="line" d="M382.5,350.0 L382.5,379.0"/>
+<path class="line" d="M382.5,436.0 L382.5,465.0"/>
+<path class="line" d="M382.5,522.0 L382.5,551.0"/>
+<path class="line" d="M382.5,608.0 L382.5,637.0"/>
+<path class="line" d="M382.5,718.0 L382.5,723.0"/>
+<path class="line" d="M382.5,780.0 L382.5,809.0"/>
+<path class="line" d="M382.5,866.0 L382.5,880.5 L147.5,880.5 L147.5,895.0"/>
+<path class="line" d="M147.5,952.0 L147.5,966.5 L382.5,966.5 L382.5,981.0"/>
+<path class="line" d="M382.5,1038.0 L382.5,1067.0"/>
+<path class="line" d="M382.5,1124.0 L382.5,1153.0"/>
+<path class="line" d="M382.5,1234.0 L382.5,1239.0"/>
+<path class="line" d="M382.5,1296.0 L382.5,1325.0"/>
+<path class="line" d="M382.5,1382.0 L382.5,1411.0"/>
+<path class="line" d="M382.5,1468.0 L382.5,1482.5 L617.5,1482.5 L617.5,1497.0"/>
+<path class="line" d="M617.5,1554.0 L617.5,1583.0"/>
+<path class="line" d="M617.5,1640.0 L617.5,1654.5 L382.5,1654.5 L382.5,1669.0"/>
+<path class="line" d="M382.5,1726.0 L382.5,1755.0"/>
+<path class="line" d="M382.5,1812.0 L382.5,1826.5 L147.5,1826.5 L147.5,1841.0"/>
+<path class="line" d="M147.5,1922.0 L147.5,1924.5 L382.5,1924.5 L382.5,1927.0"/>
+<path class="line" d="M382.5,1984.0 L382.5,2013.0"/>
+<path class="line" d="M382.5,2070.0 L382.5,2099.0"/>
+<path class="line" d="M382.5,2156.0 L382.5,2185.0"/>
+<path class="line" d="M382.5,2242.0 L382.5,2271.0"/>
+<path class="line" d="M382.5,2328.0 L382.5,2357.0"/>
+<circle cx="147.5" cy="140.0" r="12" fill="#111827"/>
+<rect x="60.5" y="212.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="238.0" text-anchor="middle" dominant-baseline="middle">Klik chat seller</text>
+<rect x="295.5" y="298.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="317.0" text-anchor="middle" dominant-baseline="middle">Cek akses marketplace</text>
+<text class="node-text" x="382.5" y="331.0" text-anchor="middle" dominant-baseline="middle">dan user login</text>
+<rect x="295.5" y="384.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="403.0" text-anchor="middle" dominant-baseline="middle">Validasi seller</text>
+<text class="node-text" x="382.5" y="417.0" text-anchor="middle" dominant-baseline="middle">terverifikasi</text>
+<rect x="295.5" y="470.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="489.0" text-anchor="middle" dominant-baseline="middle">Validasi bukan toko</text>
+<text class="node-text" x="382.5" y="503.0" text-anchor="middle" dominant-baseline="middle">sendiri</text>
+<rect x="295.5" y="556.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="575.0" text-anchor="middle" dominant-baseline="middle">Validasi produk milik</text>
+<text class="node-text" x="382.5" y="589.0" text-anchor="middle" dominant-baseline="middle">seller bila ada</text>
+<polygon points="382.5,642.0 471.5,680.0 382.5,718.0 293.5,680.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="680.0" text-anchor="middle" dominant-baseline="middle">Chat boleh dibuka?</text>
+<rect x="295.5" y="728.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="747.0" text-anchor="middle" dominant-baseline="middle">Open atau reuse</text>
+<text class="node-text" x="382.5" y="761.0" text-anchor="middle" dominant-baseline="middle">conversation</text>
+<rect x="295.5" y="814.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="833.0" text-anchor="middle" dominant-baseline="middle">Kirim bootstrap, pesan,</text>
+<text class="node-text" x="382.5" y="847.0" text-anchor="middle" dominant-baseline="middle">produk seller</text>
+<rect x="60.5" y="900.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="919.0" text-anchor="middle" dominant-baseline="middle">Kirim teks, gambar, atau</text>
+<text class="node-text" x="147.5" y="933.0" text-anchor="middle" dominant-baseline="middle">produk</text>
+<rect x="295.5" y="986.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1005.0" text-anchor="middle" dominant-baseline="middle">Cek role participant dan</text>
+<text class="node-text" x="382.5" y="1019.0" text-anchor="middle" dominant-baseline="middle">chat blocked</text>
+<rect x="295.5" y="1072.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1098.0" text-anchor="middle" dominant-baseline="middle">Cek rate limit pesan</text>
+<polygon points="382.5,1158.0 471.5,1196.0 382.5,1234.0 293.5,1196.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="1196.0" text-anchor="middle" dominant-baseline="middle">Pesan valid?</text>
+<rect x="295.5" y="1244.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1263.0" text-anchor="middle" dominant-baseline="middle">Simpan message dan</text>
+<text class="node-text" x="382.5" y="1277.0" text-anchor="middle" dominant-baseline="middle">attachment</text>
+<rect x="295.5" y="1330.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1349.0" text-anchor="middle" dominant-baseline="middle">Update last</text>
+<text class="node-text" x="382.5" y="1363.0" text-anchor="middle" dominant-baseline="middle">message/unread</text>
+<rect x="295.5" y="1416.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1442.0" text-anchor="middle" dominant-baseline="middle">Kirim bus notification</text>
+<rect x="530.5" y="1502.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="1528.0" text-anchor="middle" dominant-baseline="middle">Menerima pesan</text>
+<rect x="530.5" y="1588.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="1614.0" text-anchor="middle" dominant-baseline="middle">Balas chat</text>
+<rect x="295.5" y="1674.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1693.0" text-anchor="middle" dominant-baseline="middle">Tandai read, presence,</text>
+<text class="node-text" x="382.5" y="1707.0" text-anchor="middle" dominant-baseline="middle">typing</text>
+<rect x="295.5" y="1760.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1786.0" text-anchor="middle" dominant-baseline="middle">Kembalikan error chat</text>
+<polygon points="147.5,1846.0 236.5,1884.0 147.5,1922.0 58.5,1884.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="147.5" y="1884.0" text-anchor="middle" dominant-baseline="middle">Tambah produk ke cart?</text>
+<rect x="295.5" y="1932.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1951.0" text-anchor="middle" dominant-baseline="middle">Validasi produk</text>
+<text class="node-text" x="382.5" y="1965.0" text-anchor="middle" dominant-baseline="middle">conversation</text>
+<rect x="295.5" y="2018.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2044.0" text-anchor="middle" dominant-baseline="middle">Tambahkan ke cart</text>
+<rect x="295.5" y="2104.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2130.0" text-anchor="middle" dominant-baseline="middle">Kirim laporan user</text>
+<rect x="295.5" y="2190.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2209.0" text-anchor="middle" dominant-baseline="middle">Simpan chat report untuk</text>
+<text class="node-text" x="382.5" y="2223.0" text-anchor="middle" dominant-baseline="middle">admin</text>
+<rect x="295.5" y="2276.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2295.0" text-anchor="middle" dominant-baseline="middle">Kembalikan error akses</text>
+<text class="node-text" x="382.5" y="2309.0" text-anchor="middle" dominant-baseline="middle">chat</text>
+<circle cx="382.5" cy="2376.0" r="13" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="382.5" cy="2376.0" r="8" fill="#111827"/>
+</svg>

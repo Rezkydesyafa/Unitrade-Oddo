@@ -1,0 +1,28 @@
+@startuml
+title Pencarian dan Filter
+|Buyer|
+start
+:Isi kata kunci atau filter;
+|System|
+:Normalisasi search, kategori, kondisi, harga, lokasi, sort;
+if (Filter terdekat?) then (Ya)
+  :Validasi latitude dan longitude;
+  if (Koordinat valid?) then (Ya)
+    :Hitung jarak Haversine;
+    :Urutkan produk terdekat;
+  else (Tidak)
+    :Kembalikan peringatan lokasi;
+  endif
+else (Tidak)
+  :Susun domain filter biasa;
+endif
+:Cari produk marketplace aktif;
+if (Request JSON filter?) then (Ya)
+  :Render fragment produk dan pager;
+else (Tidak)
+  :Render halaman shop/katalog;
+endif
+|Buyer|
+:Melihat hasil filter;
+stop
+@enduml

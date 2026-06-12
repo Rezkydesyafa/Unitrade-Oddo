@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="3218" viewBox="0 0 1000 3218" role="img" aria-label="Live Chat dan Customer Service">
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4b5563"/></marker>
+<style><![CDATA[text{font-family:Arial,Helvetica,sans-serif;fill:#111827}.lane-title{font-size:15px;font-weight:700}.node-text{font-size:12px}.title{font-size:18px;font-weight:700}.line{stroke:#4b5563;stroke-width:1.55;fill:none;marker-end:url(#arrow)}]]></style>
+</defs>
+<rect x="0" y="0" width="100%" height="100%" fill="#ffffff"/>
+<text class="title" x="500.0" y="25" text-anchor="middle">Live Chat dan Customer Service</text>
+<rect x="30" y="36" width="235" height="3170" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="30" y="36" width="235" height="54" fill="#eef2ff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="147.5" y="68" text-anchor="middle">User</text>
+<rect x="265" y="36" width="235" height="3170" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="265" y="36" width="235" height="54" fill="#ecfeff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="382.5" y="68" text-anchor="middle">System</text>
+<rect x="500" y="36" width="235" height="3170" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="500" y="36" width="235" height="54" fill="#f0fdf4" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="617.5" y="68" text-anchor="middle">AI Assistant</text>
+<rect x="735" y="36" width="235" height="3170" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="735" y="36" width="235" height="54" fill="#fff7ed" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="852.5" y="68" text-anchor="middle">CS/Admin</text>
+<path class="line" d="M147.5,178.0 L147.5,207.0"/>
+<path class="line" d="M147.5,264.0 L147.5,278.5 L382.5,278.5 L382.5,293.0"/>
+<path class="line" d="M382.5,374.0 L382.5,379.0"/>
+<path class="line" d="M382.5,436.0 L382.5,465.0"/>
+<path class="line" d="M382.5,522.0 L382.5,536.5 L147.5,536.5 L147.5,551.0"/>
+<path class="line" d="M147.5,608.0 L147.5,622.5 L382.5,622.5 L382.5,637.0"/>
+<path class="line" d="M382.5,694.0 L382.5,723.0"/>
+<path class="line" d="M382.5,804.0 L382.5,809.0"/>
+<path class="line" d="M382.5,866.0 L382.5,880.5 L617.5,880.5 L617.5,895.0"/>
+<path class="line" d="M617.5,952.0 L617.5,966.5 L382.5,966.5 L382.5,981.0"/>
+<path class="line" d="M382.5,1062.0 L382.5,1067.0"/>
+<path class="line" d="M382.5,1124.0 L382.5,1153.0"/>
+<path class="line" d="M382.5,1210.0 L382.5,1239.0"/>
+<path class="line" d="M382.5,1296.0 L382.5,1310.5 L147.5,1310.5 L147.5,1325.0"/>
+<path class="line" d="M147.5,1406.0 L147.5,1408.5 L382.5,1408.5 L382.5,1411.0"/>
+<path class="line" d="M382.5,1468.0 L382.5,1497.0"/>
+<path class="line" d="M382.5,1554.0 L382.5,1568.5 L852.5,1568.5 L852.5,1583.0"/>
+<path class="line" d="M852.5,1640.0 L852.5,1669.0"/>
+<path class="line" d="M852.5,1726.0 L852.5,1755.0"/>
+<path class="line" d="M852.5,1812.0 L852.5,1826.5 L382.5,1826.5 L382.5,1841.0"/>
+<path class="line" d="M382.5,1898.0 L382.5,1912.5 L147.5,1912.5 L147.5,1927.0"/>
+<path class="line" d="M147.5,1984.0 L147.5,1998.5 L852.5,1998.5 L852.5,2013.0"/>
+<path class="line" d="M852.5,2070.0 L852.5,2084.5 L382.5,2084.5 L382.5,2099.0"/>
+<path class="line" d="M382.5,2156.0 L382.5,2185.0"/>
+<path class="line" d="M382.5,2242.0 L382.5,2256.5 L147.5,2256.5 L147.5,2271.0"/>
+<path class="line" d="M147.5,2328.0 L147.5,2342.5 L382.5,2342.5 L382.5,2357.0"/>
+<path class="line" d="M382.5,2414.0 L382.5,2443.0"/>
+<path class="line" d="M382.5,2524.0 L382.5,2529.0"/>
+<path class="line" d="M382.5,2586.0 L382.5,2615.0"/>
+<path class="line" d="M382.5,2672.0 L382.5,2701.0"/>
+<path class="line" d="M382.5,2782.0 L382.5,2787.0"/>
+<path class="line" d="M382.5,2844.0 L382.5,2858.5 L852.5,2858.5 L852.5,2873.0"/>
+<path class="line" d="M852.5,2930.0 L852.5,2959.0"/>
+<path class="line" d="M852.5,3016.0 L852.5,3045.0"/>
+<circle cx="147.5" cy="140.0" r="12" fill="#111827"/>
+<rect x="60.5" y="212.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="238.0" text-anchor="middle" dominant-baseline="middle">Buka Customer Service</text>
+<polygon points="382.5,298.0 471.5,336.0 382.5,374.0 293.5,336.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="336.0" text-anchor="middle" dominant-baseline="middle">Menggunakan widget AI?</text>
+<rect x="295.5" y="384.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="403.0" text-anchor="middle" dominant-baseline="middle">Get atau create sesi CS</text>
+<text class="node-text" x="382.5" y="417.0" text-anchor="middle" dominant-baseline="middle">AI</text>
+<rect x="295.5" y="470.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="489.0" text-anchor="middle" dominant-baseline="middle">Kirim greeting dan quick</text>
+<text class="node-text" x="382.5" y="503.0" text-anchor="middle" dominant-baseline="middle">replies</text>
+<rect x="60.5" y="556.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="582.0" text-anchor="middle" dominant-baseline="middle">Kirim pesan</text>
+<rect x="295.5" y="642.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="668.0" text-anchor="middle" dominant-baseline="middle">Simpan pesan user</text>
+<polygon points="382.5,728.0 471.5,766.0 382.5,804.0 293.5,766.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="766.0" text-anchor="middle" dominant-baseline="middle">State AI aktif?</text>
+<rect x="295.5" y="814.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="840.0" text-anchor="middle" dominant-baseline="middle">Cek rate limit AI</text>
+<rect x="530.5" y="900.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="926.0" text-anchor="middle" dominant-baseline="middle">Generate jawaban Gemini</text>
+<polygon points="382.5,986.0 471.5,1024.0 382.5,1062.0 293.5,1024.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="1024.0" text-anchor="middle" dominant-baseline="middle">AI tersedia?</text>
+<rect x="295.5" y="1072.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1098.0" text-anchor="middle" dominant-baseline="middle">Simpan jawaban AI</text>
+<rect x="295.5" y="1158.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1184.0" text-anchor="middle" dominant-baseline="middle">Simpan pesan fallback AI</text>
+<rect x="295.5" y="1244.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1270.0" text-anchor="middle" dominant-baseline="middle">Simpan pesan tanpa AI</text>
+<polygon points="147.5,1330.0 236.5,1368.0 147.5,1406.0 58.5,1368.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="147.5" y="1368.0" text-anchor="middle" dominant-baseline="middle">Eskalasi ke admin?</text>
+<rect x="295.5" y="1416.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1442.0" text-anchor="middle" dominant-baseline="middle">Ensure customer ticket</text>
+<rect x="295.5" y="1502.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1521.0" text-anchor="middle" dominant-baseline="middle">Set waiting_admin dan</text>
+<text class="node-text" x="382.5" y="1535.0" text-anchor="middle" dominant-baseline="middle">notify queue</text>
+<rect x="765.5" y="1588.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="852.5" y="1614.0" text-anchor="middle" dominant-baseline="middle">Ambil antrean CS</text>
+<rect x="765.5" y="1674.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="852.5" y="1700.0" text-anchor="middle" dominant-baseline="middle">Start handling</text>
+<rect x="765.5" y="1760.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="852.5" y="1786.0" text-anchor="middle" dominant-baseline="middle">Kirim balasan admin</text>
+<rect x="295.5" y="1846.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1865.0" text-anchor="middle" dominant-baseline="middle">Set admin_handling dan</text>
+<text class="node-text" x="382.5" y="1879.0" text-anchor="middle" dominant-baseline="middle">kirim bus</text>
+<rect x="60.5" y="1932.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1958.0" text-anchor="middle" dominant-baseline="middle">Menerima balasan admin</text>
+<rect x="765.5" y="2018.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="852.5" y="2044.0" text-anchor="middle" dominant-baseline="middle">Close session</text>
+<rect x="295.5" y="2104.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2130.0" text-anchor="middle" dominant-baseline="middle">Set ticket done</text>
+<rect x="295.5" y="2190.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2209.0" text-anchor="middle" dominant-baseline="middle">Tampilkan kategori,</text>
+<text class="node-text" x="382.5" y="2223.0" text-anchor="middle" dominant-baseline="middle">order, dan tiket terbaru</text>
+<rect x="60.5" y="2276.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="2295.0" text-anchor="middle" dominant-baseline="middle">Isi tiket dan upload</text>
+<text class="node-text" x="147.5" y="2309.0" text-anchor="middle" dominant-baseline="middle">bukti</text>
+<rect x="295.5" y="2362.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2374.0" text-anchor="middle" dominant-baseline="middle">Validasi kategori,</text>
+<text class="node-text" x="382.5" y="2388.0" text-anchor="middle" dominant-baseline="middle">order, judul, deskripsi,</text>
+<text class="node-text" x="382.5" y="2402.0" text-anchor="middle" dominant-baseline="middle">bukti</text>
+<polygon points="382.5,2448.0 471.5,2486.0 382.5,2524.0 293.5,2486.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="2486.0" text-anchor="middle" dominant-baseline="middle">Data tiket valid?</text>
+<rect x="295.5" y="2534.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2560.0" text-anchor="middle" dominant-baseline="middle">Buat customer ticket</text>
+<rect x="295.5" y="2620.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2639.0" text-anchor="middle" dominant-baseline="middle">Simpan evidence dan</text>
+<text class="node-text" x="382.5" y="2653.0" text-anchor="middle" dominant-baseline="middle">thread</text>
+<polygon points="382.5,2706.0 471.5,2744.0 382.5,2782.0 293.5,2744.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="2744.0" text-anchor="middle" dominant-baseline="middle">Kategori refund?</text>
+<rect x="295.5" y="2792.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2811.0" text-anchor="middle" dominant-baseline="middle">Tambahkan link alur</text>
+<text class="node-text" x="382.5" y="2825.0" text-anchor="middle" dominant-baseline="middle">refund resmi</text>
+<rect x="765.5" y="2878.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="852.5" y="2904.0" text-anchor="middle" dominant-baseline="middle">Tinjau dan update tiket</text>
+<rect x="765.5" y="2964.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="852.5" y="2990.0" text-anchor="middle" dominant-baseline="middle">Tampilkan error tiket</text>
+<circle cx="852.5" cy="3064.0" r="13" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="852.5" cy="3064.0" r="8" fill="#111827"/>
+</svg>

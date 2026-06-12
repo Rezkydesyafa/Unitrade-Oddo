@@ -1,0 +1,70 @@
+@startuml
+title Laporan, Dispute, dan Refund
+|Buyer|
+start
+:Buka form refund order;
+|System|
+:Cek akses order dan marketplace;
+:Cek active refund existing;
+:Cek blocker refund;
+if (Refund boleh?) then (Ya)
+  |Buyer|
+  :Isi alasan dan nominal;
+  :Upload foto bukti;
+  :Tambahkan video atau link Drive;
+  |System|
+  :Validasi bukti minimal dan URL Drive;
+  :Lock order untuk cegah duplikat;
+  :Buat dispute refund;
+  :Simpan evidence;
+  :Set escrow disputed;
+  :Set order refund submitted;
+  |Admin|
+  :Mulai review refund;
+  |System|
+  if (Perlu bukti buyer?) then (Ya)
+    :Set need_buyer_evidence;
+    |Buyer|
+    :Upload bukti barang kembali;
+    |System|
+    :Simpan buyer_return_photo;
+    :Set need_seller_response;
+    |Seller|
+    :Konfirmasi barang kembali;
+    :Upload seller_return_photo;
+    |System|
+    :Set admin_review_final;
+  else (Tidak)
+    :Set under_review;
+    |Seller|
+    :Approve refund atau kirim respons;
+    |System|
+    if (Seller approve awal?) then (Ya)
+      :Set need_buyer_evidence;
+    else (Respons seller)
+      :Simpan seller_response;
+      :Set admin_review_final;
+    endif
+  endif
+  |Admin|
+  :Isi catatan keputusan;
+  if (Approve refund?) then (Ya)
+    |System|
+    :Validasi final state dan evidence;
+    :Set ledger refunded;
+    :Set intent refunded;
+    :Set order refunded;
+  else (Tidak)
+    if (Reject refund?) then (Ya)
+      :Set refund rejected;
+      :Kembalikan escrow ke held;
+    else (Cancel)
+      :Set refund cancelled;
+      :Kembalikan escrow ke held;
+    endif
+  endif
+else (Tidak)
+  :Redirect dengan error refund;
+endif
+stop
+@enduml

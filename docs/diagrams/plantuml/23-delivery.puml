@@ -1,0 +1,47 @@
+@startuml
+title Delivery
+|Buyer|
+start
+:Pilih metode pengiriman checkout;
+|System|
+:Set shipping method;
+if (Pickup COD?) then (Ya)
+  :Set ongkir nol;
+  :Sinkronkan fee line;
+else (GoSend)
+  :Ambil koordinat seller;
+  :Ambil koordinat buyer;
+  if (Koordinat lengkap?) then (Ya)
+    :Hitung jarak Haversine;
+    :Hitung ongkir tabel GoSend;
+    :Sinkronkan fee line ongkir;
+  else (Tidak)
+    :Set warning GPS;
+    :Blokir pembayaran GoSend;
+  endif
+endif
+|Buyer|
+:Melanjutkan pembayaran;
+|System|
+if (Order paid dan GoSend?) then (Ya)
+  :Buat delivery record pending;
+else (Tidak)
+  :Tidak buat delivery eksternal;
+endif
+|Seller|
+:Konfirmasi handoff;
+:Upload bukti dan resi;
+|System|
+:Update delivery picked_up;
+|Seller|
+if (Update status manual?) then (Ya)
+  |System|
+  :Validasi status delivery;
+  :Simpan pending/picked_up/in_transit/delivered/failed;
+endif
+|Buyer|
+:Melihat status pengiriman di order;
+|System|
+:Webhook delivery eksternal dinonaktifkan;
+stop
+@enduml

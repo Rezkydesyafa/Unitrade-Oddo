@@ -1,0 +1,42 @@
+@startuml
+title Register
+|User|
+start
+:Buka halaman signup;
+|System|
+:Tampilkan form signup;
+|User|
+:Isi data akun;
+:Setujui syarat layanan;
+|System|
+:Normalisasi email;
+:Cek signup enabled atau token;
+if (Signup boleh?) then (Ya)
+  :Validasi email, terms, dan recaptcha;
+  if (Data valid?) then (Ya)
+    if (Akun sudah ada?) then (Ya)
+      :Validasi password akun lama;
+      if (Password benar?) then (Ya)
+        :Generate OTP akun;
+      else (Tidak)
+        :Tampilkan error signup;
+      endif
+    else (Tidak)
+      :Buat akun Odoo;
+      :Catat register dan terms;
+      :Generate OTP akun;
+    endif
+    :Kirim email OTP;
+    :Simpan sesi OTP;
+    |User|
+    :Masuk halaman verifikasi OTP;
+  else (Tidak)
+    :Tampilkan error signup;
+    |User|
+    :Perbaiki data;
+  endif
+else (Tidak)
+  :Tampilkan error signup;
+endif
+stop
+@enduml

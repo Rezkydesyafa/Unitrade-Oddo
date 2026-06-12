@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="765" height="3304" viewBox="0 0 765 3304" role="img" aria-label="Kelola Produk">
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4b5563"/></marker>
+<style><![CDATA[text{font-family:Arial,Helvetica,sans-serif;fill:#111827}.lane-title{font-size:15px;font-weight:700}.node-text{font-size:12px}.title{font-size:18px;font-weight:700}.line{stroke:#4b5563;stroke-width:1.55;fill:none;marker-end:url(#arrow)}]]></style>
+</defs>
+<rect x="0" y="0" width="100%" height="100%" fill="#ffffff"/>
+<text class="title" x="382.5" y="25" text-anchor="middle">Kelola Produk</text>
+<rect x="30" y="36" width="235" height="3256" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="30" y="36" width="235" height="54" fill="#eef2ff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="147.5" y="68" text-anchor="middle">Seller</text>
+<rect x="265" y="36" width="235" height="3256" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="265" y="36" width="235" height="54" fill="#ecfeff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="382.5" y="68" text-anchor="middle">System</text>
+<rect x="500" y="36" width="235" height="3256" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="500" y="36" width="235" height="54" fill="#f0fdf4" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="617.5" y="68" text-anchor="middle">Midtrans</text>
+<path class="line" d="M147.5,178.0 L147.5,207.0"/>
+<path class="line" d="M147.5,264.0 L147.5,278.5 L382.5,278.5 L382.5,293.0"/>
+<path class="line" d="M382.5,350.0 L382.5,379.0"/>
+<path class="line" d="M382.5,460.0 L382.5,462.5 L147.5,462.5 L147.5,465.0"/>
+<path class="line" d="M147.5,546.0 L147.5,551.0"/>
+<path class="line" d="M147.5,608.0 L147.5,637.0"/>
+<path class="line" d="M147.5,694.0 L147.5,708.5 L382.5,708.5 L382.5,723.0"/>
+<path class="line" d="M382.5,780.0 L382.5,809.0"/>
+<path class="line" d="M382.5,890.0 L382.5,895.0"/>
+<path class="line" d="M382.5,952.0 L382.5,981.0"/>
+<path class="line" d="M382.5,1038.0 L382.5,1067.0"/>
+<path class="line" d="M382.5,1148.0 L382.5,1150.5 L147.5,1150.5 L147.5,1153.0"/>
+<path class="line" d="M147.5,1210.0 L147.5,1239.0"/>
+<path class="line" d="M147.5,1296.0 L147.5,1325.0"/>
+<path class="line" d="M147.5,1382.0 L147.5,1396.5 L382.5,1396.5 L382.5,1411.0"/>
+<path class="line" d="M382.5,1492.0 L382.5,1497.0"/>
+<path class="line" d="M382.5,1554.0 L382.5,1583.0"/>
+<path class="line" d="M382.5,1664.0 L382.5,1669.0"/>
+<path class="line" d="M382.5,1726.0 L382.5,1755.0"/>
+<path class="line" d="M382.5,1812.0 L382.5,1841.0"/>
+<path class="line" d="M382.5,1898.0 L382.5,1927.0"/>
+<path class="line" d="M382.5,1984.0 L382.5,1998.5 L617.5,1998.5 L617.5,2013.0"/>
+<path class="line" d="M617.5,2070.0 L617.5,2084.5 L382.5,2084.5 L382.5,2099.0"/>
+<path class="line" d="M382.5,2180.0 L382.5,2185.0"/>
+<path class="line" d="M382.5,2242.0 L382.5,2271.0"/>
+<path class="line" d="M382.5,2328.0 L382.5,2357.0"/>
+<path class="line" d="M382.5,2414.0 L382.5,2443.0"/>
+<path class="line" d="M382.5,2500.0 L382.5,2529.0"/>
+<path class="line" d="M382.5,2610.0 L382.5,2615.0"/>
+<path class="line" d="M382.5,2672.0 L382.5,2701.0"/>
+<path class="line" d="M382.5,2758.0 L382.5,2787.0"/>
+<path class="line" d="M382.5,2844.0 L382.5,2873.0"/>
+<path class="line" d="M382.5,2930.0 L382.5,2959.0"/>
+<path class="line" d="M382.5,3016.0 L382.5,3045.0"/>
+<path class="line" d="M382.5,3102.0 L382.5,3131.0"/>
+<circle cx="147.5" cy="140.0" r="12" fill="#111827"/>
+<rect x="60.5" y="212.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="231.0" text-anchor="middle" dominant-baseline="middle">Buka halaman produk</text>
+<text class="node-text" x="147.5" y="245.0" text-anchor="middle" dominant-baseline="middle">seller</text>
+<rect x="295.5" y="298.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="324.0" text-anchor="middle" dominant-baseline="middle">Cek seller terverifikasi</text>
+<polygon points="382.5,384.0 471.5,422.0 382.5,460.0 293.5,422.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="422.0" text-anchor="middle" dominant-baseline="middle">Seller valid?</text>
+<polygon points="147.5,470.0 236.5,508.0 147.5,546.0 58.5,508.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="147.5" y="508.0" text-anchor="middle" dominant-baseline="middle">Tambah produk?</text>
+<rect x="60.5" y="556.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="582.0" text-anchor="middle" dominant-baseline="middle">Isi form produk</text>
+<rect x="60.5" y="642.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="668.0" text-anchor="middle" dominant-baseline="middle">Upload gambar produk</text>
+<rect x="295.5" y="728.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="740.0" text-anchor="middle" dominant-baseline="middle">Validasi nama,</text>
+<text class="node-text" x="382.5" y="754.0" text-anchor="middle" dominant-baseline="middle">deskripsi, kategori,</text>
+<text class="node-text" x="382.5" y="768.0" text-anchor="middle" dominant-baseline="middle">harga, stok, kondisi,</text>
+<polygon points="382.5,814.0 471.5,852.0 382.5,890.0 293.5,852.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="852.0" text-anchor="middle" dominant-baseline="middle">Data produk valid?</text>
+<rect x="295.5" y="900.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="919.0" text-anchor="middle" dominant-baseline="middle">Buat produk draft tidak</text>
+<text class="node-text" x="382.5" y="933.0" text-anchor="middle" dominant-baseline="middle">publish</text>
+<rect x="295.5" y="986.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1012.0" text-anchor="middle" dominant-baseline="middle">Hitung listing fee</text>
+<polygon points="382.5,1072.0 471.5,1110.0 382.5,1148.0 293.5,1110.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="1110.0" text-anchor="middle" dominant-baseline="middle">Fee wajib?</text>
+<rect x="60.5" y="1158.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1177.0" text-anchor="middle" dominant-baseline="middle">Buka halaman payment</text>
+<text class="node-text" x="147.5" y="1191.0" text-anchor="middle" dominant-baseline="middle">produk</text>
+<rect x="60.5" y="1244.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1270.0" text-anchor="middle" dominant-baseline="middle">Setujui terms listing</text>
+<rect x="60.5" y="1330.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1356.0" text-anchor="middle" dominant-baseline="middle">Pilih metode bayar fee</text>
+<polygon points="382.5,1416.0 471.5,1454.0 382.5,1492.0 293.5,1454.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="1454.0" text-anchor="middle" dominant-baseline="middle">Account balance?</text>
+<rect x="295.5" y="1502.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1528.0" text-anchor="middle" dominant-baseline="middle">Cek saldo seller</text>
+<polygon points="382.5,1588.0 471.5,1626.0 382.5,1664.0 293.5,1626.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="1626.0" text-anchor="middle" dominant-baseline="middle">Saldo cukup?</text>
+<rect x="295.5" y="1674.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1700.0" text-anchor="middle" dominant-baseline="middle">Catat intent paid</text>
+<rect x="295.5" y="1760.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1786.0" text-anchor="middle" dominant-baseline="middle">Publish produk</text>
+<rect x="295.5" y="1846.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1872.0" text-anchor="middle" dominant-baseline="middle">Tampilkan saldo kurang</text>
+<rect x="295.5" y="1932.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1951.0" text-anchor="middle" dominant-baseline="middle">Buat listing fee intent</text>
+<text class="node-text" x="382.5" y="1965.0" text-anchor="middle" dominant-baseline="middle">Midtrans</text>
+<rect x="530.5" y="2018.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="2044.0" text-anchor="middle" dominant-baseline="middle">Proses pembayaran fee</text>
+<polygon points="382.5,2104.0 471.5,2142.0 382.5,2180.0 293.5,2142.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="2142.0" text-anchor="middle" dominant-baseline="middle">Fee paid?</text>
+<rect x="295.5" y="2190.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2216.0" text-anchor="middle" dominant-baseline="middle">Publish produk</text>
+<rect x="295.5" y="2276.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2295.0" text-anchor="middle" dominant-baseline="middle">Produk tetap draft fee</text>
+<text class="node-text" x="382.5" y="2309.0" text-anchor="middle" dominant-baseline="middle">pending</text>
+<rect x="295.5" y="2362.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2388.0" text-anchor="middle" dominant-baseline="middle">Publish produk tanpa fee</text>
+<rect x="295.5" y="2448.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2474.0" text-anchor="middle" dominant-baseline="middle">Tampilkan error form</text>
+<polygon points="382.5,2534.0 471.5,2572.0 382.5,2610.0 293.5,2572.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="2572.0" text-anchor="middle" dominant-baseline="middle">Edit produk?</text>
+<rect x="295.5" y="2620.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2646.0" text-anchor="middle" dominant-baseline="middle">Ubah data produk</text>
+<rect x="295.5" y="2706.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2732.0" text-anchor="middle" dominant-baseline="middle">Validasi perubahan</text>
+<rect x="295.5" y="2792.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2811.0" text-anchor="middle" dominant-baseline="middle">Update produk dan status</text>
+<text class="node-text" x="382.5" y="2825.0" text-anchor="middle" dominant-baseline="middle">publish</text>
+<rect x="295.5" y="2878.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2904.0" text-anchor="middle" dominant-baseline="middle">Pilih hapus produk</text>
+<rect x="295.5" y="2964.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2983.0" text-anchor="middle" dominant-baseline="middle">Archive produk dan</text>
+<text class="node-text" x="382.5" y="2997.0" text-anchor="middle" dominant-baseline="middle">unpublish</text>
+<rect x="295.5" y="3050.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="3069.0" text-anchor="middle" dominant-baseline="middle">Redirect ke onboarding</text>
+<text class="node-text" x="382.5" y="3083.0" text-anchor="middle" dominant-baseline="middle">seller</text>
+<circle cx="382.5" cy="3150.0" r="13" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="382.5" cy="3150.0" r="8" fill="#111827"/>
+</svg>

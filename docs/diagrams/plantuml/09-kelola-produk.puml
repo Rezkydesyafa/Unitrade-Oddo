@@ -1,0 +1,65 @@
+@startuml
+title Kelola Produk
+|Seller|
+start
+:Buka halaman produk seller;
+|System|
+:Cek seller terverifikasi;
+if (Seller valid?) then (Ya)
+  |Seller|
+  if (Tambah produk?) then (Ya)
+    :Isi form produk;
+    :Upload gambar produk;
+    |System|
+    :Validasi nama, deskripsi, kategori, harga, stok, kondisi, gambar;
+    if (Data produk valid?) then (Ya)
+      :Buat produk draft tidak publish;
+      :Hitung listing fee;
+      if (Fee wajib?) then (Ya)
+        |Seller|
+        :Buka halaman payment produk;
+        :Setujui terms listing;
+        :Pilih metode bayar fee;
+        |System|
+        if (Account balance?) then (Ya)
+          :Cek saldo seller;
+          if (Saldo cukup?) then (Ya)
+            :Catat intent paid;
+            :Publish produk;
+          else (Tidak)
+            :Tampilkan saldo kurang;
+          endif
+        else (Midtrans)
+          :Buat listing fee intent Midtrans;
+          |Midtrans|
+          :Proses pembayaran fee;
+          |System|
+          if (Fee paid?) then (Ya)
+            :Publish produk;
+          else (Tidak)
+            :Produk tetap draft fee pending;
+          endif
+        endif
+      else (Tidak)
+        :Publish produk tanpa fee;
+      endif
+    else (Tidak)
+      :Tampilkan error form;
+    endif
+  else (Tidak)
+    if (Edit produk?) then (Ya)
+      :Ubah data produk;
+      |System|
+      :Validasi perubahan;
+      :Update produk dan status publish;
+    else (Hapus)
+      :Pilih hapus produk;
+      |System|
+      :Archive produk dan unpublish;
+    endif
+  endif
+else (Tidak)
+  :Redirect ke onboarding seller;
+endif
+stop
+@enduml

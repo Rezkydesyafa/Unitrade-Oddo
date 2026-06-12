@@ -1,0 +1,35 @@
+@startuml
+title Approval Seller oleh Admin
+|Admin|
+start
+:Buka antrean KTM atau seller;
+|System|
+:Cek grup admin UniTrade;
+if (Admin valid?) then (Ya)
+  :Tampilkan pending/manual review;
+  |Admin|
+  :Pilih approve atau reject;
+  |System|
+  if (Approve?) then (Ya)
+    :Validasi user, NIM, dan duplikasi seller;
+    if (Data approval valid?) then (Ya)
+      :Create atau update seller;
+      :Set user x_is_seller;
+      :Set verifikasi approved;
+      :Kirim email seller approved;
+      :Catat audit admin;
+    else (Tidak)
+      :Tampilkan error approval;
+    endif
+  else (Reject)
+    :Validasi alasan penolakan;
+    :Set state rejected;
+    :Reset flag seller bila perlu;
+    :Kirim email rejected;
+    :Catat audit admin;
+  endif
+else (Tidak)
+  :Tampilkan halaman forbidden;
+endif
+stop
+@enduml

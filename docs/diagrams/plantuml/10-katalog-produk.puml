@@ -1,0 +1,15 @@
+@startuml
+title Katalog Produk
+|Buyer|
+start
+:Buka katalog produk;
+|System|
+:Refresh listing state;
+:Ambil produk marketplace aktif;
+:Apply filter awal dari URL;
+:Hitung kategori, banner, dan pagination;
+:Tampilkan katalog publik;
+|Buyer|
+:Menelusuri daftar produk;
+stop
+@enduml

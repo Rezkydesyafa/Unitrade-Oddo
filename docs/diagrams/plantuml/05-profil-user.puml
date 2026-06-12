@@ -1,0 +1,48 @@
+@startuml
+title Profil User
+|User|
+start
+:Buka profil atau settings;
+|System|
+:Tampilkan data partner dan user;
+|User|
+if (Update profil?) then (Ya)
+  :Ubah data pribadi;
+  |System|
+  :Validasi nilai profil;
+  if (Data valid?) then (Ya)
+    :Simpan partner dan user;
+  else (Tidak)
+    :Tampilkan error profil;
+  endif
+else (Tidak)
+  if (Update alamat?) then (Ya)
+    :Isi alamat dan koordinat;
+    |System|
+    :Validasi alamat;
+    if (Perlu geocode?) then (Ya)
+      |Mapbox|
+      :Cari kandidat lokasi;
+      |System|
+      :Validasi koordinat Indonesia;
+    endif
+    :Simpan alamat checkout;
+  else (Settings)
+    :Ubah notifikasi, sesi, atau deaktivasi;
+    |System|
+    if (Reset password?) then (Ya)
+      :Mulai OTP settings reset;
+    else (Tidak)
+      if (Revoke session?) then (Ya)
+        :Cabut sesi login;
+      else (Deaktivasi)
+        :Validasi konfirmasi dan password;
+        :Nonaktifkan akun dan logout;
+      endif
+    endif
+  endif
+endif
+|User|
+:Lihat hasil perubahan;
+stop
+@enduml

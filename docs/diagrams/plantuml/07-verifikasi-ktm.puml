@@ -1,0 +1,49 @@
+@startuml
+title Verifikasi KTM
+|Seller|
+start
+:Buka form verifikasi KTM;
+|System|
+:Cek akses dan sesi OTP seller;
+if (OTP seller valid?) then (Ya)
+  :Load verifikasi terakhir dan kampus;
+  |Seller|
+  :Pilih kampus;
+  :Upload foto KTM;
+  |System|
+  :Validasi kampus wajib;
+  :Cek rate limit upload;
+  :Validasi tipe, ukuran, dan dimensi gambar;
+  if (File valid?) then (Ya)
+    :Simpan attachment KTM;
+    |OCR Service|
+    :Proses OCR KTM;
+    |System|
+    if (OCR approved dan NIM unik?) then (Ya)
+      :Create atau update seller;
+      :Set user sebagai seller;
+      :Kirim email approved;
+      :Bersihkan sesi seller OTP;
+      |Seller|
+      :Melihat status approved;
+    else (Tidak)
+      if (Perlu review manual?) then (Ya)
+        :Simpan state manual_review;
+        :Kirim email review manual;
+        |Seller|
+        :Menunggu admin;
+      else (Rejected)
+        :Simpan state rejected;
+        :Kirim email rejected;
+        |Seller|
+        :Melihat alasan penolakan;
+      endif
+    endif
+  else (Tidak)
+    :Kembalikan error upload;
+  endif
+else (Tidak)
+  :Minta ulang OTP onboarding;
+endif
+stop
+@enduml

@@ -1,0 +1,53 @@
+@startuml
+title OTP
+|System|
+start
+:Terima permintaan OTP;
+:Cek user, email, dan purpose;
+:Cek rate limit;
+if (Limit terlampaui?) then (Ya)
+  :Tampilkan pesan tunggu;
+  stop
+else (Tidak)
+  :Nonaktifkan OTP lama;
+  :Generate kode 6 digit;
+  :Simpan expired time;
+  |Email|
+  :Kirim kode OTP;
+  |System|
+  :Simpan sesi OTP;
+  |User|
+  :Input 6 digit OTP;
+  |System|
+  :Validasi panjang kode;
+  if (Format valid?) then (Ya)
+    :Verifikasi kode dan purpose;
+    if (Kode OTP valid?) then (Ya)
+      if (Purpose reset settings?) then (Ya)
+        :Kirim email reset password;
+        :Bersihkan sesi OTP;
+      else (Tidak)
+        if (Purpose seller onboarding?) then (Ya)
+          :Restore session login;
+          :Tandai OTP seller verified;
+          :Bersihkan sesi OTP;
+        else (Akun)
+          :Tandai user OTP verified;
+          :Catat aktivitas verifikasi;
+          :Restore session login;
+          :Bersihkan sesi OTP;
+        endif
+      endif
+      |User|
+      :Diarahkan sesuai purpose;
+    else (Tidak)
+      :Tampilkan error OTP;
+      |User|
+      :Resend atau input ulang;
+    endif
+  else (Tidak)
+    :Tampilkan error format kode;
+  endif
+endif
+stop
+@enduml

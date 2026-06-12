@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="765" height="3046" viewBox="0 0 765 3046" role="img" aria-label="OTP">
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4b5563"/></marker>
+<style><![CDATA[text{font-family:Arial,Helvetica,sans-serif;fill:#111827}.lane-title{font-size:15px;font-weight:700}.node-text{font-size:12px}.title{font-size:18px;font-weight:700}.line{stroke:#4b5563;stroke-width:1.55;fill:none;marker-end:url(#arrow)}]]></style>
+</defs>
+<rect x="0" y="0" width="100%" height="100%" fill="#ffffff"/>
+<text class="title" x="382.5" y="25" text-anchor="middle">OTP</text>
+<rect x="30" y="36" width="235" height="2998" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="30" y="36" width="235" height="54" fill="#eef2ff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="147.5" y="68" text-anchor="middle">System</text>
+<rect x="265" y="36" width="235" height="2998" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="265" y="36" width="235" height="54" fill="#ecfeff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="382.5" y="68" text-anchor="middle">Email</text>
+<rect x="500" y="36" width="235" height="2998" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="500" y="36" width="235" height="54" fill="#f0fdf4" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="617.5" y="68" text-anchor="middle">User</text>
+<path class="line" d="M147.5,178.0 L147.5,207.0"/>
+<path class="line" d="M147.5,264.0 L147.5,293.0"/>
+<path class="line" d="M147.5,350.0 L147.5,379.0"/>
+<path class="line" d="M147.5,436.0 L147.5,465.0"/>
+<path class="line" d="M147.5,546.0 L147.5,551.0"/>
+<path class="line" d="M147.5,608.0 L147.5,637.0"/>
+<path class="line" d="M147.5,694.0 L147.5,723.0"/>
+<path class="line" d="M147.5,780.0 L147.5,809.0"/>
+<path class="line" d="M147.5,866.0 L147.5,895.0"/>
+<path class="line" d="M147.5,952.0 L147.5,966.5 L382.5,966.5 L382.5,981.0"/>
+<path class="line" d="M382.5,1038.0 L382.5,1052.5 L147.5,1052.5 L147.5,1067.0"/>
+<path class="line" d="M147.5,1124.0 L147.5,1138.5 L617.5,1138.5 L617.5,1153.0"/>
+<path class="line" d="M617.5,1210.0 L617.5,1224.5 L147.5,1224.5 L147.5,1239.0"/>
+<path class="line" d="M147.5,1296.0 L147.5,1325.0"/>
+<path class="line" d="M147.5,1406.0 L147.5,1411.0"/>
+<path class="line" d="M147.5,1468.0 L147.5,1497.0"/>
+<path class="line" d="M147.5,1578.0 L147.5,1583.0"/>
+<path class="line" d="M147.5,1664.0 L147.5,1669.0"/>
+<path class="line" d="M147.5,1726.0 L147.5,1755.0"/>
+<path class="line" d="M147.5,1812.0 L147.5,1841.0"/>
+<path class="line" d="M147.5,1922.0 L147.5,1927.0"/>
+<path class="line" d="M147.5,1984.0 L147.5,2013.0"/>
+<path class="line" d="M147.5,2070.0 L147.5,2099.0"/>
+<path class="line" d="M147.5,2156.0 L147.5,2185.0"/>
+<path class="line" d="M147.5,2242.0 L147.5,2271.0"/>
+<path class="line" d="M147.5,2328.0 L147.5,2357.0"/>
+<path class="line" d="M147.5,2414.0 L147.5,2443.0"/>
+<path class="line" d="M147.5,2500.0 L147.5,2514.5 L617.5,2514.5 L617.5,2529.0"/>
+<path class="line" d="M617.5,2586.0 L617.5,2615.0"/>
+<path class="line" d="M617.5,2672.0 L617.5,2701.0"/>
+<path class="line" d="M617.5,2758.0 L617.5,2787.0"/>
+<path class="line" d="M617.5,2844.0 L617.5,2873.0"/>
+<circle cx="147.5" cy="140.0" r="12" fill="#111827"/>
+<rect x="60.5" y="212.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="238.0" text-anchor="middle" dominant-baseline="middle">Terima permintaan OTP</text>
+<rect x="60.5" y="298.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="317.0" text-anchor="middle" dominant-baseline="middle">Cek user, email, dan</text>
+<text class="node-text" x="147.5" y="331.0" text-anchor="middle" dominant-baseline="middle">purpose</text>
+<rect x="60.5" y="384.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="410.0" text-anchor="middle" dominant-baseline="middle">Cek rate limit</text>
+<polygon points="147.5,470.0 236.5,508.0 147.5,546.0 58.5,508.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="147.5" y="508.0" text-anchor="middle" dominant-baseline="middle">Limit terlampaui?</text>
+<rect x="60.5" y="556.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="582.0" text-anchor="middle" dominant-baseline="middle">Tampilkan pesan tunggu</text>
+<circle cx="147.5" cy="656.0" r="13" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="147.5" cy="656.0" r="8" fill="#111827"/>
+<rect x="60.5" y="728.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="754.0" text-anchor="middle" dominant-baseline="middle">Nonaktifkan OTP lama</text>
+<rect x="60.5" y="814.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="840.0" text-anchor="middle" dominant-baseline="middle">Generate kode 6 digit</text>
+<rect x="60.5" y="900.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="926.0" text-anchor="middle" dominant-baseline="middle">Simpan expired time</text>
+<rect x="295.5" y="986.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1012.0" text-anchor="middle" dominant-baseline="middle">Kirim kode OTP</text>
+<rect x="60.5" y="1072.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1098.0" text-anchor="middle" dominant-baseline="middle">Simpan sesi OTP</text>
+<rect x="530.5" y="1158.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="1184.0" text-anchor="middle" dominant-baseline="middle">Input 6 digit OTP</text>
+<rect x="60.5" y="1244.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1270.0" text-anchor="middle" dominant-baseline="middle">Validasi panjang kode</text>
+<polygon points="147.5,1330.0 236.5,1368.0 147.5,1406.0 58.5,1368.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="147.5" y="1368.0" text-anchor="middle" dominant-baseline="middle">Format valid?</text>
+<rect x="60.5" y="1416.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1435.0" text-anchor="middle" dominant-baseline="middle">Verifikasi kode dan</text>
+<text class="node-text" x="147.5" y="1449.0" text-anchor="middle" dominant-baseline="middle">purpose</text>
+<polygon points="147.5,1502.0 236.5,1540.0 147.5,1578.0 58.5,1540.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="147.5" y="1540.0" text-anchor="middle" dominant-baseline="middle">Kode OTP valid?</text>
+<polygon points="147.5,1588.0 236.5,1626.0 147.5,1664.0 58.5,1626.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="147.5" y="1619.0" text-anchor="middle" dominant-baseline="middle">Purpose reset</text>
+<text class="node-text" x="147.5" y="1633.0" text-anchor="middle" dominant-baseline="middle">settings?</text>
+<rect x="60.5" y="1674.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1693.0" text-anchor="middle" dominant-baseline="middle">Kirim email reset</text>
+<text class="node-text" x="147.5" y="1707.0" text-anchor="middle" dominant-baseline="middle">password</text>
+<rect x="60.5" y="1760.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1786.0" text-anchor="middle" dominant-baseline="middle">Bersihkan sesi OTP</text>
+<polygon points="147.5,1846.0 236.5,1884.0 147.5,1922.0 58.5,1884.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="147.5" y="1877.0" text-anchor="middle" dominant-baseline="middle">Purpose seller</text>
+<text class="node-text" x="147.5" y="1891.0" text-anchor="middle" dominant-baseline="middle">onboarding?</text>
+<rect x="60.5" y="1932.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1958.0" text-anchor="middle" dominant-baseline="middle">Restore session login</text>
+<rect x="60.5" y="2018.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="2037.0" text-anchor="middle" dominant-baseline="middle">Tandai OTP seller</text>
+<text class="node-text" x="147.5" y="2051.0" text-anchor="middle" dominant-baseline="middle">verified</text>
+<rect x="60.5" y="2104.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="2130.0" text-anchor="middle" dominant-baseline="middle">Bersihkan sesi OTP</text>
+<rect x="60.5" y="2190.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="2216.0" text-anchor="middle" dominant-baseline="middle">Tandai user OTP verified</text>
+<rect x="60.5" y="2276.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="2295.0" text-anchor="middle" dominant-baseline="middle">Catat aktivitas</text>
+<text class="node-text" x="147.5" y="2309.0" text-anchor="middle" dominant-baseline="middle">verifikasi</text>
+<rect x="60.5" y="2362.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="2388.0" text-anchor="middle" dominant-baseline="middle">Restore session login</text>
+<rect x="60.5" y="2448.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="2474.0" text-anchor="middle" dominant-baseline="middle">Bersihkan sesi OTP</text>
+<rect x="530.5" y="2534.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="2560.0" text-anchor="middle" dominant-baseline="middle">Diarahkan sesuai purpose</text>
+<rect x="530.5" y="2620.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="2646.0" text-anchor="middle" dominant-baseline="middle">Tampilkan error OTP</text>
+<rect x="530.5" y="2706.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="2732.0" text-anchor="middle" dominant-baseline="middle">Resend atau input ulang</text>
+<rect x="530.5" y="2792.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="2811.0" text-anchor="middle" dominant-baseline="middle">Tampilkan error format</text>
+<text class="node-text" x="617.5" y="2825.0" text-anchor="middle" dominant-baseline="middle">kode</text>
+<circle cx="617.5" cy="2892.0" r="13" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="617.5" cy="2892.0" r="8" fill="#111827"/>
+</svg>

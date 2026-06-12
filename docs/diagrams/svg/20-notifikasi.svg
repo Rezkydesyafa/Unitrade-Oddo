@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="765" height="2186" viewBox="0 0 765 2186" role="img" aria-label="Notifikasi">
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4b5563"/></marker>
+<style><![CDATA[text{font-family:Arial,Helvetica,sans-serif;fill:#111827}.lane-title{font-size:15px;font-weight:700}.node-text{font-size:12px}.title{font-size:18px;font-weight:700}.line{stroke:#4b5563;stroke-width:1.55;fill:none;marker-end:url(#arrow)}]]></style>
+</defs>
+<rect x="0" y="0" width="100%" height="100%" fill="#ffffff"/>
+<text class="title" x="382.5" y="25" text-anchor="middle">Notifikasi</text>
+<rect x="30" y="36" width="235" height="2138" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="30" y="36" width="235" height="54" fill="#eef2ff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="147.5" y="68" text-anchor="middle">System</text>
+<rect x="265" y="36" width="235" height="2138" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="265" y="36" width="235" height="54" fill="#ecfeff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="382.5" y="68" text-anchor="middle">Email</text>
+<rect x="500" y="36" width="235" height="2138" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="500" y="36" width="235" height="54" fill="#f0fdf4" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="617.5" y="68" text-anchor="middle">User</text>
+<path class="line" d="M147.5,178.0 L147.5,207.0"/>
+<path class="line" d="M147.5,264.0 L147.5,293.0"/>
+<path class="line" d="M147.5,350.0 L147.5,379.0"/>
+<path class="line" d="M147.5,460.0 L147.5,465.0"/>
+<path class="line" d="M147.5,522.0 L147.5,551.0"/>
+<path class="line" d="M147.5,608.0 L147.5,637.0"/>
+<path class="line" d="M147.5,718.0 L147.5,723.0"/>
+<path class="line" d="M147.5,780.0 L147.5,809.0"/>
+<path class="line" d="M147.5,866.0 L147.5,895.0"/>
+<path class="line" d="M147.5,976.0 L147.5,981.0"/>
+<path class="line" d="M147.5,1038.0 L147.5,1067.0"/>
+<path class="line" d="M147.5,1124.0 L147.5,1153.0"/>
+<path class="line" d="M147.5,1234.0 L147.5,1236.5 L382.5,1236.5 L382.5,1239.0"/>
+<path class="line" d="M382.5,1296.0 L382.5,1310.5 L147.5,1310.5 L147.5,1325.0"/>
+<path class="line" d="M147.5,1382.0 L147.5,1411.0"/>
+<path class="line" d="M147.5,1468.0 L147.5,1497.0"/>
+<path class="line" d="M147.5,1554.0 L147.5,1568.5 L617.5,1568.5 L617.5,1583.0"/>
+<path class="line" d="M617.5,1640.0 L617.5,1654.5 L147.5,1654.5 L147.5,1669.0"/>
+<path class="line" d="M147.5,1726.0 L147.5,1755.0"/>
+<path class="line" d="M147.5,1812.0 L147.5,1826.5 L617.5,1826.5 L617.5,1841.0"/>
+<path class="line" d="M617.5,1898.0 L617.5,1912.5 L147.5,1912.5 L147.5,1927.0"/>
+<path class="line" d="M147.5,1984.0 L147.5,2013.0"/>
+<circle cx="147.5" cy="140.0" r="12" fill="#111827"/>
+<rect x="60.5" y="212.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="238.0" text-anchor="middle" dominant-baseline="middle">Event aplikasi terjadi</text>
+<rect x="60.5" y="298.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="324.0" text-anchor="middle" dominant-baseline="middle">Cari event di registry</text>
+<polygon points="147.5,384.0 236.5,422.0 147.5,460.0 58.5,422.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="147.5" y="422.0" text-anchor="middle" dominant-baseline="middle">Event dikenal?</text>
+<rect x="60.5" y="470.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="496.0" text-anchor="middle" dominant-baseline="middle">Bangun payload aman</text>
+<rect x="60.5" y="556.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="582.0" text-anchor="middle" dominant-baseline="middle">Hitung idempotency key</text>
+<polygon points="147.5,642.0 236.5,680.0 147.5,718.0 58.5,680.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="147.5" y="680.0" text-anchor="middle" dominant-baseline="middle">Duplikat?</text>
+<rect x="60.5" y="728.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="754.0" text-anchor="middle" dominant-baseline="middle">Lewati create notifikasi</text>
+<rect x="60.5" y="814.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="833.0" text-anchor="middle" dominant-baseline="middle">Cek preferensi in-app</text>
+<text class="node-text" x="147.5" y="847.0" text-anchor="middle" dominant-baseline="middle">dan email</text>
+<polygon points="147.5,900.0 236.5,938.0 147.5,976.0 58.5,938.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="147.5" y="938.0" text-anchor="middle" dominant-baseline="middle">Channel aktif?</text>
+<rect x="60.5" y="986.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1012.0" text-anchor="middle" dominant-baseline="middle">Render title dan message</text>
+<rect x="60.5" y="1072.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1091.0" text-anchor="middle" dominant-baseline="middle">Create</text>
+<text class="node-text" x="147.5" y="1105.0" text-anchor="middle" dominant-baseline="middle">unitrade.notification</text>
+<polygon points="147.5,1158.0 236.5,1196.0 147.5,1234.0 58.5,1196.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="147.5" y="1189.0" text-anchor="middle" dominant-baseline="middle">Email aktif dan</text>
+<text class="node-text" x="147.5" y="1203.0" text-anchor="middle" dominant-baseline="middle">template ada?</text>
+<rect x="295.5" y="1244.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1270.0" text-anchor="middle" dominant-baseline="middle">Kirim email template</text>
+<rect x="60.5" y="1330.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1349.0" text-anchor="middle" dominant-baseline="middle">Set email sent atau</text>
+<text class="node-text" x="147.5" y="1363.0" text-anchor="middle" dominant-baseline="middle">failed</text>
+<rect x="60.5" y="1416.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1435.0" text-anchor="middle" dominant-baseline="middle">Skip berdasarkan</text>
+<text class="node-text" x="147.5" y="1449.0" text-anchor="middle" dominant-baseline="middle">preferensi</text>
+<rect x="60.5" y="1502.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1528.0" text-anchor="middle" dominant-baseline="middle">Log unknown event</text>
+<rect x="530.5" y="1588.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="1614.0" text-anchor="middle" dominant-baseline="middle">Buka notification center</text>
+<rect x="60.5" y="1674.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1693.0" text-anchor="middle" dominant-baseline="middle">Filter scope user atau</text>
+<text class="node-text" x="147.5" y="1707.0" text-anchor="middle" dominant-baseline="middle">seller</text>
+<rect x="60.5" y="1760.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1779.0" text-anchor="middle" dominant-baseline="middle">Tampilkan unread,</text>
+<text class="node-text" x="147.5" y="1793.0" text-anchor="middle" dominant-baseline="middle">recent, dan kategori</text>
+<rect x="530.5" y="1846.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="1858.0" text-anchor="middle" dominant-baseline="middle">Mark read, read all,</text>
+<text class="node-text" x="617.5" y="1872.0" text-anchor="middle" dominant-baseline="middle">delete, atau ubah</text>
+<text class="node-text" x="617.5" y="1886.0" text-anchor="middle" dominant-baseline="middle">setting</text>
+<rect x="60.5" y="1932.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1951.0" text-anchor="middle" dominant-baseline="middle">Simpan perubahan</text>
+<text class="node-text" x="147.5" y="1965.0" text-anchor="middle" dominant-baseline="middle">notifikasi</text>
+<circle cx="147.5" cy="2032.0" r="13" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="147.5" cy="2032.0" r="8" fill="#111827"/>
+</svg>

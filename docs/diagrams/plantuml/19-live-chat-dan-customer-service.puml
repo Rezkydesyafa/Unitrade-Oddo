@@ -1,0 +1,64 @@
+@startuml
+title Live Chat dan Customer Service
+|User|
+start
+:Buka Customer Service;
+|System|
+if (Menggunakan widget AI?) then (Ya)
+  :Get atau create sesi CS AI;
+  :Kirim greeting dan quick replies;
+  |User|
+  :Kirim pesan;
+  |System|
+  :Simpan pesan user;
+  if (State AI aktif?) then (Ya)
+    :Cek rate limit AI;
+    |AI Assistant|
+    :Generate jawaban Gemini;
+    |System|
+    if (AI tersedia?) then (Ya)
+      :Simpan jawaban AI;
+    else (Tidak)
+      :Simpan pesan fallback AI;
+    endif
+  else (Menunggu admin)
+    :Simpan pesan tanpa AI;
+  endif
+  |User|
+  if (Eskalasi ke admin?) then (Ya)
+    |System|
+    :Ensure customer ticket;
+    :Set waiting_admin dan notify queue;
+    |CS/Admin|
+    :Ambil antrean CS;
+    :Start handling;
+    :Kirim balasan admin;
+    |System|
+    :Set admin_handling dan kirim bus;
+    |User|
+    :Menerima balasan admin;
+    |CS/Admin|
+    :Close session;
+    |System|
+    :Set ticket done;
+  endif
+else (Tiket bantuan)
+  :Tampilkan kategori, order, dan tiket terbaru;
+  |User|
+  :Isi tiket dan upload bukti;
+  |System|
+  :Validasi kategori, order, judul, deskripsi, bukti;
+  if (Data tiket valid?) then (Ya)
+    :Buat customer ticket;
+    :Simpan evidence dan thread;
+    if (Kategori refund?) then (Ya)
+      :Tambahkan link alur refund resmi;
+    endif
+    |CS/Admin|
+    :Tinjau dan update tiket;
+  else (Tidak)
+    :Tampilkan error tiket;
+  endif
+endif
+stop
+@enduml

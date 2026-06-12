@@ -1,0 +1,43 @@
+@startuml
+title Review
+|Buyer|
+start
+:Buka review produk;
+|System|
+:List review visible;
+:Hitung summary rating;
+if (Buyer login?) then (Ya)
+  :Cek review status per produk;
+  :Cari order completed/refunded yang reviewable;
+else (Tidak)
+  :Set can_review false;
+endif
+|Buyer|
+if (Kirim review?) then (Ya)
+  :Isi rating, komentar, tag, gambar;
+  |System|
+  :Validasi rating 1 sampai 5;
+  :Cek order eligible;
+  :Cek review user-product existing;
+  if (Boleh review?) then (Ya)
+    :Simpan atau update review;
+    :Refresh statistik produk;
+    |Seller|
+    :Menerima notifikasi review baru;
+  else (Tidak)
+    :Kembalikan already reviewed atau not eligible;
+  endif
+else (Interaksi)
+  if (Helpful?) then (Ya)
+    |System|
+    :Toggle helpful vote unik;
+  else (Report)
+    |System|
+    :Cek report unik;
+    :Simpan laporan review;
+    |Admin|
+    :Tinjau laporan dan visibility;
+  endif
+endif
+stop
+@enduml
