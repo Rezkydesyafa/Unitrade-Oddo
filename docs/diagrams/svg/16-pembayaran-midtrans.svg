@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="765" height="3046" viewBox="0 0 765 3046" role="img" aria-label="Pembayaran Midtrans">
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4b5563"/></marker>
+<style><![CDATA[text{font-family:Arial,Helvetica,sans-serif;fill:#111827}.lane-title{font-size:15px;font-weight:700}.node-text{font-size:12px}.title{font-size:18px;font-weight:700}.line{stroke:#4b5563;stroke-width:1.55;fill:none;marker-end:url(#arrow)}]]></style>
+</defs>
+<rect x="0" y="0" width="100%" height="100%" fill="#ffffff"/>
+<text class="title" x="382.5" y="25" text-anchor="middle">Pembayaran Midtrans</text>
+<rect x="30" y="36" width="235" height="2998" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="30" y="36" width="235" height="54" fill="#eef2ff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="147.5" y="68" text-anchor="middle">Buyer</text>
+<rect x="265" y="36" width="235" height="2998" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="265" y="36" width="235" height="54" fill="#ecfeff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="382.5" y="68" text-anchor="middle">System</text>
+<rect x="500" y="36" width="235" height="2998" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="500" y="36" width="235" height="54" fill="#f0fdf4" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="617.5" y="68" text-anchor="middle">Midtrans</text>
+<path class="line" d="M147.5,178.0 L147.5,207.0"/>
+<path class="line" d="M147.5,264.0 L147.5,278.5 L382.5,278.5 L382.5,293.0"/>
+<path class="line" d="M382.5,350.0 L382.5,379.0"/>
+<path class="line" d="M382.5,436.0 L382.5,465.0"/>
+<path class="line" d="M382.5,522.0 L382.5,551.0"/>
+<path class="line" d="M382.5,632.0 L382.5,637.0"/>
+<path class="line" d="M382.5,694.0 L382.5,723.0"/>
+<path class="line" d="M382.5,780.0 L382.5,794.5 L617.5,794.5 L617.5,809.0"/>
+<path class="line" d="M617.5,866.0 L617.5,880.5 L382.5,880.5 L382.5,895.0"/>
+<path class="line" d="M382.5,976.0 L382.5,981.0"/>
+<path class="line" d="M382.5,1038.0 L382.5,1067.0"/>
+<path class="line" d="M382.5,1124.0 L382.5,1153.0"/>
+<path class="line" d="M382.5,1210.0 L382.5,1239.0"/>
+<path class="line" d="M382.5,1296.0 L382.5,1325.0"/>
+<path class="line" d="M382.5,1382.0 L382.5,1396.5 L147.5,1396.5 L147.5,1411.0"/>
+<path class="line" d="M147.5,1468.0 L147.5,1482.5 L617.5,1482.5 L617.5,1497.0"/>
+<path class="line" d="M617.5,1554.0 L617.5,1568.5 L382.5,1568.5 L382.5,1583.0"/>
+<path class="line" d="M382.5,1640.0 L382.5,1669.0"/>
+<path class="line" d="M382.5,1750.0 L382.5,1755.0"/>
+<path class="line" d="M382.5,1836.0 L382.5,1841.0"/>
+<path class="line" d="M382.5,1922.0 L382.5,1927.0"/>
+<path class="line" d="M382.5,1984.0 L382.5,2013.0"/>
+<path class="line" d="M382.5,2070.0 L382.5,2099.0"/>
+<path class="line" d="M382.5,2156.0 L382.5,2185.0"/>
+<path class="line" d="M382.5,2242.0 L382.5,2271.0"/>
+<path class="line" d="M382.5,2328.0 L382.5,2357.0"/>
+<path class="line" d="M382.5,2414.0 L382.5,2443.0"/>
+<path class="line" d="M382.5,2500.0 L382.5,2529.0"/>
+<path class="line" d="M382.5,2610.0 L382.5,2615.0"/>
+<path class="line" d="M382.5,2672.0 L382.5,2701.0"/>
+<path class="line" d="M382.5,2758.0 L382.5,2787.0"/>
+<path class="line" d="M382.5,2844.0 L382.5,2873.0"/>
+<circle cx="147.5" cy="140.0" r="12" fill="#111827"/>
+<rect x="60.5" y="212.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="238.0" text-anchor="middle" dominant-baseline="middle">Memilih metode Midtrans</text>
+<rect x="295.5" y="298.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="324.0" text-anchor="middle" dominant-baseline="middle">Lock order draft</text>
+<rect x="295.5" y="384.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="403.0" text-anchor="middle" dominant-baseline="middle">Cek server key dan total</text>
+<text class="node-text" x="382.5" y="417.0" text-anchor="middle" dominant-baseline="middle">order</text>
+<rect x="295.5" y="470.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="489.0" text-anchor="middle" dominant-baseline="middle">Cancel stale payment</text>
+<text class="node-text" x="382.5" y="503.0" text-anchor="middle" dominant-baseline="middle">intent</text>
+<polygon points="382.5,556.0 471.5,594.0 382.5,632.0 293.5,594.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="587.0" text-anchor="middle" dominant-baseline="middle">Pending intent sama</text>
+<text class="node-text" x="382.5" y="601.0" text-anchor="middle" dominant-baseline="middle">ada?</text>
+<rect x="295.5" y="642.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="668.0" text-anchor="middle" dominant-baseline="middle">Reuse intent pending</text>
+<rect x="295.5" y="728.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="747.0" text-anchor="middle" dominant-baseline="middle">Buat payment intent</text>
+<text class="node-text" x="382.5" y="761.0" text-anchor="middle" dominant-baseline="middle">draft</text>
+<rect x="530.5" y="814.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="840.0" text-anchor="middle" dominant-baseline="middle">Proses charge Midtrans</text>
+<polygon points="382.5,900.0 471.5,938.0 382.5,976.0 293.5,938.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="931.0" text-anchor="middle" dominant-baseline="middle">Charge berhasil</text>
+<text class="node-text" x="382.5" y="945.0" text-anchor="middle" dominant-baseline="middle">dibuat?</text>
+<rect x="295.5" y="986.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1005.0" text-anchor="middle" dominant-baseline="middle">Simpan VA/QR/deeplink</text>
+<text class="node-text" x="382.5" y="1019.0" text-anchor="middle" dominant-baseline="middle">dan expiry</text>
+<rect x="295.5" y="1072.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1091.0" text-anchor="middle" dominant-baseline="middle">Set order</text>
+<text class="node-text" x="382.5" y="1105.0" text-anchor="middle" dominant-baseline="middle">payment_pending</text>
+<rect x="295.5" y="1158.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1184.0" text-anchor="middle" dominant-baseline="middle">Set intent failed</text>
+<rect x="295.5" y="1244.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1270.0" text-anchor="middle" dominant-baseline="middle">Tampilkan error payment</text>
+<circle cx="382.5" cy="1344.0" r="13" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="382.5" cy="1344.0" r="8" fill="#111827"/>
+<rect x="60.5" y="1416.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1435.0" text-anchor="middle" dominant-baseline="middle">Membuka instruksi</text>
+<text class="node-text" x="147.5" y="1449.0" text-anchor="middle" dominant-baseline="middle">pembayaran</text>
+<rect x="530.5" y="1502.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="1528.0" text-anchor="middle" dominant-baseline="middle">Kirim webhook status</text>
+<rect x="295.5" y="1588.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1607.0" text-anchor="middle" dominant-baseline="middle">Validasi signature dan</text>
+<text class="node-text" x="382.5" y="1621.0" text-anchor="middle" dominant-baseline="middle">idempotensi</text>
+<polygon points="382.5,1674.0 471.5,1712.0 382.5,1750.0 293.5,1712.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="1712.0" text-anchor="middle" dominant-baseline="middle">Amount cocok?</text>
+<polygon points="382.5,1760.0 471.5,1798.0 382.5,1836.0 293.5,1798.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="1791.0" text-anchor="middle" dominant-baseline="middle">Status</text>
+<text class="node-text" x="382.5" y="1805.0" text-anchor="middle" dominant-baseline="middle">settlement/capture?</text>
+<polygon points="382.5,1846.0 471.5,1884.0 382.5,1922.0 293.5,1884.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="1884.0" text-anchor="middle" dominant-baseline="middle">Intent listing fee?</text>
+<rect x="295.5" y="1932.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1958.0" text-anchor="middle" dominant-baseline="middle">Set listing fee paid</text>
+<rect x="295.5" y="2018.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2044.0" text-anchor="middle" dominant-baseline="middle">Publish produk seller</text>
+<rect x="295.5" y="2104.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2130.0" text-anchor="middle" dominant-baseline="middle">Set payment paid</text>
+<rect x="295.5" y="2190.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2216.0" text-anchor="middle" dominant-baseline="middle">Confirm order</text>
+<rect x="295.5" y="2276.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2302.0" text-anchor="middle" dominant-baseline="middle">Buat escrow ledger</text>
+<rect x="295.5" y="2362.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2381.0" text-anchor="middle" dominant-baseline="middle">Buat delivery GoSend</text>
+<text class="node-text" x="382.5" y="2395.0" text-anchor="middle" dominant-baseline="middle">bila dipilih</text>
+<rect x="295.5" y="2448.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2474.0" text-anchor="middle" dominant-baseline="middle">Kirim email sukses</text>
+<polygon points="382.5,2534.0 471.5,2572.0 382.5,2610.0 293.5,2572.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="2572.0" text-anchor="middle" dominant-baseline="middle">Status expired/failed?</text>
+<rect x="295.5" y="2620.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2639.0" text-anchor="middle" dominant-baseline="middle">Set intent dan order</text>
+<text class="node-text" x="382.5" y="2653.0" text-anchor="middle" dominant-baseline="middle">expired/failed</text>
+<rect x="295.5" y="2706.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2725.0" text-anchor="middle" dominant-baseline="middle">Simpan raw pending</text>
+<text class="node-text" x="382.5" y="2739.0" text-anchor="middle" dominant-baseline="middle">response</text>
+<rect x="295.5" y="2792.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2811.0" text-anchor="middle" dominant-baseline="middle">Tandai event amount</text>
+<text class="node-text" x="382.5" y="2825.0" text-anchor="middle" dominant-baseline="middle">mismatch</text>
+<circle cx="382.5" cy="2892.0" r="13" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="382.5" cy="2892.0" r="8" fill="#111827"/>
+</svg>

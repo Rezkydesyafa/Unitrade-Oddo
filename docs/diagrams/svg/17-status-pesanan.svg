@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="765" height="2616" viewBox="0 0 765 2616" role="img" aria-label="Status Pesanan">
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4b5563"/></marker>
+<style><![CDATA[text{font-family:Arial,Helvetica,sans-serif;fill:#111827}.lane-title{font-size:15px;font-weight:700}.node-text{font-size:12px}.title{font-size:18px;font-weight:700}.line{stroke:#4b5563;stroke-width:1.55;fill:none;marker-end:url(#arrow)}]]></style>
+</defs>
+<rect x="0" y="0" width="100%" height="100%" fill="#ffffff"/>
+<text class="title" x="382.5" y="25" text-anchor="middle">Status Pesanan</text>
+<rect x="30" y="36" width="235" height="2568" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="30" y="36" width="235" height="54" fill="#eef2ff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="147.5" y="68" text-anchor="middle">Buyer</text>
+<rect x="265" y="36" width="235" height="2568" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="265" y="36" width="235" height="54" fill="#ecfeff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="382.5" y="68" text-anchor="middle">System</text>
+<rect x="500" y="36" width="235" height="2568" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="500" y="36" width="235" height="54" fill="#f0fdf4" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="617.5" y="68" text-anchor="middle">Seller</text>
+<path class="line" d="M147.5,178.0 L147.5,207.0"/>
+<path class="line" d="M147.5,264.0 L147.5,278.5 L382.5,278.5 L382.5,293.0"/>
+<path class="line" d="M382.5,350.0 L382.5,379.0"/>
+<path class="line" d="M382.5,460.0 L382.5,465.0"/>
+<path class="line" d="M382.5,546.0 L382.5,548.5 L617.5,548.5 L617.5,551.0"/>
+<path class="line" d="M617.5,608.0 L617.5,637.0"/>
+<path class="line" d="M617.5,694.0 L617.5,723.0"/>
+<path class="line" d="M617.5,780.0 L617.5,794.5 L147.5,794.5 L147.5,809.0"/>
+<path class="line" d="M147.5,866.0 L147.5,895.0"/>
+<path class="line" d="M147.5,976.0 L147.5,978.5 L382.5,978.5 L382.5,981.0"/>
+<path class="line" d="M382.5,1038.0 L382.5,1067.0"/>
+<path class="line" d="M382.5,1148.0 L382.5,1153.0"/>
+<path class="line" d="M382.5,1210.0 L382.5,1239.0"/>
+<path class="line" d="M382.5,1296.0 L382.5,1325.0"/>
+<path class="line" d="M382.5,1406.0 L382.5,1411.0"/>
+<path class="line" d="M382.5,1468.0 L382.5,1497.0"/>
+<path class="line" d="M382.5,1554.0 L382.5,1583.0"/>
+<path class="line" d="M382.5,1640.0 L382.5,1669.0"/>
+<path class="line" d="M382.5,1726.0 L382.5,1755.0"/>
+<path class="line" d="M382.5,1812.0 L382.5,1826.5 L147.5,1826.5 L147.5,1841.0"/>
+<path class="line" d="M147.5,1898.0 L147.5,1927.0"/>
+<path class="line" d="M147.5,1984.0 L147.5,1998.5 L617.5,1998.5 L617.5,2013.0"/>
+<path class="line" d="M617.5,2094.0 L617.5,2099.0"/>
+<path class="line" d="M617.5,2156.0 L617.5,2170.5 L382.5,2170.5 L382.5,2185.0"/>
+<path class="line" d="M382.5,2242.0 L382.5,2271.0"/>
+<path class="line" d="M382.5,2328.0 L382.5,2357.0"/>
+<path class="line" d="M382.5,2414.0 L382.5,2443.0"/>
+<circle cx="147.5" cy="140.0" r="12" fill="#111827"/>
+<rect x="60.5" y="212.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="238.0" text-anchor="middle" dominant-baseline="middle">Buka status pesanan</text>
+<rect x="295.5" y="298.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="324.0" text-anchor="middle" dominant-baseline="middle">Cek hak akses order</text>
+<polygon points="382.5,384.0 471.5,422.0 382.5,460.0 293.5,422.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="422.0" text-anchor="middle" dominant-baseline="middle">Akses valid?</text>
+<polygon points="382.5,470.0 471.5,508.0 382.5,546.0 293.5,508.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="501.0" text-anchor="middle" dominant-baseline="middle">User adalah seller</text>
+<text class="node-text" x="382.5" y="515.0" text-anchor="middle" dominant-baseline="middle">order?</text>
+<rect x="530.5" y="556.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="575.0" text-anchor="middle" dominant-baseline="middle">Dialihkan ke detail</text>
+<text class="node-text" x="617.5" y="589.0" text-anchor="middle" dominant-baseline="middle">order seller</text>
+<rect x="530.5" y="642.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="668.0" text-anchor="middle" dominant-baseline="middle">Bangun status payload</text>
+<rect x="530.5" y="728.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="747.0" text-anchor="middle" dominant-baseline="middle">Ambil escrow, refund,</text>
+<text class="node-text" x="617.5" y="761.0" text-anchor="middle" dominant-baseline="middle">delivery, dan progress</text>
+<rect x="60.5" y="814.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="840.0" text-anchor="middle" dominant-baseline="middle">Melihat status pesanan</text>
+<polygon points="147.5,900.0 236.5,938.0 147.5,976.0 58.5,938.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="147.5" y="938.0" text-anchor="middle" dominant-baseline="middle">Cancel langsung?</text>
+<rect x="295.5" y="986.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1005.0" text-anchor="middle" dominant-baseline="middle">Cek blocker cancel 30</text>
+<text class="node-text" x="382.5" y="1019.0" text-anchor="middle" dominant-baseline="middle">menit</text>
+<polygon points="382.5,1072.0 471.5,1110.0 382.5,1148.0 293.5,1110.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="1110.0" text-anchor="middle" dominant-baseline="middle">Cancel boleh?</text>
+<rect x="295.5" y="1158.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1177.0" text-anchor="middle" dominant-baseline="middle">Cancel order, intent,</text>
+<text class="node-text" x="382.5" y="1191.0" text-anchor="middle" dominant-baseline="middle">dan ledger</text>
+<rect x="295.5" y="1244.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1263.0" text-anchor="middle" dominant-baseline="middle">Tampilkan alasan tidak</text>
+<text class="node-text" x="382.5" y="1277.0" text-anchor="middle" dominant-baseline="middle">bisa cancel</text>
+<polygon points="382.5,1330.0 471.5,1368.0 382.5,1406.0 293.5,1368.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="1368.0" text-anchor="middle" dominant-baseline="middle">Konfirmasi terima?</text>
+<rect x="295.5" y="1416.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1435.0" text-anchor="middle" dominant-baseline="middle">Validasi seller sudah</text>
+<text class="node-text" x="382.5" y="1449.0" text-anchor="middle" dominant-baseline="middle">handoff</text>
+<rect x="295.5" y="1502.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1528.0" text-anchor="middle" dominant-baseline="middle">Simpan bukti buyer</text>
+<rect x="295.5" y="1588.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1614.0" text-anchor="middle" dominant-baseline="middle">Set buyer confirmed</text>
+<rect x="295.5" y="1674.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1700.0" text-anchor="middle" dominant-baseline="middle">Cek escrow releasable</text>
+<rect x="295.5" y="1760.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1786.0" text-anchor="middle" dominant-baseline="middle">Cek blocker refund</text>
+<rect x="60.5" y="1846.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1865.0" text-anchor="middle" dominant-baseline="middle">Masuk alur refund bila</text>
+<text class="node-text" x="147.5" y="1879.0" text-anchor="middle" dominant-baseline="middle">tersedia</text>
+<rect x="60.5" y="1932.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1951.0" text-anchor="middle" dominant-baseline="middle">Redirect login atau not</text>
+<text class="node-text" x="147.5" y="1965.0" text-anchor="middle" dominant-baseline="middle">found</text>
+<polygon points="617.5,2018.0 706.5,2056.0 617.5,2094.0 528.5,2056.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="617.5" y="2056.0" text-anchor="middle" dominant-baseline="middle">Seller handoff?</text>
+<rect x="530.5" y="2104.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="2130.0" text-anchor="middle" dominant-baseline="middle">Upload bukti dan resi</text>
+<rect x="295.5" y="2190.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2216.0" text-anchor="middle" dominant-baseline="middle">Set seller confirmed</text>
+<rect x="295.5" y="2276.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2295.0" text-anchor="middle" dominant-baseline="middle">Update delivery</text>
+<text class="node-text" x="382.5" y="2309.0" text-anchor="middle" dominant-baseline="middle">picked_up</text>
+<rect x="295.5" y="2362.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2388.0" text-anchor="middle" dominant-baseline="middle">Cek escrow releasable</text>
+<circle cx="382.5" cy="2462.0" r="13" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="382.5" cy="2462.0" r="8" fill="#111827"/>
+</svg>

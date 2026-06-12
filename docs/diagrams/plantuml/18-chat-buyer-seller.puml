@@ -1,0 +1,45 @@
+@startuml
+title Chat Buyer-Seller
+|Buyer|
+start
+:Klik chat seller;
+|System|
+:Cek akses marketplace dan user login;
+:Validasi seller terverifikasi;
+:Validasi bukan toko sendiri;
+:Validasi produk milik seller bila ada;
+if (Chat boleh dibuka?) then (Ya)
+  :Open atau reuse conversation;
+  :Kirim bootstrap, pesan, produk seller;
+  |Buyer|
+  :Kirim teks, gambar, atau produk;
+  |System|
+  :Cek role participant dan chat blocked;
+  :Cek rate limit pesan;
+  if (Pesan valid?) then (Ya)
+    :Simpan message dan attachment;
+    :Update last message/unread;
+    :Kirim bus notification;
+    |Seller|
+    :Menerima pesan;
+    :Balas chat;
+    |System|
+    :Tandai read, presence, typing;
+  else (Tidak)
+    :Kembalikan error chat;
+  endif
+  |Buyer|
+  if (Tambah produk ke cart?) then (Ya)
+    |System|
+    :Validasi produk conversation;
+    :Tambahkan ke cart;
+  else (Report)
+    :Kirim laporan user;
+    |System|
+    :Simpan chat report untuk admin;
+  endif
+else (Tidak)
+  :Kembalikan error akses chat;
+endif
+stop
+@enduml

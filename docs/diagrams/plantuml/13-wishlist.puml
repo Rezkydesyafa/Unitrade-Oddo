@@ -1,0 +1,33 @@
+@startuml
+title Wishlist
+|User|
+start
+:Buka produk atau wishlist;
+|System|
+if (Cek status publik?) then (Ya)
+  :Validasi product_id;
+  if (User login?) then (Ya)
+    :Cari wishlist user-product;
+    :Kembalikan active true/false;
+  else (Tidak)
+    :Kembalikan active false;
+  endif
+else (Aksi user)
+  :Cek auth user;
+  :Validasi produk;
+  if (Toggle wishlist?) then (Ya)
+    if (Item sudah ada?) then (Ya)
+      :Hapus item wishlist;
+    else (Tidak)
+      :Buat wishlist user-product;
+    endif
+  else (Remove)
+    :Cari item milik user;
+    :Hapus dari wishlist;
+  endif
+  :Hitung jumlah wishlist;
+endif
+|User|
+:Melihat status wishlist terbaru;
+stop
+@enduml

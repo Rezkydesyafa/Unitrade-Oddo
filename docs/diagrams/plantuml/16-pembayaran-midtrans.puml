@@ -1,0 +1,55 @@
+@startuml
+title Pembayaran Midtrans
+|Buyer|
+start
+:Memilih metode Midtrans;
+|System|
+:Lock order draft;
+:Cek server key dan total order;
+:Cancel stale payment intent;
+if (Pending intent sama ada?) then (Ya)
+  :Reuse intent pending;
+else (Tidak)
+  :Buat payment intent draft;
+  |Midtrans|
+  :Proses charge Midtrans;
+  |System|
+  if (Charge berhasil dibuat?) then (Ya)
+    :Simpan VA/QR/deeplink dan expiry;
+    :Set order payment_pending;
+  else (Tidak)
+    :Set intent failed;
+    :Tampilkan error payment;
+    stop
+  endif
+endif
+|Buyer|
+:Membuka instruksi pembayaran;
+|Midtrans|
+:Kirim webhook status;
+|System|
+:Validasi signature dan idempotensi;
+if (Amount cocok?) then (Ya)
+  if (Status settlement/capture?) then (Ya)
+    if (Intent listing fee?) then (Ya)
+      :Set listing fee paid;
+      :Publish produk seller;
+    else (Order)
+      :Set payment paid;
+      :Confirm order;
+      :Buat escrow ledger;
+      :Buat delivery GoSend bila dipilih;
+      :Kirim email sukses;
+    endif
+  else (Tidak)
+    if (Status expired/failed?) then (Ya)
+      :Set intent dan order expired/failed;
+    else (Pending)
+      :Simpan raw pending response;
+    endif
+  endif
+else (Tidak)
+  :Tandai event amount mismatch;
+endif
+stop
+@enduml

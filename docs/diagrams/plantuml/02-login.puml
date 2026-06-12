@@ -1,0 +1,35 @@
+@startuml
+title Login
+|User|
+start
+:Buka halaman login;
+:Isi kredensial;
+|System|
+:Normalisasi login;
+if (Login admin username?) then (Ya)
+  :Izinkan format username;
+else (Tidak)
+  :Validasi format email;
+endif
+if (Format valid?) then (Ya)
+  :Panggil autentikasi Odoo;
+  if (Kredensial valid?) then (Ya)
+    if (Internal atau OTP verified?) then (Ya)
+      :Catat aktivitas login;
+      |User|
+      :Masuk aplikasi;
+    else (Tidak)
+      :Logout sementara;
+      :Generate OTP akun;
+      :Kirim email OTP;
+      |User|
+      :Masuk halaman verifikasi OTP;
+    endif
+  else (Tidak)
+    :Tampilkan error login;
+  endif
+else (Tidak)
+  :Tampilkan error format email;
+endif
+stop
+@enduml

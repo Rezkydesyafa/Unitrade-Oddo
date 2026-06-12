@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="765" height="2530" viewBox="0 0 765 2530" role="img" aria-label="Delivery">
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4b5563"/></marker>
+<style><![CDATA[text{font-family:Arial,Helvetica,sans-serif;fill:#111827}.lane-title{font-size:15px;font-weight:700}.node-text{font-size:12px}.title{font-size:18px;font-weight:700}.line{stroke:#4b5563;stroke-width:1.55;fill:none;marker-end:url(#arrow)}]]></style>
+</defs>
+<rect x="0" y="0" width="100%" height="100%" fill="#ffffff"/>
+<text class="title" x="382.5" y="25" text-anchor="middle">Delivery</text>
+<rect x="30" y="36" width="235" height="2482" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="30" y="36" width="235" height="54" fill="#eef2ff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="147.5" y="68" text-anchor="middle">Buyer</text>
+<rect x="265" y="36" width="235" height="2482" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="265" y="36" width="235" height="54" fill="#ecfeff" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="382.5" y="68" text-anchor="middle">System</text>
+<rect x="500" y="36" width="235" height="2482" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<rect x="500" y="36" width="235" height="54" fill="#f0fdf4" stroke="#d1d5db" stroke-width="1"/>
+<text class="lane-title" x="617.5" y="68" text-anchor="middle">Seller</text>
+<path class="line" d="M147.5,178.0 L147.5,207.0"/>
+<path class="line" d="M147.5,264.0 L147.5,278.5 L382.5,278.5 L382.5,293.0"/>
+<path class="line" d="M382.5,350.0 L382.5,379.0"/>
+<path class="line" d="M382.5,460.0 L382.5,465.0"/>
+<path class="line" d="M382.5,522.0 L382.5,551.0"/>
+<path class="line" d="M382.5,608.0 L382.5,637.0"/>
+<path class="line" d="M382.5,694.0 L382.5,723.0"/>
+<path class="line" d="M382.5,780.0 L382.5,809.0"/>
+<path class="line" d="M382.5,890.0 L382.5,895.0"/>
+<path class="line" d="M382.5,952.0 L382.5,981.0"/>
+<path class="line" d="M382.5,1038.0 L382.5,1067.0"/>
+<path class="line" d="M382.5,1124.0 L382.5,1153.0"/>
+<path class="line" d="M382.5,1210.0 L382.5,1239.0"/>
+<path class="line" d="M382.5,1296.0 L382.5,1310.5 L147.5,1310.5 L147.5,1325.0"/>
+<path class="line" d="M147.5,1382.0 L147.5,1396.5 L382.5,1396.5 L382.5,1411.0"/>
+<path class="line" d="M382.5,1492.0 L382.5,1497.0"/>
+<path class="line" d="M382.5,1554.0 L382.5,1583.0"/>
+<path class="line" d="M382.5,1640.0 L382.5,1654.5 L617.5,1654.5 L617.5,1669.0"/>
+<path class="line" d="M617.5,1726.0 L617.5,1755.0"/>
+<path class="line" d="M617.5,1812.0 L617.5,1826.5 L382.5,1826.5 L382.5,1841.0"/>
+<path class="line" d="M382.5,1898.0 L382.5,1912.5 L617.5,1912.5 L617.5,1927.0"/>
+<path class="line" d="M617.5,2008.0 L617.5,2010.5 L382.5,2010.5 L382.5,2013.0"/>
+<path class="line" d="M382.5,2070.0 L382.5,2099.0"/>
+<path class="line" d="M382.5,2156.0 L382.5,2170.5 L147.5,2170.5 L147.5,2185.0"/>
+<path class="line" d="M147.5,2242.0 L147.5,2256.5 L382.5,2256.5 L382.5,2271.0"/>
+<path class="line" d="M382.5,2328.0 L382.5,2357.0"/>
+<circle cx="147.5" cy="140.0" r="12" fill="#111827"/>
+<rect x="60.5" y="212.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="231.0" text-anchor="middle" dominant-baseline="middle">Pilih metode pengiriman</text>
+<text class="node-text" x="147.5" y="245.0" text-anchor="middle" dominant-baseline="middle">checkout</text>
+<rect x="295.5" y="298.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="324.0" text-anchor="middle" dominant-baseline="middle">Set shipping method</text>
+<polygon points="382.5,384.0 471.5,422.0 382.5,460.0 293.5,422.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="422.0" text-anchor="middle" dominant-baseline="middle">Pickup COD?</text>
+<rect x="295.5" y="470.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="496.0" text-anchor="middle" dominant-baseline="middle">Set ongkir nol</text>
+<rect x="295.5" y="556.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="582.0" text-anchor="middle" dominant-baseline="middle">Sinkronkan fee line</text>
+<rect x="295.5" y="642.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="668.0" text-anchor="middle" dominant-baseline="middle">Ambil koordinat seller</text>
+<rect x="295.5" y="728.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="754.0" text-anchor="middle" dominant-baseline="middle">Ambil koordinat buyer</text>
+<polygon points="382.5,814.0 471.5,852.0 382.5,890.0 293.5,852.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="852.0" text-anchor="middle" dominant-baseline="middle">Koordinat lengkap?</text>
+<rect x="295.5" y="900.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="926.0" text-anchor="middle" dominant-baseline="middle">Hitung jarak Haversine</text>
+<rect x="295.5" y="986.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1005.0" text-anchor="middle" dominant-baseline="middle">Hitung ongkir tabel</text>
+<text class="node-text" x="382.5" y="1019.0" text-anchor="middle" dominant-baseline="middle">GoSend</text>
+<rect x="295.5" y="1072.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1091.0" text-anchor="middle" dominant-baseline="middle">Sinkronkan fee line</text>
+<text class="node-text" x="382.5" y="1105.0" text-anchor="middle" dominant-baseline="middle">ongkir</text>
+<rect x="295.5" y="1158.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1184.0" text-anchor="middle" dominant-baseline="middle">Set warning GPS</text>
+<rect x="295.5" y="1244.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1270.0" text-anchor="middle" dominant-baseline="middle">Blokir pembayaran GoSend</text>
+<rect x="60.5" y="1330.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="1356.0" text-anchor="middle" dominant-baseline="middle">Melanjutkan pembayaran</text>
+<polygon points="382.5,1416.0 471.5,1454.0 382.5,1492.0 293.5,1454.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="382.5" y="1454.0" text-anchor="middle" dominant-baseline="middle">Order paid dan GoSend?</text>
+<rect x="295.5" y="1502.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1521.0" text-anchor="middle" dominant-baseline="middle">Buat delivery record</text>
+<text class="node-text" x="382.5" y="1535.0" text-anchor="middle" dominant-baseline="middle">pending</text>
+<rect x="295.5" y="1588.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1607.0" text-anchor="middle" dominant-baseline="middle">Tidak buat delivery</text>
+<text class="node-text" x="382.5" y="1621.0" text-anchor="middle" dominant-baseline="middle">eksternal</text>
+<rect x="530.5" y="1674.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="1700.0" text-anchor="middle" dominant-baseline="middle">Konfirmasi handoff</text>
+<rect x="530.5" y="1760.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="617.5" y="1786.0" text-anchor="middle" dominant-baseline="middle">Upload bukti dan resi</text>
+<rect x="295.5" y="1846.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="1865.0" text-anchor="middle" dominant-baseline="middle">Update delivery</text>
+<text class="node-text" x="382.5" y="1879.0" text-anchor="middle" dominant-baseline="middle">picked_up</text>
+<polygon points="617.5,1932.0 706.5,1970.0 617.5,2008.0 528.5,1970.0" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+<text class="node-text" x="617.5" y="1970.0" text-anchor="middle" dominant-baseline="middle">Update status manual?</text>
+<rect x="295.5" y="2018.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2044.0" text-anchor="middle" dominant-baseline="middle">Validasi status delivery</text>
+<rect x="295.5" y="2104.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2123.0" text-anchor="middle" dominant-baseline="middle">Simpan</text>
+<text class="node-text" x="382.5" y="2137.0" text-anchor="middle" dominant-baseline="middle">pending/picked_up/in_transit/delivered/failed</text>
+<rect x="60.5" y="2190.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="147.5" y="2209.0" text-anchor="middle" dominant-baseline="middle">Melihat status</text>
+<text class="node-text" x="147.5" y="2223.0" text-anchor="middle" dominant-baseline="middle">pengiriman di order</text>
+<rect x="295.5" y="2276.0" width="174" height="52" rx="12" fill="#f9fafb" stroke="#6b7280" stroke-width="1.3"/>
+<text class="node-text" x="382.5" y="2295.0" text-anchor="middle" dominant-baseline="middle">Webhook delivery</text>
+<text class="node-text" x="382.5" y="2309.0" text-anchor="middle" dominant-baseline="middle">eksternal dinonaktifkan</text>
+<circle cx="382.5" cy="2376.0" r="13" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+<circle cx="382.5" cy="2376.0" r="8" fill="#111827"/>
+</svg>

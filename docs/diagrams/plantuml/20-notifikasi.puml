@@ -1,0 +1,40 @@
+@startuml
+title Notifikasi
+|System|
+start
+:Event aplikasi terjadi;
+:Cari event di registry;
+if (Event dikenal?) then (Ya)
+  :Bangun payload aman;
+  :Hitung idempotency key;
+  if (Duplikat?) then (Ya)
+    :Lewati create notifikasi;
+  else (Tidak)
+    :Cek preferensi in-app dan email;
+    if (Channel aktif?) then (Ya)
+      :Render title dan message;
+      :Create unitrade.notification;
+      if (Email aktif dan template ada?) then (Ya)
+        |Email|
+        :Kirim email template;
+        |System|
+        :Set email sent atau failed;
+      endif
+    else (Tidak)
+      :Skip berdasarkan preferensi;
+    endif
+  endif
+else (Tidak)
+  :Log unknown event;
+endif
+|User|
+:Buka notification center;
+|System|
+:Filter scope user atau seller;
+:Tampilkan unread, recent, dan kategori;
+|User|
+:Mark read, read all, delete, atau ubah setting;
+|System|
+:Simpan perubahan notifikasi;
+stop
+@enduml

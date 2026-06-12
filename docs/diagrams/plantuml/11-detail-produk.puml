@@ -1,0 +1,32 @@
+@startuml
+title Detail Produk
+|Buyer|
+start
+:Buka detail produk;
+|System|
+:Refresh listing state;
+:Cek public availability;
+if (Produk bisa dilihat?) then (Ya)
+  :Bangun data produk;
+  :Hitung harga, diskon, stok, lokasi;
+  :Ambil review dan rating;
+  :Ambil rekomendasi produk;
+  if (Buyer login?) then (Ya)
+    :Cek status wishlist;
+  else (Tidak)
+    :Set wishlist inactive;
+  endif
+  |Buyer|
+  :Melihat detail produk;
+  :Pilih chat, wishlist, atau cart;
+else (Tidak)
+  if (Target review historis?) then (Ya)
+    :Izinkan tampilan terbatas;
+    |Buyer|
+    :Melihat produk untuk review;
+  else (Tidak)
+    :Tampilkan not found;
+  endif
+endif
+stop
+@enduml

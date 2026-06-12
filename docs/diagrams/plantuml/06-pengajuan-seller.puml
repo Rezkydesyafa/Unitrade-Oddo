@@ -1,0 +1,42 @@
+@startuml
+title Pengajuan Seller
+|User|
+start
+:Buka seller onboarding;
+|System|
+:Cek akses marketplace;
+if (Akun diblokir?) then (Ya)
+  :Redirect ke profil blocked;
+  stop
+else (Tidak)
+  :Cek status seller;
+  if (Sudah verified seller?) then (Ya)
+    :Redirect dashboard seller;
+    stop
+  else (Tidak)
+    |User|
+    :Klik mulai pengajuan;
+    |System|
+    :Cek kontak user;
+    :Cek rate limit OTP seller;
+    if (Boleh kirim OTP?) then (Ya)
+      :Generate OTP seller onboarding;
+      |Email|
+      :Kirim OTP;
+      |User|
+      :Verifikasi OTP;
+      |System|
+      if (OTP valid?) then (Ya)
+        :Set seller_onboarding_otp_verified;
+        |User|
+        :Masuk form verifikasi KTM;
+      else (Tidak)
+        :Tampilkan error OTP;
+      endif
+    else (Tidak)
+      :Tampilkan pesan tunggu OTP;
+    endif
+  endif
+endif
+stop
+@enduml
