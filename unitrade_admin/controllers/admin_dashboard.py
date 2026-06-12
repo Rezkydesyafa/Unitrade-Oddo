@@ -296,17 +296,24 @@ class UnitradeAdminController(http.Controller):
         )
 
     @http.route('/unitrade/admin/reports', type='http', auth='user', website=True)
-    def admin_reports(self, date_from='', date_to='', **kwargs):
+    def admin_reports(self, date_from='', date_to='', category='', status='', rpage=1, **kwargs):
         if not self._is_admin():
             return self._forbidden('Akun Anda tidak memiliki akses admin UniTrade.')
         Stats = self._stats()
         report_data = Stats.get_reports(date_from=date_from, date_to=date_to)
+        report_list = Stats.get_reports_list(
+            category=category or '',
+            status=status or '',
+            page=self._to_int(rpage, 1),
+            page_size=20,
+        )
         dashboard = Stats.get_dashboard_data()
         return request.render(
             'unitrade_admin.admin_reports_page',
             {
                 'dashboard': dashboard,
                 'report': report_data,
+                'report_list': report_list,
             },
         )
 
@@ -383,6 +390,20 @@ class UnitradeAdminController(http.Controller):
                 ('Content-Disposition', 'attachment; filename="%s"' % filename),
             ],
         )
+
+    # ---- Daftar Laporan (terpadu, berbasis kategori) ---------------------
+
+    @http.route('/unitrade/admin/api/report-list/detail', type='json', auth='user')
+    def api_report_detail(self, report_type='', report_id=0, **kwargs):
+        if not self._is_admin():
+            return {'ok': False, 'error': 'forbidden'}
+        return self._stats().get_report_detail(report_type, report_id)
+
+    @http.route('/unitrade/admin/api/report-list/set-status', type='json', auth='user')
+    def api_report_set_status(self, report_type='', report_id=0, status='', note='', **kwargs):
+        if not self._is_admin():
+            return {'ok': False, 'error': 'forbidden'}
+        return self._stats().admin_set_report_status(report_type, report_id, status, note=note)
 
     @http.route('/unitrade/admin/settings', type='http', auth='user', website=True)
     def admin_settings(self, **kwargs):

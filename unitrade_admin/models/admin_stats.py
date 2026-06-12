@@ -365,6 +365,12 @@ class UnitradeAdminStats(models.AbstractModel):
             CsSession = self.env['unitrade.cs.session'].sudo()
             live_chat_waiting = self._safe_count(CsSession, [('state', '=', 'waiting_admin')])
 
+        user_reports_pending = 0
+        try:
+            user_reports_pending = self._user_reports_summary().get('pending', 0)
+        except Exception:  # noqa: BLE001
+            user_reports_pending = 0
+
         # --- GMV --------------------------------------------------------------
         gmv_total = 0.0
         gmv_series = []
@@ -519,6 +525,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 'audit_critical': audit_critical,
                 'vision_api_configured': bool(vision_key),
                 'live_chat_waiting': live_chat_waiting,
+                'user_reports_pending': user_reports_pending,
             },
             'gmv': {
                 'total_idr': gmv_total,
@@ -2232,37 +2239,8 @@ class UnitradeAdminStats(models.AbstractModel):
                 ),
             })
 
-        # --- Listing fee ----------------------------------------------------
-        listing_fee_report = {
-            'total': 0,
-            'paid': 0,
-            'pending': 0,
-            'failed': 0,
-            'expired': 0,
-            'waived_products': 0,
-            'not_required_products': 0,
-            'revenue': 0.0,
-            'revenue_display': '0',
-        }
-        if PaymentIntent is not None:
-            fee_domain = [('intent_type', '=', 'listing_fee')]
-            fee_period_domain = fee_domain + period_domain
-            paid_intents = PaymentIntent.search(fee_period_domain + [('state', '=', 'paid')])
-            listing_fee_report.update({
-                'total': self._safe_count(PaymentIntent, fee_period_domain),
-                'paid': len(paid_intents),
-                'pending': self._safe_count(PaymentIntent, fee_period_domain + [('state', '=', 'pending')]),
-                'failed': self._safe_count(PaymentIntent, fee_period_domain + [('state', '=', 'failed')]),
-                'expired': self._safe_count(PaymentIntent, fee_period_domain + [('state', '=', 'expired')]),
-                'revenue': sum(paid_intents.mapped('amount')),
-            })
-        if 'x_listing_fee_status' in Product._fields:
-            listing_fee_report['waived_products'] = self._safe_count(Product, product_domain + [('x_listing_fee_status', '=', 'waived')])
-            listing_fee_report['not_required_products'] = self._safe_count(
-                Product,
-                product_domain + [('x_listing_fee_status', '=', 'not_required'), ('sale_ok', '=', True)],
-            )
-        listing_fee_report['revenue_display'] = self._format_idr(listing_fee_report['revenue'])
+        # --- Laporan dari pengguna (agregat per kategori) -------------------
+        user_reports_summary = self._user_reports_summary(period_domain)
 
         return {
             'date_from': fields.Date.to_string(df),
@@ -2295,7 +2273,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 'new': new_products,
             },
             'refunds': refund_report,
-            'listing_fee': listing_fee_report,
+            'user_reports': user_reports_summary,
         }
 
     # ---- customer service ------------------------------------------------
@@ -3036,6 +3014,380 @@ class UnitradeAdminStats(models.AbstractModel):
             'ok': True,
             'session_id': session.id if session else False,
         }
+
+    # ------------------------------------------------------------------
+    # Laporan terpadu (fleksibel, berbasis kategori)
+    # ------------------------------------------------------------------
+    # Registry sumber laporan. Tiap entri = satu "tipe" laporan yang
+    # dipetakan ke salah satu kategori user-facing. Mudah ditambah tipe
+    # baru: cukup tambahkan entri + builder rows + (opsional) detail.
+    REPORT_STATUS_LABELS = {
+        'pending': 'Menunggu',
+        'in_progress': 'Diproses',
+        'done': 'Selesai',
+        'rejected': 'Ditolak',
+    }
+
+    def _report_categories(self):
+        return [
+            {'key': 'produk', 'label': 'Produk', 'icon': 'fa-archive', 'color': 'purple'},
+            {'key': 'refund', 'label': 'Refund', 'icon': 'fa-undo', 'color': 'red'},
+            {'key': 'transaksi', 'label': 'Transaksi', 'icon': 'fa-exchange', 'color': 'blue'},
+            {'key': 'pengguna', 'label': 'Pengguna', 'icon': 'fa-users', 'color': 'yellow'},
+            {'key': 'lainnya', 'label': 'Lainnya', 'icon': 'fa-flag', 'color': 'gray'},
+        ]
+
+    def _report_sources(self):
+        """Definisi sumber laporan. category memetakan ke kartu ringkasan."""
+        return [
+            {'key': 'review', 'category': 'produk', 'label': _('Laporan Ulasan Produk'),
+             'model': 'unitrade.review.report'},
+            {'key': 'refund', 'category': 'refund', 'label': _('Refund / Dispute'),
+             'model': 'unitrade.dispute'},
+            {'key': 'order', 'category': 'transaksi', 'label': _('Transaksi Bermasalah'),
+             'model': 'sale.order'},
+            {'key': 'chat', 'category': 'pengguna', 'label': _('Laporan Chat Pengguna'),
+             'model': 'unitrade.chat.report'},
+            {'key': 'seller', 'category': 'pengguna', 'label': _('Laporan Seller'),
+             'model': 'unitrade.seller'},
+            {'key': 'ticket', 'category': 'lainnya', 'label': _('Tiket Bantuan'),
+             'model': 'unitrade.customer.ticket'},
+        ]
+
+    def _report_status_label(self, status):
+        return _(self.REPORT_STATUS_LABELS.get(status, status or '-'))
+
+    @staticmethod
+    def _report_status_badge(status):
+        return {
+            'pending': 'yellow',
+            'in_progress': 'blue',
+            'done': 'green',
+            'rejected': 'red',
+        }.get(status, 'gray')
+
+    def _collect_report_rows(self, category='', limit_per_source=300):
+        """Kumpulkan semua laporan dari berbagai model jadi baris seragam.
+
+        Tiap baris: type, type_label, category, reporter, target, summary,
+        date (datetime untuk sort), date_label, status (normalized),
+        status_label, status_badge, report_id.
+        """
+        rows = []
+        sources = self._report_sources()
+        if category:
+            sources = [s for s in sources if s['category'] == category]
+
+        for source in sources:
+            if not self._has_model(source['model']):
+                continue
+            builder = getattr(self, '_report_rows_%s' % source['key'], None)
+            if not builder:
+                continue
+            try:
+                rows.extend(builder(source, limit_per_source))
+            except Exception:  # noqa: BLE001
+                _logger.exception('Gagal membangun baris laporan untuk %s', source['key'])
+        return rows
+
+    def _report_row(self, source, record, reporter, target, summary, date, status):
+        return {
+            'type': source['key'],
+            'type_label': source['label'],
+            'category': source['category'],
+            'reporter': reporter or '-',
+            'target': target or '-',
+            'summary': self._short_text(summary or '') or '-',
+            'date': date,
+            'date_label': self._humanize_time(date) if date else '-',
+            'status': status,
+            'status_label': self._report_status_label(status),
+            'status_badge': self._report_status_badge(status),
+            'report_id': record.id,
+        }
+
+    # ---- builders per sumber -----------------------------------------
+    def _report_rows_review(self, source, limit):
+        Model = self.env['unitrade.review.report'].sudo()
+        status_map = {
+            'submitted': 'pending', 'under_review': 'in_progress',
+            'resolved': 'done', 'rejected': 'rejected',
+        }
+        rows = []
+        for rep in Model.search([], order='create_date desc', limit=limit):
+            rows.append(self._report_row(
+                source, rep,
+                rep.user_id.name,
+                rep.product_id.name if rep.product_id else _('Ulasan'),
+                rep.note or self._selection_label(rep, 'reason'),
+                rep.create_date,
+                status_map.get(rep.state, 'pending'),
+            ))
+        return rows
+
+    def _report_rows_refund(self, source, limit):
+        Model = self.env['unitrade.dispute'].sudo()
+        domain = [('dispute_type', '=', 'refund')] if 'dispute_type' in Model._fields else []
+        status_map = {
+            'submitted': 'pending', 'need_buyer_evidence': 'pending', 'need_seller_response': 'pending',
+            'under_review': 'in_progress', 'admin_review_final': 'in_progress',
+            'approved': 'done', 'resolved': 'done',
+            'rejected': 'rejected', 'cancelled': 'rejected',
+        }
+        rows = []
+        for rep in Model.search(domain, order='create_date desc', limit=limit):
+            if rep.state == 'draft':
+                continue
+            rows.append(self._report_row(
+                source, rep,
+                rep.buyer_id.name,
+                rep.order_id.name or _('Pesanan'),
+                rep.reason_note or self._selection_label(rep, 'reason_code'),
+                rep.submitted_at or rep.create_date,
+                status_map.get(rep.state, 'pending'),
+            ))
+        return rows
+
+    def _report_rows_order(self, source, limit):
+        Model = self.env['sale.order'].sudo()
+        if 'x_admin_flagged' not in Model._fields:
+            return []
+        rows = []
+        for order in Model.search([('x_admin_flagged', '=', True)], order='create_date desc', limit=limit):
+            rows.append(self._report_row(
+                source, order,
+                order.partner_id.name,
+                order.name or _('Pesanan'),
+                getattr(order, 'x_admin_flag_reason', '') or _('Transaksi ditandai bermasalah'),
+                order.create_date,
+                'pending',
+            ))
+        return rows
+
+    def _report_rows_chat(self, source, limit):
+        Model = self.env['unitrade.chat.report'].sudo()
+        status_map = {
+            'submitted': 'pending', 'under_review': 'in_progress',
+            'reviewed': 'done', 'blocked': 'done', 'rejected': 'rejected',
+        }
+        rows = []
+        for rep in Model.search([], order='create_date desc', limit=limit):
+            rows.append(self._report_row(
+                source, rep,
+                rep.reporter_user_id.name,
+                rep.reported_user_id.name or _('Pengguna'),
+                rep.reason_detail or self._selection_label(rep, 'reason'),
+                rep.create_date,
+                status_map.get(rep.state, 'pending'),
+            ))
+        return rows
+
+    def _report_rows_seller(self, source, limit):
+        Model = self.env['unitrade.seller'].sudo()
+        if 'report_state' not in Model._fields:
+            return []
+        status_map = {'reported': 'pending', 'under_review': 'in_progress', 'resolved': 'done'}
+        rows = []
+        for seller in Model.search(
+            [('report_state', 'in', ('reported', 'under_review', 'resolved'))],
+            order='last_reported_at desc, create_date desc', limit=limit,
+        ):
+            rows.append(self._report_row(
+                source, seller,
+                _('Pengguna'),
+                seller.name or seller.user_id.name,
+                getattr(seller, 'last_report_reason', '') or _('Seller dilaporkan'),
+                seller.last_reported_at or seller.create_date,
+                status_map.get(seller.report_state, 'pending'),
+            ))
+        return rows
+
+    def _report_rows_ticket(self, source, limit):
+        Model = self.env['unitrade.customer.ticket'].sudo()
+        status_map = {'pending': 'pending', 'in_progress': 'in_progress', 'done': 'done'}
+        rows = []
+        for ticket in Model.search([], order='create_date desc', limit=limit):
+            rows.append(self._report_row(
+                source, ticket,
+                ticket.partner_id.name or ticket.user_id.name,
+                ticket.order_id.name if ticket.order_id else self._selection_label(ticket, 'category'),
+                ticket.description or ticket.title,
+                ticket.create_date,
+                status_map.get(ticket.status, 'pending'),
+            ))
+        return rows
+
+    def _user_reports_summary(self, period_domain=None):
+        """Ringkasan agregat laporan per kategori (untuk halaman analitik)."""
+        rows = self._collect_report_rows('')
+        cats = {c['key']: dict(c, total=0, pending=0) for c in self._report_categories()}
+        totals = {'total': 0, 'pending': 0, 'in_progress': 0, 'done': 0, 'rejected': 0}
+        for row in rows:
+            totals['total'] += 1
+            totals[row['status']] = totals.get(row['status'], 0) + 1
+            cat = cats.get(row['category'])
+            if cat:
+                cat['total'] += 1
+                if row['status'] == 'pending':
+                    cat['pending'] += 1
+        summary = dict(totals)
+        summary['categories'] = list(cats.values())
+        return summary
+
+    @api.model
+    def get_reports_list(self, category='', status='', page=1, page_size=20):
+        """Daftar laporan terpadu dengan filter kategori + status."""
+        self._check_admin()
+        valid_categories = {c['key'] for c in self._report_categories()}
+        category = category if category in valid_categories else ''
+        status = status if status in self.REPORT_STATUS_LABELS else ''
+        page = max(1, int(page or 1))
+        page_size = max(5, min(int(page_size or 20), 100))
+
+        rows = self._collect_report_rows(category)
+        if status:
+            rows = [r for r in rows if r['status'] == status]
+
+        rows.sort(key=lambda r: r['date'].timestamp() if r.get('date') else 0, reverse=True)
+        for row in rows:
+            row.pop('date', None)
+
+        # kategori + counts untuk chip filter
+        all_rows = self._collect_report_rows('')
+        cat_counts = {key: 0 for key in valid_categories}
+        status_counts = {'pending': 0, 'in_progress': 0, 'done': 0, 'rejected': 0}
+        for r in all_rows:
+            cat_counts[r['category']] = cat_counts.get(r['category'], 0) + 1
+            status_counts[r['status']] = status_counts.get(r['status'], 0) + 1
+        categories = [dict(c, total=cat_counts.get(c['key'], 0)) for c in self._report_categories()]
+
+        total = len(rows)
+        total_pages = max(1, (total + page_size - 1) // page_size)
+        page = min(page, total_pages)
+        offset = (page - 1) * page_size
+
+        return {
+            'rows': rows[offset:offset + page_size],
+            'categories': categories,
+            'category': category,
+            'status': status,
+            'status_options': [
+                {'key': k, 'label': _(v)} for k, v in self.REPORT_STATUS_LABELS.items()
+            ],
+            'counts': dict(status_counts, total=len(all_rows)),
+            'pager': {
+                'page': page,
+                'total_pages': total_pages,
+                'total': total,
+                'has_prev': page > 1,
+                'has_next': page < total_pages,
+                'prev_page': max(1, page - 1),
+                'next_page': min(total_pages, page + 1),
+            },
+        }
+
+    @api.model
+    def get_report_detail(self, report_type, report_id):
+        """Detail laporan; reuse provider customer service + review baru."""
+        self._check_admin()
+        report_type = (report_type or '').strip()
+        provider = {
+            'ticket': self._customer_ticket_detail,
+            'chat': self._chat_report_detail,
+            'refund': self._refund_dispute_detail,
+            'seller': self._seller_report_detail,
+            'order': self._flagged_order_detail,
+            'review': self._review_report_detail,
+        }.get(report_type)
+        if not provider:
+            return {'ok': False, 'error': _('Jenis laporan tidak dikenal.')}
+        data = provider(report_id)
+        # sematkan aksi status laporan generik untuk tipe report-like
+        if data.get('ok') and report_type in ('chat', 'review', 'seller'):
+            actions = data.setdefault('actions', {})
+            actions.update({
+                'report_status': True,
+                'report_type': report_type,
+                'report_id': int(report_id or 0),
+                'can_reject': report_type in ('chat', 'review'),
+            })
+        return data
+
+    def _review_report_detail(self, case_id):
+        if not self._has_model('unitrade.review.report'):
+            return {'ok': False, 'error': _('Model laporan ulasan belum tersedia.')}
+        rep = self.env['unitrade.review.report'].sudo().browse(int(case_id or 0)).exists()
+        if not rep:
+            return {'ok': False, 'error': _('Laporan ulasan tidak ditemukan.')}
+        status_map = {
+            'submitted': 'pending', 'under_review': 'in_progress',
+            'resolved': 'done', 'rejected': 'rejected',
+        }
+        data = self._admin_case_base(
+            'review',
+            rep,
+            _('Laporan Ulasan Produk'),
+            rep.product_id.name if rep.product_id else _('Ulasan'),
+            self._report_status_label(status_map.get(rep.state, 'pending')),
+            'urgent' if rep.state == 'submitted' else 'warning',
+        )
+        data.update({
+            'description': rep.note or '',
+            'rows': [
+                {'label': _('Pelapor'), 'value': rep.user_id.name or '-'},
+                {'label': _('Produk'), 'value': rep.product_id.name if rep.product_id else '-'},
+                {'label': _('Alasan'), 'value': self._selection_label(rep, 'reason')},
+                {'label': _('Rating Ulasan'), 'value': '%s/5' % (rep.review_rating or 0)},
+                {'label': _('Komentar Ulasan'), 'value': rep.review_comment or '-'},
+                {'label': _('Dibuat'), 'value': self._datetime_label(rep.create_date)},
+                {'label': _('Direview Oleh'), 'value': rep.reviewed_by_id.name or '-'},
+            ],
+        })
+        return data
+
+    @api.model
+    def admin_set_report_status(self, report_type, report_id, status, note=''):
+        """Ubah status laporan (proses/selesai/tolak) untuk tipe report-like."""
+        self._check_admin()
+        report_type = (report_type or '').strip()
+        note = (note or '').strip()
+        if status not in ('in_progress', 'done', 'rejected'):
+            return {'ok': False, 'error': _('Status tidak valid.')}
+        user = self.env.user
+
+        if report_type == 'chat' and self._has_model('unitrade.chat.report'):
+            rep = self.env['unitrade.chat.report'].sudo().browse(int(report_id or 0)).exists()
+            if not rep:
+                return {'ok': False, 'error': _('Laporan tidak ditemukan.')}
+            state_map = {'in_progress': 'under_review', 'done': 'reviewed', 'rejected': 'rejected'}
+            vals = {'state': state_map[status], 'reviewer_user_id': user.id,
+                    'reviewed_at': fields.Datetime.now()}
+            if note:
+                vals['admin_note'] = note
+            rep.write(vals)
+            return {'ok': True}
+
+        if report_type == 'review' and self._has_model('unitrade.review.report'):
+            rep = self.env['unitrade.review.report'].sudo().browse(int(report_id or 0)).exists()
+            if not rep:
+                return {'ok': False, 'error': _('Laporan tidak ditemukan.')}
+            state_map = {'in_progress': 'under_review', 'done': 'resolved', 'rejected': 'rejected'}
+            rep.write({'state': state_map[status], 'reviewed_by_id': user.id,
+                       'reviewed_date': fields.Datetime.now()})
+            return {'ok': True}
+
+        if report_type == 'seller' and self._has_model('unitrade.seller'):
+            seller = self.env['unitrade.seller'].sudo().browse(int(report_id or 0)).exists()
+            if not seller or 'report_state' not in seller._fields:
+                return {'ok': False, 'error': _('Laporan tidak ditemukan.')}
+            state_map = {'in_progress': 'under_review', 'done': 'resolved', 'rejected': 'resolved'}
+            vals = {'report_state': state_map[status]}
+            if note and 'report_admin_note' in seller._fields:
+                vals['report_admin_note'] = note
+            seller.write(vals)
+            return {'ok': True}
+
+        return {'ok': False, 'error': _('Jenis laporan ini tidak mendukung aksi status.')}
 
     def _admin_media_size_label(self, size):
         size = int(size or 0)
@@ -4467,15 +4819,14 @@ class UnitradeAdminStats(models.AbstractModel):
             ['Refund', 'Resolved', report['refunds']['resolved']],
             ['Refund', 'Cancelled', report['refunds']['cancelled']],
             ['Refund', 'Lewat SLA', report['refunds']['overdue']],
-            ['Listing Fee', 'Total intent', report['listing_fee']['total']],
-            ['Listing Fee', 'Paid', report['listing_fee']['paid']],
-            ['Listing Fee', 'Pending', report['listing_fee']['pending']],
-            ['Listing Fee', 'Failed', report['listing_fee']['failed']],
-            ['Listing Fee', 'Expired', report['listing_fee']['expired']],
-            ['Listing Fee', 'Produk diwaiver', report['listing_fee']['waived_products']],
-            ['Listing Fee', 'Produk tidak wajib fee', report['listing_fee']['not_required_products']],
-            ['Listing Fee', 'Revenue paid', int(round(report['listing_fee']['revenue'] or 0))],
+            ['Laporan Pengguna', 'Total laporan masuk', report['user_reports']['total']],
+            ['Laporan Pengguna', 'Menunggu', report['user_reports']['pending']],
+            ['Laporan Pengguna', 'Diproses', report['user_reports']['in_progress']],
+            ['Laporan Pengguna', 'Selesai', report['user_reports']['done']],
+            ['Laporan Pengguna', 'Ditolak', report['user_reports']['rejected']],
         ]
+        for cat in report['user_reports'].get('categories', []):
+            rows.append(['Laporan Pengguna', 'Kategori: %s' % cat['label'], cat['total']])
         return rows
 
     # ---- detail providers (for modals) ------------------------------------
