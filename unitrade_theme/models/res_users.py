@@ -5,6 +5,7 @@ from odoo import api, models, fields
 from odoo.exceptions import AccessDenied
 
 _logger = logging.getLogger(__name__)
+UNITRADE_CHAT_ONLINE_SECONDS = 90
 
 
 class ResUsers(models.Model):
@@ -27,6 +28,14 @@ class ResUsers(models.Model):
     x_privacy_deactivated = fields.Boolean(string='Privacy Deactivated', default=False, readonly=True)
     x_privacy_deactivated_at = fields.Datetime(string='Privacy Deactivated At', readonly=True)
     x_privacy_anonymized_ref = fields.Char(string='Privacy Anonymized Reference', readonly=True)
+
+    def _unitrade_chat_is_online(self):
+        """Shared UniTrade chat presence check used by chat and storefront."""
+        self.ensure_one()
+        if 'x_unitrade_chat_last_seen' not in self._fields or not self.x_unitrade_chat_last_seen:
+            return False
+        delta = fields.Datetime.now() - self.x_unitrade_chat_last_seen
+        return delta.total_seconds() <= UNITRADE_CHAT_ONLINE_SECONDS
 
     def unitrade_allows_notification(self, category):
         """Return whether UniTrade may send a non-security notification to this user."""

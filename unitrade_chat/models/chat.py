@@ -9,8 +9,6 @@ from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
-
-UNITRADE_CHAT_ONLINE_SECONDS = 90
 UNITRADE_CHAT_IMAGE_MAX_BYTES = 2 * 1024 * 1024
 UNITRADE_CHAT_IMAGE_TYPES = {
     'image/jpeg',
@@ -301,10 +299,7 @@ class UnitradeChatConversation(models.Model):
 
     def _is_other_online(self, user=None):
         other = self._other_user(user=user).sudo()
-        if not other.x_unitrade_chat_last_seen:
-            return False
-        delta = fields.Datetime.now() - other.x_unitrade_chat_last_seen
-        return delta.total_seconds() <= UNITRADE_CHAT_ONLINE_SECONDS
+        return bool(other._unitrade_chat_is_online())
 
     def _avatar_url(self, user):
         if not user or not user.id:

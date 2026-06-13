@@ -1,7 +1,8 @@
 import base64
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest.mock import patch
 
+from odoo import fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests.common import TransactionCase, tagged, new_test_user
 from odoo.addons.unitrade_chat.controllers.main import UnitradeChatController
@@ -118,6 +119,21 @@ class TestUnitradeChat(TransactionCase):
 
         self.assertEqual(payload['time'], '16:23 WIB')
         self.assertEqual(payload['date'], '11 Juni 2026')
+
+    def test_conversation_presence_uses_shared_user_helper(self):
+        conversation = self.env['unitrade.chat.conversation'].with_user(self.buyer).open_for_seller(
+            seller_id=self.seller.id,
+        )
+
+        self.seller_user.sudo().write({'x_unitrade_chat_last_seen': fields.Datetime.now()})
+        self.assertTrue(self.seller_user.sudo()._unitrade_chat_is_online())
+        self.assertTrue(conversation._conversation_payload(self.buyer)['online'])
+
+        self.seller_user.sudo().write({
+            'x_unitrade_chat_last_seen': fields.Datetime.now() - timedelta(seconds=120),
+        })
+        self.assertFalse(self.seller_user.sudo()._unitrade_chat_is_online())
+        self.assertFalse(conversation._conversation_payload(self.buyer)['online'])
 
     def test_message_is_not_read_until_receiver_marks_visible_message(self):
         conversation = self.env['unitrade.chat.conversation'].sudo().create({
