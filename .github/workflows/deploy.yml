@@ -125,7 +125,7 @@ jobs:
 
             trap "$COMPOSE pull web && $COMPOSE up -d --no-deps --force-recreate web" EXIT
 
-            $COMPOSE run --rm web odoo -d unitrade_db -u unitrade_theme,unitrade_notification,unitrade_admin,unitrade_seller,unitrade_dispute,unitrade_payment,unitrade_review,unitrade_cs_ai,unitrade_product_ext --stop-after-init
+            $COMPOSE run --rm web odoo -d unitrade_db -u unitrade_theme,unitrade_chat,unitrade_notification,unitrade_admin,unitrade_seller,unitrade_dispute,unitrade_payment,unitrade_review,unitrade_cs_ai,unitrade_product_ext --stop-after-init
 
             $COMPOSE run --rm web odoo shell -d unitrade_db --no-http <<'PY'
             attachments = env['ir.attachment'].sudo().search([('url', 'like', '/web/assets/')])
