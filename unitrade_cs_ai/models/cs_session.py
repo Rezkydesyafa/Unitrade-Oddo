@@ -333,6 +333,16 @@ class UnitradeCsSessionMessage(models.Model):
             message._notify_bus()
         return messages
 
+    @staticmethod
+    def _author_initials(name):
+        name = (name or '').strip()
+        if not name:
+            return '?'
+        parts = [p for p in name.split() if p]
+        if len(parts) >= 2:
+            return (parts[0][0] + parts[1][0]).upper()
+        return name[:2].upper()
+
     def _message_payload(self):
         self.ensure_one()
         body = self.body or ''
@@ -344,11 +354,28 @@ class UnitradeCsSessionMessage(models.Model):
             'ai': _('Asisten AI'),
             'admin': self.author_user_id.name or _('Customer Service UniTrade'),
         }.get(self.author_type, _('UniTrade'))
+
+        # Avatar: admin pakai foto CS (profile_cs.jpg), AI pakai ikon robot,
+        # user pakai foto profil res.users (fallback inisial).
+        avatar_url = ''
+        avatar_robot = False
+        if self.author_type == 'ai':
+            avatar_robot = True
+        elif self.author_type == 'admin':
+            avatar_url = '/unitrade_cs_ai/static/src/img/profile_cs.jpg'
+        else:
+            author_user = self.author_user_id or self.session_id.user_id
+            if author_user:
+                avatar_url = '/web/image/res.users/%s/avatar_128' % author_user.id
+
         return {
             'id': self.id,
             'session_id': self.session_id.id,
             'author_type': self.author_type,
             'author_name': author_label,
+            'avatar_url': avatar_url,
+            'avatar_robot': avatar_robot,
+            'initials': self._author_initials(author_label),
             'body': body,
             'is_ai': self.is_ai,
             'time': self.create_date.strftime('%H:%M') if self.create_date else '',

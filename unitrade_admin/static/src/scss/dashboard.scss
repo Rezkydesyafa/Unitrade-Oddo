@@ -2051,10 +2051,39 @@
     }
     .ut-admin-livechat-msg {
         display: flex;
-        width: 100%;
+        align-items: flex-end;
+        gap: 8px;
+        max-width: 80%;
     }
-    .ut-admin-livechat-msg.ut-is-mine { justify-content: flex-end; }
-    .ut-admin-livechat-msg.ut-is-theirs { justify-content: flex-start; }
+    .ut-admin-livechat-msg.ut-is-mine { align-self: flex-end; flex-direction: row-reverse; }
+    .ut-admin-livechat-msg.ut-is-theirs { align-self: flex-start; }
+    .ut-admin-livechat-avatar-sm {
+        position: relative;
+        flex: 0 0 30px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        overflow: hidden;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--utad-accent);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+    .ut-admin-livechat-msg.ut-is-theirs .ut-admin-livechat-avatar-sm { background: var(--utad-green); }
+    .ut-admin-livechat-msg.ut-is-ai .ut-admin-livechat-avatar-sm { background: var(--utad-blue); }
+    .ut-admin-livechat-avatar-sm img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+    .ut-admin-livechat-avatar-robot { width: 17px; height: 17px; }
     .ut-admin-livechat-bubble {
         max-width: 72%;
         padding: 10px 14px;
