@@ -2290,19 +2290,43 @@
                 return state || "";
             }
 
+            function liveChatAvatarHtml(m) {
+                if (m.avatar_robot) {
+                    return '<span class="ut-admin-livechat-avatar-sm">' +
+                        '<svg class="ut-admin-livechat-avatar-robot" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+                        '<path d="M12 2a1 1 0 0 1 1 1v1h1.5A3.5 3.5 0 0 1 18 7.5V8h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1.5A3.5 3.5 0 0 1 14.5 18h-5A3.5 3.5 0 0 1 6 14.5V13H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1h1v-.5A3.5 3.5 0 0 1 9.5 4H11V3a1 1 0 0 1 1-1Zm-2.5 8a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm5 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z"/>' +
+                        '</svg></span>';
+                }
+                var initials = escapeHtml(m.initials || "?");
+                var img = m.avatar_url
+                    ? '<img src="' + escapeHtml(m.avatar_url) + '" alt="' + escapeHtml(m.author_name || "") +
+                      '" onerror="this.style.display=&quot;none&quot;"/>'
+                    : '';
+                return '<span class="ut-admin-livechat-avatar-sm">' + img +
+                    '<span class="ut-admin-livechat-avatar-initials">' + initials + '</span></span>';
+            }
+
+            function liveChatRowHtml(m) {
+                var meta = escapeHtml(m.author_name || "") + (m.time ? " · " + escapeHtml(m.time) : "");
+                return liveChatAvatarHtml(m) +
+                    '<div class="ut-admin-livechat-bubble">' +
+                        '<div class="ut-admin-livechat-bubble-body">' + escapeHtml(m.body || "").replace(/\n/g, "<br/>") + '</div>' +
+                        '<div class="ut-admin-livechat-bubble-meta">' + meta + '</div>' +
+                    '</div>';
+            }
+
+            function liveChatRowClass(m) {
+                var mine = m.author_type === "admin";
+                return "ut-admin-livechat-msg " + (mine ? "ut-is-mine" : "ut-is-theirs") +
+                    (m.author_type === "ai" ? " ut-is-ai" : "");
+            }
+
             function renderMessages(messages) {
                 messagesEl.innerHTML = "";
                 (messages || []).forEach(function (m) {
-                    var mine = m.author_type === "admin";
                     var row = document.createElement("div");
-                    row.className = "ut-admin-livechat-msg " + (mine ? "ut-is-mine" : "ut-is-theirs") +
-                        (m.author_type === "ai" ? " ut-is-ai" : "");
-                    var meta = escapeHtml(m.author_name || "") + (m.time ? " · " + escapeHtml(m.time) : "");
-                    row.innerHTML =
-                        '<div class="ut-admin-livechat-bubble">' +
-                            '<div class="ut-admin-livechat-bubble-body">' + escapeHtml(m.body || "").replace(/\n/g, "<br/>") + '</div>' +
-                            '<div class="ut-admin-livechat-bubble-meta">' + meta + '</div>' +
-                        '</div>';
+                    row.className = liveChatRowClass(m);
+                    row.innerHTML = liveChatRowHtml(m);
                     messagesEl.appendChild(row);
                     if (m.id && m.id > lastMessageId) lastMessageId = m.id;
                 });
@@ -2313,16 +2337,9 @@
                 var added = false;
                 (messages || []).forEach(function (m) {
                     if (!m.id || m.id <= lastMessageId) return;
-                    var mine = m.author_type === "admin";
                     var row = document.createElement("div");
-                    row.className = "ut-admin-livechat-msg " + (mine ? "ut-is-mine" : "ut-is-theirs") +
-                        (m.author_type === "ai" ? " ut-is-ai" : "");
-                    var meta = escapeHtml(m.author_name || "") + (m.time ? " · " + escapeHtml(m.time) : "");
-                    row.innerHTML =
-                        '<div class="ut-admin-livechat-bubble">' +
-                            '<div class="ut-admin-livechat-bubble-body">' + escapeHtml(m.body || "").replace(/\n/g, "<br/>") + '</div>' +
-                            '<div class="ut-admin-livechat-bubble-meta">' + meta + '</div>' +
-                        '</div>';
+                    row.className = liveChatRowClass(m);
+                    row.innerHTML = liveChatRowHtml(m);
                     messagesEl.appendChild(row);
                     lastMessageId = m.id;
                     added = true;

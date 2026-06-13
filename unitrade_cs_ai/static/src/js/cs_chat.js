@@ -1,7 +1,7 @@
 /** @odoo-module **/
 
 import publicWidget from "@web/legacy/js/public/public_widget";
-import { Component, mount, onMounted, onWillUnmount, useRef, useState } from "@odoo/owl";
+import { Component, mount, onMounted, onPatched, onWillUnmount, useRef, useState } from "@odoo/owl";
 import { templates } from "@web/core/assets";
 import { jsonrpc } from "@web/core/network/rpc_service";
 
@@ -31,12 +31,30 @@ export class CsFloatingChat extends Component {
             session: { id: 0, state: "ai_active", can_escalate: true },
             messages: [],
             quickReplies: [],
+            sessionEndedNotice: false,
+            hadAdminChat: false,
         });
+        this.pollHandle = null;
+        this.reconnecting = false;
+        this.shouldScroll = false;
         this.onExternalOpen = (ev) => this.openExternal(ev && ev.detail ? ev.detail : {});
-        onMounted(() => window.addEventListener("unitrade_cs:open", this.onExternalOpen));
+        onMounted(() => {
+            window.addEventListener("unitrade_cs:open", this.onExternalOpen);
+            this.startPolling();
+        });
+        onPatched(() => {
+            // Setelah OWL selesai render DOM, baru scroll ke bawah bila ada
+            // pesan baru. Ini memastikan auto-scroll bekerja untuk pesan CS
+            // yang masuk via bus/polling, bukan hanya saat user mengirim.
+            if (this.shouldScroll) {
+                this.shouldScroll = false;
+                this.scrollToBottomNow();
+            }
+        });
         onWillUnmount(() => {
             window.removeEventListener("unitrade_cs:open", this.onExternalOpen);
             this.unsubscribeChannels();
+            this.stopPolling();
         });
     }
 
@@ -92,6 +110,13 @@ export class CsFloatingChat extends Component {
         return message.author_type === "ai" ? "AI" : "CS";
     }
 
+    onAvatarError(ev) {
+        // Foto profil gagal dimuat -> sembunyikan img, biarkan inisial tampil.
+        if (ev && ev.target) {
+            ev.target.style.display = "none";
+        }
+    }
+
     async toggle() {
         this.state.open = !this.state.open;
         if (this.state.open && !this.bootstrapped) {
@@ -114,6 +139,9 @@ export class CsFloatingChat extends Component {
             this.state.session = result.session;
             this.state.messages = result.messages || [];
             this.state.quickReplies = result.quick_replies || [];
+            if (result.session.state === "admin_handling" || result.session.state === "waiting_admin") {
+                this.state.hadAdminChat = true;
+            }
             this.subscribe(result.session.bus_channel);
         } catch (error) {
             console.error("[UniTrade] CS bootstrap:", error);
@@ -155,23 +183,108 @@ export class CsFloatingChat extends Component {
             this.scrollToBottom();
         }
         if (payload.state) {
-            const wasClosed = this.state.session.state === "closed";
-            this.state.session.state = payload.state;
-            this.state.session.can_escalate = payload.state === "ai_active";
-            // Saat CS mengakhiri chat, user otomatis kembali terhubung
-            // dengan AI Assistant (sesi AI baru) tanpa perlu refresh.
-            if (payload.state === "closed" && !wasClosed) {
-                window.setTimeout(() => this.reconnectAi(), 1600);
-            }
+            this.applyStateChange(payload.state);
+        }
+    }
+
+    applyStateChange(newState) {
+        const prevState = this.state.session.state;
+        if (newState === prevState) {
+            return;
+        }
+        this.state.session.state = newState;
+        this.state.session.can_escalate = newState === "ai_active";
+        if (newState === "admin_handling" || newState === "waiting_admin") {
+            this.state.hadAdminChat = true;
+        }
+        // Saat CS mengakhiri chat: JANGAN hapus pesan. Tampilkan info sesi
+        // berakhir lalu kembalikan user ke AI (sesi baru) sambil
+        // mempertahankan riwayat pesan yang sudah ada.
+        if (newState === "closed" && prevState !== "closed") {
+            this.state.sessionEndedNotice = this.state.hadAdminChat;
+            window.setTimeout(() => this.reconnectAi(), 1800);
         }
     }
 
     async reconnectAi() {
-        // Lepas channel sesi lama, lalu buat sesi AI baru.
+        if (this.reconnecting) {
+            return;
+        }
+        this.reconnecting = true;
+        // Lepas channel sesi lama, lalu buat sesi AI baru TANPA menghapus
+        // riwayat pesan yang sedang tampil.
         this.unsubscribeChannels();
-        this.bootstrapped = false;
-        this.state.session = { id: 0, state: "ai_active", can_escalate: true };
-        await this.bootstrap();
+        const previousMessages = this.state.messages.slice();
+        try {
+            const result = await jsonrpc("/customer-service/chat/session", {});
+            if (result && result.success) {
+                this.bootstrapped = true;
+                this.state.session = result.session;
+                this.state.quickReplies = result.quick_replies || [];
+                // Gabungkan: riwayat lama + pesan sesi AI baru yang belum ada.
+                const merged = previousMessages.slice();
+                (result.messages || []).forEach((m) => {
+                    if (!merged.some((x) => x.id === m.id)) {
+                        merged.push(m);
+                    }
+                });
+                this.state.messages = merged;
+                this.subscribe(result.session.bus_channel);
+            }
+        } catch (error) {
+            console.error("[UniTrade] CS reconnect:", error);
+        } finally {
+            this.reconnecting = false;
+            this.scrollToBottom();
+        }
+    }
+
+    // ---- Realtime fallback via polling -------------------------------
+    startPolling() {
+        if (this.pollHandle) {
+            return;
+        }
+        this.pollHandle = window.setInterval(() => this.pollHistory(), 4000);
+    }
+
+    stopPolling() {
+        if (this.pollHandle) {
+            window.clearInterval(this.pollHandle);
+            this.pollHandle = null;
+        }
+    }
+
+    async pollHistory() {
+        // Hanya poll saat panel terbuka, sudah bootstrap, dan punya sesi.
+        if (!this.state.open || !this.bootstrapped || !this.state.session.id) {
+            return;
+        }
+        if (this.state.sending || this.reconnecting) {
+            return;
+        }
+        try {
+            const result = await jsonrpc("/customer-service/chat/history", {
+                session_id: this.state.session.id,
+            });
+            if (!result || !result.success) {
+                return;
+            }
+            let appended = false;
+            (result.messages || []).forEach((m) => {
+                if (!this.state.messages.some((x) => x.id === m.id)) {
+                    this.state.messages.push(m);
+                    appended = true;
+                }
+            });
+            if (appended) {
+                this.scrollToBottom();
+            }
+            if (result.session && result.session.state) {
+                this.applyStateChange(result.session.state);
+            }
+        } catch (error) {
+            // diam: polling fallback, jangan ganggu UX
+        }
     }
 
     onKeydown(ev) {
@@ -197,6 +310,7 @@ export class CsFloatingChat extends Component {
         }
         this.state.sending = true;
         this.state.error = "";
+        this.state.sessionEndedNotice = false;
         if (this.state.session.state === "ai_active") {
             this.state.aiTyping = true;
         }
@@ -233,6 +347,7 @@ export class CsFloatingChat extends Component {
 
     async escalate() {
         this.state.error = "";
+        this.state.sessionEndedNotice = false;
         try {
             const result = await jsonrpc("/customer-service/chat/escalate", {
                 session_id: this.state.session.id,
@@ -242,6 +357,7 @@ export class CsFloatingChat extends Component {
                 return;
             }
             this.state.session = result.session;
+            this.state.hadAdminChat = true;
             this.scrollToBottom();
         } catch (error) {
             console.error("[UniTrade] CS escalate:", error);
@@ -250,6 +366,13 @@ export class CsFloatingChat extends Component {
     }
 
     scrollToBottom() {
+        // Tandai agar scroll dilakukan setelah DOM ter-patch (onPatched).
+        this.shouldScroll = true;
+        // Juga coba langsung untuk kasus tanpa perubahan state (mis. buka panel).
+        this.scrollToBottomNow();
+    }
+
+    scrollToBottomNow() {
         const el = this.messagesRef.el;
         if (el) {
             window.requestAnimationFrame(() => {
