@@ -2,18 +2,22 @@
 <odoo>
     <template id="unitrade_chat_navbar_icon" inherit_id="unitrade_theme.unitrade_navbar" name="UniTrade Chat Navbar Icon">
         <xpath expr="//a[@href='/shop/cart']" position="before">
-            <t t-set="unitrade_chat_unread_count" t-value="request.env['unitrade.chat.conversation'].nav_unread_count(current_user, role='buyer')"/>
-            <a href="/unitrade/chat"
-                title="Chat"
-                aria-label="Chat"
-                class="tw-relative tw-flex tw-size-[38px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#212529] tw-text-white tw-no-underline tw-transition-colors hover:tw-bg-black">
-                <img src="/unitrade_theme/static/src/img/navbar-message.svg" alt="" class="tw-size-6"/>
-                <t t-if="unitrade_chat_unread_count">
-                    <span class="tw-absolute tw-right-[-4px] tw-top-[-5px] tw-flex tw-min-w-[17px] tw-items-center tw-justify-center tw-rounded-full tw-bg-red-500 tw-px-1 tw-text-[10px] tw-font-bold tw-leading-[17px] tw-text-white">
-                        <t t-esc="unitrade_chat_unread_count if unitrade_chat_unread_count &lt; 100 else '99+'"/>
-                    </span>
-                </t>
-            </a>
+            <t t-set="unitrade_chat_model_available" t-value="request.env.registry.models.get('unitrade.chat.conversation')"/>
+            <t t-set="unitrade_chat_unread_count" t-value="0"/>
+            <t t-if="unitrade_chat_model_available">
+                <t t-set="unitrade_chat_unread_count" t-value="request.env['unitrade.chat.conversation'].nav_unread_count(current_user, role='buyer')"/>
+                <a href="/unitrade/chat"
+                    title="Chat"
+                    aria-label="Chat"
+                    class="tw-relative tw-flex tw-size-[38px] tw-shrink-0 tw-items-center tw-justify-center tw-rounded-full tw-bg-[#212529] tw-text-white tw-no-underline tw-transition-colors hover:tw-bg-black">
+                    <img src="/unitrade_theme/static/src/img/navbar-message.svg" alt="" class="tw-size-6"/>
+                    <t t-if="unitrade_chat_unread_count">
+                        <span class="tw-absolute tw-right-[-4px] tw-top-[-5px] tw-flex tw-min-w-[17px] tw-items-center tw-justify-center tw-rounded-full tw-bg-red-500 tw-px-1 tw-text-[10px] tw-font-bold tw-leading-[17px] tw-text-white">
+                            <t t-esc="unitrade_chat_unread_count if unitrade_chat_unread_count &lt; 100 else '99+'"/>
+                        </span>
+                    </t>
+                </a>
+            </t>
         </xpath>
     </template>
 
