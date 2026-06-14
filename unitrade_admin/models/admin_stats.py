@@ -425,6 +425,15 @@ class UnitradeAdminStats(models.AbstractModel):
 
         # --- task queue ------------------------------------------------------
         tasks = []
+        # Map action key → URL admin agar kartu di dashboard punya tujuan klik
+        # yang konsisten dengan halaman antrian tugas.
+        task_action_urls = {
+            'settings': '/unitrade/admin/settings',
+            'pending_ktm': '/unitrade/admin/ktm-verifications',
+            'pending_ktm_mismatch': '/unitrade/admin/ktm-verifications',
+            'reported_sellers': '/unitrade/admin/users',
+            'refunds': '/unitrade/admin/refunds?status=need_admin',
+        }
         vision_key = (self.env['ir.config_parameter'].sudo()
                       .get_param('unitrade.google_vision.api_key') or '').strip()
         if not vision_key:
@@ -435,6 +444,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 'badge': _('Sistem'),
                 'badge_class': 'badge-red',
                 'action': 'settings',
+                'target_url': task_action_urls['settings'],
             })
         if pending_ktm:
             tasks.append({
@@ -444,6 +454,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 'badge': _('Urgent'),
                 'badge_class': 'badge-red',
                 'action': 'pending_ktm',
+                'target_url': task_action_urls['pending_ktm'],
             })
         if ktm_stats['has_mismatch']:
             tasks.append({
@@ -455,6 +466,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 'badge': _('Audit'),
                 'badge_class': 'badge-yellow',
                 'action': 'pending_ktm_mismatch',
+                'target_url': task_action_urls['pending_ktm_mismatch'],
             })
         if reported_sellers:
             tasks.append({
@@ -464,6 +476,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 'badge': _('Warning'),
                 'badge_class': 'badge-yellow',
                 'action': 'reported_sellers',
+                'target_url': task_action_urls['reported_sellers'],
             })
         if pending_refunds:
             tasks.append({
@@ -473,6 +486,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 'badge': _('Urgent'),
                 'badge_class': 'badge-red',
                 'action': 'refunds',
+                'target_url': task_action_urls['refunds'],
             })
         if not tasks:
             tasks.append({
@@ -482,6 +496,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 'badge': _('Aman'),
                 'badge_class': 'badge-green',
                 'action': '',
+                'target_url': '',
             })
 
         self._sync_admin_notifications_from_tasks()
@@ -1953,6 +1968,74 @@ class UnitradeAdminStats(models.AbstractModel):
                 severity='info',
             )
         return {'ok': True, 'id': voucher.id, 'active': voucher.active}
+
+    @api.model
+    def get_voucher_detail(self, voucher_id):
+        """Detail voucher + riwayat penggunaan lengkap untuk modal admin."""
+        self._check_admin()
+        if not self._has_model('unitrade.voucher'):
+            return {'ok': False, 'error': _('Modul voucher belum tersedia.')}
+        voucher = self.env['unitrade.voucher'].sudo().with_context(active_test=False).browse(int(voucher_id or 0)).exists()
+        if not voucher:
+            return {'ok': False, 'error': _('Voucher tidak ditemukan.')}
+
+        now = fields.Datetime.now()
+        status_key, status_label, badge_class = self._voucher_status(voucher, now=now)
+        if voucher.discount_type == 'percent':
+            discount_label = '%s%%' % ('%g' % (voucher.discount_percent or 0.0))
+        else:
+            discount_label = 'Rp ' + self._format_idr(voucher.discount_amount)
+
+        Order = self.env['sale.order'].sudo()
+        usage_rows = []
+        unique_users = set()
+        total_discount = 0.0
+        used_count = 0
+        if 'x_unitrade_voucher_id' in Order._fields:
+            domain = voucher._redeemed_order_domain() if hasattr(voucher, '_redeemed_order_domain') else [
+                ('x_unitrade_voucher_id', '=', voucher.id),
+                ('state', 'in', ('sale', 'done')),
+            ]
+            orders = Order.search(domain, order='date_order desc, id desc', limit=500)
+            used_count = len(orders)
+            for order in orders:
+                discount = order.x_unitrade_voucher_discount or 0.0
+                total_discount += discount
+                if order.partner_id:
+                    unique_users.add(order.partner_id.commercial_partner_id.id)
+                usage_rows.append({
+                    'order': order.name or '-',
+                    'order_url': self._admin_url_with_query('/unitrade/admin/transactions', order.name or ''),
+                    'user': order.partner_id.name or '-',
+                    'date': self._datetime_label(order.date_order or order.create_date),
+                    'discount': 'Rp ' + self._format_idr(discount),
+                    'amount_total': 'Rp ' + self._format_idr(order.amount_total or 0.0),
+                })
+
+        usage_limit = voucher.usage_limit or 0
+        remaining = (usage_limit - used_count) if usage_limit else 0
+        return {
+            'ok': True,
+            'id': voucher.id,
+            'code': voucher.code or '',
+            'name': voucher.name or '',
+            'active': bool(voucher.active),
+            'status_label': status_label,
+            'badge_class': badge_class,
+            'discount_label': discount_label,
+            'discount_type': voucher.discount_type,
+            'min_order_display': 'Rp ' + self._format_idr(voucher.min_order_amount),
+            'date_start_label': self._datetime_label(voucher.date_start),
+            'date_end_label': self._datetime_label(voucher.date_end),
+            'usage_limit': usage_limit,
+            'usage_limit_label': usage_limit or _('Tanpa batas'),
+            'usage_limit_per_user': voucher.usage_limit_per_user or 0,
+            'used_count': used_count,
+            'remaining_label': str(remaining) if usage_limit else _('Tanpa batas'),
+            'unique_users': len(unique_users),
+            'total_discount': 'Rp ' + self._format_idr(total_discount),
+            'usage_rows': usage_rows,
+        }
 
     # ---- settings (read/write via ir.config_parameter) --------------------
 
@@ -4047,6 +4130,10 @@ class UnitradeAdminStats(models.AbstractModel):
         rows = []
         for review in reviews:
             has_images = bool(review.review_image or review.review_image_2 or review.review_image_3)
+            product = review.product_id
+            product_url = ''
+            if product:
+                product_url = product.website_url if getattr(product, 'website_url', False) else '/unitrade/product/%s' % product.id
             rows.append({
                 'id': review.id,
                 'product': review.product_id.display_name or '-',
@@ -4062,6 +4149,7 @@ class UnitradeAdminStats(models.AbstractModel):
                 'badge_class': 'green' if review.is_visible else 'red',
                 'created': self._datetime_label(review.create_date),
                 'time_label': self._humanize_time(review.create_date),
+                'product_url': product_url,
                 'target_url': self._admin_record_url('unitrade.review', review),
             })
 
@@ -4106,6 +4194,44 @@ class UnitradeAdminStats(models.AbstractModel):
                 severity='warning' if not visible else 'info',
             )
         return {'ok': True, 'id': review.id, 'is_visible': review.is_visible}
+
+    @api.model
+    def get_review_detail(self, review_id):
+        """Detail satu ulasan untuk modal admin."""
+        self._check_admin()
+        if not self._has_model('unitrade.review'):
+            return {'ok': False, 'error': _('Modul ulasan belum tersedia.')}
+        review = self.env['unitrade.review'].sudo().browse(int(review_id or 0)).exists()
+        if not review:
+            return {'ok': False, 'error': _('Ulasan tidak ditemukan.')}
+        product = review.product_id
+        product_url = ''
+        if product:
+            product_url = product.website_url if getattr(product, 'website_url', False) else '/unitrade/product/%s' % product.id
+        images = []
+        for field_name in ('review_image', 'review_image_2', 'review_image_3'):
+            if review[field_name]:
+                images.append('/web/image/unitrade.review/%s/%s' % (review.id, field_name))
+        return {
+            'ok': True,
+            'id': review.id,
+            'product': product.display_name if product else '-',
+            'product_url': product_url,
+            'reviewer': review.user_id.name or '-',
+            'reviewer_email': review.user_id.email or review.user_id.login or '',
+            'order': review.order_id.name or '-',
+            'rating': review.rating or 0,
+            'rating_label': self._star_label(review.rating),
+            'comment': review.comment or '',
+            'tags': review.review_tags or '',
+            'images': images,
+            'is_visible': bool(review.is_visible),
+            'visibility_label': _('Tampil') if review.is_visible else _('Disembunyikan'),
+            'badge_class': 'green' if review.is_visible else 'red',
+            'created': self._datetime_label(review.create_date),
+            'helpful_count': review.helpful_count if 'helpful_count' in review._fields else 0,
+            'report_count': review.report_count if 'report_count' in review._fields else 0,
+        }
 
     # ---- payout batches --------------------------------------------------
 
@@ -4230,6 +4356,128 @@ class UnitradeAdminStats(models.AbstractModel):
             _logger.exception('Admin payout action failed: %s', action)
             return {'ok': False, 'error': str(error)}
         return {'ok': True, 'id': payout.id, 'state': payout.state}
+
+    def _payout_release_hours(self):
+        raw = self.env['ir.config_parameter'].sudo().get_param(
+            'unitrade.seller.payout_release_hours', default='24',
+        )
+        try:
+            hours = int(float(raw or 24))
+        except (TypeError, ValueError):
+            hours = 24
+        return max(0, min(hours, 24 * 7))
+
+    def _seller_ledger_balance(self, seller):
+        """Ringkasan saldo seller dari escrow ledger — SUMBER SAMA dengan
+        dashboard seller agar nominal konsisten."""
+        empty = {'payoutable': 0.0, 'pending': 0.0, 'held': 0.0, 'released': 0.0}
+        if not self._has_model('unitrade.escrow.ledger') or not seller:
+            return empty
+        Ledger = self.env['unitrade.escrow.ledger'].sudo()
+        Order = self.env['sale.order'].sudo()
+        ledgers = Ledger.search([
+            ('seller_id', '=', seller.id),
+            ('state', 'in', ('held', 'releasable', 'released')),
+        ])
+        has_pay_status = 'x_payment_status' in Order._fields
+        ledgers = ledgers.filtered(
+            lambda l: (not has_pay_status or l.order_id.x_payment_status == 'paid')
+            and l.order_id.state in ('sale', 'done') and (l.amount_seller or 0.0) > 0
+        )
+        now = fields.Datetime.now()
+        release_hours = self._payout_release_hours()
+
+        def release_at(ledger):
+            base = ledger.completed_at or ledger.buyer_confirmed_at
+            return (base + timedelta(hours=release_hours)) if base else False
+
+        payoutable = held = pending = released = 0.0
+        for l in ledgers:
+            amt = l.amount_seller or 0.0
+            if l.payout_status in ('pending', 'processing'):
+                pending += amt
+                continue
+            if l.state == 'released' or l.payout_status == 'succeeded':
+                released += amt
+                continue
+            ra = release_at(l)
+            if l.state == 'releasable' and ra and ra <= now:
+                payoutable += amt
+            else:
+                held += amt
+        currency = self.env.company.currency_id
+        return {
+            'payoutable': currency.round(payoutable),
+            'pending': currency.round(pending),
+            'held': currency.round(held),
+            'released': currency.round(released),
+        }
+
+    @api.model
+    def get_payout_detail(self, payout_id):
+        """Detail payout batch + rincian ledger + saldo seller (konsisten
+        dengan dashboard seller karena membaca escrow ledger yang sama)."""
+        self._check_admin()
+        if not self._has_model('unitrade.seller.payout'):
+            return {'ok': False, 'error': _('Modul payout belum tersedia.')}
+        payout = self.env['unitrade.seller.payout'].sudo().browse(int(payout_id or 0)).exists()
+        if not payout:
+            return {'ok': False, 'error': _('Payout tidak ditemukan.')}
+        meta = self._payout_state_meta(payout.state)
+        ledger_rows = []
+        for ledger in payout.ledger_ids:
+            ledger_rows.append({
+                'name': ledger.name or '-',
+                'order': ledger.order_id.name or '-',
+                'amount': 'Rp ' + self._format_idr(ledger.amount_seller),
+                'state': ledger.state,
+                'payout_status': ledger.payout_status or '-',
+            })
+        balance = self._seller_ledger_balance(payout.seller_id)
+        # riwayat payout seller yang sama
+        history = []
+        if payout.seller_id:
+            others = self.env['unitrade.seller.payout'].sudo().search(
+                [('seller_id', '=', payout.seller_id.id)],
+                order='requested_at desc, id desc', limit=10,
+            )
+            for h in others:
+                hmeta = self._payout_state_meta(h.state)
+                history.append({
+                    'id': h.id,
+                    'name': h.name or '-',
+                    'amount': 'Rp ' + self._format_idr(h.total_amount),
+                    'state_label': hmeta['label'],
+                    'badge_class': hmeta['badge_class'],
+                    'created': self._datetime_label(h.requested_at or h.create_date),
+                    'is_current': h.id == payout.id,
+                })
+        return {
+            'ok': True,
+            'id': payout.id,
+            'name': payout.name or '-',
+            'seller': payout.seller_id.name or '-',
+            'state': payout.state or 'draft',
+            'state_label': meta['label'],
+            'badge_class': meta['badge_class'],
+            'total_amount': 'Rp ' + self._format_idr(payout.total_amount),
+            'ledger_count': payout.ledger_count,
+            'channel': payout.payout_channel_code or '-',
+            'account_name': payout.payout_account_name or '-',
+            'account_number': payout.payout_account_number or '-',
+            'payment_reference': payout.payment_reference or '-',
+            'paid_at': self._datetime_label(payout.paid_at) if payout.paid_at else '-',
+            'created': self._datetime_label(payout.requested_at or payout.create_date),
+            'cancel_reason': payout.cancel_reason or '',
+            'balance': {
+                'payoutable': 'Rp ' + self._format_idr(balance['payoutable']),
+                'pending': 'Rp ' + self._format_idr(balance['pending']),
+                'held': 'Rp ' + self._format_idr(balance['held']),
+                'released': 'Rp ' + self._format_idr(balance['released']),
+            },
+            'ledger_rows': ledger_rows,
+            'history': history,
+        }
 
     # ---- announcements ---------------------------------------------------
 
@@ -5498,7 +5746,9 @@ class UnitradeAdminStats(models.AbstractModel):
                             'label': s.name or s.user_id.name or '-',
                             'subtitle': s.status,
                             'time_label': self._humanize_time(s.create_date),
-                            'href': '',
+                            'href': self._admin_url_with_query(
+                                '/unitrade/admin/users', s.user_id.name or s.name or ''
+                            ) if s.user_id else '/unitrade/admin/users?seller_status=pending',
                         }
                         for s in pending[:10]
                     ],
@@ -5525,7 +5775,9 @@ class UnitradeAdminStats(models.AbstractModel):
                             'label': s.name or '-',
                             'subtitle': s.report_state,
                             'time_label': self._humanize_time(s.last_reported_at or s.create_date),
-                            'href': '',
+                            'href': self._admin_url_with_query(
+                                '/unitrade/admin/users', s.name or ''
+                            ) if s.name else '/unitrade/admin/users',
                         }
                         for s in reported[:10]
                     ],
@@ -5703,7 +5955,7 @@ class UnitradeAdminStats(models.AbstractModel):
                             'label': l.name or '-',
                             'subtitle': 'Rp ' + self._format_idr(l.amount_seller),
                             'time_label': self._humanize_time(l.create_date),
-                            'href': '',
+                            'href': '/unitrade/admin/payouts',
                         }
                         for l in payout_ready[:10]
                     ],
@@ -5736,7 +5988,7 @@ class UnitradeAdminStats(models.AbstractModel):
                                 p.state, self._format_idr(p.total_amount), p.ledger_count,
                             ),
                             'time_label': self._humanize_time(p.create_date),
-                            'href': '',
+                            'href': '/unitrade/admin/payouts',
                         }
                         for p in pending_payouts[:10]
                     ],
@@ -5770,7 +6022,10 @@ class UnitradeAdminStats(models.AbstractModel):
                             'label': l.name or '-',
                             'subtitle': 'Held %s' % self._humanize_time(l.create_date),
                             'time_label': self._humanize_time(l.create_date),
-                            'href': '',
+                            'href': self._admin_url_with_query(
+                                '/unitrade/admin/transactions',
+                                (l.order_id.name if l.order_id else l.name) or '',
+                            ),
                         }
                         for l in stuck[:10]
                     ],
@@ -5798,7 +6053,7 @@ class UnitradeAdminStats(models.AbstractModel):
                             'label': p.name or '-',
                             'subtitle': '%s · Rp %s' % (p.state, self._format_idr(p.amount)),
                             'time_label': self._humanize_time(p.create_date),
-                            'href': '',
+                            'href': '/unitrade/admin/products?fee_status=pending',
                         }
                         for p in listing_pending[:10]
                     ],
@@ -5828,7 +6083,9 @@ class UnitradeAdminStats(models.AbstractModel):
                             'label': o.name or '-',
                             'subtitle': 'Rp ' + self._format_idr(o.amount_total),
                             'time_label': self._humanize_time(o.create_date),
-                            'href': '',
+                            'href': self._admin_url_with_query(
+                                '/unitrade/admin/transactions', o.name or '',
+                            ),
                         }
                         for o in overdue_orders[:10]
                     ],
@@ -5855,7 +6112,9 @@ class UnitradeAdminStats(models.AbstractModel):
                             'label': o.name or '-',
                             'subtitle': getattr(o, 'x_admin_flag_reason', '') or '',
                             'time_label': self._humanize_time(getattr(o, 'x_admin_flagged_at', False) or o.write_date),
-                            'href': '',
+                            'href': self._admin_url_with_query(
+                                '/unitrade/admin/transactions', o.name or '',
+                            ),
                         }
                         for o in flagged[:10]
                     ],

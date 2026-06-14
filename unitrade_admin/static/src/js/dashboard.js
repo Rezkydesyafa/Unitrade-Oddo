@@ -332,13 +332,6 @@
                             escapeHtml(title) + '</div>' + content + '</div>';
                     }
 
-                    function linkButton(label, url) {
-                        if (!url) return "";
-                        return '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener" ' +
-                            'class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm">' +
-                            escapeHtml(label) + '</a>';
-                    }
-
                     html += '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">';
                     html += '<span style="font-family:monospace;font-size:13px">' + escapeHtml(d.name || '') + '</span>';
                     html += badge(d.state_label || "", "blue");
@@ -362,10 +355,6 @@
                     paymentHtml += detailRow("Referensi", d.payment_reference || d.payment_intent_name || "-");
                     if (d.payment_paid_at) paymentHtml += detailRow("Dibayar Pada", d.payment_paid_at);
                     if (d.payment_expires_at) paymentHtml += detailRow("Expired Pembayaran", d.payment_expires_at);
-                    if (d.payment_intent_url) {
-                        paymentHtml += '<div style="display:flex;justify-content:flex-end;margin-top:10px">' +
-                            linkButton("Buka Transaksi", d.payment_intent_url) + '</div>';
-                    }
                     html += section("Pembayaran", paymentHtml);
 
                     var escrowHtml = "";
@@ -388,10 +377,6 @@
                         });
                         escrowHtml += '</div>';
                     }
-                    if (escrow.url) {
-                        escrowHtml += '<div style="display:flex;justify-content:flex-end;margin-top:10px">' +
-                            linkButton("Buka Transaksi", escrow.url) + '</div>';
-                    }
                     html += section("Escrow", escrowHtml);
 
                     var mediationHtml = "";
@@ -403,13 +388,6 @@
                     mediationHtml += detailRow("Status Payout", payout.latest_state_label || "-");
                     if (payout.latest_name) mediationHtml += detailRow("Batch Payout", payout.latest_name);
                     if (payout.total_amount_display) mediationHtml += detailRow("Nominal Payout", payout.total_amount_display);
-                    var mediationLinks = "";
-                    mediationLinks += linkButton("Buka Refund", refund.url);
-                    mediationLinks += linkButton("Buka Payout", payout.url);
-                    if (mediationLinks) {
-                        mediationHtml += '<div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:10px">' +
-                            mediationLinks + '</div>';
-                    }
                     html += section("Refund & Payout", mediationHtml);
 
                     if (d.lines && d.lines.length) {
@@ -489,9 +467,6 @@
                         html += '<button type="button" class="ut-admin-btn ut-admin-btn-danger ut-admin-btn-sm" data-action="flag-order" data-order-id="' +
                                 d.id + '">Tandai Bermasalah</button>';
                     }
-                    html += '<a href="/unitrade/admin/transactions?q=' +
-                        encodeURIComponent(d.name || d.id || "") +
-                        '" class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm">Buka di Admin</a>';
                     html += '</div>';
 
                     body.innerHTML = html;
@@ -1106,6 +1081,213 @@
             });
         }
 
+        function openReviewDetail(reviewId) {
+            var body = document.getElementById("utAdminReviewModalBody");
+            if (!body) return;
+            body.innerHTML = '<div style="text-align:center;color:var(--utad-muted);padding:40px">Memuat...</div>';
+            openModal("utAdminReviewModal");
+            callJsonRpc("/unitrade/admin/api/reviews/detail", { review_id: reviewId }).then(function (res) {
+                var d = res.result || {};
+                if (!d.ok) {
+                    body.innerHTML = '<div style="text-align:center;color:var(--utad-red);padding:40px">' +
+                        escapeHtml(d.error || "Ulasan tidak ditemukan.") + '</div>';
+                    return;
+                }
+                function row(label, value) {
+                    return '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">' +
+                        escapeHtml(label) + '</span><span class="ut-admin-detail-value">' +
+                        escapeHtml(value == null || value === "" ? "-" : value) + '</span></div>';
+                }
+                var html = '<div class="ut-admin-cs-detail-head">';
+                html += '<div><div class="ut-admin-product-detail-title">' + escapeHtml(d.product) + '</div>';
+                html += '<div class="ut-admin-product-detail-meta">Ulasan oleh ' + escapeHtml(d.reviewer) + '</div></div>';
+                html += '<div class="ut-admin-product-detail-badges"><span class="ut-admin-badge ut-admin-badge-' +
+                    escapeHtml(d.badge_class) + '"><span class="ut-admin-badge-dot"></span>' +
+                    escapeHtml(d.visibility_label) + '</span></div></div>';
+
+                html += '<div class="ut-admin-modal-section"><div class="ut-admin-modal-section-title">Informasi Ulasan</div>';
+                html += row("Reviewer", d.reviewer);
+                if (d.reviewer_email) html += row("Email", d.reviewer_email);
+                html += row("Produk", d.product);
+                html += row("Pesanan", d.order);
+                html += row("Rating", d.rating_label + " (" + d.rating + "/5)");
+                html += row("Tanggal", d.created);
+                if (d.tags) html += row("Tag", d.tags);
+                html += row("Membantu / Laporan", d.helpful_count + " membantu · " + d.report_count + " laporan");
+                html += '</div>';
+
+                html += '<div class="ut-admin-modal-section"><div class="ut-admin-modal-section-title">Komentar</div>' +
+                    '<p class="ut-admin-product-detail-description">' + escapeHtml(d.comment || "(tanpa komentar)") + '</p></div>';
+
+                if (d.images && d.images.length) {
+                    var imgHtml = '<div class="ut-admin-cs-media-grid">';
+                    d.images.forEach(function (src) {
+                        imgHtml += '<div class="ut-admin-cs-media-item"><a href="' + escapeHtml(src) +
+                            '" target="_blank" rel="noopener" class="ut-admin-cs-media-preview"><img src="' +
+                            escapeHtml(src) + '" alt="Foto ulasan"/></a></div>';
+                    });
+                    imgHtml += '</div>';
+                    html += '<div class="ut-admin-modal-section"><div class="ut-admin-modal-section-title">Foto Ulasan</div>' + imgHtml + '</div>';
+                }
+
+                var actHtml = '<div class="ut-admin-product-detail-actions">';
+                actHtml += '<button type="button" class="ut-admin-btn ut-admin-btn-' +
+                    (d.is_visible ? 'danger' : 'success') + ' ut-admin-btn-sm" data-action="review-visibility" data-review-id="' +
+                    escapeHtml(d.id) + '" data-visible="' + (d.is_visible ? 'false' : 'true') + '">' +
+                    (d.is_visible ? 'Sembunyikan' : 'Tampilkan') + '</button>';
+                if (d.product_url) {
+                    actHtml += '<a class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm" href="' +
+                        escapeHtml(d.product_url) + '" target="_blank" rel="noopener">Buka Produk</a>';
+                }
+                actHtml += '</div>';
+                html += '<div class="ut-admin-modal-section"><div class="ut-admin-modal-section-title">Aksi Admin</div>' + actHtml + '</div>';
+
+                body.innerHTML = html;
+            }).catch(function () {
+                body.innerHTML = '<div style="text-align:center;color:var(--utad-red);padding:40px">Gagal memuat detail ulasan.</div>';
+            });
+        }
+
+        function openVoucherDetail(voucherId) {
+            var body = document.getElementById("utAdminVoucherDetailBody");
+            if (!body) return;
+            body.innerHTML = '<div style="text-align:center;color:var(--utad-muted);padding:40px">Memuat...</div>';
+            openModal("utAdminVoucherDetailModal");
+            callJsonRpc("/unitrade/admin/api/vouchers/detail", { voucher_id: voucherId }).then(function (res) {
+                var d = res.result || {};
+                if (!d.ok) {
+                    body.innerHTML = '<div style="text-align:center;color:var(--utad-red);padding:40px">' +
+                        escapeHtml(d.error || "Voucher tidak ditemukan.") + '</div>';
+                    return;
+                }
+                function stat(label, value) {
+                    return '<div class="ut-admin-stat-card" style="padding:14px">' +
+                        '<div class="ut-admin-stat-label">' + escapeHtml(label) + '</div>' +
+                        '<div class="ut-admin-stat-value" style="font-size:20px">' + escapeHtml(value) + '</div></div>';
+                }
+                var html = '<div class="ut-admin-cs-detail-head">';
+                html += '<div><div class="ut-admin-product-detail-title">' + escapeHtml(d.code) + '</div>';
+                html += '<div class="ut-admin-product-detail-meta">' + escapeHtml(d.name || '-') + ' · ' + escapeHtml(d.discount_label) + '</div></div>';
+                html += '<div class="ut-admin-product-detail-badges"><span class="ut-admin-badge ut-admin-badge-' +
+                    escapeHtml(d.badge_class) + '"><span class="ut-admin-badge-dot"></span>' + escapeHtml(d.status_label) + '</span></div></div>';
+
+                html += '<div class="ut-admin-stats-grid" style="margin:12px 0">';
+                html += stat("Total Kuota", d.usage_limit_label);
+                html += stat("Sudah Dipakai", String(d.used_count));
+                html += stat("Sisa Kuota", d.remaining_label);
+                html += stat("Jumlah User", String(d.unique_users));
+                html += stat("Total Diskon Diberikan", d.total_discount);
+                html += stat("Limit / User", String(d.usage_limit_per_user || 'Tanpa batas'));
+                html += '</div>';
+
+                html += '<div class="ut-admin-modal-section"><div class="ut-admin-modal-section-title">Info Voucher</div>';
+                html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">Min. Order</span><span class="ut-admin-detail-value">' + escapeHtml(d.min_order_display) + '</span></div>';
+                html += '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">Periode</span><span class="ut-admin-detail-value">' + escapeHtml(d.date_start_label) + ' s/d ' + escapeHtml(d.date_end_label) + '</span></div>';
+                html += '</div>';
+
+                var rowsHtml = '';
+                if (d.usage_rows && d.usage_rows.length) {
+                    rowsHtml += '<div class="ut-admin-table-wrapper"><table class="ut-admin-table"><thead><tr>' +
+                        '<th>User</th><th>Order</th><th>Tanggal</th><th>Diskon</th><th>Total Order</th></tr></thead><tbody>';
+                    d.usage_rows.forEach(function (u) {
+                        rowsHtml += '<tr><td>' + escapeHtml(u.user) + '</td>' +
+                            '<td><a href="' + escapeHtml(u.order_url) + '" target="_blank" rel="noopener">' + escapeHtml(u.order) + '</a></td>' +
+                            '<td>' + escapeHtml(u.date) + '</td>' +
+                            '<td>' + escapeHtml(u.discount) + '</td>' +
+                            '<td>' + escapeHtml(u.amount_total) + '</td></tr>';
+                    });
+                    rowsHtml += '</tbody></table></div>';
+                } else {
+                    rowsHtml = '<div class="ut-admin-empty-inline">Voucher ini belum pernah digunakan.</div>';
+                }
+                html += '<div class="ut-admin-modal-section"><div class="ut-admin-modal-section-title">Riwayat Penggunaan</div>' + rowsHtml + '</div>';
+
+                body.innerHTML = html;
+            }).catch(function () {
+                body.innerHTML = '<div style="text-align:center;color:var(--utad-red);padding:40px">Gagal memuat detail voucher.</div>';
+            });
+        }
+
+        function openPayoutDetail(payoutId) {
+            var body = document.getElementById("utAdminPayoutModalBody");
+            if (!body) return;
+            body.innerHTML = '<div style="text-align:center;color:var(--utad-muted);padding:40px">Memuat...</div>';
+            openModal("utAdminPayoutModal");
+            callJsonRpc("/unitrade/admin/api/payouts/detail", { payout_id: payoutId }).then(function (res) {
+                var d = res.result || {};
+                if (!d.ok) {
+                    body.innerHTML = '<div style="text-align:center;color:var(--utad-red);padding:40px">' +
+                        escapeHtml(d.error || "Payout tidak ditemukan.") + '</div>';
+                    return;
+                }
+                function row(label, value) {
+                    return '<div class="ut-admin-detail-row"><span class="ut-admin-detail-label">' +
+                        escapeHtml(label) + '</span><span class="ut-admin-detail-value">' +
+                        escapeHtml(value == null || value === "" ? "-" : value) + '</span></div>';
+                }
+                function stat(label, value) {
+                    return '<div class="ut-admin-stat-card" style="padding:14px">' +
+                        '<div class="ut-admin-stat-label">' + escapeHtml(label) + '</div>' +
+                        '<div class="ut-admin-stat-value" style="font-size:18px">' + escapeHtml(value) + '</div></div>';
+                }
+                var html = '<div class="ut-admin-cs-detail-head">';
+                html += '<div><div class="ut-admin-product-detail-title">' + escapeHtml(d.name) + '</div>';
+                html += '<div class="ut-admin-product-detail-meta">Seller: ' + escapeHtml(d.seller) + ' · ' + escapeHtml(d.total_amount) + '</div></div>';
+                html += '<div class="ut-admin-product-detail-badges"><span class="ut-admin-badge ut-admin-badge-' +
+                    escapeHtml(d.badge_class) + '"><span class="ut-admin-badge-dot"></span>' + escapeHtml(d.state_label) + '</span></div></div>';
+
+                html += '<div class="ut-admin-modal-section"><div class="ut-admin-modal-section-title">Saldo Seller (sinkron dengan dashboard seller)</div>';
+                html += '<div class="ut-admin-stats-grid">';
+                html += stat("Bisa Dicairkan", d.balance.payoutable);
+                html += stat("Pending Payout", d.balance.pending);
+                html += stat("Ditahan", d.balance.held);
+                html += stat("Sudah Dicairkan", d.balance.released);
+                html += '</div></div>';
+
+                html += '<div class="ut-admin-modal-section"><div class="ut-admin-modal-section-title">Informasi Payout</div>';
+                html += row("Total", d.total_amount);
+                html += row("Jumlah Ledger", String(d.ledger_count));
+                html += row("Channel / Bank", d.channel);
+                html += row("Nama Rekening", d.account_name);
+                html += row("Nomor Rekening", d.account_number);
+                html += row("Referensi Pembayaran", d.payment_reference);
+                html += row("Diminta", d.created);
+                html += row("Dibayar", d.paid_at);
+                if (d.cancel_reason) html += row("Alasan Batal", d.cancel_reason);
+                html += '</div>';
+
+                var ledgerHtml = '';
+                if (d.ledger_rows && d.ledger_rows.length) {
+                    ledgerHtml += '<div class="ut-admin-table-wrapper"><table class="ut-admin-table"><thead><tr>' +
+                        '<th>Ledger</th><th>Order</th><th>Nominal Seller</th><th>State</th><th>Payout Status</th></tr></thead><tbody>';
+                    d.ledger_rows.forEach(function (l) {
+                        ledgerHtml += '<tr><td>' + escapeHtml(l.name) + '</td><td>' + escapeHtml(l.order) + '</td><td>' +
+                            escapeHtml(l.amount) + '</td><td>' + escapeHtml(l.state) + '</td><td>' + escapeHtml(l.payout_status) + '</td></tr>';
+                    });
+                    ledgerHtml += '</tbody></table></div>';
+                } else {
+                    ledgerHtml = '<div class="ut-admin-empty-inline">Belum ada ledger pada payout ini.</div>';
+                }
+                html += '<div class="ut-admin-modal-section"><div class="ut-admin-modal-section-title">Rincian Ledger</div>' + ledgerHtml + '</div>';
+
+                if (d.history && d.history.length) {
+                    var hHtml = '<div class="ut-admin-log-list">';
+                    d.history.forEach(function (h) {
+                        hHtml += '<div class="ut-admin-log-item"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">' +
+                            '<strong>' + escapeHtml(h.name) + (h.is_current ? ' (ini)' : '') + ' · ' + escapeHtml(h.amount) + '</strong>' +
+                            '<span class="ut-admin-badge ut-admin-badge-' + escapeHtml(h.badge_class) + '">' + escapeHtml(h.state_label) + '</span></div>' +
+                            '<div class="ut-admin-log-meta">' + escapeHtml(h.created) + '</div></div>';
+                    });
+                    hHtml += '</div>';
+                    html += '<div class="ut-admin-modal-section"><div class="ut-admin-modal-section-title">Riwayat Payout Seller</div>' + hHtml + '</div>';
+                }
+
+                body.innerHTML = html;
+            }).catch(function () {
+                body.innerHTML = '<div style="text-align:center;color:var(--utad-red);padding:40px">Gagal memuat detail payout.</div>';
+            });
+        }
+
         function openAuditLogDetail(logId) {
             var body = document.getElementById("utAdminAuditLogModalBody");
             if (!body) return;
@@ -1292,9 +1474,23 @@
                 if (!item) return;
                 e.preventDefault();
                 var href = item.getAttribute("href") || "#";
+                var hadHref = href && href !== "#" && href !== "";
                 markRead(item.dataset.notifId).finally(function () {
-                    if (href && href !== "#") {
+                    if (hadHref) {
                         window.location.href = href;
+                    } else {
+                        // Tidak ada halaman tujuan: kasih feedback supaya user tidak bingung
+                        item.classList.remove("ut-admin-unread");
+                        showToast("Notifikasi ditandai sebagai sudah dibaca.", "success");
+                        // Update badge count
+                        var unreadLeft = notifList.querySelectorAll(".ut-admin-unread").length;
+                        if (notifBadge) {
+                            if (unreadLeft > 0) {
+                                notifBadge.textContent = unreadLeft;
+                            } else {
+                                notifBadge.style.display = "none";
+                            }
+                        }
                     }
                 });
             });
@@ -1443,7 +1639,6 @@
                 var ticketId = btn.dataset.ticketId;
                 var sponsorshipId = btn.dataset.sponsorshipId;
                 var productId = btn.dataset.productId;
-                var deliveryId = btn.dataset.deliveryId;
                 var reviewId = btn.dataset.reviewId;
                 var payoutId = btn.dataset.payoutId;
                 var announcementId = btn.dataset.announcementId;
@@ -1649,6 +1844,21 @@
                             if (res.result && res.result.ok) refresh();
                             else showToast("Gagal menandai notifikasi.", "error");
                         });
+                } else if (action === "open-notification-target") {
+                    // Klik "Buka target" → mark read otomatis lalu navigate.
+                    e.preventDefault();
+                    var openHref = btn.getAttribute("data-target-url") || btn.getAttribute("href") || "";
+                    var openPromise = notificationId
+                        ? callJsonRpc("/unitrade/admin/api/notifications/read", { notification_id: notificationId })
+                        : Promise.resolve();
+                    openPromise.finally(function () {
+                        if (openHref) {
+                            window.location.href = openHref;
+                        }
+                    });
+                } else if (action === "settings-cancel") {
+                    // Tombol "Batal" pada halaman Settings → reload form ke nilai tersimpan
+                    window.location.reload();
                 } else if (action === "mark-all-notifications") {
                     callJsonRpc("/unitrade/admin/api/notifications/read_all", {})
                         .then(function (res) {
@@ -1694,6 +1904,8 @@
                         if (res.result && res.result.ok) refresh();
                         else showToast((res.result && res.result.error) || "Gagal memperbarui voucher.", "error");
                     });
+                } else if (action === "voucher-detail") {
+                    openVoucherDetail(voucherId);
                 } else if (action === "product-detail") {
                     openProductDetail(productId);
                 } else if (action === "cs-detail") {
@@ -1907,15 +2119,6 @@
                         btn.textContent = originalSponsorshipLabel;
                         showToast("Gagal memperbarui sponsorship.", "error");
                     });
-                } else if (action === "delivery-status") {
-                    var deliveryStatus = btn.dataset.status;
-                    callJsonRpc("/unitrade/admin/api/deliveries/status", {
-                        delivery_id: deliveryId,
-                        status: deliveryStatus,
-                    }).then(function (res) {
-                        if (res.result && res.result.ok) refresh();
-                        else showToast((res.result && res.result.error) || "Gagal memperbarui delivery.", "error");
-                    });
                 } else if (action === "review-visibility") {
                     var visible = btn.dataset.visible === "true" || btn.dataset.visible === "True";
                     var message = visible ? "Tampilkan ulasan ini lagi?" : "Sembunyikan ulasan ini dari storefront?";
@@ -1927,6 +2130,8 @@
                         if (res.result && res.result.ok) refresh();
                         else showToast((res.result && res.result.error) || "Gagal memperbarui ulasan.", "error");
                     });
+                } else if (action === "review-detail") {
+                    openReviewDetail(reviewId);
                 } else if (action === "payout-action") {
                     var payoutAction = btn.dataset.payoutAction;
                     var payload = {
@@ -1956,6 +2161,8 @@
                             if (res.result && res.result.ok) refresh();
                             else showToast((res.result && res.result.error) || "Gagal menjalankan aksi payout.", "error");
                         });
+                } else if (action === "payout-detail") {
+                    openPayoutDetail(payoutId);
                 } else if (action === "refund-action") {
                     var refundId = btn.dataset.refundId;
                     var refundAction = btn.dataset.refundAction;
