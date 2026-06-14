@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
 
     <!-- =============================================================
@@ -511,10 +511,12 @@
                             <t t-esc="len(dashboard['tasks'])"/> item membutuhkan perhatian
                         </div>
                     </div>
+                    <a href="/unitrade/admin/tasks" class="ut-admin-task-link">Buka semua →</a>
                 </div>
                 <div class="ut-admin-task-list">
                     <t t-foreach="dashboard['tasks']" t-as="task">
-                        <div class="ut-admin-task-item">
+                        <a t-att-href="task.get('target_url') or '/unitrade/admin/tasks'"
+                           class="ut-admin-task-item ut-admin-task-item-clickable">
                             <div t-att-class="'ut-admin-task-urgency ut-admin-' + task['urgency']"/>
                             <div class="ut-admin-task-body">
                                 <div class="ut-admin-task-row-title" t-esc="task['title']"/>
@@ -523,8 +525,9 @@
                             <div class="ut-admin-task-actions">
                                 <span t-att-class="'ut-admin-badge ut-admin-' + task['badge_class']"
                                       t-esc="task['badge']"/>
+                                <span class="ut-admin-task-arrow" aria-hidden="true">›</span>
                             </div>
-                        </div>
+                        </a>
                     </t>
                 </div>
             </div>
@@ -1466,181 +1469,6 @@
     </template>
 
     <!-- =============================================================
-         PAGE: DELIVERY
-         ============================================================= -->
-    <template id="admin_deliveries_page" name="UniTrade Admin Delivery">
-        <t t-set="page_title" t-value="'Monitoring Delivery'"/>
-        <t t-set="active_page" t-value="'deliveries'"/>
-        <t t-call="unitrade_admin.admin_layout">
-            <t t-set="stats" t-value="deliveries['stats']"/>
-            <t t-set="filters" t-value="deliveries['filters']"/>
-            <div class="ut-admin-page-header">
-                <div>
-                    <div class="ut-admin-headline">Monitoring Delivery</div>
-                    <div class="ut-admin-subtitle">Pantau status pengiriman GoSend dan order terkait dari dashboard admin.</div>
-                </div>
-            </div>
-
-            <div class="ut-admin-stats-grid" style="margin-bottom:16px">
-                <div class="ut-admin-stat-card">
-                    <div class="ut-admin-stat-header">
-                        <span class="ut-admin-stat-label">Total Delivery</span>
-                        <div class="ut-admin-stat-icon ut-admin-icon-blue"><i class="fa fa-motorcycle" aria-hidden="true"></i></div>
-                    </div>
-                    <div class="ut-admin-stat-value" t-esc="stats['total']"/>
-                    <div class="ut-admin-stat-meta">Semua pengiriman</div>
-                </div>
-                <div class="ut-admin-stat-card">
-                    <div class="ut-admin-stat-header">
-                        <span class="ut-admin-stat-label">Pending</span>
-                        <div class="ut-admin-stat-icon ut-admin-icon-yellow"><i class="fa fa-clock-o" aria-hidden="true"></i></div>
-                    </div>
-                    <div class="ut-admin-stat-value" t-esc="stats['pending']"/>
-                    <div class="ut-admin-stat-meta">Belum dijemput</div>
-                </div>
-                <div class="ut-admin-stat-card">
-                    <div class="ut-admin-stat-header">
-                        <span class="ut-admin-stat-label">Dalam Jalan</span>
-                        <div class="ut-admin-stat-icon ut-admin-icon-purple"><i class="fa fa-location-arrow" aria-hidden="true"></i></div>
-                    </div>
-                    <div class="ut-admin-stat-value" t-esc="stats['in_transit']"/>
-                    <div class="ut-admin-stat-meta">Picked up / in transit</div>
-                </div>
-                <div class="ut-admin-stat-card">
-                    <div class="ut-admin-stat-header">
-                        <span class="ut-admin-stat-label">Gagal</span>
-                        <div class="ut-admin-stat-icon ut-admin-icon-red"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></div>
-                    </div>
-                    <div class="ut-admin-stat-value" t-esc="stats['failed']"/>
-                    <div class="ut-admin-stat-meta">Perlu tindak lanjut</div>
-                </div>
-            </div>
-
-            <div class="ut-admin-card" style="margin-bottom:16px">
-                <form method="get" action="/unitrade/admin/deliveries" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-                    <input type="text"
-                           name="q"
-                           class="ut-admin-input"
-                           style="flex:1;min-width:260px"
-                           placeholder="Cari order, resi, driver, nomor HP..."
-                           t-att-value="filters['q']"/>
-                    <select name="status" class="ut-admin-input" style="min-width:170px">
-                        <option value="" t-att-selected="'selected' if not filters['status'] else None">Semua Status</option>
-                        <option value="pending" t-att-selected="'selected' if filters['status'] == 'pending' else None">Pending</option>
-                        <option value="picked_up" t-att-selected="'selected' if filters['status'] == 'picked_up' else None">Dijemput</option>
-                        <option value="in_transit" t-att-selected="'selected' if filters['status'] == 'in_transit' else None">Dalam Pengiriman</option>
-                        <option value="delivered" t-att-selected="'selected' if filters['status'] == 'delivered' else None">Terkirim</option>
-                        <option value="failed" t-att-selected="'selected' if filters['status'] == 'failed' else None">Gagal</option>
-                    </select>
-                    <button class="ut-admin-btn ut-admin-btn-primary ut-admin-btn-sm" type="submit">Cari</button>
-                    <a href="/unitrade/admin/deliveries" class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm">Reset</a>
-                </form>
-            </div>
-
-            <div class="ut-admin-table-wrapper">
-                <table class="ut-admin-table">
-                    <thead>
-                        <tr>
-                            <th>Order</th>
-                            <th>Tracking</th>
-                            <th>Rute</th>
-                            <th>Driver</th>
-                            <th>Status</th>
-                            <th>Ongkir</th>
-                            <th style="text-align:right">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr t-if="not deliveries['rows']">
-                            <td colspan="7" style="text-align:center;padding:32px;color:var(--utad-muted)">
-                                Belum ada data delivery sesuai filter.
-                            </td>
-                        </tr>
-                        <tr t-foreach="deliveries['rows']" t-as="row">
-                            <td>
-                                <div style="font-weight:700;font-size:13px" t-esc="row['order_name']"/>
-                                <div style="font-size:11px;color:var(--utad-muted)" t-esc="row['buyer']"/>
-                            </td>
-                            <td>
-                                <div style="font-family:monospace;font-size:12px" t-esc="row['tracking_number']"/>
-                                <div style="font-size:11px;color:var(--utad-muted)" t-esc="row['time_label']"/>
-                            </td>
-                            <td style="max-width:320px">
-                                <div style="font-size:12px"><strong>Pickup:</strong> <t t-esc="row['pickup_address']"/></div>
-                                <div style="font-size:12px;color:var(--utad-muted)"><strong>Dropoff:</strong> <t t-esc="row['dropoff_address']"/></div>
-                            </td>
-                            <td>
-                                <div t-esc="row['driver']"/>
-                                <div style="font-size:11px;color:var(--utad-muted)" t-esc="row['driver_phone'] or '-'"/>
-                            </td>
-                            <td>
-                                <span t-attf-class="ut-admin-badge ut-admin-badge-#{row['badge_class']}" t-esc="row['status_label']"/>
-                            </td>
-                            <td>Rp <t t-esc="row['shipping_cost']"/></td>
-                            <td style="text-align:right">
-                                <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
-                                    <button t-if="row['status'] == 'failed'"
-                                            type="button"
-                                            class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs"
-                                            data-action="delivery-status"
-                                            t-att-data-delivery-id="row['id']"
-                                            data-status="pending">
-                                        Reset
-                                    </button>
-                                    <button t-if="row['status'] != 'delivered'"
-                                            type="button"
-                                            class="ut-admin-btn ut-admin-btn-primary ut-admin-btn-xs"
-                                            data-action="delivery-status"
-                                            t-att-data-delivery-id="row['id']"
-                                            data-status="delivered">
-                                        Terkirim
-                                    </button>
-                                    <button t-if="row['status'] != 'failed'"
-                                            type="button"
-                                            class="ut-admin-btn ut-admin-btn-danger ut-admin-btn-xs"
-                                            data-action="delivery-status"
-                                            t-att-data-delivery-id="row['id']"
-                                            data-status="failed">
-                                        Gagal
-                                    </button>
-                                    <a t-if="row['order_url']"
-                                       t-att-href="row['order_url']"
-                                       target="_blank"
-                                       class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs">
-                                        Order
-                                    </a>
-                                    <a t-if="row['target_url']"
-                                       t-att-href="row['target_url']"
-                                       target="_blank"
-                                       class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs">
-                                        Buka
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="ut-admin-pagination" t-if="deliveries['pager']['pages'] > 1">
-                <span style="color:var(--utad-muted);font-size:12px">
-                    Halaman <t t-esc="deliveries['pager']['page']"/> dari
-                    <t t-esc="deliveries['pager']['pages']"/>
-                    (<t t-esc="deliveries['pager']['total']"/> item)
-                </span>
-                <div style="display:flex;gap:6px">
-                    <a t-if="deliveries['pager']['has_prev']"
-                       t-attf-href="/unitrade/admin/deliveries?q=#{filters['q']}&amp;status=#{filters['status']}&amp;page=#{deliveries['pager']['prev_page']}"
-                       class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs">‹ Prev</a>
-                    <a t-if="deliveries['pager']['has_next']"
-                       t-attf-href="/unitrade/admin/deliveries?q=#{filters['q']}&amp;status=#{filters['status']}&amp;page=#{deliveries['pager']['next_page']}"
-                       class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs">Next ›</a>
-                </div>
-            </div>
-        </t>
-    </template>
-
-    <!-- =============================================================
          PAGE: REVIEWS
          ============================================================= -->
     <template id="admin_reviews_page" name="UniTrade Admin Reviews">
@@ -1765,12 +1593,12 @@
                                         <t t-if="row['is_visible']">Sembunyikan</t>
                                         <t t-else="">Tampilkan</t>
                                     </button>
-                                    <a t-if="row['target_url']"
-                                       t-att-href="row['target_url']"
-                                       target="_blank"
-                                       class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs">
+                                    <button type="button"
+                                            class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs"
+                                            data-action="review-detail"
+                                            t-att-data-review-id="row['id']">
                                         Buka
-                                    </a>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -1791,6 +1619,18 @@
                     <a t-if="reviews['pager']['has_next']"
                        t-attf-href="/unitrade/admin/reviews?q=#{filters['q']}&amp;visibility=#{filters['visibility']}&amp;rating=#{filters['rating']}&amp;page=#{reviews['pager']['next_page']}"
                        class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs">Next ›</a>
+                </div>
+            </div>
+
+            <div class="ut-admin-modal-overlay" id="utAdminReviewModal">
+                <div class="ut-admin-modal">
+                    <div class="ut-admin-modal-header">
+                        <span>Detail Ulasan</span>
+                        <button type="button" class="ut-admin-modal-close" data-modal-close="utAdminReviewModal">×</button>
+                    </div>
+                    <div class="ut-admin-modal-body" id="utAdminReviewModalBody">
+                        <div style="text-align:center;color:var(--utad-muted);padding:40px">Memuat...</div>
+                    </div>
                 </div>
             </div>
         </t>
@@ -1941,12 +1781,12 @@
                                             data-payout-action="cancel">
                                         Cancel
                                     </button>
-                                    <a t-if="row['target_url']"
-                                       t-att-href="row['target_url']"
-                                       target="_blank"
-                                       class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs">
-                                        Buka
-                                    </a>
+                                    <button type="button"
+                                            class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs"
+                                            data-action="payout-detail"
+                                            t-att-data-payout-id="row['id']">
+                                        Detail
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -1967,6 +1807,18 @@
                     <a t-if="payouts['pager']['has_next']"
                        t-attf-href="/unitrade/admin/payouts?q=#{filters['q']}&amp;state=#{filters['state']}&amp;page=#{payouts['pager']['next_page']}"
                        class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs">Next ›</a>
+                </div>
+            </div>
+
+            <div class="ut-admin-modal-overlay" id="utAdminPayoutModal">
+                <div class="ut-admin-modal" style="max-width:820px">
+                    <div class="ut-admin-modal-header">
+                        <span>Detail Payout</span>
+                        <button type="button" class="ut-admin-modal-close" data-modal-close="utAdminPayoutModal">×</button>
+                    </div>
+                    <div class="ut-admin-modal-body" id="utAdminPayoutModalBody">
+                        <div style="text-align:center;color:var(--utad-muted);padding:40px">Memuat...</div>
+                    </div>
                 </div>
             </div>
         </t>
@@ -2734,6 +2586,13 @@
                             </td>
                             <td style="text-align:right">
                                 <button type="button"
+                                        class="ut-admin-btn ut-admin-btn-primary ut-admin-btn-xs"
+                                        style="margin-right:6px"
+                                        data-action="voucher-detail"
+                                        t-att-data-voucher-id="row['id']">
+                                    Detail
+                                </button>
+                                <button type="button"
                                         class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs"
                                         style="margin-right:6px"
                                         data-action="open-voucher-modal"
@@ -2855,6 +2714,18 @@
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ut-admin-modal-overlay" id="utAdminVoucherDetailModal">
+                <div class="ut-admin-modal" style="max-width:820px">
+                    <div class="ut-admin-modal-header">
+                        <span>Detail Penggunaan Voucher</span>
+                        <button type="button" class="ut-admin-modal-close" data-modal-close="utAdminVoucherDetailModal">×</button>
+                    </div>
+                    <div class="ut-admin-modal-body" id="utAdminVoucherDetailBody">
+                        <div style="text-align:center;color:var(--utad-muted);padding:40px">Memuat...</div>
                     </div>
                 </div>
             </div>
@@ -3634,7 +3505,7 @@
                 <!-- Bottom save -->
                 <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
                     <button type="button" class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm"
-                            onclick="window.location.reload()">Batal</button>
+                            data-action="settings-cancel">Batal</button>
                     <button type="button" class="ut-admin-btn ut-admin-btn-primary ut-admin-btn-sm"
                             id="utAdminSettingsSaveBottom">Simpan Semua</button>
                 </div>
@@ -3760,10 +3631,19 @@
                                 <span t-esc="item['notification_type']"/>
                             </div>
                             <div class="ut-admin-notification-actions">
-                                <a t-att-href="item['target_url']"
-                                   class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm">
+                                <a t-if="item['target_url']"
+                                   t-att-href="item['target_url']"
+                                   class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-sm"
+                                   data-action="open-notification-target"
+                                   t-att-data-notification-id="item['id']"
+                                   t-att-data-target-url="item['target_url']">
                                     Buka target
                                 </a>
+                                <span t-else=""
+                                      class="ut-admin-muted"
+                                      style="font-size:12px;font-style:italic">
+                                    Tidak ada halaman tujuan.
+                                </span>
                                 <button t-if="not item['is_read']"
                                         type="button"
                                         class="ut-admin-btn ut-admin-btn-primary ut-admin-btn-sm"
@@ -3912,6 +3792,7 @@
                                     <th>Nama</th>
                                     <th>Status / Detail</th>
                                     <th>Waktu</th>
+                                    <th style="text-align:right">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -3920,6 +3801,12 @@
                                         <td><strong t-esc="item['label']"/></td>
                                         <td t-esc="item['subtitle']"/>
                                         <td t-esc="item['time_label']"/>
+                                        <td style="text-align:right;white-space:nowrap">
+                                            <a t-att-href="item['href'] or group['target_url']"
+                                               class="ut-admin-btn ut-admin-btn-secondary ut-admin-btn-xs">
+                                                Buka
+                                            </a>
+                                        </td>
                                     </tr>
                                 </t>
                             </tbody>
@@ -4362,4 +4249,3 @@
     </template>
 
 </odoo>
-

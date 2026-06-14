@@ -165,8 +165,11 @@ class UnitradeAdminController(http.Controller):
             },
         )
 
+    # NOTE: Monitoring delivery dihilangkan dari dashboard admin (digabung dengan
+    # Monitoring Transaksi). Route lama masih di-redirect demi backward compat
+    # bookmark, lalu API & template-nya dihapus.
     @http.route('/unitrade/admin/deliveries', type='http', auth='user', website=True)
-    def admin_deliveries(self, q='', status='', page=1, **kwargs):
+    def admin_deliveries(self, **kwargs):
         if not self._is_admin():
             return self._forbidden('Akun Anda tidak memiliki akses admin UniTrade.')
         return request.redirect('/unitrade/admin/transactions')
@@ -456,20 +459,17 @@ class UnitradeAdminController(http.Controller):
             return {'ok': False, 'error': 'forbidden'}
         return self._stats().admin_update_sponsorship(request_id, status=status, note=note)
 
-    @http.route('/unitrade/admin/api/deliveries/status', type='json', auth='user')
-    def api_update_delivery_status(self, delivery_id=0, status='', **kwargs):
-        if not self._is_admin():
-            return {'ok': False, 'error': 'forbidden'}
-        return {
-            'ok': False,
-            'error': 'Monitoring delivery dinonaktifkan. Gunakan Monitoring Transaksi untuk alur serah terima.',
-        }
-
     @http.route('/unitrade/admin/api/reviews/visibility', type='json', auth='user')
     def api_review_visibility(self, review_id=0, visible=False, **kwargs):
         if not self._is_admin():
             return {'ok': False, 'error': 'forbidden'}
         return self._stats().admin_toggle_review_visibility(review_id, visible)
+
+    @http.route('/unitrade/admin/api/reviews/detail', type='json', auth='user')
+    def api_review_detail(self, review_id=0, **kwargs):
+        if not self._is_admin():
+            return {'ok': False, 'error': 'forbidden'}
+        return self._stats().get_review_detail(review_id)
 
     @http.route('/unitrade/admin/api/payouts/action', type='json', auth='user')
     def api_payout_action(self, payout_id=0, action='', payment_reference='', cancel_reason='', **kwargs):
@@ -481,6 +481,12 @@ class UnitradeAdminController(http.Controller):
             payment_reference=payment_reference or '',
             cancel_reason=cancel_reason or '',
         )
+
+    @http.route('/unitrade/admin/api/payouts/detail', type='json', auth='user')
+    def api_payout_detail(self, payout_id=0, **kwargs):
+        if not self._is_admin():
+            return {'ok': False, 'error': 'forbidden'}
+        return self._stats().get_payout_detail(payout_id)
 
     @http.route('/unitrade/admin/api/announcements/create', type='json', auth='user')
     def api_create_announcement(self, values=None, **kwargs):
@@ -840,6 +846,12 @@ class UnitradeAdminController(http.Controller):
         if not self._is_admin():
             return {'ok': False, 'error': 'forbidden'}
         return self._stats().admin_toggle_voucher(voucher_id, active)
+
+    @http.route('/unitrade/admin/api/vouchers/detail', type='json', auth='user')
+    def api_voucher_detail(self, voucher_id=0, **kwargs):
+        if not self._is_admin():
+            return {'ok': False, 'error': 'forbidden'}
+        return self._stats().get_voucher_detail(voucher_id)
 
     # ---- raw data endpoint (kept for convenience) ------------------------
 
