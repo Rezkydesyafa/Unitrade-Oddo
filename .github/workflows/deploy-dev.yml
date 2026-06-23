@@ -1,4 +1,4 @@
-name: Deploy VPS
+name: Deploy dev
 
 on:
   push:
