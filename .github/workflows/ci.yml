@@ -1,0 +1,60 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches:
+      - main
+
+  push:
+    branches:
+      - develop
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v6
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install XML Validator
+        run: |
+          sudo apt update
+          sudo apt install -y libxml2-utils
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Tailwind CSS
+        run: npm run build
+
+      - name: Run Lint
+        run: npm run lint --if-present
+
+      - name: Run Tests
+        run: npm run test --if-present
+
+      - name: Validate Python Syntax
+        run: |
+          find . -name "*.py" -exec python -m py_compile {} \;
+
+      - name: Validate XML Files
+        run: |
+          find . -name "*.xml" -exec xmllint --noout {} \;
+
+      - name: Validate Docker Build
+        run: |
+          docker build -t unitrade-test .
+
+      - name: CI Success
+        run: echo "CI Passed Successfully"

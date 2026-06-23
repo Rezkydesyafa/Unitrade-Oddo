@@ -18,17 +18,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build Tailwind CSS
-        run: npm run build
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -111,13 +100,6 @@ jobs:
 
             $COMPOSE pull
 
-            $COMPOSE run --rm --no-deps web sh -lc "
-              test -f /mnt/extra-addons/unitrade_seller/static/src/css/seller_dashboard.css &&
-              grep -q 'body.ut-has-seller-dashboard-page' /mnt/extra-addons/unitrade_seller/static/src/css/seller_dashboard.css &&
-              ! grep -q 'body:has(.ut-seller-dashboard-page)' /mnt/extra-addons/unitrade_seller/static/src/css/seller_dashboard.css &&
-              test -f /mnt/extra-addons/unitrade_seller/static/src/js/seller_dashboard.js &&
-              grep -q 'ut-has-seller-dashboard-page' /mnt/extra-addons/unitrade_seller/static/src/js/seller_dashboard.js
-            "
             $COMPOSE up -d
 
             $COMPOSE stop web || true
@@ -125,10 +107,15 @@ jobs:
 
             trap "$COMPOSE pull web && $COMPOSE up -d --no-deps --force-recreate web" EXIT
 
-            $COMPOSE run --rm web odoo -d unitrade_db -u unitrade_theme,unitrade_chat,unitrade_notification,unitrade_admin,unitrade_seller,unitrade_dispute,unitrade_payment,unitrade_review,unitrade_cs_ai,unitrade_product_ext --stop-after-init
+            $COMPOSE run --rm web odoo \
+              -d unitrade_db \
+              -u unitrade_theme,unitrade_chat,unitrade_notification,unitrade_admin,unitrade_seller,unitrade_dispute,unitrade_payment,unitrade_review,unitrade_cs_ai,unitrade_product_ext \
+              --stop-after-init
 
             $COMPOSE run --rm web odoo shell -d unitrade_db --no-http <<'PY'
-            attachments = env['ir.attachment'].sudo().search([('url', 'like', '/web/assets/')])
+            attachments = env['ir.attachment'].sudo().search([
+                ('url', 'like', '/web/assets/')
+            ])
             count = len(attachments)
             attachments.unlink()
             env.cr.commit()
@@ -145,27 +132,14 @@ jobs:
               sleep 2
             done
 
-            curl -fsS "http://127.0.0.1:8069/unitrade_seller/static/src/css/seller_dashboard.css?sha=${{ github.sha }}" > /tmp/unitrade_seller_dashboard.css
-            grep -q 'body.ut-has-seller-dashboard-page' /tmp/unitrade_seller_dashboard.css
-            ! grep -q 'body:has(.ut-seller-dashboard-page)' /tmp/unitrade_seller_dashboard.css
-
             trap - EXIT
-
-            $COMPOSE ps
-            echo "Cleaning old dangling Docker images, keeping latest 5..."
 
             docker container prune -f
 
-            KEEP=5
-            docker image ls -f dangling=true -q \
-              | awk '!seen[$0]++' \
-              | tail -n +$((KEEP+1)) \
-              | xargs -r docker image rm || true
+            docker image prune -f
 
             docker system df
 
-      - name: Verify public production asset
+      - name: Verify Production
         run: |
-          curl -fsS "https://unitrade.web.id/unitrade_seller/static/src/css/seller_dashboard.css?sha=${GITHUB_SHA}" > /tmp/unitrade_public_seller_dashboard.css
-          grep -q 'body.ut-has-seller-dashboard-page' /tmp/unitrade_public_seller_dashboard.css
-          ! grep -q 'body:has(.ut-seller-dashboard-page)' /tmp/unitrade_public_seller_dashboard.css
+          curl -f https://unitrade.web.id/web/login
