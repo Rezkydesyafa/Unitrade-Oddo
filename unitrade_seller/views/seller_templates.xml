@@ -1308,7 +1308,7 @@
                                         </h1>
                                         <p class="tw-m-0 tw-mt-1 tw-flex tw-items-center tw-gap-2 tw-text-[12px] tw-leading-6 tw-text-[#525252]">
                                             <t t-esc="seller_profile_status.get('label')"/>
-                                            <span t-att-class="'tw-h-[7px] tw-w-[7px] tw-rounded-full %s' % seller_profile_status.get('dot_class')"></span>
+                                            <span class="tw-h-[7px] tw-w-[7px] tw-rounded-full" t-att-style="'background-color: %s;' % seller_profile_status.get('dot_color')" t-att-title="seller_profile_status.get('title')"></span>
                                         </p>
                                         <p class="tw-m-0 tw-text-[12px] tw-leading-6 tw-text-[#525252]">
                                             Bergabung <t t-esc="seller_joined_date"/>
