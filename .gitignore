@@ -182,3 +182,25 @@ odoo.conf.nobom
 
 # Playwright
 .playwright-cli/
+
+# Odoo Runtime Data
+odoo_data/
+tmp/
+
+# Accidental Artifacts
+false
+qc
+query
+-p/
+
+# Temp Files
+tempCodeRunnerFile.*
+
+# Data Exports
+github_issues.json
+unitrade-dashboard.html
+db_view.xml
+
+# AI Tool Configs
+.codex/
+skills-lock.json
