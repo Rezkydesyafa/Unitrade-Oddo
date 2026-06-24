@@ -368,6 +368,33 @@ class UnitradeSellerController(http.Controller):
         return bool(_safe_get(seller, 'x_store_active', True))
 
     @staticmethod
+    def _seller_profile_status_payload(seller):
+        if not seller:
+            return {
+                'label': _('Tidak Aktif'),
+                'dot_class': 'tw-bg-[#939393]',
+            }
+
+        status = seller.status or 'draft'
+        is_store_active = UnitradeSellerController._seller_store_is_active(seller)
+        if status == 'verified':
+            return {
+                'label': _('Aktif') if is_store_active else _('Nonaktif'),
+                'dot_class': 'tw-bg-[#00d26a]' if is_store_active else 'tw-bg-[#939393]',
+            }
+
+        label_by_status = dict(seller._fields['status'].selection)
+        dot_class_by_status = {
+            'pending': 'tw-bg-[#f59e0b]',
+            'rejected': 'tw-bg-[#ef4444]',
+            'revoked': 'tw-bg-[#ef4444]',
+        }
+        return {
+            'label': label_by_status.get(status, _('Belum Aktif')),
+            'dot_class': dot_class_by_status.get(status, 'tw-bg-[#939393]'),
+        }
+
+    @staticmethod
     def _current_user_block_message(feature_label=None):
         user = request.env.user
         if user._is_public() or not hasattr(user, '_check_unitrade_marketplace_access'):
@@ -4169,6 +4196,7 @@ class UnitradeSellerController(http.Controller):
             'seller': seller,
             'seller_public_ref': seller_public_ref,
             'seller_is_preview': seller.status != 'verified',
+            'seller_profile_status': self._seller_profile_status_payload(seller),
             'seller_products': products,
             'seller_all_products': all_products,
             'seller_address': self._seller_address(seller),
