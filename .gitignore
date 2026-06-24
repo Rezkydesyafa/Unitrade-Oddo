@@ -204,3 +204,4 @@ db_view.xml
 # AI Tool Configs
 .codex/
 skills-lock.json
+AGENTS.md
