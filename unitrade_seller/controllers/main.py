@@ -371,27 +371,27 @@ class UnitradeSellerController(http.Controller):
     def _seller_profile_status_payload(seller):
         if not seller:
             return {
-                'label': _('Tidak Aktif'),
-                'dot_class': 'tw-bg-[#939393]',
+                'label': _('Tidak Tersedia'),
+                'dot_color': '#939393',
+                'title': _('Status seller tidak tersedia'),
             }
 
         status = seller.status or 'draft'
-        is_store_active = UnitradeSellerController._seller_store_is_active(seller)
-        if status == 'verified':
-            return {
-                'label': _('Aktif') if is_store_active else _('Nonaktif'),
-                'dot_class': 'tw-bg-[#00d26a]' if is_store_active else 'tw-bg-[#939393]',
-            }
-
         label_by_status = dict(seller._fields['status'].selection)
-        dot_class_by_status = {
-            'pending': 'tw-bg-[#f59e0b]',
-            'rejected': 'tw-bg-[#ef4444]',
-            'revoked': 'tw-bg-[#ef4444]',
+        is_store_active = UnitradeSellerController._seller_store_is_active(seller)
+        dot_color_by_status = {
+            'verified': '#00d26a' if is_store_active else '#939393',
+            'pending': '#f59e0b',
+            'rejected': '#ef4444',
+            'revoked': '#ef4444',
         }
+        title = label_by_status.get(status, _('Belum tersedia'))
+        if status == 'verified':
+            title = _('Toko siap ditampilkan') if is_store_active else _('Toko dijeda')
         return {
-            'label': label_by_status.get(status, _('Belum Aktif')),
-            'dot_class': dot_class_by_status.get(status, 'tw-bg-[#939393]'),
+            'label': label_by_status.get(status, _('Belum tersedia')),
+            'dot_color': dot_color_by_status.get(status, '#939393'),
+            'title': title,
         }
 
     @staticmethod
