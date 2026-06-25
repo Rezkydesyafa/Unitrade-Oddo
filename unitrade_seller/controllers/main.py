@@ -479,15 +479,30 @@ class UnitradeSellerController(http.Controller):
         return products
 
     @staticmethod
-    def _stock_label(product):
-        qty = _safe_get(product, 'x_unitrade_free_qty', False)
+    def _seller_product_onhand_stock_qty(product):
+        """Return the same on-hand stock source used by the seller edit form."""
+        qty = _safe_get(product, 'x_unitrade_stock_qty', False)
         if qty is False:
             variant = product.product_variant_id or product.product_variant_ids[:1]
-            qty = variant.free_qty if variant and 'free_qty' in variant._fields else 0
+            if variant and 'qty_available' in variant._fields:
+                warehouse = (
+                    product._unitrade_stock_warehouse()
+                    if hasattr(product, '_unitrade_stock_warehouse')
+                    else False
+                )
+                variant = variant.with_context(warehouse=warehouse.id) if warehouse else variant
+                qty = variant.qty_available
+            else:
+                qty = 0
         try:
             qty = float(qty or 0)
         except (TypeError, ValueError):
             qty = 0
+        return qty
+
+    @staticmethod
+    def _stock_label(product):
+        qty = UnitradeSellerController._seller_product_onhand_stock_qty(product)
         if qty <= 0:
             return 'Stok habis'
         if qty.is_integer():
@@ -617,15 +632,7 @@ class UnitradeSellerController(http.Controller):
 
     @staticmethod
     def _seller_product_stock_qty(product):
-        stock_qty = _safe_get(product, 'x_unitrade_free_qty', False)
-        if stock_qty is False:
-            variant = product.product_variant_id or product.product_variant_ids[:1]
-            stock_qty = variant.free_qty if variant and 'free_qty' in variant._fields else 0
-        try:
-            stock_qty = float(stock_qty or 0)
-        except (TypeError, ValueError):
-            stock_qty = 0
-        return stock_qty
+        return UnitradeSellerController._seller_product_onhand_stock_qty(product)
 
     def _seller_product_listing_status(self, seller, product):
         self._seller_sync_listing_fee_timeouts(seller=seller, product=product)
@@ -751,8 +758,41 @@ class UnitradeSellerController(http.Controller):
 
     @staticmethod
     def _seller_product_update_stock(product, stock):
-        if 'x_unitrade_stock_qty' in product._fields:
-            product.with_user(SUPERUSER_ID).sudo().write({'x_unitrade_stock_qty': stock})
+        try:
+            stock = float(stock or 0.0)
+        except (TypeError, ValueError) as error:
+            raise ValueError('Stok produk harus berupa angka.') from error
+        if stock < 0:
+            raise ValueError('Stok produk tidak boleh negatif.')
+
+        product = product.with_user(SUPERUSER_ID).sudo()
+        if 'x_unitrade_stock_qty' not in product._fields:
+            raise UserError('Konfigurasi stok UniTrade belum tersedia untuk produk ini.')
+
+        product.write({'x_unitrade_stock_qty': stock})
+        UnitradeSellerController._seller_product_invalidate_stock_cache(product)
+
+    @staticmethod
+    def _seller_product_invalidate_stock_cache(product):
+        try:
+            product_fields = [
+                field_name
+                for field_name in ('x_unitrade_stock_qty', 'x_unitrade_free_qty')
+                if field_name in product._fields
+            ]
+            if product_fields:
+                product.invalidate_recordset(product_fields)
+
+            variants = product.product_variant_ids
+            variant_fields = [
+                field_name
+                for field_name in ('qty_available', 'free_qty')
+                if field_name in variants._fields
+            ]
+            if variants and variant_fields:
+                variants.invalidate_recordset(variant_fields)
+        except Exception:
+            _logger.debug('Failed invalidating seller product stock cache for product %s', product.ids, exc_info=True)
 
     def _seller_product_expiry_label(self, product):
         expiry = self._listing_expiry(product)
@@ -1794,11 +1834,7 @@ class UnitradeSellerController(http.Controller):
         discount_price = 0.0
         if discount_percent and product.list_price:
             discount_price = max(0.0, product.list_price * (1 - (discount_percent / 100.0)))
-        stock = _safe_get(product, 'x_unitrade_stock_qty', 0.0)
-        try:
-            stock = float(stock or 0.0)
-        except (TypeError, ValueError):
-            stock = 0.0
+        stock = self._seller_product_stock_qty(product)
         return {
             'id': product.id,
             'name': product.name or '',
