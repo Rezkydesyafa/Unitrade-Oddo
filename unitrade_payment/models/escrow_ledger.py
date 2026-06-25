@@ -294,6 +294,7 @@ class UnitradeEscrowLedger(models.Model):
             )
             all_confirmed = bool(ledgers) and len(completed_ledgers) == len(ledgers)
             if all_confirmed:
+                completed_ledgers._unitrade_mark_delivery_delivered()
                 values['x_unitrade_order_state'] = 'completed'
                 if not order.x_completed_at:
                     values['x_completed_at'] = fields.Datetime.now()
@@ -441,6 +442,21 @@ class UnitradeEscrowLedger(models.Model):
                 delivery = Delivery.search([('order_id', '=', order.id)], order='create_date desc', limit=1)
             if delivery and delivery.status == 'pending':
                 delivery.write({'status': 'picked_up'})
+
+    def _unitrade_mark_delivery_delivered(self):
+        """Complete GoSend delivery when the buyer has confirmed receipt."""
+        if 'unitrade.delivery' not in self.env.registry:
+            return
+        Delivery = self.env['unitrade.delivery'].sudo()
+        for order in self.mapped('order_id').sudo():
+            if 'x_shipping_method' not in order._fields or order.x_shipping_method != 'gosend':
+                continue
+            delivery = Delivery.search([('order_id', '=', order.id)], order='create_date desc', limit=1)
+            if not delivery and hasattr(order, '_unitrade_create_shipping_delivery'):
+                order._unitrade_create_shipping_delivery()
+                delivery = Delivery.search([('order_id', '=', order.id)], order='create_date desc', limit=1)
+            if delivery and delivery.status != 'delivered':
+                delivery.write({'status': 'delivered'})
 
     def action_mark_releasable(self):
         self._check_admin('mark_releasable')

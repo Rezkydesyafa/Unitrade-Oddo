@@ -947,9 +947,9 @@ class UnitradePaymentController(http.Controller):
         uses_delivery = shipping_method == 'gosend'
         delivery = self._order_status_delivery(order) if uses_delivery else request.env['sale.order'].browse()
         delivery_status = delivery.status if delivery else ''
-        delivery_failed = delivery_status == 'failed'
-        delivery_started = delivery_status in ('picked_up', 'in_transit', 'delivered')
-        delivery_done = delivery_status == 'delivered'
+        delivery_done = delivery_status == 'delivered' or all_buyer_confirmed or order_done
+        delivery_failed = delivery_status == 'failed' and not delivery_done
+        delivery_started = delivery_status in ('picked_up', 'in_transit', 'delivered') or delivery_done
         handoff_done = all_seller_confirmed or delivery_started or delivery_done
         handoff_active = payment_done and not handoff_done and not is_refunded
         delivery_active = (
@@ -1243,10 +1243,13 @@ class UnitradePaymentController(http.Controller):
         if shipping_method == 'gosend' and 'unitrade.delivery' in request.env.registry:
             delivery = self._order_status_delivery(order)
             if delivery:
+                status = delivery.status
+                if order.x_unitrade_order_state == 'completed':
+                    status = 'delivered'
                 status_labels = dict(delivery._fields['status'].selection)
                 delivery_value = {
-                    'status': delivery.status,
-                    'status_label': status_labels.get(delivery.status, delivery.status),
+                    'status': status,
+                    'status_label': status_labels.get(status, status),
                     'tracking_number': delivery.tracking_number or '',
                     'distance_km': delivery.distance_km or 0.0,
                     'driver_name': delivery.driver_name or '',
@@ -1263,11 +1266,15 @@ class UnitradePaymentController(http.Controller):
         order = order.sudo()
         if 'unitrade.delivery' not in request.env.registry:
             return request.env['sale.order'].browse()
-        return request.env['unitrade.delivery'].sudo().search(
+        delivery = request.env['unitrade.delivery'].sudo().search(
             [('order_id', '=', order.id)],
             order='create_date desc',
             limit=1,
         )
+        if delivery and order.x_unitrade_order_state == 'completed' and delivery.status != 'delivered':
+            delivery.write({'status': 'delivered'})
+            delivery.invalidate_recordset(['status'])
+        return delivery
 
     def _midtrans_event_key(self, payload, payload_hash):
         transaction_id = payload.get('transaction_id')
