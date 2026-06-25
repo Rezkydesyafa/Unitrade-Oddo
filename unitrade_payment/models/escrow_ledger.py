@@ -38,12 +38,15 @@ class UnitradeEscrowLedger(models.Model):
     payout_reference = fields.Char(copy=False)
     xendit_payout_id = fields.Char(string='Legacy Payout ID', copy=False, index=True)
     payout_status = fields.Selection([
+        ('available', 'Available'),
         ('draft', 'Draft'),
+        ('requested', 'Requested'),
         ('pending', 'Pending'),
         ('processing', 'Processing'),
+        ('paid', 'Paid'),
         ('succeeded', 'Succeeded'),
         ('failed', 'Failed'),
-    ], default='draft', copy=False)
+    ], default='available', copy=False)
     payout_requested_at = fields.Datetime(copy=False)
     payout_completed_at = fields.Datetime(copy=False)
     payout_failure_reason = fields.Text(copy=False)
@@ -532,7 +535,7 @@ class UnitradeEscrowLedger(models.Model):
 
         # Validate all ledgers are eligible
         invalid = self.filtered(
-            lambda l: l.state != 'releasable' or l.payout_status in ('pending', 'processing', 'succeeded')
+            lambda l: l.state != 'releasable' or l.payout_status in ('requested', 'pending', 'processing', 'paid', 'succeeded')
         )
         if invalid:
             raise UserError(_(

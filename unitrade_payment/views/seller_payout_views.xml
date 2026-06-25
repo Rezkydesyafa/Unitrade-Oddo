@@ -19,8 +19,8 @@
                 <field name="total_amount" widget="monetary" sum="total_amount"/>
                 <field name="currency_id" invisible="1"/>
                 <field name="state" widget="badge"
-                       decoration-info="state == 'draft'"
-                       decoration-warning="state == 'ready'"
+                       decoration-info="state in ('draft', 'requested')"
+                       decoration-warning="state in ('ready', 'processing')"
                        decoration-success="state == 'paid'"
                        decoration-danger="state == 'cancelled'"/>
                 <field name="paid_at" optional="show"/>
@@ -40,10 +40,10 @@
                 <header>
                     <button name="action_recompute_ledgers" type="object" string="Refresh Ledger" invisible="state != 'draft'"/>
                     <button name="action_mark_ready" type="object" string="Tandai Siap Bayar" class="btn-primary" invisible="state != 'draft'"/>
-                    <button name="action_mark_paid" type="object" string="Tandai PAID" class="btn-primary" invisible="state != 'ready'"/>
+                    <button name="action_mark_paid" type="object" string="Tandai PAID" class="btn-primary" invisible="state not in ('ready', 'processing')"/>
                     <button name="action_cancel" type="object" string="Cancel" invisible="state in ('paid', 'cancelled')"
                             confirm="Yakin batalkan payout ini? Ledger akan kembali ke pool releasable."/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,ready,paid"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,ready,requested,processing,paid"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
@@ -79,7 +79,7 @@
                         </group>
                     </group>
 
-                    <group string="Bukti Transfer" invisible="state == 'draft'">
+                    <group string="Bukti Transfer" invisible="state in ('draft', 'requested')">
                         <field name="payment_reference"
                                placeholder="Mis: BCA-20260524-001 atau Reference dari mobile banking"
                                required="state == 'ready'" readonly="state == 'paid'"/>
@@ -106,7 +106,8 @@
                                            decoration-info="state == 'releasable'"
                                            decoration-success="state == 'released'"/>
                                     <field name="payout_status" widget="badge"
-                                           decoration-success="payout_status == 'succeeded'"/>
+                                           decoration-success="payout_status in ('paid', 'succeeded')"
+                                           decoration-warning="payout_status in ('requested', 'pending', 'processing')"/>
                                     <field name="completed_at"/>
                                 </tree>
                             </field>
@@ -132,7 +133,9 @@
                 <field name="seller_id"/>
                 <field name="payment_reference"/>
                 <filter name="state_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="state_requested" string="Requested" domain="[('state', '=', 'requested')]"/>
                 <filter name="state_ready" string="Ready to Pay" domain="[('state', '=', 'ready')]"/>
+                <filter name="state_processing" string="Processing" domain="[('state', '=', 'processing')]"/>
                 <filter name="state_paid" string="Paid" domain="[('state', '=', 'paid')]"/>
                 <filter name="state_cancelled" string="Cancelled" domain="[('state', '=', 'cancelled')]"/>
                 <separator/>
@@ -158,7 +161,7 @@
             (0, 0, {'view_mode': 'tree', 'view_id': ref('view_unitrade_seller_payout_tree')}),
             (0, 0, {'view_mode': 'form', 'view_id': ref('view_unitrade_seller_payout_form')})]"/>
         <field name="search_view_id" ref="view_unitrade_seller_payout_search"/>
-        <field name="context">{'search_default_state_ready': 1, 'search_default_state_draft': 1}</field>
+        <field name="context">{'search_default_state_requested': 1, 'search_default_state_processing': 1}</field>
     </record>
 
     <menuitem id="menu_unitrade_seller_payout"

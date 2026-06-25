@@ -1,24 +1,23 @@
-"""Manual seller payout (batch) model.
+"""Seller payout batch model.
 
-Workflow:
-1. Admin buka daftar escrow ledger releasable per seller.
-2. Klik "Create Payout" → buat record `unitrade.seller.payout` state=draft
-   yang ngumpulin semua ledger releasable seller tsb (atau subset pilihan).
-3. Admin transfer dana manual ke rekening seller (sesuai snapshot tujuan
-   payout yang tersimpan di record payout).
-4. Admin upload bukti transfer + isi payment reference, klik "Mark Paid".
-   Ledger berubah state=released, payout_status=succeeded.
-5. Audit log + (optional) email notif ke seller.
+Flow utama seller:
+1. Ledger releasable masuk saldo available seller.
+2. Seller klik Ajukan Pencairan -> payout state=requested dan ledger
+   payout_status=requested.
+3. Cron memproses request setelah timer konfigurasi selesai.
+4. Payout berubah processing lalu paid; ledger berubah released dan
+   payout_status=paid.
 
 Guard:
-- Ledger yang state != releasable atau payout_status sudah succeeded
-  tidak boleh masuk batch baru.
-- 1 ledger hanya boleh terhubung ke 1 payout aktif (draft/ready/paid).
-- Mark paid wajib payment_reference atau proof_image.
-- Hanya admin UniTrade yang boleh akses.
+- Ledger yang state != releasable atau payout_status aktif/selesai tidak boleh
+  masuk batch baru.
+- 1 ledger hanya boleh terhubung ke 1 payout aktif.
+- Payout manual admin state=ready tetap wajib payment_reference/proof_image.
+- Hanya admin UniTrade yang boleh aksi admin.
 """
 import json
 import logging
+from datetime import timedelta
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessDenied, UserError, ValidationError
@@ -44,13 +43,11 @@ class UnitradeSellerPayout(models.Model):
         selection_add=[
             ('draft', 'Draft'),
             ('ready', 'Ready to Pay'),
-            ('paid', 'Paid'),
             ('cancelled', 'Cancelled'),
         ],
         ondelete={
             'draft': 'set default',
             'ready': 'set default',
-            'paid': 'set default',
             'cancelled': 'set default',
         },
         tracking=True,
@@ -219,8 +216,9 @@ class UnitradeSellerPayout(models.Model):
         for vals in vals_list:
             is_manual_batch = bool(vals.get('ledger_ids')) or vals.get('state') in {
                 'draft',
+                'requested',
                 'ready',
-                'paid',
+                'processing',
                 'cancelled',
             }
             if is_manual_batch:
@@ -239,7 +237,7 @@ class UnitradeSellerPayout(models.Model):
             if is_manual_batch and vals.get('name', 'New') == 'New':
                 vals['name'] = sequence.next_by_code('unitrade.seller.payout') or 'PB%05d' % (self.search_count([]) + 1)
         records = super().create(vals_list)
-        records.filtered(lambda payout: payout.state in ('draft', 'ready') and payout.ledger_ids)._reserve_ledgers()
+        records.filtered(lambda payout: payout.state in ('draft', 'ready', 'requested', 'processing') and payout.ledger_ids)._reserve_ledgers()
         return records
 
     def write(self, vals):
@@ -255,7 +253,7 @@ class UnitradeSellerPayout(models.Model):
                 removed = old_ledgers - payout.ledger_ids
                 if removed:
                     payout._release_reserved_ledgers(removed)
-            if payout.state in ('draft', 'ready') and payout.ledger_ids:
+            if payout.state in ('draft', 'ready', 'requested', 'processing') and payout.ledger_ids:
                 payout._reserve_ledgers()
             elif payout.state == 'cancelled' and payout.ledger_ids:
                 payout._release_reserved_ledgers(payout.ledger_ids)
@@ -280,7 +278,7 @@ class UnitradeSellerPayout(models.Model):
 
     @api.model
     def _active_payout_states(self, include_paid=False):
-        states = ['draft', 'ready', 'pending', 'processing']
+        states = ['draft', 'ready', 'requested', 'pending', 'processing']
         if include_paid:
             states += ['paid', 'succeeded']
         return tuple(states)
@@ -321,7 +319,7 @@ class UnitradeSellerPayout(models.Model):
     def _is_reserved_by_current_payout(self, ledger):
         self.ensure_one()
         return (
-            ledger.payout_status == 'pending'
+            ledger.payout_status in ('requested', 'pending', 'processing')
             and ledger.payout_reference in self._reservation_reference_values()
         )
 
@@ -358,11 +356,13 @@ class UnitradeSellerPayout(models.Model):
         if invalid_state:
             raise UserError(_('Ledger harus berstatus releasable sebelum payout: %s') % ', '.join(invalid_state.mapped('name') or []))
 
+        active_statuses = ('requested', 'pending', 'processing')
+        done_statuses = ('paid', 'succeeded')
         invalid_payout_status = self.env['unitrade.escrow.ledger'].sudo().browse()
         for ledger in ledgers:
-            if ledger.payout_status in ('processing', 'succeeded'):
+            if ledger.payout_status in done_statuses:
                 invalid_payout_status |= ledger
-            elif ledger.payout_status == 'pending':
+            elif ledger.payout_status in active_statuses:
                 if not (
                     allow_current_reservation
                     and current_payout
@@ -393,7 +393,7 @@ class UnitradeSellerPayout(models.Model):
     def _reserve_ledgers(self):
         now = fields.Datetime.now()
         for payout in self.sudo():
-            if payout.state not in ('draft', 'ready') or not payout.ledger_ids:
+            if payout.state not in ('draft', 'ready', 'requested', 'processing') or not payout.ledger_ids:
                 continue
             payout._validate_ledgers_for_payout(
                 payout.ledger_ids,
@@ -401,8 +401,9 @@ class UnitradeSellerPayout(models.Model):
                 current_payout=payout,
                 allow_current_reservation=True,
             )
+            payout_status = 'processing' if payout.state == 'processing' else 'requested'
             payout.ledger_ids.write({
-                'payout_status': 'pending',
+                'payout_status': payout_status,
                 'payout_requested_at': payout.requested_at or now,
                 'payout_reference': payout.name,
                 'payout_failure_reason': False,
@@ -412,12 +413,12 @@ class UnitradeSellerPayout(models.Model):
     def _release_reserved_ledgers(self, ledgers):
         for payout in self.sudo():
             reserved = ledgers.sudo().filtered(lambda ledger: (
-                ledger.payout_status == 'pending'
+                ledger.payout_status in ('requested', 'pending', 'processing')
                 and ledger.payout_reference in payout._reservation_reference_values()
             ))
             if reserved:
                 reserved.write({
-                    'payout_status': 'draft',
+                    'payout_status': 'available',
                     'payout_requested_at': False,
                     'payout_reference': False,
                     'payout_failure_reason': False,
@@ -492,7 +493,7 @@ class UnitradeSellerPayout(models.Model):
         domain = [
             ('seller_id', '=', seller.id),
             ('state', '=', 'releasable'),
-            ('payout_status', 'not in', ('pending', 'processing', 'succeeded')),
+            ('payout_status', 'not in', ('requested', 'pending', 'processing', 'paid', 'succeeded')),
         ]
         return domain
 
@@ -562,12 +563,14 @@ class UnitradeSellerPayout(models.Model):
     def action_mark_paid(self):
         self._check_admin('mark_paid')
         for payout in self:
-            if payout.state != 'ready':
-                raise UserError(_('Payout %s harus dalam status Ready.') % payout.name)
-            if not (payout.payment_reference or '').strip() and not payout.proof_image:
+            if payout.state not in ('ready', 'processing'):
+                raise UserError(_('Payout %s harus dalam status Ready atau Processing.') % payout.name)
+            if payout.state == 'ready' and not (payout.payment_reference or '').strip() and not payout.proof_image:
                 raise UserError(_(
                     'Wajib isi Payment Reference atau upload Bukti Transfer sebelum tandai paid.'
                 ))
+            if payout.state == 'processing' and not (payout.payment_reference or '').strip():
+                payout.write({'payment_reference': 'AUTO-%s' % (payout.name or payout.id)})
             payout._validate_ledgers_for_payout(
                 payout.ledger_ids,
                 seller=payout.seller_id,
@@ -579,6 +582,7 @@ class UnitradeSellerPayout(models.Model):
             payout.write({
                 'state': 'paid',
                 'paid_at': now,
+                'completed_at': now,
                 'paid_by_id': self.env.user.id,
             })
 
@@ -587,7 +591,7 @@ class UnitradeSellerPayout(models.Model):
                 ledger.sudo().write({
                     'state': 'released',
                     'released_at': now,
-                    'payout_status': 'succeeded',
+                    'payout_status': 'paid',
                     'payout_completed_at': now,
                     'payout_reference': payout.payment_reference or payout.name,
                     'payout_failure_reason': False,
@@ -633,6 +637,53 @@ class UnitradeSellerPayout(models.Model):
                     )
                 except Exception:  # noqa: BLE001
                     _logger.exception('Failed to post payout notification to seller %s', payout.seller_id.id)
+        return True
+
+    @api.model
+    def _payout_processing_delay_hours(self):
+        raw_hours = self.env['ir.config_parameter'].sudo().get_param(
+            'unitrade.seller.payout_processing_hours',
+            default='24',
+        )
+        try:
+            hours = int(float(raw_hours or 24))
+        except (TypeError, ValueError):
+            hours = 24
+        return max(0, min(hours, 24 * 7))
+
+    @api.model
+    def cron_process_requested_payouts(self, limit=50):
+        """Complete seller-requested payouts only after the request timer has elapsed."""
+        delay_hours = self._payout_processing_delay_hours()
+        cutoff = fields.Datetime.now() - timedelta(hours=delay_hours)
+        payouts = self.sudo().search([
+            ('state', '=', 'requested'),
+            ('requested_at', '!=', False),
+            ('requested_at', '<=', cutoff),
+        ], order='requested_at asc, id asc', limit=limit)
+        processed = 0
+        for payout in payouts:
+            try:
+                with self.env.cr.savepoint():
+                    payout._validate_ledgers_for_payout(
+                        payout.ledger_ids,
+                        seller=payout.seller_id,
+                        current_payout=payout,
+                        allow_current_reservation=True,
+                    )
+                    now = fields.Datetime.now()
+                    payout.write({
+                        'state': 'processing',
+                        'processed_at': now,
+                        'payment_reference': payout.payment_reference or 'AUTO-%s' % (payout.name or payout.id),
+                    })
+                    payout._reserve_ledgers()
+                    payout.action_mark_paid()
+                    processed += 1
+            except Exception:
+                _logger.exception('Failed processing seller payout request %s', payout.id)
+        if processed:
+            _logger.info('Processed %s UniTrade seller payout request(s).', processed)
         return True
 
     def action_cancel(self):

@@ -196,7 +196,7 @@
                 <field name="seller_handoff_location"/>
                 <field name="buyer_received_filename"/>
                 <field name="completed_at"/>
-                <field name="payout_status" widget="badge" decoration-success="payout_status == 'succeeded'" decoration-warning="payout_status in ('pending', 'processing')" decoration-danger="payout_status == 'failed'"/>
+                <field name="payout_status" widget="badge" decoration-success="payout_status in ('paid', 'succeeded')" decoration-warning="payout_status in ('requested', 'pending', 'processing')" decoration-danger="payout_status == 'failed'"/>
                 <field name="released_at"/>
             </tree>
         </field>
@@ -209,7 +209,7 @@
             <form string="Escrow Ledger" create="false" delete="false">
                 <header>
                     <button name="action_open_mark_releasable_wizard" string="Tandai Releasable" type="object" class="btn-primary" invisible="state != 'held'"/>
-                    <button name="action_create_seller_payout" string="Buat Payout Manual" type="object" class="btn-primary" invisible="state != 'releasable' or payout_status in ('pending', 'processing', 'succeeded')"/>
+                    <button name="action_create_seller_payout" string="Buat Payout Manual" type="object" class="btn-primary" invisible="state != 'releasable' or payout_status in ('requested', 'pending', 'processing', 'paid', 'succeeded')"/>
                     <button name="action_open_mark_released_wizard" string="Tandai Released Manual" type="object" invisible="state != 'releasable'"/>
                     <field name="state" widget="statusbar" statusbar_visible="held,releasable,released"/>
                 </header>
@@ -311,9 +311,9 @@
                 <filter name="state_refunded" string="Refunded" domain="[('state','=','refunded')]"/>
                 <separator/>
                 <filter name="payout_ready" string="Payout Siap"
-                        domain="[('state','=','releasable'), ('payout_status','not in',('pending','processing','succeeded'))]"/>
+                        domain="[('state','=','releasable'), ('payout_status','not in',('requested','pending','processing','paid','succeeded'))]"/>
                 <filter name="payout_processing" string="Payout Processing"
-                        domain="[('payout_status','in',('pending','processing'))]"/>
+                        domain="[('payout_status','in',('requested','pending','processing'))]"/>
                 <filter name="payout_failed" string="Payout Failed" domain="[('payout_status','=','failed')]"/>
                 <filter name="needs_seller_handoff" string="Seller Belum Serah Terima"
                         domain="[('state','=','held'), ('seller_confirmed_at','=',False)]"/>
