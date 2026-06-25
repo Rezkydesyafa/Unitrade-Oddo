@@ -501,8 +501,32 @@ class UnitradeSellerController(http.Controller):
         return qty
 
     @staticmethod
+    def _seller_product_available_stock_qty(product):
+        """Return sellable stock from the same source used by public product pages."""
+        qty = _safe_get(product, 'x_unitrade_free_qty', False)
+        if qty is False:
+            variant = product.product_variant_id or product.product_variant_ids[:1]
+            warehouse = (
+                product._unitrade_stock_warehouse()
+                if hasattr(product, '_unitrade_stock_warehouse')
+                else False
+            )
+            if variant and hasattr(variant, '_unitrade_available_qty'):
+                qty = variant.sudo()._unitrade_available_qty(warehouse=warehouse)
+            elif variant and 'free_qty' in variant._fields:
+                variant = variant.with_context(warehouse=warehouse.id) if warehouse else variant
+                qty = variant.free_qty
+            else:
+                qty = UnitradeSellerController._seller_product_onhand_stock_qty(product)
+        try:
+            qty = float(qty or 0)
+        except (TypeError, ValueError):
+            qty = 0
+        return max(qty, 0)
+
+    @staticmethod
     def _stock_label(product):
-        qty = UnitradeSellerController._seller_product_onhand_stock_qty(product)
+        qty = UnitradeSellerController._seller_product_available_stock_qty(product)
         if qty <= 0:
             return 'Stok habis'
         if qty.is_integer():
@@ -632,7 +656,7 @@ class UnitradeSellerController(http.Controller):
 
     @staticmethod
     def _seller_product_stock_qty(product):
-        return UnitradeSellerController._seller_product_onhand_stock_qty(product)
+        return UnitradeSellerController._seller_product_available_stock_qty(product)
 
     def _seller_product_listing_status(self, seller, product):
         self._seller_sync_listing_fee_timeouts(seller=seller, product=product)
@@ -1369,8 +1393,8 @@ class UnitradeSellerController(http.Controller):
         )
         payoutable_ledgers = earned_ledgers.filtered(lambda ledger: self._seller_ledger_is_payoutable(ledger))
         held_ledgers = earned_ledgers.filtered(lambda ledger: self._seller_ledger_is_held_balance(ledger))
-        pending_ledgers = earned_ledgers.filtered(lambda ledger: ledger.payout_status in ('pending', 'processing'))
-        released_ledgers = earned_ledgers.filtered(lambda ledger: ledger.state == 'released' or ledger.payout_status == 'succeeded')
+        pending_ledgers = earned_ledgers.filtered(lambda ledger: ledger.payout_status in ('requested', 'pending', 'processing'))
+        released_ledgers = earned_ledgers.filtered(lambda ledger: ledger.state == 'released' or ledger.payout_status in ('paid', 'succeeded'))
         used_balance = self._seller_account_balance_debits(seller, currency)
         payoutable_balance = currency.round(sum(payoutable_ledgers.mapped('amount_seller')))
         available_balance = currency.round(max(0.0, payoutable_balance - used_balance))
@@ -1430,23 +1454,17 @@ class UnitradeSellerController(http.Controller):
         return completed_at + timedelta(hours=self._seller_payout_release_hours())
 
     def _seller_ledger_is_payoutable(self, ledger, now=False):
-        now = now or fields.Datetime.now()
-        release_at = self._seller_payout_release_at(ledger)
         return bool(
             ledger.state == 'releasable'
-            and ledger.payout_status not in ('pending', 'processing', 'succeeded')
-            and release_at
-            and release_at <= now
+            and ledger.payout_status not in ('requested', 'pending', 'processing', 'paid', 'succeeded')
         )
 
     def _seller_ledger_is_held_balance(self, ledger, now=False):
-        now = now or fields.Datetime.now()
-        if ledger.payout_status in ('pending', 'processing', 'succeeded'):
+        if ledger.payout_status in ('requested', 'pending', 'processing', 'paid', 'succeeded'):
             return False
         if ledger.state == 'held':
             return True
-        release_at = self._seller_payout_release_at(ledger)
-        return bool(ledger.state == 'releasable' and release_at and release_at > now)
+        return False
 
     def _seller_available_balance(self, seller, currency):
         return self._seller_balance_summary(seller, currency)['available_balance']
@@ -1834,7 +1852,7 @@ class UnitradeSellerController(http.Controller):
         discount_price = 0.0
         if discount_percent and product.list_price:
             discount_price = max(0.0, product.list_price * (1 - (discount_percent / 100.0)))
-        stock = self._seller_product_stock_qty(product)
+        stock = self._seller_product_onhand_stock_qty(product)
         return {
             'id': product.id,
             'name': product.name or '',
@@ -2771,8 +2789,11 @@ class UnitradeSellerController(http.Controller):
     def _seller_payout_state_label(state):
         return {
             'draft': 'Belum diajukan',
+            'available': 'Siap diajukan',
+            'requested': 'Menunggu proses',
             'pending': 'Menunggu pencairan',
             'processing': 'Diproses',
+            'paid': 'Berhasil',
             'succeeded': 'Berhasil',
             'failed': 'Gagal',
         }.get(state or '', 'Belum diajukan')
@@ -3803,7 +3824,7 @@ class UnitradeSellerController(http.Controller):
     def _seller_payout_ledger_payload(self, ledger, seller, currency):
         line = self._seller_payout_product_line(ledger, seller)
         product = line.product_id.product_tmpl_id if line else False
-        release_at = self._seller_payout_release_at(ledger)
+        release_at = ledger.completed_at or ledger.buyer_confirmed_at
         is_ready = self._seller_ledger_is_payoutable(ledger)
         return {
             'id': ledger.id,
@@ -3820,33 +3841,39 @@ class UnitradeSellerController(http.Controller):
             'release_at': fields.Datetime.to_string(release_at) if release_at else '',
         }
 
-    def _seller_payout_countdown_payload(self, ledgers):
+    def _seller_payout_countdown_payload(self, seller, ledgers):
         now = fields.Datetime.now()
         candidates = []
-        for ledger in ledgers:
-            if ledger.payout_status in ('pending', 'processing', 'succeeded') or ledger.state == 'released':
-                continue
-            if ledger.state == 'held' and ledger.seller_confirmed_at and not ledger.buyer_confirmed_at:
-                start = ledger.seller_confirmed_at
-                target = ledger.seller_confirmed_at + timedelta(hours=self._seller_auto_confirm_hours() + self._seller_payout_release_hours())
-            elif ledger.state == 'releasable':
-                release_at = self._seller_payout_release_at(ledger)
-                if not release_at or release_at <= now:
+        if 'unitrade.seller.payout' in request.env.registry:
+            Payout = request.env['unitrade.seller.payout'].sudo()
+            active_payouts = Payout.search([
+                ('seller_id', '=', seller.id),
+                ('state', 'in', ['requested', 'processing']),
+            ], order='requested_at asc, id asc')
+            raw_hours = request.env['ir.config_parameter'].sudo().get_param(
+                'unitrade.seller.payout_processing_hours',
+                default='24',
+            )
+            try:
+                delay_hours = int(float(raw_hours or 24))
+            except (TypeError, ValueError):
+                delay_hours = 24
+            delay_hours = max(0, min(delay_hours, 24 * 7))
+            for payout in active_payouts:
+                start = _safe_get(payout, 'requested_at') or _safe_get(payout, 'create_date')
+                if not start:
                     continue
-                start = ledger.completed_at or ledger.buyer_confirmed_at or ledger.create_date
-                target = release_at
-            else:
-                continue
-            if target and target > now:
-                candidates.append((target, start or ledger.create_date, ledger))
+                target = start + timedelta(hours=delay_hours)
+                if target and target > now:
+                    candidates.append((target, start, payout))
         if not candidates:
             return {
                 'target_at': '',
-                'remaining_label': 'Tidak ada dana tertahan',
+                'remaining_label': 'Tidak ada pencairan aktif',
                 'progress': 100,
-                'subtitle': 'Dana siap otomatis setelah pembeli melakukan konfirmasi atau setelah batas auto-complete.',
+                'subtitle': 'Ajukan pencairan untuk memulai timer proses 24 jam.',
             }
-        target, start, _ledger = sorted(candidates, key=lambda item: item[0])[0]
+        target, start, _payout = sorted(candidates, key=lambda item: item[0])[0]
         total = max(1, (target - start).total_seconds())
         elapsed = max(0, (now - start).total_seconds())
         progress = min(100, max(0, int(round(elapsed * 100 / total))))
@@ -3865,7 +3892,7 @@ class UnitradeSellerController(http.Controller):
             'target_at': fields.Datetime.to_string(target),
             'remaining_label': ' '.join(parts),
             'progress': progress,
-            'subtitle': 'Dana akan otomatis tersedia jika pembeli tidak memberikan konfirmasi dalam batas waktu.',
+            'subtitle': 'Dana diproses setelah seller mengajukan pencairan dan timer 24 jam selesai.',
         }
 
     def _seller_payout_latest_verification(self, seller, ledgers, currency):
@@ -3876,7 +3903,7 @@ class UnitradeSellerController(http.Controller):
                 'steps': [],
                 'evidence_url': '',
             }
-        release_at = self._seller_payout_release_at(ledger)
+        release_at = ledger.completed_at or ledger.buyer_confirmed_at
         payment_at = _safe_get(ledger.payment_intent_id, 'paid_at') or ledger.order_id.date_order or ledger.create_date
         steps = [
             {
@@ -3909,9 +3936,10 @@ class UnitradeSellerController(http.Controller):
         }
 
     def _seller_payout_status_payload(self, state):
-        state = state or 'pending'
+        state = state or 'requested'
         return {
-            'draft': {'label': 'Diproses', 'class': 'is-processing'},
+            'draft': {'label': 'Belum diajukan', 'class': 'is-processing'},
+            'requested': {'label': 'Diajukan', 'class': 'is-processing'},
             'ready': {'label': 'Diproses', 'class': 'is-processing'},
             'paid': {'label': 'Berhasil', 'class': 'is-success'},
             'cancelled': {'label': 'Dibatalkan', 'class': 'is-failed'},
@@ -3933,8 +3961,8 @@ class UnitradeSellerController(http.Controller):
         statuses = set(ledgers.mapped('payout_status'))
         payout_fields = payout._fields
         values = {}
-        current_state = _safe_get(payout, 'state', 'pending')
-        if current_state in ('draft', 'ready', 'paid', 'cancelled'):
+        current_state = _safe_get(payout, 'state', 'requested')
+        if current_state in ('draft', 'ready', 'requested', 'processing', 'paid', 'cancelled'):
             references = [ref for ref in ledgers.mapped('payout_reference') if ref]
             if references and 'payout_reference' in payout_fields and not _safe_get(payout, 'payout_reference'):
                 values['payout_reference'] = ', '.join(references[:3])
@@ -3943,11 +3971,11 @@ class UnitradeSellerController(http.Controller):
             failures = [reason for reason in ledgers.mapped('payout_failure_reason') if reason]
             if failures and 'failure_reason' in payout_fields:
                 values['failure_reason'] = failures[0]
-        elif statuses and statuses <= {'succeeded'} and 'state' in payout_fields:
-            values['state'] = 'succeeded'
+        elif statuses and statuses <= {'paid', 'succeeded'} and 'state' in payout_fields:
+            values['state'] = 'paid'
             if 'completed_at' in payout_fields:
                 values['completed_at'] = _safe_get(payout, 'completed_at') or fields.Datetime.now()
-        elif statuses & {'processing', 'pending'} and 'state' in payout_fields:
+        elif statuses & {'requested', 'processing', 'pending'} and 'state' in payout_fields:
             values['state'] = 'processing'
             references = [ref for ref in ledgers.mapped('payout_reference') if ref]
             if references and 'payout_reference' in payout_fields and not _safe_get(payout, 'payout_reference'):
@@ -3973,7 +4001,7 @@ class UnitradeSellerController(http.Controller):
         for payout in payouts:
             payout = self._seller_sync_payout_record(payout)
             payout_name = _safe_get(payout, 'name') or 'WD-%05d' % payout.id
-            status = self._seller_payout_status_payload(_safe_get(payout, 'state', 'pending'))
+            status = self._seller_payout_status_payload(_safe_get(payout, 'state', 'requested'))
             proof_field = 'proof_file' if _safe_get(payout, 'proof_file') else 'proof_image'
             proof_filename = (
                 _safe_get(payout, 'proof_filename')
@@ -4061,7 +4089,7 @@ class UnitradeSellerController(http.Controller):
                 'incoming_orders': pending_order_count,
             },
             'summary': summary,
-            'countdown': self._seller_payout_countdown_payload(ledgers),
+            'countdown': self._seller_payout_countdown_payload(seller, ledgers),
             'verification': self._seller_payout_latest_verification(seller, ledgers, currency),
             'ready_ledgers': [self._seller_payout_ledger_payload(ledger, seller, currency) for ledger in ready_ledgers[:8]],
             'history': self._seller_payout_history_payloads(seller, currency),
@@ -4618,7 +4646,7 @@ class UnitradeSellerController(http.Controller):
                     'seller_id': seller.id,
                     'currency_id': currency.id,
                     'amount': currency.round(sum(ledgers.mapped('amount_seller'))),
-                    'state': 'draft',
+                    'state': 'requested',
                     'ledger_ids': [(6, 0, ledgers.ids)],
                     'ledger_ids_json': json.dumps(ledgers.ids),
                     **self._seller_payout_destination_values(seller),
@@ -4642,7 +4670,7 @@ class UnitradeSellerController(http.Controller):
         payout_payload['success'] = True
         return {
             'success': True,
-            'message': 'Permintaan pencairan berhasil dibuat. Admin akan memvalidasi dan memproses transfer manual.',
+            'message': 'Permintaan pencairan berhasil dibuat. Dana akan diproses 24 jam setelah pengajuan.',
             'dashboard_payload': payload,
             'payout_payload': payout_payload,
         }

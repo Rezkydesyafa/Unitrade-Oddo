@@ -17,11 +17,13 @@ class UnitradeSellerPayout(models.Model):
     currency_id = fields.Many2one('res.currency', string='Currency', required=True, default=lambda self: self.env.company.currency_id)
     amount = fields.Monetary(string='Nominal', currency_field='currency_id', required=True)
     state = fields.Selection([
-        ('pending', 'Diproses'),
+        ('requested', 'Diajukan'),
+        ('pending', 'Legacy: Pending'),
         ('processing', 'Diproses'),
-        ('succeeded', 'Berhasil'),
+        ('paid', 'Berhasil'),
+        ('succeeded', 'Legacy: Berhasil'),
         ('failed', 'Gagal'),
-    ], string='Status', default='pending', required=True, index=True)
+    ], string='Status', default='requested', required=True, index=True)
     destination_channel_code = fields.Char(string='Kode Bank / Channel')
     destination_channel_label = fields.Char(string='Rekening Tujuan')
     destination_account_number = fields.Char(string='Nomor Rekening / HP')

@@ -1698,7 +1698,9 @@
                     <select name="state" class="ut-admin-input" style="min-width:170px">
                         <option value="" t-att-selected="'selected' if not filters['state'] else None">Semua Status</option>
                         <option value="draft" t-att-selected="'selected' if filters['state'] == 'draft' else None">Draft</option>
+                        <option value="requested" t-att-selected="'selected' if filters['state'] == 'requested' else None">Requested</option>
                         <option value="ready" t-att-selected="'selected' if filters['state'] == 'ready' else None">Ready</option>
+                        <option value="processing" t-att-selected="'selected' if filters['state'] == 'processing' else None">Processing</option>
                         <option value="paid" t-att-selected="'selected' if filters['state'] == 'paid' else None">Paid</option>
                         <option value="cancelled" t-att-selected="'selected' if filters['state'] == 'cancelled' else None">Cancelled</option>
                     </select>
@@ -1765,7 +1767,7 @@
                                             data-payout-action="ready">
                                         Ready
                                     </button>
-                                    <button t-if="row['state'] == 'ready'"
+                                    <button t-if="row['state'] in ('ready', 'processing')"
                                             type="button"
                                             class="ut-admin-btn ut-admin-btn-success ut-admin-btn-xs"
                                             data-action="payout-action"
@@ -1773,7 +1775,7 @@
                                             data-payout-action="paid">
                                         Paid
                                     </button>
-                                    <button t-if="row['state'] in ('draft', 'ready')"
+                                    <button t-if="row['state'] in ('draft', 'ready', 'requested', 'processing')"
                                             type="button"
                                             class="ut-admin-btn ut-admin-btn-danger ut-admin-btn-xs"
                                             data-action="payout-action"

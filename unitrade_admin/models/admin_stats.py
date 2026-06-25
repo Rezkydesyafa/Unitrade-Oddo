@@ -4238,11 +4238,12 @@ class UnitradeAdminStats(models.AbstractModel):
     def _payout_state_meta(self, state):
         return {
             'draft': {'label': _('Draft'), 'badge_class': 'gray'},
+            'requested': {'label': _('Requested'), 'badge_class': 'yellow'},
             'ready': {'label': _('Ready to Pay'), 'badge_class': 'yellow'},
+            'processing': {'label': _('Processing'), 'badge_class': 'yellow'},
             'paid': {'label': _('Paid'), 'badge_class': 'green'},
             'cancelled': {'label': _('Cancelled'), 'badge_class': 'red'},
             'pending': {'label': _('Legacy: Pending'), 'badge_class': 'yellow'},
-            'processing': {'label': _('Legacy: Processing'), 'badge_class': 'yellow'},
             'succeeded': {'label': _('Legacy: Paid'), 'badge_class': 'green'},
             'failed': {'label': _('Legacy: Failed'), 'badge_class': 'red'},
         }.get(state or 'draft', {'label': state or '-', 'badge_class': 'gray'})
@@ -4257,14 +4258,14 @@ class UnitradeAdminStats(models.AbstractModel):
         if Payout is None:
             return {
                 'rows': [],
-                'stats': {'total': 0, 'draft': 0, 'ready': 0, 'paid': 0, 'cancelled': 0},
+                'stats': {'total': 0, 'draft': 0, 'requested': 0, 'ready': 0, 'processing': 0, 'paid': 0, 'cancelled': 0},
                 'filters': {'q': query or '', 'state': state or ''},
                 'pager': {'page': 1, 'pages': 1, 'total': 0},
             }
 
         page = max(1, int(page or 1))
         page_size = max(5, min(int(page_size or 20), 100))
-        state = state if state in ('draft', 'ready', 'paid', 'cancelled') else ''
+        state = state if state in ('draft', 'requested', 'ready', 'processing', 'paid', 'cancelled') else ''
         domain = []
         if state:
             domain.append(('state', '=', state))
@@ -4313,7 +4314,9 @@ class UnitradeAdminStats(models.AbstractModel):
             'stats': {
                 'total': Payout.search_count([]),
                 'draft': Payout.search_count([('state', '=', 'draft')]),
+                'requested': Payout.search_count([('state', '=', 'requested')]),
                 'ready': Payout.search_count([('state', '=', 'ready')]),
+                'processing': Payout.search_count([('state', '=', 'processing')]),
                 'paid': Payout.search_count([('state', '=', 'paid')]),
                 'cancelled': Payout.search_count([('state', '=', 'cancelled')]),
             },
@@ -5937,7 +5940,7 @@ class UnitradeAdminStats(models.AbstractModel):
         if EscrowLedger is not None:
             payout_ready = EscrowLedger.search(
                 [('state', '=', 'releasable'),
-                 ('payout_status', 'not in', ('pending', 'processing', 'succeeded'))],
+                 ('payout_status', 'not in', ('requested', 'pending', 'processing', 'paid', 'succeeded'))],
                 order='create_date asc',
                 limit=limit_per_group,
             )
@@ -5961,14 +5964,14 @@ class UnitradeAdminStats(models.AbstractModel):
                     ],
                 })
 
-        # 4b. Payout batch belum diproses (draft/ready)
+        # 4b. Payout request belum selesai
         Payout = (
             self.env['unitrade.seller.payout'].sudo()
             if self._has_model('unitrade.seller.payout') else None
         )
         if Payout is not None:
             pending_payouts = Payout.search(
-                [('state', 'in', ('draft', 'ready'))],
+                [('state', 'in', ('requested', 'processing', 'draft', 'ready'))],
                 order='create_date asc',
                 limit=limit_per_group,
             )

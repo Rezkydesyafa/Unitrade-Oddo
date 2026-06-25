@@ -38,12 +38,15 @@ class UnitradeEscrowLedger(models.Model):
     payout_reference = fields.Char(copy=False)
     xendit_payout_id = fields.Char(string='Legacy Payout ID', copy=False, index=True)
     payout_status = fields.Selection([
+        ('available', 'Available'),
         ('draft', 'Draft'),
+        ('requested', 'Requested'),
         ('pending', 'Pending'),
         ('processing', 'Processing'),
+        ('paid', 'Paid'),
         ('succeeded', 'Succeeded'),
         ('failed', 'Failed'),
-    ], default='draft', copy=False)
+    ], default='available', copy=False)
     payout_requested_at = fields.Datetime(copy=False)
     payout_completed_at = fields.Datetime(copy=False)
     payout_failure_reason = fields.Text(copy=False)
@@ -294,6 +297,7 @@ class UnitradeEscrowLedger(models.Model):
             )
             all_confirmed = bool(ledgers) and len(completed_ledgers) == len(ledgers)
             if all_confirmed:
+                completed_ledgers._unitrade_mark_delivery_delivered()
                 values['x_unitrade_order_state'] = 'completed'
                 if not order.x_completed_at:
                     values['x_completed_at'] = fields.Datetime.now()
@@ -442,6 +446,21 @@ class UnitradeEscrowLedger(models.Model):
             if delivery and delivery.status == 'pending':
                 delivery.write({'status': 'picked_up'})
 
+    def _unitrade_mark_delivery_delivered(self):
+        """Complete GoSend delivery when the buyer has confirmed receipt."""
+        if 'unitrade.delivery' not in self.env.registry:
+            return
+        Delivery = self.env['unitrade.delivery'].sudo()
+        for order in self.mapped('order_id').sudo():
+            if 'x_shipping_method' not in order._fields or order.x_shipping_method != 'gosend':
+                continue
+            delivery = Delivery.search([('order_id', '=', order.id)], order='create_date desc', limit=1)
+            if not delivery and hasattr(order, '_unitrade_create_shipping_delivery'):
+                order._unitrade_create_shipping_delivery()
+                delivery = Delivery.search([('order_id', '=', order.id)], order='create_date desc', limit=1)
+            if delivery and delivery.status != 'delivered':
+                delivery.write({'status': 'delivered'})
+
     def action_mark_releasable(self):
         self._check_admin('mark_releasable')
         reason = self._manual_action_reason()
@@ -516,7 +535,7 @@ class UnitradeEscrowLedger(models.Model):
 
         # Validate all ledgers are eligible
         invalid = self.filtered(
-            lambda l: l.state != 'releasable' or l.payout_status in ('pending', 'processing', 'succeeded')
+            lambda l: l.state != 'releasable' or l.payout_status in ('requested', 'pending', 'processing', 'paid', 'succeeded')
         )
         if invalid:
             raise UserError(_(

@@ -1,3 +1,6 @@
+import base64
+
+from odoo import fields
 from odoo.exceptions import ValidationError
 from odoo.tests.common import TransactionCase
 
@@ -43,3 +46,37 @@ class TestSaleOrderShipping(TransactionCase):
         self.order.write({'state': 'sent'})
         with self.assertRaises(ValidationError):
             self.order._unitrade_set_shipping_method('gosend')
+
+    def test_buyer_confirm_marks_gosend_delivery_delivered(self):
+        self.order.sudo().write({
+            'state': 'sale',
+            'x_shipping_method': 'gosend',
+            'x_payment_status': 'paid',
+            'x_unitrade_order_state': 'processing',
+            'x_escrow_state': 'held',
+        })
+        delivery = self.env['unitrade.delivery'].sudo().create({
+            'order_id': self.order.id,
+            'shipping_method': 'gosend',
+            'buyer_id': self.partner.id,
+            'status': 'picked_up',
+        })
+        ledger = self.env['unitrade.escrow.ledger'].sudo().create({
+            'name': 'TEST-DEL-006',
+            'order_id': self.order.id,
+            'buyer_id': self.partner.id,
+            'amount_total': 100000.0,
+            'amount_platform_fee': 0.0,
+            'amount_seller': 100000.0,
+            'seller_confirmed_at': fields.Datetime.now(),
+        })
+
+        ledger.action_buyer_confirm_received(
+            evidence=base64.b64encode(b'buyer evidence'),
+            filename='buyer-evidence.jpg',
+        )
+        delivery.invalidate_recordset(['status'])
+        self.order.invalidate_recordset(['x_unitrade_order_state'])
+
+        self.assertEqual(delivery.status, 'delivered')
+        self.assertEqual(self.order.x_unitrade_order_state, 'completed')
