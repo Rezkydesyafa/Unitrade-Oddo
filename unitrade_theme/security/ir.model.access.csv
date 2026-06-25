@@ -3,6 +3,7 @@ access_unitrade_otp_public,unitrade.otp.public,model_unitrade_otp,,1,1,1,0
 access_unitrade_otp_user,unitrade.otp.user,model_unitrade_otp,base.group_user,1,1,1,1
 access_unitrade_security_activity_portal,unitrade.security.activity portal,model_unitrade_security_activity,base.group_portal,1,0,0,0
 access_unitrade_security_activity_admin,unitrade.security.activity admin,model_unitrade_security_activity,base.group_system,1,1,1,1
+access_unitrade_account_blacklist_admin,unitrade.account.blacklist admin,model_unitrade_account_blacklist,base.group_system,1,1,1,1
 access_unitrade_sponsorship_request_admin,unitrade.sponsorship.request admin,model_unitrade_sponsorship_request,base.group_system,1,1,1,1
 access_unitrade_customer_ticket_portal,unitrade.customer.ticket portal,model_unitrade_customer_ticket,base.group_portal,1,0,1,0
 access_unitrade_customer_ticket_admin,unitrade.customer.ticket admin,model_unitrade_customer_ticket,base.group_system,1,1,1,1

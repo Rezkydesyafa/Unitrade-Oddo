@@ -11,6 +11,7 @@ Dokumentasi ini dibuat sebagai bahan belajar kode dan alur sistem UniTrade. Juml
 | `03-feature-workflows.md` | Cara kerja fitur dari sisi user, seller, admin, payment, chat, review, CS, dan notifikasi |
 | `04-code-map-functions.md` | Peta module, class, controller, route, function penting, service, dan cara membaca kode |
 | `05-maintenance-deploy.md` | Integrasi eksternal, config, logging, testing, upgrade module, deploy, dan troubleshooting |
+| `06-cs-ai-technical-documentation.md` | Dokumentasi teknis Customer Service AI, prompt Gemini, konteks chat, route, model, frontend, dan guard domain UniTrade |
 
 ## Cara Membaca Sesuai Kebutuhan
 
