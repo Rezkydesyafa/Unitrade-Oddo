@@ -46,6 +46,17 @@ def _is_phone(value):
     return bool(re.match(r'^(\+62|62|08)[0-9]{8,13}$', _normalize_phone(value)))
 
 
+def _unitrade_account_blacklist():
+    if 'unitrade.account.blacklist' not in request.env.registry:
+        return False
+    return request.env['unitrade.account.blacklist'].sudo()
+
+
+def _is_unitrade_contact_blacklisted(email=False, phone=False):
+    blacklist = _unitrade_account_blacklist()
+    return bool(blacklist and blacklist.is_contact_blocked(email=email, phone=phone))
+
+
 class UnitradeAuthSignup(OAuthLogin):
     """Override signup and login to redirect to OTP verification page."""
 
@@ -121,6 +132,8 @@ class UnitradeAuthSignup(OAuthLogin):
                     request.params['login'] = login_value
                 if not _is_email(login_value):
                     raise UserError(_("Masukkan alamat email yang valid."))
+                if _is_unitrade_contact_blacklisted(email=login_value):
+                    raise UserError(_("Email ini tidak dapat digunakan untuk membuat akun UniTrade."))
 
                 if request.params.get('terms_accepted') != '1':
                     raise UserError(_("Anda harus menyetujui Syarat Ketentuan & Kebijakan Privasi."))
@@ -201,6 +214,12 @@ class UnitradeAuthSignup(OAuthLogin):
         login = _normalize_login(kw.get('login', ''))
         if not login or not _is_email(login):
             return {'exists': False}
+        if _is_unitrade_contact_blacklisted(email=login):
+            return {
+                'exists': True,
+                'blocked': True,
+                'message': _('Email ini tidak dapat digunakan untuk membuat akun UniTrade.'),
+            }
         existing_user = request.env['res.users'].sudo().search(
             [('login', '=', login)], limit=1
         )
@@ -992,31 +1011,66 @@ class UnitradePortalProfile(CustomerPortal):
         """Render UniTrade settings again when account deactivation validation fails."""
         values = self._prepare_unitrade_settings_values()
         values['open_deactivate_modal'] = True
+        user = request.env.user
+        user_sudo = user.sudo()
+        user_id = user.id
+        session_id = request.session.sid
+        reason = post.get('reason') or _('Permintaan hapus akun dari halaman pengaturan.')
+        request_blacklist = post.get('request_blacklist') in ('1', 'on', 'true', 'True', True)
+        expected_login = _normalize_login(user_sudo.login)
+        submitted_login = _normalize_login(validation)
 
         if confirm_deactivate != '1':
             values['errors'] = {'deactivate': 'confirm'}
-        elif validation != request.env.user.login:
+        elif submitted_login != expected_login:
             values['errors'] = {'deactivate': 'validation'}
         else:
             try:
-                request.env['res.users']._check_credentials(password, {'interactive': True})
-                request.env.user.sudo().unitrade_privacy_deactivate(
-                    reason=post.get('reason') or _('Permintaan hapus akun dari halaman pengaturan.'),
-                    ip_address=request.httprequest.remote_addr,
-                    user_agent=request.httprequest.headers.get('User-Agent', ''),
-                    session_id=request.session.sid,
-                )
-                request.session.logout()
-                return request.redirect('/web/login?message=%s' % urls.url_quote(_('Akun dinonaktifkan dan data pribadi telah dianonimkan.')))
+                user._check_credentials(password or '', {'interactive': True})
+                blacklist = _unitrade_account_blacklist()
+                if request_blacklist and blacklist:
+                    blacklist.add_user_contacts(
+                        user_sudo,
+                        reason=reason,
+                        ip_address=request.httprequest.remote_addr,
+                        user_agent=request.httprequest.headers.get('User-Agent', ''),
+                    )
             except AccessDenied:
                 values['errors'] = {'deactivate': 'password'}
             except UserError as e:
                 values['errors'] = {'deactivate': {'other': str(e)}}
+            else:
+                try:
+                    self._delete_unitrade_user_sessions(user_id, keep_sid=session_id)
+                    request.session.logout(keep_db=True)
+                    request.env['res.users'].with_user(SUPERUSER_ID).sudo().browse(user_id).exists().unitrade_privacy_deactivate(
+                        reason=reason,
+                        ip_address=request.httprequest.remote_addr,
+                        user_agent=request.httprequest.headers.get('User-Agent', ''),
+                        session_id=session_id,
+                    )
+                except UserError as e:
+                    _logger.exception('Failed deactivating current UniTrade user %s', user_id)
+                    return request.redirect('/web/login?message=%s' % urls.url_quote(str(e)))
+                except Exception:
+                    _logger.exception('Failed deactivating current UniTrade user %s', user_id)
+                    return request.redirect('/web/login?message=%s' % urls.url_quote(_('Akun belum bisa dinonaktifkan. Silakan hubungi admin UniTrade.')))
+                return request.redirect('/web/login?message=%s' % urls.url_quote(_('Akun dinonaktifkan dan data pribadi telah dianonimkan.')))
 
         response = request.render('portal.portal_my_security', values)
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
         return response
+
+    def _delete_unitrade_user_sessions(self, user_id, keep_sid=False):
+        session_store = http.root.session_store
+        for sid, session in self._iter_unitrade_user_sessions(user_id=user_id):
+            if keep_sid and sid == keep_sid:
+                continue
+            try:
+                session_store.delete(session)
+            except Exception:
+                _logger.debug("Unable to delete portal session %s for user %s", sid, user_id, exc_info=True)
 
     def _prepare_unitrade_settings_values(self):
         self._touch_unitrade_session_activity()
@@ -1067,7 +1121,8 @@ class UnitradePortalProfile(CustomerPortal):
             })
         return rows[:4]
 
-    def _iter_unitrade_user_sessions(self):
+    def _iter_unitrade_user_sessions(self, user_id=None):
+        target_uid = user_id or request.env.uid
         session_store = http.root.session_store
         path = getattr(session_store, 'path', '')
         pattern = os.path.join(path, '*', '*')
@@ -1080,7 +1135,7 @@ class UnitradePortalProfile(CustomerPortal):
             except Exception:
                 _logger.debug("Unable to read portal session %s", sid, exc_info=True)
                 continue
-            if session.get('uid') == request.env.uid:
+            if session.get('uid') == target_uid:
                 yield sid, session
 
     @staticmethod

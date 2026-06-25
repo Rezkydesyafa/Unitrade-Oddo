@@ -1,7 +1,7 @@
 import logging
 import uuid
 
-from odoo import api, models, fields
+from odoo import _, api, models, fields
 from odoo.exceptions import AccessDenied
 
 _logger = logging.getLogger(__name__)
@@ -201,6 +201,11 @@ class ResUsers(models.Model):
         # Not found by oauth_uid — try to find existing user by email
         email = validation.get('email')
         if email:
+            if (
+                'unitrade.account.blacklist' in self.env.registry
+                and self.env['unitrade.account.blacklist'].sudo().is_contact_blocked(email=email)
+            ):
+                raise AccessDenied(_('Email ini tidak dapat digunakan untuk masuk ke UniTrade.'))
             existing_user = self.search([('login', '=', email)], limit=1)
             if existing_user:
                 # Link the existing account to Google OAuth
