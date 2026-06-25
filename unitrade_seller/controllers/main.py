@@ -501,8 +501,32 @@ class UnitradeSellerController(http.Controller):
         return qty
 
     @staticmethod
+    def _seller_product_available_stock_qty(product):
+        """Return sellable stock from the same source used by public product pages."""
+        qty = _safe_get(product, 'x_unitrade_free_qty', False)
+        if qty is False:
+            variant = product.product_variant_id or product.product_variant_ids[:1]
+            warehouse = (
+                product._unitrade_stock_warehouse()
+                if hasattr(product, '_unitrade_stock_warehouse')
+                else False
+            )
+            if variant and hasattr(variant, '_unitrade_available_qty'):
+                qty = variant.sudo()._unitrade_available_qty(warehouse=warehouse)
+            elif variant and 'free_qty' in variant._fields:
+                variant = variant.with_context(warehouse=warehouse.id) if warehouse else variant
+                qty = variant.free_qty
+            else:
+                qty = UnitradeSellerController._seller_product_onhand_stock_qty(product)
+        try:
+            qty = float(qty or 0)
+        except (TypeError, ValueError):
+            qty = 0
+        return max(qty, 0)
+
+    @staticmethod
     def _stock_label(product):
-        qty = UnitradeSellerController._seller_product_onhand_stock_qty(product)
+        qty = UnitradeSellerController._seller_product_available_stock_qty(product)
         if qty <= 0:
             return 'Stok habis'
         if qty.is_integer():
@@ -632,7 +656,7 @@ class UnitradeSellerController(http.Controller):
 
     @staticmethod
     def _seller_product_stock_qty(product):
-        return UnitradeSellerController._seller_product_onhand_stock_qty(product)
+        return UnitradeSellerController._seller_product_available_stock_qty(product)
 
     def _seller_product_listing_status(self, seller, product):
         self._seller_sync_listing_fee_timeouts(seller=seller, product=product)
@@ -1834,7 +1858,7 @@ class UnitradeSellerController(http.Controller):
         discount_price = 0.0
         if discount_percent and product.list_price:
             discount_price = max(0.0, product.list_price * (1 - (discount_percent / 100.0)))
-        stock = self._seller_product_stock_qty(product)
+        stock = self._seller_product_onhand_stock_qty(product)
         return {
             'id': product.id,
             'name': product.name or '',
