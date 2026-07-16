@@ -4,20 +4,48 @@
 
 ### Latar Belakang Masalah
 
-UniTrade adalah platform marketplace **C2C (Customer-to-Customer)** yang dibangun di atas **Odoo 17** untuk melayani kebutuhan jual-beli di lingkungan Universitas Aisyiyah (UNISA) Yogyakarta. Platform ini dibuat karena:
+UniTrade adalah platform marketplace **C2C (Customer-to-Customer)** yang dibangun di atas **Odoo 17** untuk melayani kebutuhan jual-beli di lingkungan Universitas Aisyiyah (UNISA) Yogyakarta.
 
-1. **Tidak ada platform jual-beli terverifikasi** di dalam ekosistem kampus. Mahasiswa selama ini memanfaatkan grup WhatsApp atau media sosial yang tidak aman.
-2. **Tidak ada mekanisme verifikasi identitas penjual** — siapa saja bisa mengklaim sebagai mahasiswa UNISA.
-3. **Tidak ada perlindungan dana pembeli** — jika penjual tidak mengirim barang, pembeli tidak punya jalur resmi.
-4. **Tidak ada sistem dispute / mediasi** antara pembeli dan penjual.
+> **Apa itu C2C?**
+> Consumer-to-Consumer = pembeli dan penjual sama-sama adalah individu (mahasiswa),
+> bukan bisnis/perusahaan. Berbeda dengan B2C (Tokopedia = perusahaan ke konsumen)
+> atau B2B (perusahaan ke perusahaan).
 
-### Solusi yang Diimplementasikan
+**Masalah yang dipecahkan:**
 
-- **Verifikasi KTM otomatis** menggunakan Google Cloud Vision OCR + fuzzy matching NIM ke database mahasiswa.
-- **Sistem Escrow** untuk menahan dana pembeli sampai barang dikonfirmasi diterima.
-- **Integrasi Midtrans** untuk pembayaran digital (Virtual Account, QRIS, E-Wallet).
-- **AI Customer Service** berbasis Gemini 2.5 Flash untuk menangani pertanyaan umum.
-- **Role-based access control** berlapis untuk memisahkan hak akses Pembeli, Penjual, dan Admin.
+| # | Masalah | Solusi UniTrade |
+|---|---------|----------------|
+| 1 | Tidak ada platform jual-beli terverifikasi di kampus | Marketplace khusus mahasiswa UNISA |
+| 2 | Siapapun bisa mengklaim sebagai mahasiswa UNISA | Verifikasi KTM via OCR otomatis |
+| 3 | Tidak ada perlindungan dana pembeli | Sistem Escrow (dana ditahan sampai barang diterima) |
+| 4 | Tidak ada jalur dispute resmi | Sistem refund dengan mediasi admin |
+| 5 | Tidak ada customer service yang responsif | AI Chatbot (Gemini 2.5 Flash) |
+
+---
+
+## Komponen Teknologi Utama
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  ODOO 17  (Platform utama — semua modul berjalan di sini)│
+│                                                          │
+│  Python 3.12  → Logika bisnis (models, controllers)     │
+│  PostgreSQL 15 → Database penyimpanan data               │
+│  QWeb XML     → Template halaman web (HTML generator)   │
+│  JavaScript   → Interaktivitas di browser                │
+│  Tailwind CSS → Styling (prefix tw-)                    │
+└─────────────────────────────────────────────────────────┘
+         ↕                    ↕                   ↕
+  ┌──────────────┐   ┌────────────────┐   ┌────────────────┐
+  │   Midtrans   │   │ Google Vision  │   │ Google Gemini  │
+  │  (Pembayaran)│   │  (OCR KTM)     │   │  (AI CS Bot)   │
+  └──────────────┘   └────────────────┘   └────────────────┘
+         ↕
+  ┌──────────────┐   ┌────────────────┐
+  │   Mapbox     │   │    GoSend      │
+  │  (Peta/Alamat│   │  (Pengiriman)  │
+  └──────────────┘   └────────────────┘
+```
 
 ---
 
@@ -25,13 +53,16 @@ UniTrade adalah platform marketplace **C2C (Customer-to-Customer)** yang dibangu
 
 ### 1. Kebutuhan Fungsional (Functional Requirements)
 
+> **Kebutuhan Fungsional** = Fitur yang HARUS ADA agar sistem bisa digunakan.
+> "Sistem harus BISA melakukan apa?"
+
 | Kode | Kebutuhan | Modul Odoo | File Utama |
 |------|-----------|-----------|-----------|
 | F1 | Registrasi akun dengan validasi email + OTP | `unitrade_theme` | `controllers/controllers.py` |
-| F2 | Login Google OAuth (SSO) | `unitrade_theme` | `data/oauth_provider.xml` |
-| F3 | Verifikasi penjual via KTM (OCR otomatis + review manual) | `unitrade_seller` | `services/ocr_service.py` |
-| F4 | Listing produk + manajemen toko penjual | `unitrade_seller`, `unitrade_product_ext` | `controllers/main.py` |
-| F5 | Filter produk di halaman toko | `unitrade_product_ext` | `controllers/main.py:L749` |
+| F2 | Login Google OAuth (SSO) | `unitrade_theme` | `models/res_users.py` |
+| F3 | Verifikasi penjual via KTM (OCR + review manual) | `unitrade_seller` | `services/ocr_service.py` |
+| F4 | Listing produk + manajemen toko | `unitrade_seller` | `controllers/main.py` |
+| F5 | Filter produk di halaman toko | `unitrade_product_ext` | `controllers/main.py` |
 | F6 | Keranjang belanja | `unitrade_theme` | `controllers/cart.py` |
 | F7 | Checkout + pemilihan metode pembayaran | `unitrade_theme` | `controllers/checkout.py` |
 | F8 | Pembayaran via Midtrans (VA, QRIS, E-Wallet) | `unitrade_payment` | `models/sale_order.py` |
@@ -40,101 +71,123 @@ UniTrade adalah platform marketplace **C2C (Customer-to-Customer)** yang dibangu
 | F11 | Sistem dispute / refund | `unitrade_dispute` | `models/` |
 | F12 | Wishlist produk | `unitrade_wishlist` | `controllers/main.py` |
 | F13 | Ulasan dan rating produk | `unitrade_review` | `models/` |
-| F14 | Notifikasi real-time (60 detik polling) | `unitrade_notification` | `static/src/js/notification_service.js` |
+| F14 | Notifikasi real-time (polling 60 detik) | `unitrade_notification` | `static/src/js/notification_service.js` |
 | F15 | Live chat antar pengguna | `unitrade_chat` | `controllers/` |
 | F16 | Customer Service AI (Gemini 2.5 Flash) | `unitrade_cs_ai` | `models/cs_ai_service.py` |
-| F17 | Dashboard admin (monitoring, moderasi, verifikasi KTM) | `unitrade_admin` | `models/admin_stats.py` |
+| F17 | Dashboard admin (monitoring, moderasi) | `unitrade_admin` | `models/admin_stats.py` |
 
 ### 2. Kebutuhan Non-Fungsional (Non-Functional Requirements)
 
+> **Kebutuhan Non-Fungsional** = BAGAIMANA sistem harus berperilaku.
+> "Sistem harus seberapa AMAN? Seberapa CEPAT? Seberapa ANDAL?"
+
 | Kode | Kategori | Kebutuhan | Implementasi |
 |------|----------|-----------|--------------|
-| NF1 | Keamanan | Hanya mahasiswa aktif UNISA yang bisa jadi penjual | OCR KTM + NIM matching via `unisa.student` |
-| NF2 | Integritas | Dana tidak langsung ke penjual | Sistem Escrow (`unitrade.escrow.ledger`) |
-| NF3 | Kerahasiaan | Data sensitif terisolasi per pengguna | `ir.rule` record rules + Role ACL |
+| NF1 | Keamanan | Hanya mahasiswa UNISA yang bisa jadi penjual | OCR KTM + NIM matching |
+| NF2 | Integritas | Dana tidak langsung ke penjual sebelum barang diterima | Sistem Escrow (`unitrade.escrow.ledger`) |
+| NF3 | Kerahasiaan | Data terisolasi per pengguna | `ir.rule` record rules + ACL |
 | NF4 | Ketersediaan | Sistem tidak crash saat API eksternal gagal | Retry logic + graceful degradation |
 | NF5 | Ketersediaan | Idempotency webhook pembayaran | Deduplication via `unitrade.payment.event` |
-| NF6 | Skalabilitas | Penambahan modul tanpa merusak fitur lain | Pola `_inherit` Odoo |
+| NF6 | Skalabilitas | Modul baru tidak merusak fitur lain | Pola `_inherit` Odoo |
 | NF7 | Keamanan | API key tidak hardcode di source code | Disimpan di `ir.config_parameter` |
-| NF8 | Keamanan | Webhook Midtrans diverifikasi signature SHA-512 | `_validate_midtrans_signature()` |
+| NF8 | Keamanan | Webhook Midtrans diverifikasi signature | SHA-512 HMAC validation |
 | NF9 | Audit | Setiap aktivitas keamanan user dicatat | `unitrade.security.activity` |
-| NF10 | Privasi | Penghapusan akun menjaga data transaksi | Anonymisasi, bukan hard delete |
+| NF10 | Privasi | Penghapusan akun menjaga data transaksi | Anonimisasi, bukan hard delete |
 
 ---
 
-## Alur Bisnis Utama
+## Alur Bisnis Utama (Dengan Kode)
 
-### Alur 1: Registrasi & Verifikasi Penjual (Detail)
+### Alur 1: Registrasi & Verifikasi Penjual
 
 ```
-[User membuka /web/signup]
-   ↓ (Controller: UnitradeAuthSignup.web_auth_signup)
-[Validasi: email valid, tidak di-blacklist, reCaptcha lolos]
-   ↓
-[Odoo membuat akun user baru (res.users)]
-   ↓
-[OTP dibuat di tabel unitrade.otp, dikirim via mail.mail ke email]
-   ↓ (Redirect ke /web/verify-otp)
-[User input OTP] → [Controller validasi OTP]
-   ↓ (Jika valid: is_otp_verified = True)
-[User bisa login, masuk sebagai Pembeli (base.group_user)]
-   ↓ (Klik "Mulai Berjualan")
+[User buka /web/signup]
+        │
+        ▼
+[Controller: UnitradeAuthSignup.web_auth_signup]
+  Validasi: email valid? → TIDAK → Error "Masukkan email yang valid"
+  Validasi: email di-blacklist? → YA → Error "Email tidak bisa digunakan"
+  Validasi: Terms disetujui? → TIDAK → Error "Setujui Syarat Ketentuan"
+  Validasi: Google reCaptcha → GAGAL → Error "Suspicious activity"
+        │ Semua validasi LULUS
+        ▼
+[Odoo: do_signup() → buat record baru di tabel res_users]
+        │
+        ▼
+[Model: unitrade.otp.generate_otp()]
+  → Buat kode acak 6 digit: random.choices(string.digits, k=6)
+  → Simpan ke tabel unitrade_otp dengan expires_at = now + 5 menit
+  → Kirim email via mail.mail.send()
+        │
+        ▼
+[Redirect ke /web/verify-otp]
+  User input kode OTP dari email
+        │
+        ▼
+[Model: unitrade.otp.verify_otp()]
+  Cek: kode benar? is_used=False? belum expired?
+  → YA: user.is_otp_verified = True → Login berhasil
+  → TIDAK: Error "OTP salah atau kadaluarsa"
+        │
+        ▼
+[User masuk sebagai Pembeli (base.group_user)]
+        │ (Klik "Mulai Berjualan")
+        ▼
 [User upload foto KTM]
-   ↓ (Controller: seller_verification.py)
-[Gambar dikirim ke Google Cloud Vision API]
-   ↓
-[OCR ekstrak teks → cari NIM (regex r'\d{8,12}')}
-   ↓
-[NIM dicocokkan ke tabel unisa_student (database mahasiswa)]
-   ↓
-[Nama dari KTM dicocokkan ke nama akun (fuzzy matching)]
-   ├── Cocok → Status: APPROVED → User masuk group_unitrade_seller
-   ├── Partial → Status: MANUAL_REVIEW → Admin review di dashboard
-   └── Tidak cocok → Status: REJECTED → User upload ulang
+  → Foto dikirim ke Google Vision API
+  → OCR extract teks
+  → Pipeline 5 langkah: keywords → NIM → database → nama → fuzzy match
+        ├── Semua lulus → Status: APPROVED → Masuk group_unitrade_seller
+        ├── Parsial → Status: MANUAL_REVIEW → Admin review di dashboard
+        └── Gagal → Status: REJECTED → Upload ulang
 ```
 
-### Alur 2: Transaksi Pembelian (Detail)
+### Alur 2: Transaksi Pembelian (dengan Kode)
 
-```
-[Pembeli klik "Tambah ke Keranjang"]
-   ↓ (Validasi stok via jsonrpc → /unitrade/product/stock/validate)
-[Form checkout: pilih pengiriman, input alamat]
-   ↓ (Mapbox geocoding untuk autocomplete alamat)
-[Pilih metode pembayaran Midtrans]
-   ↓ (Controller: checkout.py → Model: action_create_midtrans_payment)
-[POST ke Midtrans API: https://api.sandbox.midtrans.com/v2/charge]
-   ↓ (Midtrans response: VA number / QR code)
-[Halaman instruksi pembayaran ditampilkan ke pembeli]
-   ↓ (Pembeli bayar via bank/e-wallet)
-[Midtrans kirim webhook ke /unitrade/payment/midtrans/webhook]
-   ↓ (Validasi signature SHA-512)
-[Status order: payment_pending → paid_escrow]
-[Escrow: state = 'held' — dana ditahan di sistem]
-   ↓ (Penjual terima notifikasi, proses & kirim barang)
-[Pembeli konfirmasi terima barang]
-   ↓
-[Escrow: state = 'held' → 'releasable' → 'released']
-[Dana dilepas ke saldo penjual]
-```
+```python
+# ── LANGKAH 1: Pembeli klik "Tambah ke Keranjang" ─────────────────────
+# JS: product_detail.js
+const result = await jsonrpc('/unitrade/product/stock/validate', {
+    product_id: 42,   # ID produk
+    add_qty: 1,       # Jumlah yang ditambahkan
+})
+# Controller cek stok: jika stok cukup → lanjut, jika tidak → tampilkan warning
 
-### Alur 3: Customer Service AI (Detail)
+# ── LANGKAH 2: Checkout ───────────────────────────────────────────────
+# Controller checkout.py memanggil:
+amounts = order._unitrade_prepare_checkout_server_state()
+# → sync harga terkini (mencegah harga stale)
+# → hitung ulang service fee
+# → validasi stok sekali lagi sebelum bayar
 
-```
-[Pembeli klik "Bantuan" / "Customer Service"]
-   ↓ (Halaman customer-service dibuka)
-[Pembeli ketik pesan]
-   ↓ (JS kirim via jsonrpc → /customer-service/chat/send)
-[Controller meneruskan ke model unitrade.cs.ai.service]
-   ↓
-[Bangun payload Gemini: system_prompt + 5 riwayat pesan]
-   ↓ (POST ke https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent)
-[Gemini kembalikan respons teks]
-   ↓
-[Teks ditampilkan di chat interface]
-   ↓ (Jika AI tidak bisa jawab → user klik "Eskalasi ke Admin")
-[Controller: /customer-service/chat/escalate]
-[Dibuat tiket di unitrade.customer.ticket]
-[Admin terima notifikasi di dashboard]
+# ── LANGKAH 3: Buat Payment Intent ke Midtrans ────────────────────────
+# Model sale_order.py:
+status_code, response_payload, _ = self._midtrans_send_charge_request(
+    server_key=server_key,
+    payload={
+        "payment_type": "bank_transfer",
+        "transaction_details": {
+            "order_id": "UT-2026-001",
+            "gross_amount": 76500    # subtotal + service_fee
+        }
+    }
+)
+# Midtrans return VA number → ditampilkan ke pembeli
+
+# ── LANGKAH 4: Webhook saat Pembayaran Berhasil ────────────────────────
+# Midtrans POST ke /unitrade/payment/midtrans/webhook
+# Controller validasi SHA-512 signature
+# Update database:
+order.write({
+    'x_payment_status': 'paid',
+    'x_unitrade_order_state': 'paid_escrow',
+    'x_escrow_state': 'held',   # Dana ditahan dalam escrow
+})
+# Notifikasi dikirim ke penjual
+
+# ── LANGKAH 5: Release Escrow setelah Barang Diterima ─────────────────
+# Pembeli konfirmasi terima barang → escrow.state = 'releasable'
+# Cron job harian melepas dana ke saldo penjual → escrow.state = 'released'
 ```
 
 ---
@@ -142,34 +195,42 @@ UniTrade adalah platform marketplace **C2C (Customer-to-Customer)** yang dibangu
 ## Arsitektur Sistem Lengkap
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                     BROWSER (Frontend)                           │
-│                                                                  │
-│  HTML/QWeb XML Templates (views/*.xml)                           │
-│  JavaScript ES6 Modules (static/src/js/*.js)                     │
-│    ├── publicWidget (menghubungkan JS ke elemen HTML)            │
-│    ├── jsonrpc() (panggilan AJAX ke backend)                     │
-│    └── OWL Components (komponen reaktif: notifikasi, filter)     │
-│  Tailwind CSS (prefix tw-) via output.css                        │
-└────────────────────────┬─────────────────────────────────────────┘
-                         │ HTTP/HTTPS (JSON-RPC 2.0 / Form POST)
-┌────────────────────────▼─────────────────────────────────────────┐
-│              ODOO 17 APPLICATION SERVER (Backend)                │
-│                                                                  │
-│  ┌─────────────────┐  ┌──────────────────┐  ┌────────────────┐  │
-│  │   Controllers   │  │      Models      │  │  Views/QWeb    │  │
-│  │  (HTTP Routes)  │  │  (ORM + Logic)   │  │  (Templates)   │  │
-│  └────────┬────────┘  └────────┬─────────┘  └────────────────┘  │
-│           │ request.env[...]   │ self.env[...]                   │
-│  ┌────────▼────────────────────▼──────────────────────────────┐  │
-│  │              PostgreSQL Database                           │  │
-│  │   Tables: sale_order, res_users, unitrade_*, ir_*          │  │
-│  └────────────────────────────────────────────────────────────┘  │
-└───────────────┬──────────────────┬─────────────────┬─────────────┘
-                │                  │                 │
-  ┌─────────────▼──────┐ ┌─────────▼───────┐ ┌──────▼──────────┐
-  │   Midtrans API     │ │ Google Vision   │ │   Gemini AI     │
-  │  /v2/charge        │ │   /annotate     │ │ /generateContent │
-  │  Webhook Receiver  │ │   (OCR KTM)     │ │  (CS Chatbot)   │
-  └────────────────────┘ └─────────────────┘ └─────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                       BROWSER (Frontend)                             │
+│                                                                      │
+│  HTML dirender dari QWeb XML template (oleh Odoo di server)          │
+│  JavaScript ES6 Modules:                                             │
+│    ├── publicWidget  → attach JS ke elemen HTML otomatis             │
+│    ├── jsonrpc()     → kirim request AJAX ke backend (JSON-RPC 2.0)  │
+│    └── fetch()       → kirim request HTTP manual                     │
+│  Tailwind CSS (prefix tw-) untuk styling                             │
+└────────────────────────────────────┬─────────────────────────────────┘
+                                     │ HTTP/HTTPS
+                         ┌───────────▼────────────┐
+                         │   NGINX (Reverse Proxy) │
+                         │   unitrade.web.id:443   │
+                         └───────────┬────────────┘
+                                     │
+                         ┌───────────▼────────────┐
+                         │   ODOO 17 (Port 8069)   │
+                         │                         │
+                         │  Controllers (routing)  │
+                         │       ↕                 │
+                         │  Models (ORM + logic)   │
+                         │       ↕                 │
+                         │  PostgreSQL 15 (DB)     │
+                         └───────────┬────────────┘
+                                     │
+          ┌──────────────────────────┼──────────────────────────┐
+          ▼                          ▼                          ▼
+  ┌───────────────┐        ┌────────────────┐        ┌─────────────────┐
+  │   Midtrans    │        │ Google Vision  │        │  Google Gemini  │
+  │  Payment GW   │        │   OCR API      │        │   AI Chatbot    │
+  │  sandbox/prod │        │ TEXT_DETECTION │        │ gemini-2.5-flash│
+  └───────────────┘        └────────────────┘        └─────────────────┘
+          │                                                    
+  ┌───────────────┐        ┌────────────────┐
+  │    Mapbox     │        │   Docker Hub   │
+  │ Geocoding API │        │ (Image Registry│
+  └───────────────┘        └────────────────┘
 ```
