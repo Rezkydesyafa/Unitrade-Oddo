@@ -56,6 +56,13 @@ FAQ_ITEMS = [
             "siap digunakan untuk menjual produk atau jasa."
         ),
     },
+    {
+        "id": "transaction-escrow",
+        "question": "Bagaimana mekanisme transaksi dan perlindungan dana di UniTrade?",
+        "answer": (
+            "Semua transaksi dalam UniTrade menggunakan mekanisme Escrow internal. Saat pembeli melakukan pembayaran, dana tidak langsung diteruskan kepada penjual, melainkan ditahan dalam sistem escrow. Dana baru akan dilepaskan kepada penjual setelah status pesanan berubah menjadi 'Selesai' atau 'Dikonfirmasi Selesai' oleh sistem, atau mengikuti kebijakan khusus yang berlaku saat itu. Mekanisme ini bertujuan melindungi kedua belah pihak: pembeli mendapatkan jaminan bahwa penjual hanya akan menerima dana setelah pesanan selesai, sementara penjual mendapatkan kepastian bahwa pembayaran telah diverifikasi dan diamankan oleh sistem."
+        ),
+    },
 ]
 
 
