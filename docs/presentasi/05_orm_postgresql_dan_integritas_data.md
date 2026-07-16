@@ -18,6 +18,8 @@ class UnitradeSeller(models.Model):    CREATE TABLE unitrade_seller (
 )                                      );
 ```
 
+> 💡 **Penjelasan:** Diagram ini menunjukkan hubungan langsung antara definisi Python di kode dan tabel yang dibuat di PostgreSQL. Setiap `fields.Char()` menjadi kolom `VARCHAR`, `fields.Boolean()` menjadi `BOOLEAN`, dan `fields.Many2one()` menjadi kolom `INTEGER` dengan foreign key constraint. Odoo secara otomatis menambahkan kolom `id SERIAL PRIMARY KEY` (auto-increment) ke setiap model. Developer cukup mendefinisikan tipe field di Python — Odoo mengurus pembuatan tabel, kolom, index, dan foreign key di PostgreSQL tanpa perlu menulis SQL DDL sama sekali.
+
 ---
 
 ## A. Operasi CRUD via ORM (Lengkap)
@@ -47,6 +49,10 @@ intent = self.env['unitrade.payment.intent'].sudo().create({
 # RETURNING id;
 ```
 
+> 💡 **Penjelasan:** Method `create()` di Odoo menerima sebuah dictionary Python dan mengonversinya menjadi perintah `INSERT INTO` SQL. Perhatikan field Many2one seperti `currency_id` dan `sale_order_id` — nilai yang diisi adalah `.id` (integer), bukan objek record-nya. Di database, kolom ini menyimpan integer foreign key biasa. Odoo juga menambahkan `RETURNING id` agar ID yang baru dibuat langsung dikembalikan — hasilnya disimpan dalam variabel `intent` sebagai Odoo recordset yang bisa langsung dipakai. Setelah `create()`, Odoo otomatis memanggil constraint check (`@api.constrains`) jika ada, memastikan data yang baru dibuat valid.
+
+---
+
 ### 2. READ — Mencari Data
 
 ```python
@@ -74,6 +80,10 @@ unread_count = self.env['unitrade.notification'].sudo().search_count([
 # SQL: SELECT COUNT(*) FROM unitrade_notification WHERE user_id=5 AND is_read=False
 ```
 
+> 💡 **Penjelasan:** `search()` di Odoo menggunakan "domain" — list of tuples dengan format `(field_name, operator, value)`. Domain ini diterjemahkan menjadi klausa `WHERE` di SQL. Operator yang tersedia antara lain `=`, `!=`, `in`, `not in`, `like`, `ilike` (case-insensitive like), `>`, `<`, `>=`, `<=`. Parameter `order` menjadi `ORDER BY`, dan `limit` menjadi `LIMIT` di SQL. Penting: `search()` mengembalikan **recordset** (koleksi record), bukan list biasa — ini memungkinkan chaining operation seperti `orders.filtered(lambda o: o.amount > 100000)`. Untuk keperluan hitungan saja, gunakan `search_count()` agar lebih efisien karena Odoo hanya menjalankan `SELECT COUNT(*)` tanpa mengambil semua data kolom.
+
+---
+
 ### 3. UPDATE — Mengubah Data
 
 ```python
@@ -96,6 +106,10 @@ ledgers.write({'state': 'released', 'released_at': fields.Datetime.now()})
 intent.sudo().write({'state': status, 'raw_response': json.dumps(payload)})
 ```
 
+> 💡 **Penjelasan:** Method `write()` menerima dictionary field yang ingin diubah dan menghasilkan perintah `UPDATE` SQL. Keunggulan ORM: jika `ledgers` adalah recordset yang berisi 10 record, Odoo cukup menjalankan satu `UPDATE ... WHERE id IN (...)` — bukan 10 UPDATE terpisah. Ini jauh lebih efisien. Odoo juga otomatis menjalankan `@api.onchange` dan `@api.constrains` setelah `write()` — jika ada constraint yang dilanggar, perubahan dibatalkan dan exception dilempar. Field dengan `tracking=True` akan dicatat perubahannya di "chatter" (log perubahan field) secara otomatis, berguna untuk audit trail tanpa perlu kode tambahan.
+
+---
+
 ### 4. DELETE — Menghapus Data
 
 ```python
@@ -112,6 +126,8 @@ stale_intents.unlink()
 item.unlink()
 # SQL: DELETE FROM unitrade_wishlist WHERE id = ?
 ```
+
+> 💡 **Penjelasan:** `unlink()` adalah method untuk menghapus record dari database. Sebelum menghapus, Odoo otomatis memeriksa constraint `ondelete` dari field Many2one yang merujuk ke record ini. Jika ada record lain yang punya `ondelete='restrict'` ke record yang akan dihapus, Odoo akan melempar error dan mencegah penghapusan. Jika `ondelete='cascade'`, record turunannya ikut dihapus. Contoh di atas menghapus payment intent yang sudah lebih dari 1 jam dalam status draft — ini adalah proses pembersihan (garbage collection) untuk data yang tidak terpakai, menjaga tabel tetap bersih dan query tetap cepat.
 
 ---
 
@@ -133,6 +149,10 @@ class SaleOrder(models.Model):
 # Cara akses: order.partner_id.name → SELECT name FROM res_partner WHERE id = ?
 ```
 
+> 💡 **Penjelasan:** `Many2one` adalah tipe relasi paling umum di Odoo, setara dengan foreign key di SQL. `ondelete='restrict'` berarti jika seseorang mencoba menghapus `res.partner` yang masih dirujuk oleh order, PostgreSQL akan melempar error — ini menjaga integritas referensial data. `index=True` membuat Odoo menambahkan `CREATE INDEX` di kolom ini, yang sangat penting untuk performa karena kolom foreign key sering digunakan dalam query JOIN dan filter (`WHERE partner_id = ?`). Cara akses `order.partner_id.name` di Python secara internal melakukan query SQL terpisah (lazy loading) — jika banyak record perlu diakses, gunakan `prefetch_fields` untuk optimasi.
+
+---
+
 ### One2many (1 ke N) — Virtual Relasi
 
 ```python
@@ -148,6 +168,10 @@ class UnitradeCustomerTicket(models.Model):
 # Cara akses: ticket.message_ids → SELECT * FROM unitrade_customer_ticket_message WHERE ticket_id = ?
 ```
 
+> 💡 **Penjelasan:** `One2many` disebut "virtual" karena tidak ada kolom fisik di tabel `unitrade_customer_ticket`. Relasinya terdefinisi di sisi lain — tabel `unitrade_customer_ticket_message` yang punya kolom `ticket_id` (Many2one ke tiket). Odoo hanya "membaca" relasi ini dari arah sebaliknya. Ketika kita mengakses `ticket.message_ids`, Odoo menjalankan `SELECT * FROM ... WHERE ticket_id = ?`. Ini pola yang sangat umum untuk relasi parent-child: satu tiket punya banyak pesan, satu order punya banyak order line, satu seller punya banyak produk, dll.
+
+---
+
 ### Many2many (N ke N) — Junction Table
 
 ```python
@@ -162,6 +186,8 @@ class ResGroups(models.Model):
 # PostgreSQL:
 # CREATE TABLE res_groups_users_rel (gid INTEGER, uid INTEGER, PRIMARY KEY (gid, uid))
 ```
+
+> 💡 **Penjelasan:** `Many2many` digunakan ketika dua entitas saling terhubung banyak ke banyak. Di SQL, ini memerlukan "junction table" (tabel perantara) yang menyimpan pasangan ID. Odoo membuat junction table ini secara otomatis. Dalam konteks security UniTrade: setiap user bisa punya banyak group (role), dan setiap group bisa punya banyak user — inilah yang membuat sistem role Odoo fleksibel. Saat admin menambahkan user ke group Seller, Odoo menyisipkan baris baru ke `res_groups_users_rel`. Saat dicek dengan `user.has_group(...)`, Odoo melakukan JOIN ke junction table ini.
 
 ---
 
@@ -203,6 +229,10 @@ class UnitradeEscrowLedger(models.Model):
                 order.write({'x_escrow_state': 'refunded'})
 ```
 
+> 💡 **Penjelasan:** Model `unitrade.escrow.ledger` adalah "buku kas" sistem escrow UniTrade. Setiap baris mewakili satu transaksi dana yang sedang ditahan. Field `tracking=True` pada `state` berarti Odoo otomatis mencatat setiap perubahan status ke chatter — ini penting untuk audit: kita bisa melihat kapan tepatnya dana berpindah dari 'held' ke 'released'. `ondelete='restrict'` pada `order_id` memastikan order yang masih punya escrow ledger aktif tidak bisa dihapus. Timestamps `seller_confirmed_at`, `buyer_confirmed_at`, dan `released_at` mencatat waktu pasti setiap tahap — bukti yang bisa digunakan jika ada sengketa dikemudian hari.
+
+---
+
 ### State Machine Escrow
 
 ```
@@ -229,6 +259,8 @@ class UnitradeEscrowLedger(models.Model):
                [REFUNDED]         [RELEASED]
              Dana ke pembeli    Dana ke penjual
 ```
+
+> 💡 **Penjelasan:** State machine ini mendefinisikan siklus hidup dana escrow. Tidak ada lompatan status yang tidak sah — misalnya, tidak mungkin langsung dari HELD ke REFUNDED tanpa melalui DISPUTED terlebih dahulu. Ini dijamin oleh kode Python yang hanya mengizinkan transisi tertentu. Status RELEASABLE berarti "pembeli sudah konfirmasi terima barang, dana aman untuk dirilis ke penjual" — tapi rilis sebenarnya menunggu cron job harian atau approval manual admin. Jeda ini memberi jendela waktu untuk pembeli melaporkan masalah setelah konfirmasi jika ternyata barang bermasalah.
 
 ---
 
@@ -261,6 +293,8 @@ def _check_order_owner(self):
 # Validasi ini dijalankan OTOMATIS setiap kali create() atau write() dipanggil
 # Jika gagal: ValidationError dilempar, transaksi di-rollback, data tidak tersimpan
 ```
+
+> 💡 **Penjelasan:** `@api.constrains` adalah decorator Odoo untuk mendefinisikan validasi bisnis tingkat model. Berbeda dari validasi di controller (yang hanya melindungi satu endpoint), constraint ini melindungi **setiap cara** data bisa diubah — baik via controller web, API JSON-RPC, import CSV, maupun bahkan perintah Python langsung di shell Odoo. Ini memastikan aturan bisnis "user hanya boleh buka tiket untuk pesanannya sendiri" tidak bisa dilewati dengan cara apapun. Ketika `ValidationError` dilempar, Odoo otomatis melakukan rollback seluruh transaksi database — data yang sudah sebagian tersimpan akan dibatalkan, menjaga konsistensi data.
 
 ---
 
@@ -296,6 +330,8 @@ def init(self):
         ON unitrade_seller (user_id)
     """)
 ```
+
+> 💡 **Penjelasan:** Odoo ORM memang bisa membuat unique constraint via `_sql_constraints`, tapi untuk kasus kompleks seperti **Partial Index**, kita perlu turun ke raw SQL. Partial index `WHERE nim IS NOT NULL AND active = true` adalah fitur PostgreSQL yang memungkinkan constraint unik hanya berlaku untuk subset data — dalam hal ini, hanya untuk seller yang aktif. Mengapa perlu? Karena skenario "seller dihapus (soft-delete) lalu mahasiswa yang sama mendaftar ulang sebagai seller baru" harus tetap diizinkan — NIM yang sama boleh muncul dua kali asalkan hanya satu yang `active = true`. Tanpa partial index, kita tidak bisa membuat constraint yang cukup fleksibel ini. `DROP CONSTRAINT IF EXISTS` sebelum CREATE memastikan upgrade modul tidak error meskipun constraint sudah ada.
 
 ---
 
@@ -341,6 +377,8 @@ def _unitrade_backfill_missing_escrow_ledgers(self, limit=None):
         _logger.info('Backfilled %s missing escrow ledger(s).', repaired)
 ```
 
+> 💡 **Penjelasan:** Savepoint adalah "checkpoint" di dalam sebuah transaksi database. Analoginya adalah fitur quicksave di video game — jika karakter mati setelah checkpoint, pemain kembali ke checkpoint, bukan ke awal permainan. Tanpa savepoint, jika satu order dari 100 order gagal diproses, seluruh batch 100 order akan di-rollback dan tidak ada yang berhasil. Dengan `with self.env.cr.savepoint()`, jika order ke-47 gagal, hanya perubahan untuk order ke-47 yang dibatalkan — order 1 sampai 46 yang sudah berhasil tetap tersimpan. Pola ini sangat berguna untuk operasi batch yang memproses banyak record sekaligus, memastikan kegagalan parsial tidak menghapus progress yang sudah dicapai.
+
 ---
 
 ## G. Contoh Pengujian Integritas Data
@@ -361,9 +399,13 @@ if payload_amount and payload_amount != int(round(intent.amount)):
     return self._json_response({'status': 'error', 'message': 'amount mismatch'}, status=400)
 ```
 
+> 💡 **Penjelasan:** Pengecekan ini melindungi dari serangan manipulasi jumlah pembayaran. Skenario serangan: penyerang mengirimkan POST webhook palsu dengan amount yang sudah divalidasi signature-nya (misalnya menggunakan sandbox key) tapi dengan jumlah yang berbeda dari yang seharusnya. Dengan membandingkan `payload_amount` (jumlah dari webhook) dengan `intent.amount` (jumlah yang tersimpan di database saat checkout), kita memastikan tidak ada manipulasi jumlah. Jika berbeda, event dicatat sebagai `failed` dan order tidak diupdate — transaksi ditolak dengan HTTP 400.
+
 **Pengujian:**
 - Kirim webhook dengan `gross_amount: "55000"` padahal intent amount adalah `50000`
 - Expected: HTTP 400 error, event dicatat sebagai `failed`, order tidak berubah
+
+---
 
 ### Test 2: Unique NIM Constraint
 
@@ -374,6 +416,10 @@ VALUES ('2023001001', 99, 'Test Seller B', true);
 -- Expected: ERROR: duplicate key value violates unique constraint "unitrade_seller_nim_unique"
 -- DETAIL: Key (nim)=(2023001001) already exists.
 ```
+
+> 💡 **Penjelasan:** Ini adalah pengujian langsung di level database untuk memverifikasi bahwa partial index benar-benar berfungsi. Kita mencoba memasukkan seller kedua dengan NIM yang sama dan `active = true`. PostgreSQL seharusnya menolak insert ini dengan pesan error constraint violation. Pengujian ini penting karena membuktikan bahwa proteksi bukan hanya di level aplikasi (yang bisa dilewati jika seseorang akses database langsung) — tapi juga di level database itu sendiri. Defense in depth: validasi di controller, validasi di `@api.constrains`, DAN constraint di database.
+
+---
 
 ### Test 3: Idempotency Webhook
 
@@ -392,3 +438,5 @@ Request 2: POST /unitrade/payment/midtrans/webhook (webhook yang sama)
   → Response: {"status": "ok", "duplicate": true}
   → Status order: TIDAK berubah (tetap 'paid', tidak ada duplikasi)
 ```
+
+> 💡 **Penjelasan:** Skenario ini mensimulasikan perilaku nyata Midtrans ketika server kita tidak merespons tepat waktu (misalnya restart, high load). Midtrans akan mengirim webhook yang sama beberapa kali sampai mendapat respons HTTP 200. Tanpa mekanisme idempotency, order bisa ter-paid dua kali, escrow ledger dibuat dua kali, notifikasi dikirim dua kali. Dengan cek `event_key` sebelum proses, request kedua langsung merespons HTTP 200 tanpa memproses apapun — Midtrans "puas" dan berhenti retry, tapi database tidak berubah ganda.
