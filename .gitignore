@@ -205,3 +205,5 @@ db_view.xml
 .codex/
 skills-lock.json
 AGENTS.md
+
+.stitch/
