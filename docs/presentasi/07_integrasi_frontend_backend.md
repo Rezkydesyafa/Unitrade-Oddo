@@ -14,6 +14,8 @@ Pendekatan B: Asinkronous (AJAX JSON-RPC)
   Digunakan: validasi stok, wishlist toggle, notifikasi, AI chat
 ```
 
+> 💡 **Penjelasan:** Kedua pendekatan ini digunakan bersama di UniTrade karena melayani kebutuhan yang berbeda. Pendekatan A (sinkronous) cocok untuk navigasi halaman penuh di mana user berpindah ke URL baru — browser menerima HTML lengkap dari server dan merender ulang seluruh halaman. Pendekatan B (asinkronous/AJAX) cocok untuk interaksi kecil yang tidak perlu reload halaman — seperti klik tombol wishlist, cek stok saat tambah ke keranjang, atau polling notifikasi setiap 60 detik. Menggunakan AJAX untuk hal-hal ini membuat pengalaman user jauh lebih mulus dan responsif.
+
 ---
 
 ## A. Pendekatan Sinkronous (Server-Side Rendering)
@@ -28,6 +30,10 @@ Pendekatan B: Asinkronous (AJAX JSON-RPC)
 5. Data di-render ke template QWeb XML
 6. HTML lengkap dikembalikan ke browser
 ```
+
+> 💡 **Penjelasan:** Ini adalah cara kerja web klasik. Berbeda dengan Single Page Application (SPA) seperti React/Vue yang men-download satu halaman kosong lalu mengisi kontennya via API, Odoo mengirimkan HTML yang sudah terisi data langsung dari server. Pendekatan ini lebih baik untuk SEO (search engine bisa membaca konten langsung), lebih sederhana untuk developer pemula, dan lebih aman karena logika bisnis sepenuhnya di server.
+
+---
 
 ### Contoh: Halaman Wishlist
 
@@ -52,6 +58,8 @@ Pendekatan B: Asinkronous (AJAX JSON-RPC)
 </template>
 ```
 
+> 💡 **Penjelasan:** Template QWeb adalah HTML yang diperkaya dengan direktif khusus Odoo yang diawali dengan `t-`. `t-call="website.layout"` membungkus konten kita dengan header, footer, dan navbar Odoo — tanpa ini kita harus menulis ulang semua elemen global. `t-foreach` bekerja seperti `for item in wishlist_items:` di Python, mengulang template untuk setiap item. `t-esc` adalah cara yang aman untuk menampilkan teks karena Odoo secara otomatis melakukan HTML escaping — misalnya jika nama produk mengandung `<script>`, karakter tersebut akan diubah menjadi `&lt;script&gt;` sehingga tidak dieksekusi sebagai JavaScript (proteksi XSS). Variabel `wishlist_items` disediakan oleh controller Python di bawah.
+
 **2. Controller Python (Pengiriman Data ke Template)**
 ```python
 # unitrade_wishlist/controllers/main.py: L15-26
@@ -69,6 +77,8 @@ def wishlist_page(self, **kwargs):
     # render() = Odoo mencari template XML berdasarkan ID dan mengisi data
     return request.render('unitrade_wishlist.wishlist_page_template', values)
 ```
+
+> 💡 **Penjelasan:** Controller adalah "jembatan" antara URL dan data. Ketika user membuka `/my/wishlist`, Odoo memanggil fungsi ini. `auth='user'` memastikan hanya user yang sudah login yang bisa mengakses — jika belum login, Odoo otomatis redirect ke halaman login. `request.env.uid` adalah ID user yang sedang login (didapat dari session cookie yang dikirim browser). Dictionary `values` berisi data yang akan tersedia di template QWeb — apapun yang kita masukkan ke `values` bisa diakses dengan `t-esc="nama_key"` di template. `request.render()` adalah perintah "cari template dengan ID ini, isi dengan data ini, kembalikan sebagai HTML".
 
 **Penjelasan alur:**
 1. User buka `/my/wishlist`
@@ -110,6 +120,10 @@ Semua request AJAX ke Odoo harus menggunakan format JSON-RPC 2.0:
 }
 ```
 
+> 💡 **Penjelasan:** JSON-RPC 2.0 adalah protokol standar untuk memanggil fungsi di server melalui JSON. Odoo menggunakannya sebagai format standar untuk semua request AJAX. Berbeda dari REST API yang menggunakan berbagai HTTP method (GET, POST, PUT, DELETE), JSON-RPC selalu menggunakan POST dan membedakan operasi via field `method`. Field `params` berisi argumen yang dikirim ke controller Python — Odoo secara otomatis meneruskan isi `params` sebagai `**kwargs` ke fungsi controller. Response selalu dibungkus dalam `{"result": ...}` untuk sukses atau `{"error": ...}` untuk gagal — JavaScript perlu meng-unwrap ini untuk mendapat data sebenarnya.
+
+---
+
 ### Cara A: `jsonrpc()` — Odoo Modern Module (ES6)
 
 Digunakan di file JS yang menggunakan sistem modul Odoo (`/** @odoo-module **/`):
@@ -135,6 +149,10 @@ if (result.valid === false) {
     showWarning(result.message);
 }
 ```
+
+> 💡 **Penjelasan:** `/** @odoo-module **/` adalah penanda bahwa file ini adalah ES6 module yang diproses oleh sistem asset Odoo. Dengan menggunakan `import { jsonrpc }` dari library Odoo, kita mendapat banyak kemudahan: header JSON-RPC otomatis ditambahkan, CSRF token otomatis disertakan, error handling sudah ada, dan session cookie otomatis dikirim. Variabel `result` langsung berisi konten dari field `result` di respons JSON-RPC — Odoo sudah meng-unwrap-nya. Penggunaan `await` berarti fungsi ini bersifat asinkronous — JavaScript tidak memblokir eksekusi lain sambil menunggu respons server, membuat halaman tetap responsif.
+
+---
 
 ### Cara B: Native `fetch()` — Vanilla JavaScript
 
@@ -168,6 +186,10 @@ async function _jsonPost(url, params = {}) {
     return data ? data.result : undefined;  // Unwrap dari { result: value }
 }
 ```
+
+> 💡 **Penjelasan:** Cara B ini digunakan untuk file JavaScript yang tidak bisa menggunakan sistem modul ES6 Odoo (misalnya script yang dimuat secara global). `fetch()` adalah Web API standar browser modern untuk membuat HTTP request. Ada beberapa hal yang WAJIB diperhatikan: (1) Header `X-Requested-With: XMLHttpRequest` harus ada agar Odoo mengenali ini sebagai AJAX request, bukan form submission biasa; (2) `credentials: 'same-origin'` memastikan cookie sesi dikirim bersama request — tanpa ini, Odoo tidak tahu user siapa yang request; (3) Manual unwrap response dari `{result: ...}` diperlukan karena Odoo selalu membungkus data dalam struktur JSON-RPC. Fungsi `_jsonPost` ini menjadi helper yang bisa dipanggil dari mana saja.
+
+---
 
 ### Cara C: Public Widget — Menghubungkan JS ke Elemen HTML
 
@@ -210,6 +232,8 @@ publicWidget.registry.UnitradeProductDetail = publicWidget.Widget.extend({
     },
 });
 ```
+
+> 💡 **Penjelasan:** `publicWidget` adalah sistem "component" milik Odoo untuk halaman website publik. Mirip seperti component React atau Vue, tapi menggunakan jQuery/Odoo di dalamnya. Cara kerjanya: saat halaman dimuat, Odoo men-scan seluruh DOM dan mencari elemen yang cocok dengan `selector` dari setiap widget yang terdaftar. Jika ditemukan, `start()` dipanggil untuk inisialisasi. Property `events` adalah shorthand untuk menambahkan event listener — `'click #add_to_cart': '_onAddToCartClick'` setara dengan `document.querySelector('#add_to_cart').addEventListener('click', this._onAddToCartClick)`. Keunggulannya: widget otomatis detached ketika elemen dihapus dari DOM, mencegah memory leak.
 
 **Penjelasan:** Odoo secara otomatis melakukan "scan" ke seluruh elemen DOM setelah halaman dimuat. Jika menemukan elemen yang cocok dengan `selector: '#product_detail'`, widget langsung di-inisialisasi dan semua event listener terpasang.
 
@@ -255,6 +279,10 @@ export const notificationService = {
 };
 ```
 
+> 💡 **Penjelasan:** Service ini mengimplementasikan pola "polling" — JavaScript secara aktif bertanya ke server setiap 60 detik "ada notifikasi baru?". Ini berbeda dari "push notification" (server yang aktif memberi tahu client). Polling dipilih karena lebih sederhana dan kompatibel dengan arsitektur Odoo yang tidak menggunakan WebSocket. Guard `if (_pollInFlight) return` adalah proteksi penting: jika request sebelumnya belum selesai (misalnya server lambat), request baru tidak dikirim. Tanpa guard ini, bisa terjadi "request storm" di mana banyak request menumpuk dan tidak pernah selesai. `setInterval` mengembalikan handle yang disimpan di `_pollHandle` — handle ini digunakan oleh `stopPolling()` untuk membatalkan interval ketika user logout atau menutup halaman.
+
+---
+
 ### 2. Python Controller (Menerima Request dari JS)
 ```python
 # unitrade_notification/controllers/main.py: L368-393
@@ -280,6 +308,10 @@ def unread_count(self, **kwargs):
     return {'count': count}  # Dikembalikan ke JS sebagai result
 ```
 
+> 💡 **Penjelasan:** Ini adalah endpoint sederhana yang dipanggil setiap 60 detik. `type='json'` berarti Odoo secara otomatis meng-unwrap JSON-RPC request dan `**kwargs` langsung berisi isi `params`. Return value dari fungsi ini otomatis dibungkus oleh Odoo dalam `{"jsonrpc": "2.0", "result": ...}` — developer tidak perlu membuat struktur JSON-RPC secara manual. Pengecekan `user._is_public()` penting untuk menangani kasus edge: jika session expired tapi JavaScript masih berjalan dan polling, kita kembalikan `{'count': 0}` dengan aman alih-alih melempar error. `search_count()` lebih efisien dari `len(search([...]))` karena hanya menjalankan `SELECT COUNT(*)` di database, tidak mengambil semua data kolom.
+
+---
+
 ### 3. Alur Lengkap (Sequence)
 ```
 [Browser dimuat] → Odoo menginisialisasi publicWidget
@@ -294,6 +326,8 @@ def unread_count(self, **kwargs):
         JS: response.result = {'count': 3}
             → Update badge di bell icon: innerHTML = '3'
 ```
+
+> 💡 **Penjelasan:** Diagram sequence ini menggambarkan perjalanan data dari klik user sampai badge notifikasi terupdate. Yang menarik: semua ini terjadi "di belakang layar" tanpa user menyadarinya. Setiap 60 detik, ada satu roundtrip request kecil ke server yang hanya membawa angka hitungan. Jika hasilnya berbeda dari sebelumnya (misalnya dari 0 menjadi 3), JavaScript memperbarui tampilan badge. Efisiensi: request ini sangat ringan — hanya mengirim JSON-RPC kosong dan menerima `{"count": N}` balik. Tidak ada HTML, tidak ada data produk, tidak ada gambar — hanya satu angka yang dibutuhkan.
 
 ---
 
@@ -313,6 +347,8 @@ def unread_count(self, **kwargs):
     <button type="submit">Daftar</button>
 </form>
 ```
+
+> 💡 **Penjelasan:** Form HTML ini di-render oleh QWeb di server — browser menerima HTML biasa. Field `csrf_token` yang disembunyikan (`type="hidden"`) adalah mekanisme keamanan CSRF (Cross-Site Request Forgery). Token ini dibuat server dan disematkan ke form — ketika form disubmit, token dikirim kembali ke server. Server memverifikasi bahwa token ini valid (benar-benar dibuat oleh server ini, bukan halaman jahat dari domain lain). Tanpa CSRF token, penyerang bisa membuat halaman berbahaya yang diam-diam mengirim form ke UniTrade menggunakan sesi login user yang tidak curiga.
 
 ```python
 # unitrade_theme/controllers/controllers.py: L119-170
@@ -352,6 +388,8 @@ def web_auth_signup(self, *args, **kw):
             return self._generate_and_redirect_otp(user_sudo, login_value)
 ```
 
+> 💡 **Penjelasan:** Controller ini menerima data form yang disubmit dari HTML di atas. `get_auth_signup_qcontext()` adalah method bawaan Odoo yang mengekstrak semua field dari POST request. Urutan validasi penting — validasi termudah dan paling cepat diperiksa pertama, validasi mahal (reCaptcha yang butuh request ke server Google) diperiksa paling akhir. `raise UserError()` di Odoo akan otomatis ditangkap dan ditampilkan sebagai pesan error di halaman form — developer tidak perlu mengelola response error secara manual. `do_signup()` adalah method bawaan Odoo yang melakukan INSERT ke tabel `res_users` — kita menggunakannya agar tidak menduplikasi logika registrasi yang sudah ada.
+
 ---
 
 ## E. Data Binding QWeb (Template to Python)
@@ -367,6 +405,12 @@ QWeb menggunakan beberapa direktif khusus untuk binding data dari Python ke HTML
 | `t-att-src` | Attribute dinamis | `<img t-att-src="'/web/image/%s' % id"/>` |
 | `t-call` | Include template lain | `<t t-call="website.layout"/>` |
 | `t-set` | Set variabel lokal | `<t t-set="title" t-value="'Hello'"/>` |
+
+> 💡 **Penjelasan tabel direktif:**
+> - `t-esc` vs `t-raw`: Perbedaan krusial untuk keamanan. `t-esc` selalu meng-escape HTML special characters (`<`, `>`, `&`, dll) sehingga aman dari XSS. `t-raw` menampilkan HTML apa adanya — hanya gunakan jika konten benar-benar trusted (misalnya dari editor admin, bukan dari input user).
+> - `t-if` tidak butuh `t-else` di baris berikutnya — cukup tulis `t-elif` atau `t-else` di elemen saudara.
+> - `t-foreach` memberikan variabel tambahan: `t_index` (index 0-based), `t_first` (boolean), `t_last` (boolean) — berguna untuk styling baris pertama/terakhir berbeda.
+> - `t-att-src` vs `src`: Untuk attribute yang nilainya dinamis, harus gunakan `t-att-nama_attr` bukan langsung menulisnya. Alternatif: `t-attf-src="'/web/image/#{id}'"` untuk format string dengan `{}`.
 
 ```xml
 <!-- Contoh penggunaan dalam product_templates.xml -->
@@ -385,3 +429,5 @@ QWeb menggunakan beberapa direktif khusus untuk binding data dari Python ke HTML
     </t>
 </template>
 ```
+
+> 💡 **Penjelasan:** Contoh nyata penggunaan direktif QWeb ini menunjukkan dua pola penting. Pertama, `t-if="env.user == product.seller_id.user_id"` — di dalam template QWeb, kita bisa mengakses `env.user` (user yang sedang login) untuk membuat tampilan kondisional berbasis role atau kepemilikan. Ini memungkinkan satu template yang sama menampilkan elemen berbeda untuk penjual (tombol "Edit") dan pembeli (tidak ada tombol edit). Kedua, `t-att-href` dan `t-att-src` membangun URL secara dinamis menggunakan Python string formatting — cara standar untuk membuat link ke halaman edit produk berdasarkan ID-nya.

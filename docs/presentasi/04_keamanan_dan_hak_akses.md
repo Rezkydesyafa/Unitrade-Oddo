@@ -5,7 +5,7 @@
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  Lapisan 1: AUTENTIKASI                                         │
-│    ✓ OTP Email (6 digit, expired 10 menit)                      │
+│    ✓ OTP Email (6 digit, expired 5 menit)                       │
 │    ✓ Google OAuth 2.0 (SSO)                                     │
 │    ✓ Rate limiting OTP (3 request / 10 menit)                   │
 │    ✓ Blacklist email                                            │
@@ -31,6 +31,8 @@
 │    ✓ Idempotency webhook (deduplication)                        │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+> 💡 **Penjelasan diagram:** Setiap permintaan ke sistem UniTrade melewati lapisan-lapisan ini secara berurutan. Lapisan 1 memastikan identitas user valid. Lapisan 2 memastikan user punya role yang sesuai. Lapisan 3 memastikan role tersebut boleh melakukan aksi (baca/tulis/hapus). Lapisan 4 memastikan data yang diakses benar-benar milik user tersebut. Lapisan 5 khusus untuk keamanan transaksi finansial. Sistem yang hanya punya satu lapisan keamanan sangat rentan — UniTrade menggunakan 5 lapisan sehingga jika satu lapisan terlewati, lapisan berikutnya masih menghalangi.
 
 ---
 
@@ -91,6 +93,10 @@ class UnitradeAuthSignup(OAuthLogin):
         return response
 ```
 
+> 💡 **Penjelasan:** Kode ini mengimplementasikan alur login dua langkah (2FA sederhana menggunakan email OTP). Setelah password benar diverifikasi Odoo (`super().web_login()`), kita segera cek field `is_otp_verified` di tabel user. Jika `False`, berarti user belum pernah verifikasi OTP — kita paksa logout (`request.session.logout()`) dan redirect ke halaman OTP. Penting: logout dilakukan sebelum redirect, bukan setelahnya — ini mencegah jendela singkat di mana session sudah aktif tapi OTP belum diverifikasi. Setiap login berhasil juga dicatat ke `unitrade.security.activity` dengan IP address dan user agent untuk keperluan audit forensik.
+
+---
+
 ### B. Flow Signup dengan Validasi Berlapis
 
 ```python
@@ -142,6 +148,10 @@ def web_auth_signup(self, *args, **kw):
             return self._generate_and_redirect_otp(user_sudo, login_value)
 ```
 
+> 💡 **Penjelasan:** Registrasi melewati empat pagar sebelum akun dibuat. Ini bukan sekadar validasi form biasa — masing-masing punya tujuan keamanan spesifik. Validasi email format mencegah data sampah masuk ke database. Cek blacklist mencegah email yang pernah disalahgunakan (spammer, akun palsu) mendaftar ulang. Pengecekan persetujuan Terms merupakan syarat hukum agar pengguna sadar telah menyetujui kebijakan platform. reCaptcha mencegah bot membuat ratusan akun secara otomatis. Baru setelah semua ini lulus, akun dibuat. Setiap langkah juga dicatat ke audit trail sehingga ada bukti hukum bahwa user benar-benar menyetujui syarat ketentuan pada timestamp tertentu.
+
+---
+
 ### C. Rate Limiting OTP (Anti-Spam)
 
 ```python
@@ -162,6 +172,10 @@ if not limit['allowed']:
 # Baru generate OTP jika lolos rate limit
 otp_record = otp_model.generate_otp(user_id, email, purpose='account_verification')
 ```
+
+> 💡 **Penjelasan:** Tanpa rate limiting, penyerang bisa mengirim ribuan request OTP ke email korban (email flooding / spam attack) atau mencoba menebak kode OTP dengan brute force. Mekanisme ini membatasi satu user hanya boleh meminta OTP maksimal 3 kali dalam 10 menit. Jika melewati batas, sistem menolak permintaan tanpa generate kode baru. Implementasinya sederhana: sistem menghitung berapa baris di tabel `unitrade_otp` yang dibuat oleh `user_id` yang sama dalam 10 menit terakhir. Jika jumlahnya ≥ 3, request ditolak.
+
+---
 
 ### D. Audit Trail Keamanan
 
@@ -201,6 +215,8 @@ class UnitradeSecurityActivity(models.Model):
         })
 ```
 
+> 💡 **Penjelasan:** Model ini adalah "buku catatan keamanan" UniTrade. Setiap kejadian penting (login, registrasi, perubahan password, penghapusan akun) dicatat secara permanen dengan timestamp, IP address, dan informasi browser. Data ini sangat berharga untuk tiga skenario: (1) investigasi insiden keamanan — jika ada akun yang dibobol, kita bisa melihat dari IP mana login terjadi; (2) compliance/audit — membuktikan bahwa user benar-benar menyetujui terms pada tanggal tertentu; (3) forensik — jika ada aktivitas mencurigakan, admin bisa melihat timeline lengkap aktivitas seorang user. Field `ondelete='cascade'` berarti jika akun user dihapus, catatan aktivitasnya juga ikut dihapus (kecuali pada proses anonimisasi yang tetap mempertahankan record).
+
 ---
 
 ## Lapisan 2: Security Groups (Role)
@@ -238,6 +254,10 @@ class UnitradeSecurityActivity(models.Model):
 </record>
 ```
 
+> 💡 **Penjelasan:** File XML ini mendefinisikan hierarki role UniTrade di Odoo. `ir.module.category` adalah "nama folder" di menu Settings → Users & Companies → Groups — membantu admin mengorganisir banyak group. Yang menarik adalah field `implied_ids` pada group Admin: ini berarti siapapun yang di-assign ke group `group_unitrade_admin` secara otomatis juga mendapat semua hak dari `group_unitrade_seller`. Admin tidak perlu di-assign ke dua group sekaligus — ini mencegah human error (lupa assign satu group) dan memudahkan manajemen. Sintaks `(4, ref('group_unitrade_seller'))` adalah sintaks khusus Odoo untuk Many2many: angka `4` berarti "tambahkan relasi ke record dengan ID ini".
+
+---
+
 ### Hierarki Role Lengkap
 
 ```
@@ -258,6 +278,10 @@ unitrade_seller.group_unitrade_admin (Administrator UniTrade)
 base.group_system (Odoo Technical Admin)
     Bisa: semua hal termasuk konfigurasi teknis server
 ```
+
+> 💡 **Penjelasan:** Diagram ini menunjukkan bagaimana seseorang "naik level" di UniTrade. Setiap level mewarisi semua kemampuan level di bawahnya, ditambah kemampuan baru. Yang penting diperhatikan: untuk naik dari Pembeli ke Penjual, diperlukan verifikasi KTM yang tidak bisa dilewati (OCR + review admin). Ini adalah "pintu gerbang" utama yang memastikan hanya mahasiswa UNISA aktif yang bisa berjualan. Role Admin tidak bisa diraih oleh user biasa — hanya Odoo Superuser yang bisa mengangkat seseorang menjadi admin, dan ini dilakukan secara manual oleh pengelola sistem.
+
+---
 
 ### Pengecekan Role di Controller
 
@@ -292,6 +316,8 @@ def _unitrade_is_admin(self, user=None):
         user.has_group('base.group_system')
     )
 ```
+
+> 💡 **Penjelasan:** Perhatikan bahwa pengecekan role dilakukan di DUA tempat: di Controller (line `_is_admin()`) dan di Model (`_unitrade_is_admin()`). Mengapa dua kali? Defense in depth — bahkan jika seseorang berhasil memanggil method model secara langsung (misalnya via Odoo RPC), pengecekan di level model tetap menghalangi. `user.has_group('nama.group')` adalah cara idiomatik Odoo untuk cek keanggotaan group — Odoo secara internal melakukan JOIN ke tabel `res_groups_users_rel` di PostgreSQL. Jika akses ditolak, sistem me-render halaman "forbidden" yang informatif, bukan menampilkan error 500 yang membingungkan.
 
 ---
 
@@ -332,6 +358,8 @@ access_seller_verif_admin,seller.verif.admin,model_unitrade_seller_verification,
 - `perm_create = 1` → boleh INSERT / create()
 - `perm_unlink = 1` → boleh DELETE / unlink()
 
+> 💡 **Penjelasan:** File CSV ini adalah "matriks izin" yang menentukan siapa boleh melakukan apa terhadap setiap tabel. Setiap baris mewakili satu aturan akses. Angka `0` dan `1` di empat kolom terakhir seperti saklar on/off untuk operasi Read, Write, Create, Delete. Contoh nyata: Seller bisa membuat dan mengedit tokonya (`1,1,1,0`) tapi tidak bisa menghapusnya (unlink = `0`) — ini melindungi integritas data histori. User biasa sama sekali tidak bisa mengakses tabel seller (`0,0,0,0`) — bahkan operasi baca pun dilarang. Jika user yang tidak berhak mencoba mengakses model ini via ORM, Odoo akan otomatis melempar exception `AccessError` tanpa perlu kode pengecekan tambahan di controller.
+
 ---
 
 ## Lapisan 4: Record Rules (Row-Level Security)
@@ -371,6 +399,8 @@ access_seller_verif_admin,seller.verif.admin,model_unitrade_seller_verification,
 </record>
 ```
 
+> 💡 **Penjelasan:** Record Rule adalah mekanisme keamanan di level baris data (row-level security), berbeda dari ACL yang bekerja di level tabel. ACL menjawab "apakah user ini boleh mengakses tabel ini?", sedangkan Record Rule menjawab "baris mana saja yang boleh dilihat user ini?". Field `domain_force` berisi filter Odoo domain yang **otomatis disisipkan ke SETIAP query SQL** untuk group yang ditentukan. Artinya, developer tidak perlu ingat untuk menambahkan filter `user_id = ...` di setiap baris kode — Odoo melakukannya secara transparan. Domain `(1, '=', 1)` adalah trik untuk "tidak ada filter" (selalu true), digunakan untuk admin yang perlu lihat semua data.
+
 **Demonstrasi efek Record Rule:**
 ```python
 # Seller A (user.id = 5) menjalankan kode ini:
@@ -387,6 +417,8 @@ shops = request.env['unitrade.seller'].search([])
 # SELECT * FROM unitrade_seller WHERE (1 = 1)  ← tidak ada filter
 # Hasilnya: SEMUA toko dari semua seller
 ```
+
+> 💡 **Penjelasan:** Inilah kekuatan Record Rule — keamanan berjalan secara otomatis tanpa developer perlu menulis filter di setiap controller atau service. Bahkan jika developer lupa menambahkan domain filter di kode mereka, Record Rule tetap memproteksi data. Ini mengurangi risiko "security by mistake" di mana keamanan bergantung pada ingatan developer. Kode yang sama (`search([])`) menghasilkan SQL yang berbeda tergantung siapa yang menjalankannya — itulah transparansi yang disediakan oleh ORM Odoo.
 
 ---
 
@@ -427,6 +459,10 @@ def _validate_midtrans_signature(self, payload):
     return str(signature).lower() == expected.lower()
 ```
 
+> 💡 **Penjelasan:** Endpoint webhook (`/unitrade/payment/midtrans/webhook`) menggunakan `auth='none'` — artinya siapapun bisa mengirim POST ke sana tanpa perlu login. Ini diperlukan karena yang mengirim adalah server Midtrans, bukan browser user. Namun hal ini membuka celah: penyerang bisa mengirim POST palsu yang mengklaim "order sudah dibayar" tanpa benar-benar membayar. Validasi signature SHA-512 menutup celah ini. Hanya pihak yang mengetahui `server_key` (rahasia antara UniTrade dan Midtrans) yang bisa menghasilkan signature yang benar. SHA-512 dipilih karena sangat sulit di-reverse (tidak bisa mengetahui `server_key` dari signature yang dihasilkan) dan resisten terhadap collision attack.
+
+---
+
 ### B. Row-Level Locking (Mencegah Race Condition)
 
 ```python
@@ -451,6 +487,10 @@ def _unitrade_lock_payment_order_row(self):
     )
 ```
 
+> 💡 **Penjelasan:** Race condition adalah bug yang hanya muncul ketika dua request terjadi hampir bersamaan — sangat sulit direproduksi tapi bisa sangat mahal dampaknya (double payment, double order). Analoginya: bayangkan dua kasir di toko yang sama-sama mengambil barang terakhir dari rak secara bersamaan karena keduanya melihat stok = 1. `SELECT FOR UPDATE` adalah instruksi ke PostgreSQL untuk mengunci baris tersebut: "jangan izinkan transaksi lain membaca atau mengubah baris ini sampai saya selesai". Transaksi lain yang mencoba mengakses baris yang dikunci akan diblokir (menunggu) sampai kunci dilepas. Hasilnya: operasi kritis seperti pembuatan payment intent dijamin hanya terjadi sekali meskipun ada seratus request bersamaan.
+
+---
+
 ### C. Idempotency Webhook
 
 ```python
@@ -473,6 +513,8 @@ event = event_env.create({
 # ... proses pembayaran ...
 event.write({'state': 'processed'})
 ```
+
+> 💡 **Penjelasan:** Idempotency berarti "melakukan operasi yang sama berkali-kali menghasilkan hasil yang sama seperti melakukannya sekali". Midtrans memiliki mekanisme retry — jika server kita tidak merespons dalam waktu tertentu (misalnya karena restart), Midtrans akan mengirim webhook yang sama lagi. Tanpa idempotency, order bisa diproses dua kali: saldo escrow ter-double, notifikasi dikirim dua kali, dll. Dengan menyimpan `event_key` (kombinasi unik dari provider + order_id + status) ke database dan mengeceknya sebelum proses, kita memastikan setiap event unik hanya diproses tepat satu kali. Response `{'duplicate': True}` tetap mengembalikan HTTP 200 agar Midtrans tidak terus-menerus retry.
 
 ---
 
@@ -525,3 +567,5 @@ def unitrade_privacy_deactivate(self, reason=False, ip_address=False, user_agent
             ip_address=ip_address,
         )
 ```
+
+> 💡 **Penjelasan:** Menghapus akun pengguna di sistem marketplace lebih kompleks dari sekedar `DELETE FROM res_users WHERE id = ?`. Histori transaksi (sale.order) yang terhubung ke akun tersebut masih dibutuhkan untuk keperluan akuntansi, audit pajak, dan penyelesaian dispute. Jika kita hard-delete akun, semua relasi database akan rusak (foreign key constraint violation). Solusinya adalah **anonimisasi (anonymization)**: data identitas personal dihapus (nama → "Pengguna Dihapus", email → NULL), tapi record akun dan transaksinya tetap ada. `active = False` adalah "soft delete" Odoo — akun tidak muncul di pencarian normal, tidak bisa login, tapi record-nya masih ada di database. Kode acak `anonymized_ref` memungkinkan audit internal (mengetahui record ini pernah ada) tanpa mengekspos identitas aslinya.

@@ -16,7 +16,7 @@ FAQ_ITEMS = [
     },
     {
         "id": "ktm-verification",
-        "question": "Kenapa saya wajib verifikasi KTM untuk jualan?",
+        "question": "Kenapa saya wajib verifikasi KTM untuk di UNISAAAAAAAAAAA?",
         "answer": (
             "Verifikasi KTM diperlukan untuk memastikan bahwa penjual adalah mahasiswa aktif. Ini membantu "
             "menjaga keamanan dan kepercayaan antar pengguna. Data KTM hanya digunakan untuk verifikasi dan "
